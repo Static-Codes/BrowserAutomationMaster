@@ -1,0 +1,11 @@
+feature "bypass-cloudflare"
+click "css-selector"
+feature "use-socks4-proxy"
+click-button "button-selector"
+get-text "example-selector"
+fill-textbox "textbox-selector"
+select-dropdown "dropdown-selector"
+select-dropdown-element "dropdown-element-selector"
+save-as-html "filename.html"
+take-screenshot "filename.png"
+wait-for-seconds 5

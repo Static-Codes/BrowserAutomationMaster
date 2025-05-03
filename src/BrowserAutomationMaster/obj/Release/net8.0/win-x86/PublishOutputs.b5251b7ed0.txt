@@ -1,0 +1,2 @@
+C:\Users\Nerdy\source\repos\BrowserAutomationMaster\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\BrowserAutomationMaster.pdb
+C:\Users\Nerdy\source\repos\BrowserAutomationMaster\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\BrowserAutomationMaster.exe
