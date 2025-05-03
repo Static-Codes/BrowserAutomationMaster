@@ -1,0 +1,21 @@
+{
+    "Actions": {
+        "click": "Clicks the specified button element",
+        "click-button": "Alternative to click, use this if click is causing issues for buttons",
+        "get-text": "Gets the text for a specified element.",
+        "fill-textbox": "Fills the selected textbox with the specified value.",
+        "select-dropdown": "Selects a dropdown menu (<select><option></option></select>",
+        "select-dropdown-element": "Selects an element from within a dropdown menu.",
+        "save-as-html": "Saves the current pages HTML to a file with the specified name.",
+        "take-screenshot": "Takes a screenshot of the browser after executing the previous line.",
+        "visit": "Visits a specified url.",
+        "wait-for-seconds": "Waits for the specified number of seconds before continuing."
+    },
+    "Features": {
+        "bypass-cloudflare": "Instructs the browser to use a more advanced approach to bypass cloudflare",
+        "use-http-proxy": "Uses the entered http proxy for the session.",
+        "use-https-proxy": "Uses the entered https proxy for the session.",
+        "use-socks4-proxy": "Uses the entered socks4 proxy for the session.",
+        "use-socks5-proxy": "Uses the entered socks5 proxy for the session."
+    }
+}
