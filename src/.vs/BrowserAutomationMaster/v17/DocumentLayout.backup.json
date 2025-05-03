@@ -13,6 +13,10 @@
     {
       "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\source\\repos\\browserautomationmaster\\browserautomationmaster\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\source\\repos\\browserautomationmaster\\browserautomationmaster\\features.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\features.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,34 +26,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 4,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Parser.cs",
-              "DocumentMoniker": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Parser.cs",
-              "RelativeDocumentMoniker": "BrowserAutomationMaster\\Parser.cs",
-              "ToolTip": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Parser.cs",
-              "RelativeToolTip": "BrowserAutomationMaster\\Parser.cs",
-              "ViewState": "AgIAACIAAAAAAAAAAAAQwKgAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-01T23:44:25.08Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Instructions.cs",
-              "DocumentMoniker": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Instructions.cs",
-              "RelativeDocumentMoniker": "BrowserAutomationMaster\\Instructions.cs",
-              "ToolTip": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Instructions.cs",
-              "RelativeToolTip": "BrowserAutomationMaster\\Instructions.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-01T23:44:45.54Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
@@ -68,15 +46,74 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Parser.cs",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Parser.cs",
+              "RelativeDocumentMoniker": "BrowserAutomationMaster\\Parser.cs",
+              "ToolTip": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Parser.cs",
+              "RelativeToolTip": "BrowserAutomationMaster\\Parser.cs",
+              "ViewState": "AgIAAOEAAAAAAAAAAAAQwPoAAAACAQAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-01T23:44:25.08Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Instructions.cs",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Instructions.cs",
+              "RelativeDocumentMoniker": "BrowserAutomationMaster\\Instructions.cs",
+              "ToolTip": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Instructions.cs",
+              "RelativeToolTip": "BrowserAutomationMaster\\Instructions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-01T23:44:45.54Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Program.cs",
               "RelativeDocumentMoniker": "BrowserAutomationMaster\\Program.cs",
               "ToolTip": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Program.cs",
               "RelativeToolTip": "BrowserAutomationMaster\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-01T23:43:23.435Z",
+              "WhenOpened": "2025-05-01T23:43:23.435Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "FloatingWindowState": {
+        "Id": "8380dfab-22f9-4141-8a27-9f08549faef5",
+        "Display": 1,
+        "X": 290,
+        "Y": 282,
+        "Width": 1612,
+        "Height": 792,
+        "WindowState": 0
+      },
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Features.json",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Features.json",
+              "RelativeDocumentMoniker": "BrowserAutomationMaster\\Features.json",
+              "ToolTip": "C:\\Users\\Nerdy\\source\\repos\\BrowserAutomationMaster\\BrowserAutomationMaster\\Features.json",
+              "RelativeToolTip": "BrowserAutomationMaster\\Features.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-02T17:49:52.676Z",
               "EditorCaption": ""
             }
           ]

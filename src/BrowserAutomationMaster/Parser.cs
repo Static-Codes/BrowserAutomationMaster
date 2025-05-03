@@ -4,11 +4,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace BrowserAutomationMaster
 {
-    public class Parser
+    public partial class Parser
     {
         public enum MenuOption
         {
@@ -20,11 +21,20 @@ namespace BrowserAutomationMaster
          
 
         readonly static string[] actionArgs = ["click", "click-button", "get-text", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", "take-screenshot", "wait-for-seconds", "visit"];
-        readonly static string[] featureArgs = ["bypass-cloudflare", "use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
+        readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
+        readonly static string[] otherFeatureArgs = ["bypass-cloudflare"];
+        readonly static string[] featureArgs = [.. proxyFeatureArgs, .. otherFeatureArgs];
         readonly static string[] validArgs = [.. actionArgs, .. featureArgs];
         readonly static string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         readonly static string configDirectory = Path.Combine([baseDirectory, "config"]);
-        
+        const string ProxyFormatPattern = @"^([^:]+):([^@]+)@([^:]+):(\d+)$";
+
+        // Researched from: https://blog.nimblepros.com/blogs/using-generated-regex-attribute/
+        // Source generation is used here at build time to create an optimized regex code block, which is then converted into MSIL prior to runtime; reducing overhead and improving efficiency.
+
+        [GeneratedRegex(ProxyFormatPattern)]
+        private static partial Regex PrecompiledProxyRegex(); 
+
         public static void New()
         {
             bool configDirectoryExists = CreateConfigDirectory();
@@ -124,51 +134,82 @@ namespace BrowserAutomationMaster
         {
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
         }
+        
+        public static bool IsValidProxyFormat(string proxyString)
+        {
+            if (string.IsNullOrWhiteSpace(proxyString))  { return false; }
+            return PrecompiledProxyRegex().IsMatch(proxyString);
+        }
 
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
             string[] lineArgs = line.Split(" ");
             string firstArg = lineArgs[0];
+            string selectorString = "\"css-selector\""; // Defaults to "css-selector" for selector based actions
             switch (firstArg)
             {
                 case "click" or "click-button" or "get-text" or "fill-textbox" or "select-dropdown" or "select-dropdown-element" or "save-as-html" or "take-screenshot" or "visit":
-                    string selectorString = "\"css-selector\""; // Defaults to "css-selector" for selector based actions
                     if (firstArg.Equals("save-as-html")) { selectorString = "filename.html"; }
                     if (firstArg.Equals("take-screenshot")) { selectorString = "filename.png"; }
 
                     if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
                     {
-                        Console.WriteLine($"[File \"{fileName}\"]:\nInvalid Line [Line {lineNumber}]:\n{line}\n\nCValid Syntax:\n{firstArg} {selectorString}");
+                        Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n");
                         return false;
                     }
                     return true;
 
                 case "wait-for-seconds":
+                    selectorString = "5";
                     if (lineArgs.Length != 2 || !int.TryParse(lineArgs[1], out int seconds) || seconds < 1)
                     {
-                        Console.WriteLine($"[File \" {fileName} \"]:\nInvalid Line [Line {lineNumber}]:\n{line}\n\nValid Syntax:\n{firstArg} 5");
+                        Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n");
                         return false;
                     }
                     return true;
 
                 case "feature":
-                    if (lineArgs.Length != 2 || !featureArgs.Contains(lineArgs[1]) || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
+                    if (lineArgs.Length != 2 && lineArgs.Length != 3 || !featureArgs.Contains(lineArgs[1]) || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
                     {
-                        Console.WriteLine($"[File \" {fileName} \"]:\nInvalid Line [Line {lineNumber}]:\n{line}\n\nValid Syntax:\n{firstArg} \"feature-name\"");
+                        selectorString = "\"feature-name\"";
+                        Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n");
                         return false;
                     }
+                    string[] proxyFeatures = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
+                    if (proxyFeatures.Contains(lineArgs[1]))
+                    {
+                        if (lineArgs.Length != 3 || lineArgs[2].Count(c => (c == ':')) != 2 || lineArgs[2].Count(c => (c == '@')) != 1)
+                        {
+                            selectorString = $"\"{lineArgs}\"";
+                            Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n");
+                            return false;
+                        }
 
+                        lineArgs[2] = lineArgs[2].Replace('"', ' ').Trim();
+                        Console.WriteLine(lineArgs[2]);
+                        bool validProxy = IsValidProxyFormat(lineArgs[2]);
+                        if (!validProxy)
+                        {
+                            Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n");
+                            return false;
+                        }
+                        
+
+                    }
 
                     return true;
 
+                
+
                 default:
-                    Console.WriteLine("Implement Me");
+                    Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid command on line {lineNumber}.\nPlease check your spelling and try again.\n");
                     return false;
 
             }
         }
         public static bool IsValidFile(string filePath)
         {
+            List<string> usedFeatures = [];
             string fileName = Path.GetFileName(filePath);
             try 
             {
@@ -176,14 +217,44 @@ namespace BrowserAutomationMaster
                 bool featureBlockFinished = false;
                 for (int i = 0; i < lines.Count; i++)
                 {
-                    var line = lines[i];
-                    if (line.StartsWith("feature"))
+                    string selectorString = "value";
+                    string line = lines[i];
+                    string[] lineArgs = line.Split(" ");
+                    if (lineArgs.Length == 0) { return false; }
+                    string firstArg = lineArgs[0];
+
+                    if (firstArg.Equals("feature"))
                     {
                         if (featureBlockFinished)
                         {
-                            Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid 'feature' command location on line {i}.\nAll 'feature' commands must be placed before any other command.");
+                            Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid 'feature' command location on line {i+1}.\nAll 'feature' commands must be placed before any other command.\n");
                             return false;
                         }
+                        if (usedFeatures.Contains(line))
+                        {
+                            Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nDuplicate command on line {i+1}:\n{line}\nAll 'feature' commands may only be defined once.\n");
+                            return false;
+                        }
+                        string[] proxyFeatures = ["\"use-http-proxy\"", "\"use-https-proxy\"", "\"use-socks4-proxy\"", "\"use-socks5-proxy\""];
+                        if (proxyFeatures.Contains(lineArgs[1]))
+                        {
+                            if (lineArgs.Length != 3 || lineArgs[2].Count(c => (c == ':')) != 2 || lineArgs[2].Count(c => (c == '@')) != 1)
+                            {
+                                selectorString = lineArgs[1];
+                                Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i+1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n");
+                                return false;
+                            }
+
+                            bool validProxy = IsValidProxyFormat(lineArgs[2]);
+                            if (!validProxy)
+                            {
+                                Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i+1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n");
+                                return false;
+                            }
+
+
+                        }
+                        usedFeatures.Add(line);
                     }
                     else
                     {
