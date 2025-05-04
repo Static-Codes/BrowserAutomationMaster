@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BrowserAutomationMaster")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+31849c6dbf94935673d3f4b64b530652943c77a4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9579a7114af9fa81e54fd2d8fee6a9d4b44d7c71")]
 [assembly: System.Reflection.AssemblyProductAttribute("BrowserAutomationMaster")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BrowserAutomationMaster")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

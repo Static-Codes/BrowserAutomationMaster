@@ -1,6 +1,6 @@
 feature "bypass-cloudflare"
-feature "use-socks4-proxy"
 click "css-selector"
+feature "use-socks4-proxy"
 click-button "button-selector"
 get-text "example-selector"
 fill-textbox "textbox-selector"
