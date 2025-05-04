@@ -148,13 +148,21 @@ namespace BrowserAutomationMaster
             string selectorString = "\"css-selector\""; // Defaults to "css-selector" for selector based actions
             switch (firstArg)
             {
-                case "click" or "click-button" or "get-text" or "fill-textbox" or "select-dropdown" or "select-dropdown-element" or "save-as-html" or "take-screenshot" or "visit":
+                case "click" or "click-button" or "get-text" or "select-dropdown" or "select-dropdown-element" or "save-as-html" or "take-screenshot" or "visit":
                     if (firstArg.Equals("save-as-html")) { selectorString = "filename.html"; }
                     if (firstArg.Equals("take-screenshot")) { selectorString = "filename.png"; }
 
                     if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
                     {
                         Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n");
+                        return false;
+                    }
+                    return true;
+
+                case "fill-textbox":
+                    if (lineArgs.Length != 3 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"') || !lineArgs[2].StartsWith('"') || !lineArgs[2].EndsWith('"'))
+                    {
+                        Console.WriteLine($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} \"value\"\n");
                         return false;
                     }
                     return true;
@@ -198,6 +206,7 @@ namespace BrowserAutomationMaster
                     }
 
                     return true;
+
 
                 
 
