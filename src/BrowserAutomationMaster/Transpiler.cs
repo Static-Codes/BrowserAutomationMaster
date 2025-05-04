@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace BrowserAutomationMaster
 {
     // Use https://github.com/bogdanfinn/tls-client
-    internal class Instructions
+    internal class Transpiler
     {
     }
 }
