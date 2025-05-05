@@ -26,6 +26,7 @@ namespace BrowserAutomationMaster
         readonly static string[] actionArgs = ["click", "click-button", "get-text", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", "take-screenshot", "wait-for-seconds", "visit"];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["bypass-cloudflare"];
+        readonly static string[] browserArgs = ["chrome", "chromium", "firefox", "safari", ];
         readonly static string[] featureArgs = [.. proxyFeatureArgs, .. otherFeatureArgs];
         readonly static string[] validArgs = [.. actionArgs, .. featureArgs];
         static string selectedFile = string.Empty;
@@ -42,11 +43,6 @@ namespace BrowserAutomationMaster
 
         [GeneratedRegex(ProxyFormatPattern)]
         private static partial Regex PrecompiledProxyRegex();
-
-
-        
-        
-
         public static bool CreateConfigDirectory()
         {
             if (configDirectory == null)
@@ -111,7 +107,7 @@ namespace BrowserAutomationMaster
             foreach (KeyValuePair<int, string> pair in validFilesMapping)
             {
                 int index = pair.Key; // Remove this comment after this is done; Remember to lower the parsed integer value by one before returning the file
-                string? rawFileName = null;
+                string? rawFileName;
                 try { rawFileName = Path.GetFileName(pair.Value); }
                 catch { rawFileName = null; }
                 if (rawFileName != null)
@@ -175,7 +171,6 @@ namespace BrowserAutomationMaster
             }
 
         }
-
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
             string[] lineArgs = line.Split(" ");
@@ -205,6 +200,13 @@ namespace BrowserAutomationMaster
                     if (lineArgs.Length != 2 || !int.TryParse(lineArgs[1], out int seconds) || seconds < 1)
                     {
                         return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
+                    }
+                    return true;
+
+                case "browser":
+                    if (lineArgs.Length != 2 || !browserArgs.Contains(lineArgs[1].Replace("\"", "")) || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
+                    {
+                        return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {"\"firefox\""}\n", false);
                     }
                     return true;
 
@@ -241,7 +243,6 @@ namespace BrowserAutomationMaster
 
             }
         }
-
         public static int HandleUserSelection(Dictionary<int, string> mapping)
         {
             Type desiredType = typeof(int);
@@ -302,6 +303,8 @@ namespace BrowserAutomationMaster
             {
                 List<string> lines = [.. File.ReadAllLines(filePath).Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line))];
                 bool featureBlockFinished = false;
+                bool browserBlockFinished = false;
+
                 for (int i = 0; i < lines.Count; i++)
                 {
                     string selectorString = "value";
@@ -309,12 +312,19 @@ namespace BrowserAutomationMaster
                     string[] lineArgs = line.Split(" ");
                     if (lineArgs.Length == 0) { return false; }
                     string firstArg = lineArgs[0];
-
-                    if (firstArg.Equals("feature"))
+                    if (firstArg.Equals("browser"))
+                    {
+                        if (i != 0 || browserBlockFinished)
+                        {
+                            return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid 'browser' command location on line {i + 1}.\n'browser' command must be placed at the top of the file.\n", false);
+                        }
+                        browserBlockFinished = true;
+                    }
+                    else if (firstArg.Equals("feature"))
                     {
                         if (featureBlockFinished)
                         {
-                            return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid 'feature' command location on line {i + 1}.\nAll 'feature' commands must be placed before any other command.\n", false);
+                            return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid 'feature' command location on line {i + 1}.\nAll 'feature' commands must be placed before any other command, except 'browser'.\n", false);
                         }
                         if (usedFeatures.Contains(line))
                         {
@@ -337,6 +347,8 @@ namespace BrowserAutomationMaster
                         }
                         usedFeatures.Add(line);
                     }
+
+                    
                     else
                     {
                         bool validLine = HandleLineValidation(fileName, line, i);
@@ -439,7 +451,6 @@ namespace BrowserAutomationMaster
                     break;
             }
         }
-
         public static void WriteErrorAndExit(string message, int status)
         {
             Console.WriteLine(message);
