@@ -25,17 +25,18 @@ namespace BrowserAutomationMaster
 
         readonly static string[] actionArgs = ["click", "click-button", "get-text", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", "take-screenshot", "wait-for-seconds", "visit"];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
-        readonly static string[] otherFeatureArgs = ["bypass-cloudflare"];
+        readonly static string[] otherFeatureArgs = ["browser", "bypass-cloudflare", "disable-pycache"];
         readonly static string[] browserArgs = ["chrome", "chromium", "firefox", "safari", ];
         readonly static string[] featureArgs = [.. proxyFeatureArgs, .. otherFeatureArgs];
         readonly static string[] validArgs = [.. actionArgs, .. featureArgs];
         static string selectedFile = string.Empty;
         static List<string> validFiles = [];
         
-
         readonly static Dictionary<int, string> validFilesMapping = [];
         readonly static string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        readonly static string configDirectory = Path.Combine([baseDirectory, "config"]);
+        readonly static string userScriptsDirectory = Path.Combine([baseDirectory, "userScripts"]);
+
+        static string noFilesFoundMessage = "";
         const string ProxyFormatPattern = @"^([^:]+):([^@]+)@([^:]+):(\d+)$";
 
         // Researched from: https://blog.nimblepros.com/blogs/using-generated-regex-attribute/
@@ -43,21 +44,27 @@ namespace BrowserAutomationMaster
 
         [GeneratedRegex(ProxyFormatPattern)]
         private static partial Regex PrecompiledProxyRegex();
-        public static bool CreateConfigDirectory()
+        public static bool CreateUserScriptsDirectory()
         {
-            if (configDirectory == null)
-            {
-                return false;
-            }
-            if (Directory.Exists(configDirectory))
-            {
-                return true;
-            }
+            if (userScriptsDirectory == null) { return false; }
+            noFilesFoundMessage = $"""
+            BAM Manager (BAMM) was unable to find any valid .bamc files.
+                
+            Please check the 'userScripts' directory and contains atleast one .bamc file!
+
+            Location: {userScriptsDirectory}
+
+            If this directory wasn't already created please rerun this application.
+
+            Press any key to exit...
+            """;
+
+            if (Directory.Exists(userScriptsDirectory)) { return true; }
             else
             {
                 try
                 {
-                    Directory.CreateDirectory(configDirectory);
+                    Directory.CreateDirectory(userScriptsDirectory);
                     return true;
                 }
                 catch (ArgumentNullException ane)
@@ -106,7 +113,7 @@ namespace BrowserAutomationMaster
             Console.ForegroundColor = ConsoleColor.DarkGreen;
             foreach (KeyValuePair<int, string> pair in validFilesMapping)
             {
-                int index = pair.Key; // Remove this comment after this is done; Remember to lower the parsed integer value by one before returning the file
+                int index = pair.Key + 1;
                 string? rawFileName;
                 try { rawFileName = Path.GetFileName(pair.Value); }
                 catch { rawFileName = null; }
@@ -124,7 +131,7 @@ namespace BrowserAutomationMaster
         {
             try
             {
-                return [.. Directory.GetFiles(configDirectory).Where(x => x.ToLower().EndsWith(".bamc"))];
+                return [.. Directory.GetFiles(userScriptsDirectory).Where(x => x.ToLower().EndsWith(".bamc"))];
             }
             catch (Exception ex)
             {
@@ -147,27 +154,15 @@ namespace BrowserAutomationMaster
 
         public static void HandleBAMCFileValidation(string[] BAMCFiles)
         {
-            string noFilesFoundMessage = $"""
-                BAM Manager (BAMM) was unable to find any valid .bamc files.
-                
-                Please check the 'config' directory and contains atleast one .bamc file!
-
-                Config Directory: {configDirectory}
-
-                If this directory wasn't already created please add a new folder named 'config' inside the same directory as this executable.
-
-                Press any key to exit...
-            """;
-
             validFiles = [.. ValidateBAMCFiles(BAMCFiles)];
             if (validFiles.Count == 0)
             {
-                WriteErrorAndExit(noFilesFoundMessage, 1);
+                Errors.WriteErrorAndExit(noFilesFoundMessage, 1);
             }
             CreateValidFilesMapping(validFiles);
             if (validFilesMapping.Count == 0)
             {
-                WriteErrorAndExit(noFilesFoundMessage, 1);
+                Errors.WriteErrorAndExit(noFilesFoundMessage, 1);
             }
 
         }
@@ -184,14 +179,14 @@ namespace BrowserAutomationMaster
 
                     if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
                     {
-                        return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
+                        return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
                     }
                     return true;
 
                 case "fill-textbox":
                     if (lineArgs.Length != 3 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"') || !lineArgs[2].StartsWith('"') || !lineArgs[2].EndsWith('"'))
                     {
-                        return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} \"value\"\n", false);
+                        return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} \"value\"\n", false);
                     }
                     return true;
 
@@ -199,14 +194,14 @@ namespace BrowserAutomationMaster
                     selectorString = "5";
                     if (lineArgs.Length != 2 || !int.TryParse(lineArgs[1], out int seconds) || seconds < 1)
                     {
-                        return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
+                        return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
                     }
                     return true;
 
                 case "browser":
                     if (lineArgs.Length != 2 || !browserArgs.Contains(lineArgs[1].Replace("\"", "")) || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
                     {
-                        return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {"\"firefox\""}\n", false);
+                        return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {"\"firefox\""}\n", false);
                     }
                     return true;
 
@@ -214,7 +209,7 @@ namespace BrowserAutomationMaster
                     if (lineArgs.Length != 2 && lineArgs.Length != 3 || !featureArgs.Contains(lineArgs[1]) || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
                     {
                         selectorString = "\"feature-name\"";
-                        return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
+                        return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
                     }
                     string[] proxyFeatures = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
                     if (proxyFeatures.Contains(lineArgs[1]))
@@ -222,14 +217,14 @@ namespace BrowserAutomationMaster
                         if (lineArgs.Length != 3 || lineArgs[2].Count(c => (c == ':')) != 2 || lineArgs[2].Count(c => (c == '@')) != 1)
                         {
                             selectorString = $"\"{lineArgs}\"";
-                            return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
+                            return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
                         }
 
                         lineArgs[2] = lineArgs[2].Replace('"', ' ').Trim();
                         bool validProxy = IsValidProxyFormat(lineArgs[2]);
                         if (!validProxy)
                         {
-                            return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
+                            return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
                         }
 
 
@@ -238,7 +233,7 @@ namespace BrowserAutomationMaster
                     return true;
 
                 default:
-                    return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid command on line {lineNumber}.\nPlease check your spelling and try again.\n", false);
+                    return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid command on line {lineNumber}.\nPlease check your spelling and try again.\n", false);
 
 
             }
@@ -246,21 +241,10 @@ namespace BrowserAutomationMaster
         public static int HandleUserSelection(Dictionary<int, string> mapping)
         {
             Type desiredType = typeof(int);
-            string noFilesFoundMessage = $"""
-                BAM Manager (BAMM) was unable to find any valid .bamc files.
-                
-                Please check the 'config' directory and contains atleast one .bamc file!
-
-                Config Directory: {configDirectory}
-
-                If this directory wasn't already created please add a new folder named 'config' inside the same directory as this executable.
-
-                Press any key to exit...
-            """.Trim();
 
             if (mapping.Count == 0)
             {
-                WriteErrorAndExit(noFilesFoundMessage, 1);
+                Errors.WriteErrorAndExit(noFilesFoundMessage, 1);
             }
 
             int numberOfFilesFound = mapping.Count;
@@ -268,7 +252,7 @@ namespace BrowserAutomationMaster
             string inputText = string.Empty;
             foreach (KeyValuePair<int, string> pair in mapping)
             {
-                int index = pair.Key; // Remove this comment after this is done; Remember to lower the parsed integer value by one before returning the file
+                int index = pair.Key + 1;
                 string? rawFileName = null;
                 try { rawFileName = Path.GetFileName(pair.Value); }
                 catch { rawFileName = null; }
@@ -278,15 +262,15 @@ namespace BrowserAutomationMaster
                 }
             }
 
-            if (inputText == string.Empty) { WriteErrorAndExit(noFilesFoundMessage, 1); }
+            if (inputText == string.Empty) { Errors.WriteErrorAndExit(noFilesFoundMessage, 1); }
 
-            inputText = $"BAM Manager (BAMM) was able to locate {numberOfFilesFound} valid .bamc files!\n\n{inputText}\n\nPlease enter the number corresponding to your desired file [Between 1-{numberOfFilesFound}]: ";
+            inputText = $"{inputText}\n\nPlease enter the number corresponding to your desired file [Between 1-{numberOfFilesFound}]: ";
             string panicText = $"BAM Manager (BAMM) panicked due an invalid value provided as input.  Value must be between 1 and {numberOfFilesFound}\n\n{inputText}";
             
 
             while (true)
             {
-                object? rawInput = WriteTextAndReturnInputType(inputText, panicText, desiredType, true); // This will run until valid input is provided.
+                object? rawInput = Input.WriteTextAndReturnInputType(inputText, panicText, desiredType, true); // This will run until valid input is provided.
                 if (rawInput != null && rawInput.GetType() == desiredType) 
                 {
                     int fileNumber = (int) rawInput; //
@@ -316,7 +300,7 @@ namespace BrowserAutomationMaster
                     {
                         if (i != 0 || browserBlockFinished)
                         {
-                            return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid 'browser' command location on line {i + 1}.\n'browser' command must be placed at the top of the file.\n", false);
+                            return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid 'browser' command location on line {i + 1}.\n'browser' command must be placed at the top of the file.\n", false);
                         }
                         browserBlockFinished = true;
                     }
@@ -324,11 +308,11 @@ namespace BrowserAutomationMaster
                     {
                         if (featureBlockFinished)
                         {
-                            return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid 'feature' command location on line {i + 1}.\nAll 'feature' commands must be placed before any other command, except 'browser'.\n", false);
+                            return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid 'feature' command location on line {i + 1}.\nAll 'feature' commands must be placed before any other command, except 'browser'.\n", false);
                         }
                         if (usedFeatures.Contains(line))
                         {
-                            return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nDuplicate command on line {i + 1}:\n{line}\nAll 'feature' commands may only be defined once.\n", false);
+                            return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nDuplicate command on line {i + 1}:\n{line}\nAll 'feature' commands may only be defined once.\n", false);
                         }
                         string[] proxyFeatures = ["\"use-http-proxy\"", "\"use-https-proxy\"", "\"use-socks4-proxy\"", "\"use-socks5-proxy\""];
                         if (proxyFeatures.Contains(lineArgs[1]))
@@ -336,13 +320,13 @@ namespace BrowserAutomationMaster
                             if (lineArgs.Length != 3 || lineArgs[2].Count(c => (c == ':')) != 2 || lineArgs[2].Count(c => (c == '@')) != 1)
                             {
                                 selectorString = lineArgs[1];
-                                return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
+                                return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
                             }
 
                             bool validProxy = IsValidProxyFormat(lineArgs[2]);
                             if (!validProxy)
                             {
-                                return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
+                                return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
                             }
                         }
                         usedFeatures.Add(line);
@@ -358,14 +342,14 @@ namespace BrowserAutomationMaster
                 }
                 return true;
             }
-            catch (FileNotFoundException) { return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nError: File not found: '{fileName}'.\n", false);  }
-            catch (UnauthorizedAccessException) {  return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nPermission was denied for '{fileName}'.\n", false); }
+            catch (FileNotFoundException) { return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nError: File not found: '{fileName}'.\n", false);  }
+            catch (UnauthorizedAccessException) {  return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nPermission was denied for '{fileName}'.\n", false); }
 
             // Handles locked files, network errors, etc.
-            catch (IOException ex) { return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nAn IO Exception occurred while validating: '{fileName}'\nError: {ex.Message}\n", false); }
+            catch (IOException ex) { return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nAn IO Exception occurred while validating: '{fileName}'\nError: {ex.Message}\n", false); }
             
             // General catchall (LOG MORE SEVERLY IF HIT) 
-            catch (Exception ex){ return WriteErrorAndReturnBool($"BAMC Validation Error:\n\nAn unexpected error occurred while validating:'{fileName}'\nError: {ex.Message}\n", false); }
+            catch (Exception ex){ return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nAn unexpected error occurred while validating:'{fileName}'\nError: {ex.Message}\n", false); }
         }
         public static MenuOption Menu()
         {
@@ -381,8 +365,8 @@ namespace BrowserAutomationMaster
 
             Please select the number correlating to your desired action from the menu options below:
 
-            1. Compile BAMC File (With Validation)
-            2. Compile BAMC File (No Validation)
+            1. Compile BAMC File (No Validation)
+            2. Compile BAMC File (With Validation)
             3. Validate BAMC File (No Compilation)
             4. Help
 
@@ -402,117 +386,39 @@ namespace BrowserAutomationMaster
                 Console.WriteLine(invalidChoiceText);
             }
         }
-        public static void New()
+        public static string New()
         {
-            bool configDirectoryExists = CreateConfigDirectory();
-            if (!configDirectoryExists)
-            {
-                Console.WriteLine("An exception occured while attempting to create the BAMC directory.");
-                return;
-            }
-
-            string noFilesFoundMessage = $"""
-                BAM Manager (BAMM) was unable to find any .bamc files.
-                
-                Please check the 'config' directory and contains atleast one .bamc file!
-
-                Config Directory: {configDirectory}
-
-                If this directory wasn't already created please add a new folder named 'config' inside the same directory as this executable.
-
-                Press any key to exit...
-            """;
+            bool configDirectoryExists = CreateUserScriptsDirectory();
+            if (!configDirectoryExists) { return Errors.WriteErrorAndReturnEmptyString(noFilesFoundMessage); }
 
             string[] BAMCFiles = GetBAMCFiles();
-            if (BAMCFiles.Length == 0)
-            {
-                WriteErrorAndExit(noFilesFoundMessage, 1);
-            }
+            if (BAMCFiles.Length == 0) { return Errors.WriteErrorAndReturnEmptyString(noFilesFoundMessage); }
 
             MenuOption selection = Menu();
             int index;
             switch (selection)
             {
                 case MenuOption.Compile:
-                    break;
+                    return "";
 
                 case MenuOption.Compile_And_Validate:
                     HandleBAMCFileValidation(BAMCFiles);
                     index = HandleUserSelection(validFilesMapping);
                     selectedFile = BAMCFiles[index];
-                    break;
+                    return selectedFile;
 
                 case MenuOption.Validate:
                     HandleBAMCFileValidation(BAMCFiles);
                     DisplayValidFiles();
-                    break;
+                    return "";
 
                 case MenuOption.Help:
-                    break;
-            }
-        }
-        public static void WriteErrorAndExit(string message, int status)
-        {
-            Console.WriteLine(message);
-            Console.ReadKey();
-            Environment.Exit(status);
-        }
-        public static bool WriteErrorAndReturnBool(string message, bool returnBool)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(message);
-            Console.ForegroundColor = ConsoleColor.White;
-            return returnBool;
-        }
-        public static string? WriteTextAndReturnRawInput(string inputMessage)
-        {
-            Console.WriteLine(inputMessage);
-            return Console.ReadLine();
-        }
-        public static object? WriteTextAndReturnInputType(string inputMessage, string panicMessage, Type desiredType, bool repeatUntilValid = false)
-        {
-            string? rawInputString;
-            if (desiredType == null)
-            {
-                WriteErrorAndExit($"Invalid type provided to WriteTextAndReturnInputType(.., .., {desiredType}).\nIf you are seeing this there is invalid code written and it should be addressed immediately ", 1);
+                    return "";
             }
 
-            while (true)
-            {
-                rawInputString = WriteTextAndReturnRawInput(inputMessage);
-
-                if (rawInputString != null)
-                {
-                    if (desiredType == typeof(int))
-                    {
-                        try { return Convert.ToInt32(rawInputString); }
-                        catch {
-                            if (!repeatUntilValid)
-                            {
-                                return null;
-                            }
-                        }
-                    }
-                    else if (desiredType == typeof(string))
-                    {
-                        try { return rawInputString; }
-                        catch {
-                            if (!repeatUntilValid)
-                            {
-                                return null;
-                            }
-                        }
-                    }
-
-                }
-                if (!repeatUntilValid)
-                {
-                    return null;
-                }
-                inputMessage = panicMessage; // Starts writing the panic message instead of the initial input message.
-            }
-
+            return "This should never be triggered";
         }
+        
     }
 
     

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BrowserAutomationMaster")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+943da0741d5c30759f63c8cd399e2b41af1dc50c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+62c1c9896a99e6a0aab9e22c65fdd6934a600c69")]
 [assembly: System.Reflection.AssemblyProductAttribute("BrowserAutomationMaster")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BrowserAutomationMaster")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

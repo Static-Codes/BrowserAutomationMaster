@@ -12,14 +12,15 @@
         "wait-for-seconds": "Waits for the specified number of seconds before continuing."
     },
     "Features": {
+        "browser": "This MUST be the first valid line of the file; If not supplied, defaults to firefox instance or user agent (depending on the other defined features)",
         "bypass-cloudflare": "Instructs the browser to use a more advanced approach to bypass cloudflare",
+        "disable-pycache":  "Instructs the compiler to disable the writing of the __pycache__ directory.  This directory is written by Visual Studio Code and contains .pyc files",
         "use-http-proxy": "Uses the entered http proxy for the session.",
         "use-https-proxy": "Uses the entered https proxy for the session.",
         "use-socks4-proxy": "Uses the entered socks4 proxy for the session.",
         "use-socks5-proxy": "Uses the entered socks5 proxy for the session."
     },
     "TODO": {
-        "browser":  "This MUST be the first valid line of the file; If not supplied, defaults to firefox instance or user agent (depending on the other defined features)",
         "start-javascript": "Instructs the parser to read all following lines as a .js code block, until end-javascript is found; Will throw an error if end-javascript is not found within the file.",
         "end-javascript": "Instructs the parser that the end of a javascript code block was reached.  An error will be thrown if end-javascript is not found within the file."
     }

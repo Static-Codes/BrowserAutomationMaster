@@ -50,8 +50,7 @@
               "RelativeToolTip": "BrowserAutomationMaster\\Features.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAACqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-05-04T19:47:00.911Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-04T19:47:00.911Z"
             },
             {
               "$type": "Document",
@@ -61,7 +60,7 @@
               "RelativeDocumentMoniker": "BrowserAutomationMaster\\Parser.cs",
               "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parser.cs",
               "RelativeToolTip": "BrowserAutomationMaster\\Parser.cs",
-              "ViewState": "AgIAAG0BAAAAAAAAAAAUwGoBAAA3AAAAAAAAAA==",
+              "ViewState": "AgIAAK0AAAAAAAAAAAA9wL8AAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-01T23:44:25.08Z",
               "EditorCaption": ""
@@ -76,8 +75,7 @@
               "RelativeToolTip": "BrowserAutomationMaster\\Transpiler.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-01T23:44:45.54Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-01T23:44:45.54Z"
             }
           ]
         }
