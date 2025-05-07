@@ -8,6 +8,13 @@ namespace BrowserAutomationMaster
 {
     internal class Errors
     {
+        public static void WriteErrorAndContinue(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
         public static void WriteErrorAndExit(string message, int status)
         {
             Console.WriteLine(message);
@@ -28,5 +35,7 @@ namespace BrowserAutomationMaster
             Console.ReadKey();
             return string.Empty;
         }
+
+        
     }
 }

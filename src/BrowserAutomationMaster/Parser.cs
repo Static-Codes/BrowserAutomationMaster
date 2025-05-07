@@ -23,7 +23,7 @@ namespace BrowserAutomationMaster
         }
 
 
-        readonly static string[] actionArgs = ["click", "click-button", "get-text", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", "take-screenshot", "wait-for-seconds", "visit"];
+        public readonly static string[] actionArgs = ["click", "click-button", "get-text", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", "take-screenshot", "wait-for-seconds", "visit"];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["browser", "bypass-cloudflare", "disable-pycache"];
         readonly static string[] browserArgs = ["chrome", "chromium", "firefox", "safari", ];
@@ -166,6 +166,7 @@ namespace BrowserAutomationMaster
             }
 
         }
+        
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
             string[] lineArgs = line.Split(" ");
@@ -238,6 +239,7 @@ namespace BrowserAutomationMaster
 
             }
         }
+        
         public static int HandleUserSelection(Dictionary<int, string> mapping)
         {
             Type desiredType = typeof(int);
@@ -279,6 +281,7 @@ namespace BrowserAutomationMaster
                 }
             }
         }
+        
         public static bool IsValidFile(string filePath)
         {
             List<string> usedFeatures = [];
@@ -351,6 +354,7 @@ namespace BrowserAutomationMaster
             // General catchall (LOG MORE SEVERLY IF HIT) 
             catch (Exception ex){ return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nAn unexpected error occurred while validating:'{fileName}'\nError: {ex.Message}\n", false); }
         }
+        
         public static MenuOption Menu()
         {
            Dictionary<int, MenuOption> menuOptionsMapping = new()
@@ -386,6 +390,7 @@ namespace BrowserAutomationMaster
                 Console.WriteLine(invalidChoiceText);
             }
         }
+        
         public static string New()
         {
             bool configDirectoryExists = CreateUserScriptsDirectory();
