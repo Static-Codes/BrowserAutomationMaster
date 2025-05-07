@@ -37,7 +37,7 @@ namespace BrowserAutomationMaster
 
         private static Dictionary<string, Dictionary<string, List<double>>> packageData = [];
 
-        public PackageManager(string packageName, string pythonVersion)
+        public static void New(string packageName, double pythonVersion)
         {
             if (packageName == null || !PrecompiledPackageRegex().IsMatch(packageName)) {
                 Errors.WriteErrorAndExit("Invalid packageName provided to PackageManager(), please check your spelling and try again.", 1);
@@ -50,6 +50,8 @@ namespace BrowserAutomationMaster
             }
             try { packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<double>>>>(jsonString)!; }
             catch (JsonException jsonEx){ Errors.WriteErrorAndExit($"Critical Error: Failed to parse package data from 'packages.json'. JSON is malformed: {jsonEx.Message}", 1); }
+            string version = GetSupportedPackageVersion(packageName!, pythonVersion) ?? "Not Found"; // C# requires notice that the value is for certain not nullable, thus the !
+            Console.WriteLine(version);
         }
 
         readonly static string baseURL = "https://pypi.org/project";
@@ -117,7 +119,6 @@ namespace BrowserAutomationMaster
 
         }
 
-
         public static List<double> GetSupportedPyVersions(string packageName, string packageVersion)
         {
 
@@ -128,7 +129,7 @@ namespace BrowserAutomationMaster
             }
             if (selectedPackageData == null || !selectedPackageData.TryGetValue(packageVersion, out List<double>? supportedPyVersions) || supportedPyVersions.Count == 0)
             {
-                Errors.WriteErrorAndExit($"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again,", 1);
+                Errors.WriteErrorAndExit($"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.", 1);
                 return [];
             }
             return supportedPyVersions;
@@ -136,26 +137,24 @@ namespace BrowserAutomationMaster
 
         }
 
-        public static List<string> GetSupportedPackageVersions(string packageName, double pythonVersion)
+        public static string? GetSupportedPackageVersion(string packageName, double pythonVersion)
         {
             if (!packageData.TryGetValue(packageName, out Dictionary<string, List<double>>? packageVersionMappings) || packageVersionMappings == null)
             {
-                Errors.WriteErrorAndExit($"Package '{packageName}' not found or has invalid data.", 1);
-                return [];
+                Errors.WriteErrorAndExit($"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.", 1);
+                return null;
             }
 
             List<string> supportedPackageVersions = [.. packageVersionMappings
-                .Where(kvp => kvp.Value != null && kvp.Value.Contains(pythonVersion))
-                .Select(kvp => kvp.Key)];
+                .Where(pair => pair.Value != null && pair.Value.Contains(pythonVersion))
+                .Select(pair => pair.Key)];
 
             if (supportedPackageVersions.Count == 0)
             {
-                Console.WriteLine($"Info: No versions of package '{packageName}' found that support Python {pythonVersion}.");
-                return supportedPackageVersions;
-
-
+                Console.WriteLine($"No versions of package '{packageName}' found that support Python {pythonVersion}.");
+                return null;
             }
-            return supportedPackageVersions;
+            return supportedPackageVersions.First();
         }
 
 
