@@ -25,7 +25,7 @@ namespace BrowserAutomationMaster
 
         public readonly static string[] actionArgs = ["click", "click-button", "get-text", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", "take-screenshot", "wait-for-seconds", "visit"];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
-        readonly static string[] otherFeatureArgs = ["browser", "bypass-cloudflare", "disable-pycache"];
+        readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache"];
         readonly static string[] browserArgs = ["chrome", "chromium", "firefox", "safari", ];
         readonly static string[] featureArgs = [.. proxyFeatureArgs, .. otherFeatureArgs];
         readonly static string[] validArgs = [.. actionArgs, .. featureArgs];
@@ -342,6 +342,9 @@ namespace BrowserAutomationMaster
                         if (!validLine) { return false; }
                         featureBlockFinished = true; // This flag will be used to ensure all feature commands are placed before all others.
                     }
+                }
+                if (usedFeatures.Any(x=>x.Contains("async")) && usedFeatures.Any(x=>x.Contains("bypass-cloudflare"))) {
+                    Errors.WriteErrorAndReturnBool("BAMC Validation Error:\n\nFile: \"{fileName}\"\n\nError: Script cannot contain both \"async\" and \"bypass-cloudflare\"", false);
                 }
                 return true;
             }
