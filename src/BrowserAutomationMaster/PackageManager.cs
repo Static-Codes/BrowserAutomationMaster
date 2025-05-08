@@ -14,17 +14,23 @@ namespace BrowserAutomationMaster
 {
     public class PackageJson
     {
+        // Fix this so it is properly escaped and matches Packages.json also test to ensure the new GetSupportedPackageVersion() works.
         readonly public static string jsonString = """
         {
-
-            "selenium": {
-                "4.32.0": [ 3.10, 3.11, 3.12 ]
+            "aiohttp": {
+                "3.11.18": [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
             },
-            "webdriver-manager": {
-                "4.0.2": [ 3.9, 3.10, 3.11 ]
+            "selenium": {
+                "4.32.0": [ "3.10", "3.11", "3.12" ]
+            },
+            "tls_client": {
+                "1.0.1": [ "3.9", "3.10", "3.11", "3.12" ]
+            },
+            "webdriver_manager": {
+                "4.0.2": [ "3.9", "3.10", "3.11" ]
             }
         }
-        """;
+    """;
     }
 
     public partial class PackageManager
@@ -35,9 +41,10 @@ namespace BrowserAutomationMaster
         [GeneratedRegex(packageFormatPattern)]
         private static partial Regex PrecompiledPackageRegex();
 
-        private static Dictionary<string, Dictionary<string, List<double>>> packageData = [];
+        readonly private static string malformedJSONMessage = "$BAM Manager: (BAMM) Failed to parse package data from 'packages.json'. JSON is malformed.";
+        private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];
 
-        public static void New(string packageName, double pythonVersion)
+        public static string New(string packageName, string pythonVersion)
         {
             if (packageName == null || !PrecompiledPackageRegex().IsMatch(packageName)) {
                 Errors.WriteErrorAndExit("Invalid packageName provided to PackageManager(), please check your spelling and try again.", 1);
@@ -48,10 +55,10 @@ namespace BrowserAutomationMaster
             if (string.IsNullOrEmpty(jsonString)) {
                 Errors.WriteErrorAndExit("Unable to parse packages.json, please ensure this file exists in the same directory as BAMM.exe", 1);
             }
-            try { packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<double>>>>(jsonString)!; }
-            catch (JsonException jsonEx){ Errors.WriteErrorAndExit($"Critical Error: Failed to parse package data from 'packages.json'. JSON is malformed: {jsonEx.Message}", 1); }
-            string version = GetSupportedPackageVersion(packageName!, pythonVersion) ?? "Not Found"; // C# requires notice that the value is for certain not nullable, thus the !
-            Console.WriteLine(version);
+            try { packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(jsonString)!; }
+            catch { Errors.WriteErrorAndExit(malformedJSONMessage, 1); }
+            string packageVersion = GetSupportedPackageVersion(packageName!, pythonVersion) ?? "Not Found"; // C# requires notice that the value is for certain not nullable, thus the !
+            return packageVersion; // "Not Found" should never be returned its purely to appease the compiler.
         }
 
         readonly static string baseURL = "https://pypi.org/project";
@@ -119,27 +126,25 @@ namespace BrowserAutomationMaster
 
         }
 
-        public static List<double> GetSupportedPyVersions(string packageName, string packageVersion)
+        public static List<string> GetSupportedPyVersions(string packageName, string packageVersion)
         {
 
-            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<double>>? selectedPackageData))
+            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? selectedPackageData))
             {
                 Errors.WriteErrorAndExit("Invalid packageName provided, please check your spelling and try again.", 1);
                 return []; // C# compiler is dumb, the function i wrote above will exit once done, but it doesnt know that since its static!
             }
-            if (selectedPackageData == null || !selectedPackageData.TryGetValue(packageVersion, out List<double>? supportedPyVersions) || supportedPyVersions.Count == 0)
+            if (selectedPackageData == null || !selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || supportedPyVersions.Count == 0)
             {
                 Errors.WriteErrorAndExit($"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.", 1);
                 return [];
             }
             return supportedPyVersions;
-
-
         }
 
-        public static string? GetSupportedPackageVersion(string packageName, double pythonVersion)
+        public static string? GetSupportedPackageVersion(string packageName, string pythonVersion)
         {
-            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<double>>? packageVersionMappings) || packageVersionMappings == null)
+            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
             {
                 Errors.WriteErrorAndExit($"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.", 1);
                 return null;

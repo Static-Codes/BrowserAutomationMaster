@@ -10,7 +10,12 @@
 	<ItemGroup>
 		<None Update="Packages.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<!-- Or use 'Always' if you want it copied every time, even if unchanged -->
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="UserAgents.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
