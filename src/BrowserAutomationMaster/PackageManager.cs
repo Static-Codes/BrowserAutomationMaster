@@ -53,7 +53,7 @@ namespace BrowserAutomationMaster
             try { jsonString = File.ReadAllText("packages.json"); }
             catch { jsonString = PackageJson.jsonString; }
             if (string.IsNullOrEmpty(jsonString)) {
-                Errors.WriteErrorAndExit("Unable to parse packages.json, please ensure this file exists in the same directory as BAMM.exe", 1);
+                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to parse packages.json, please ensure this file exists in the same directory as BAMM.exe", 1);
             }
             try { packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(jsonString)!; }
             catch { Errors.WriteErrorAndExit(malformedJSONMessage, 1); }

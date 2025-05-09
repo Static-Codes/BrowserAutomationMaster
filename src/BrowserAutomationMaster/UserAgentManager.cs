@@ -57,8 +57,8 @@ namespace BrowserAutomationMaster
 
             if (userAgentsData == null || userAgentsData.Count == 0)
             {
-                Console.Error.WriteLine("No user agent data available to select from.");
-                return null;
+                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to load UserAgents.json, please ensure this file exists and is populated.", 1);
+                return null; // This will never be reachable, as WriteErrorAndExit does exactly that.
             }
 
             if (userAgentsData.TryGetValue(browserName, out List<string>? userAgentList) && userAgentList != null && userAgentList.Count > 0)
@@ -67,8 +67,8 @@ namespace BrowserAutomationMaster
             }
             else
             {
-                Console.Error.WriteLine($"Warning: No user agents found for browser category '{browserName}'.");
-                return null;
+                Console.Error.WriteLine($"BAM Manager (BAMM) was unable to load any useragents for browser {browserName}.  Please check for typos and try again.");
+                return null; // This will never be reachable, as WriteErrorAndExit does exactly that.
             }
         }
 
