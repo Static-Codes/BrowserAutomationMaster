@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 namespace BrowserAutomationMaster
 {
     // Use https://github.com/bogdanfinn/tls-client
+
+
     enum BrowserPackage
     {
         aiohttp,
@@ -22,9 +24,11 @@ namespace BrowserAutomationMaster
         readonly static string desiredSaveDirectory = "compiled";
        
         static BrowserPackage browserPackage = BrowserPackage.selenium; // By default selenium is chosen, however aiohttp and tls-client as also possible options.
+        
         static string pythonScriptFileName = "";  // Modified by SetScriptName();
         static string pythonVersion = "3.10";
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0"; // Default value if inhouse function fails.
+        static string selectedBrowser = "firefox"; // Defaults to firefox; chrome, chromium, firefox, safari accepted.
 
         static bool browserPresent = false;
         static bool featurePresent = false;
@@ -35,6 +39,7 @@ namespace BrowserAutomationMaster
         static bool disablePycache = false;
 
         static List<string> configLines = [];
+        static List<string> featureLines = [];
         static List<string> importStatements = [];
         static List<string> scriptBody = [];
         static List<string> requirements = [];
@@ -69,6 +74,12 @@ namespace BrowserAutomationMaster
 
                 case BrowserPackage.selenium:
                     importStatements.Add("from selenium import webdriver");
+                    //switch (selectedBrowser)
+                    //{
+                    //    case "firefox":
+                    //        scriptBody.Add("driver = webdriver.")
+                    //}
+                    
                     break;
             }
 
@@ -81,8 +92,9 @@ namespace BrowserAutomationMaster
                 Console.ForegroundColor = ConsoleColor.Red;
                 Errors.WriteErrorAndExit("BAM Manager (BAMM) encountered a fatal error, the selected file has no lines.\n\nPress any key to exit...", 1);
             }
-            if (numberOfLines >= 1 && configLines[1].StartsWith("browser")) { browserPresent = true; }
-            List<string> featureLines = [.. configLines.Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line) && line.StartsWith("feature"))];
+            if (numberOfLines >= 1 && configLines[0].StartsWith("browser") && configLines[0].Contains(' ') && configLines[0].Split(' ').Length == 2) { browserPresent = true; }
+            if (browserPresent) { selectedBrowser = configLines[0].Split(' ')[1].Replace('"', ' ').Trim(); }
+            featureLines = [.. configLines.Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line) && line.StartsWith("feature"))];
             featurePresent = featureLines.Count > 0; // Roslyn recommend Any() over Count() > 0
             if (featurePresent ||  featureLines.Any(line => line.Contains(" \"disable-pycache\""))) { disablePycache = true; }
             otherPresent = CheckOtherPresent();
@@ -92,8 +104,6 @@ namespace BrowserAutomationMaster
             if (featurePresent || featureLines.Any(line => line.Contains(" \"bypass-cloudflare\""))) { bypassCloudflare = true; }
             
         }
-
-        
 
         public static bool CheckOtherPresent()
         {
@@ -113,10 +123,6 @@ namespace BrowserAutomationMaster
             return false;
         }
 
-
-
-
-
         public static string GenerateBackupFilename()
         {
             string potentialFileName = $"{backupScriptFileName}.py";
@@ -131,20 +137,21 @@ namespace BrowserAutomationMaster
 
         public static void HandleBrowserCmd()
         {
-            if (browserPresent)
-            {
-                // Make a JSON file with browser name as key and a list of user agents as value (Dictionary<string, List<string>>)
-                // Make a function that returns a random user agent if a valid key is provided, and throws an error if not.
-                // Call said function here, if valid response, overwrite requestUserAgent; otherwise continue without.
-            }
+            // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of !
+            if (browserPresent) { requestUserAgent = UserAgentManager.GetUserAgent(selectedBrowser)!; }
             if (asyncEnabled) { browserPackage = BrowserPackage.aiohttp; }
             if (bypassCloudflare) { browserPackage = BrowserPackage.tls_client; }
-            
         }
 
         public static void HandleFeatureCmd()
         {
+            if (featurePresent && featureLines.Count > 0)
+            {
+                foreach (string featureLine in featureLines)
+                {
 
+                }
+            }
         }
 
         public static void HandleOtherCmds()
