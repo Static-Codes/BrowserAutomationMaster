@@ -26,7 +26,7 @@ namespace BrowserAutomationMaster
         public readonly static string[] actionArgs = ["click", "click-button", "get-text", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", "take-screenshot", "wait-for-seconds", "visit"];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache"];
-        readonly static string[] browserArgs = ["chrome", "chromium", "firefox", "safari", ];
+        readonly static string[] browserArgs = ["brave", "chrome", "firefox", "safari", ];
         readonly static string[] featureArgs = [.. proxyFeatureArgs, .. otherFeatureArgs];
         readonly static string[] validArgs = [.. actionArgs, .. featureArgs];
         static string selectedFile = string.Empty;
