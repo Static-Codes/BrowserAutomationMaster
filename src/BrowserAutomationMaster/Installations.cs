@@ -35,7 +35,8 @@ namespace BrowserAutomationMaster
     public static class InstallationCheck
     {
         readonly static string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        readonly static string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        // Handles both x64 and x86 based systems
+        readonly static string ProgramFilesPath = Environment.GetEnvironmentVariable("ProgramW6432") ?? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
         public readonly static string BravePath = Path.Combine(ProgramFilesPath, "BraveSoftware", "Brave-Browser", "Application", "brave.exe");
         public readonly static string ChromePath = Path.Combine(ProgramFilesPath, "Google", "Chrome", "Application", "chrome.exe");
         public readonly static string FirefoxPath = Path.Combine(ProgramFilesPath, "Mozilla Firefox", "firefox.exe");
@@ -51,7 +52,7 @@ namespace BrowserAutomationMaster
         readonly static bool BravePresent = File.Exists(BravePath);
         readonly static bool ChromePresent = File.Exists(ChromePath);
         readonly static bool FirefoxPresent = File.Exists(FirefoxPath);
-        readonly static bool PythonBasePresent = File.Exists(PythonBasePath);
+        readonly static bool PythonBasePresent = Path.Exists(PythonBasePath);
         readonly static bool Python39Present = File.Exists(Python39Path);
         readonly static bool Python310Present = File.Exists(Python310Path);
         readonly static bool Python311Present = File.Exists(Python311Path);
@@ -84,6 +85,10 @@ namespace BrowserAutomationMaster
 
 
         public static Installations Run() {
+            //Console.WriteLine(ProgramFiles);
+            Console.WriteLine(ProgramFilesPath);
+
+            Console.WriteLine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
             if (BravePresent) {  AppNames.Add(ApplicationNames.Brave); }
             if (ChromePresent) { AppNames.Add(ApplicationNames.Chrome); }
             if (FirefoxPresent) { AppNames.Add(ApplicationNames.Firefox); }
@@ -95,7 +100,6 @@ namespace BrowserAutomationMaster
             if (PythonBasePresent && Python314Present) { AppNames.Add(ApplicationNames.Python3_14); }
             if (!AppNames.Any(x => BrowserApps.Contains(x))) { Errors.WriteErrorAndExit(NoBrowsersMessage, 1); }
             if (!AppNames.Any(x => PythonApps.Contains(x))) { Errors.WriteErrorAndExit(NoPythonMessage, 1); }
-
             return new Installations(AppNames);
         }
     }
