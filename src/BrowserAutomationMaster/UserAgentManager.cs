@@ -67,7 +67,7 @@ namespace BrowserAutomationMaster
             }
             else
             {
-                Console.Error.WriteLine($"BAM Manager (BAMM) was unable to load any useragents for browser {browserName}.  Please check for typos and try again.");
+                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to compile the selected script.  Supported values for 'browser' command include:\n\n\"brave\"\n\"chrome\"\n\"firefox\"\n\nPlease check for typos and try again.", 1);
                 return null; // This will never be reachable, as WriteErrorAndExit does exactly that.
             }
         }
