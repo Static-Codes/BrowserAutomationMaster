@@ -36,9 +36,9 @@ namespace BrowserAutomationMaster
     {
         readonly static string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         readonly static string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        readonly static string BravePath = Path.Combine(ProgramFilesPath, "BraveSoftware", "Brave-Browser", "Application", "brave.exe");
-        readonly static string ChromePath = Path.Combine(ProgramFilesPath, "Google", "Chrome", "Application", "chrome.exe");
-        readonly static string FirefoxPath = Path.Combine(ProgramFilesPath, "Mozilla Firefox", "firefox.exe");
+        public readonly static string BravePath = Path.Combine(ProgramFilesPath, "BraveSoftware", "Brave-Browser", "Application", "brave.exe");
+        public readonly static string ChromePath = Path.Combine(ProgramFilesPath, "Google", "Chrome", "Application", "chrome.exe");
+        public readonly static string FirefoxPath = Path.Combine(ProgramFilesPath, "Mozilla Firefox", "firefox.exe");
         readonly static string PythonBasePath = Path.Combine(AppDataPath, "Programs", "Python");
         readonly static string Python39Path = Path.Combine(PythonBasePath, "Python39", "python.exe");
         readonly static string Python310Path = Path.Combine(PythonBasePath, "Python310", "python.exe");
@@ -48,16 +48,16 @@ namespace BrowserAutomationMaster
         readonly static string Python314Path = Path.Combine(PythonBasePath, "Python314", "python.exe");
         
 
-        readonly static bool BravePresent = Path.Exists(BravePath);
-        readonly static bool ChromePresent = Path.Exists(ChromePath);
-        readonly static bool FirefoxPresent = Path.Exists(FirefoxPath);
-        readonly static bool PythonBasePresent = Path.Exists(PythonBasePath);
-        readonly static bool Python39Present = Path.Exists(Python39Path);
-        readonly static bool Python310Present = Path.Exists(Python310Path);
-        readonly static bool Python311Present = Path.Exists(Python311Path);
-        readonly static bool Python312Present = Path.Exists(Python312Path);
-        readonly static bool Python313Present = Path.Exists(Python313Path);
-        readonly static bool Python314Present = Path.Exists(Python314Path);
+        readonly static bool BravePresent = File.Exists(BravePath);
+        readonly static bool ChromePresent = File.Exists(ChromePath);
+        readonly static bool FirefoxPresent = File.Exists(FirefoxPath);
+        readonly static bool PythonBasePresent = File.Exists(PythonBasePath);
+        readonly static bool Python39Present = File.Exists(Python39Path);
+        readonly static bool Python310Present = File.Exists(Python310Path);
+        readonly static bool Python311Present = File.Exists(Python311Path);
+        readonly static bool Python312Present = File.Exists(Python312Path);
+        readonly static bool Python313Present = File.Exists(Python313Path);
+        readonly static bool Python314Present = File.Exists(Python314Path);
         readonly static List<ApplicationNames> AppNames = [];
         public readonly static List<ApplicationNames> BrowserApps = [ApplicationNames.Brave, ApplicationNames.Chrome, ApplicationNames.Firefox];
         public readonly static List<ApplicationNames> PythonApps = [ApplicationNames.Python3_9, ApplicationNames.Python3_10, ApplicationNames.Python3_11, ApplicationNames.Python3_12, ApplicationNames.Python3_13, ApplicationNames.Python3_14];

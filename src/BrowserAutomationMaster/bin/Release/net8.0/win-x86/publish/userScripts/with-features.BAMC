@@ -1,4 +1,4 @@
-browser "chromium"
+browser "firefox"
 feature "bypass-cloudflare"
 click "css-selector"
 click-button "button-selector"
