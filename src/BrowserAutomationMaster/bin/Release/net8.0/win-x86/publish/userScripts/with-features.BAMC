@@ -1,5 +1,6 @@
 browser "firefox"
 feature "bypass-cloudflare"
+visit "https?://invalidurl-.com"
 click "css-selector"
 click-button "button-selector"
 get-text "example-selector"

@@ -37,13 +37,19 @@ namespace BrowserAutomationMaster
         readonly static string userScriptsDirectory = Path.Combine([baseDirectory, "userScripts"]);
 
         static string noFilesFoundMessage = "";
+        const string EmailFormatPattern = @"(?i)\b(https?://(?:(?:(?:[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?\.)*(?:[a-z\u00a1-\uffff]{2,}|[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)\.?)|(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|\[(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[a-zA-Z0-9._~%-]+|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d))\]))(?::\d{2,5})?(?:[/?#][^\s<>""']*)?\b";
+
         const string ProxyFormatPattern = @"^([^:]+):([^@]+)@([^:]+):(\d+)$";
+
 
         // Researched from: https://blog.nimblepros.com/blogs/using-generated-regex-attribute/
         // Source generation is used here at build time to create an optimized regex code block, which is then converted into MSIL prior to runtime; reducing overhead and improving efficiency.
 
         [GeneratedRegex(ProxyFormatPattern)]
         private static partial Regex PrecompiledProxyRegex();
+
+        [GeneratedRegex(EmailFormatPattern)]
+        private static partial Regex PrecompiledEmailRegex();
         public static bool CreateUserScriptsDirectory()
         {
             if (userScriptsDirectory == null) { return false; }
@@ -146,6 +152,12 @@ namespace BrowserAutomationMaster
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
         }
 
+        public static bool IsEmailProxyFormat(string emailString)
+        {
+            if (string.IsNullOrWhiteSpace(emailString)) { return false; }
+            return PrecompiledEmailRegex().IsMatch(emailString);
+        }
+
         public static bool IsValidProxyFormat(string proxyString)
         {
             if (string.IsNullOrWhiteSpace(proxyString)) { return false; }
@@ -181,6 +193,10 @@ namespace BrowserAutomationMaster
                     if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
                     {
                         return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
+                    }
+                    if (lineArgs[0].Equals("visit") && !IsEmailProxyFormat(lineArgs[1].Replace('"', ' ').Trim()))
+                    {
+                        return Errors.WriteErrorAndReturnBool($"BAMC Validation Error:\n\nFile: \"{fileName}\"\nInvalid url format on line {lineNumber}\nLine: {line}", false);
                     }
                     return true;
 

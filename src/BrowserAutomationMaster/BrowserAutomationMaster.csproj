@@ -7,6 +7,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="9.0.4" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<None Update="Packages.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

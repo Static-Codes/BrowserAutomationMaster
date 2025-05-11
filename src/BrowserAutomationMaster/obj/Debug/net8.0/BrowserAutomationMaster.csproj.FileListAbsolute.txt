@@ -29,3 +29,8 @@ C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\BrowserAutomationMaster.pdb
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\BrowserAutomationMaster.genruntimeconfig.cache
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\ref\BrowserAutomationMaster.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\System.CodeDom.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\System.Management.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Management.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\BrowserAutomationMaster.csproj.AssemblyReference.cache
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\BrowserA.23E5FB20.Up2Date
