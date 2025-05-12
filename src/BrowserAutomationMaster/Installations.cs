@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BrowserAutomationMaster
+﻿namespace BrowserAutomationMaster
 {
     public enum ApplicationNames
     {
@@ -65,30 +59,26 @@ namespace BrowserAutomationMaster
 
 
         readonly static string NoBrowsersMessage = $"""
-            BAM Manager (BAMM) was unable to detect any valid browser installations.\n\nValid Installation Locations:
+        BAM Manager (BAMM) was unable to detect any valid browser installations.\n\nValid Installation Locations:
             
-            Brave: '{BravePath}'
-            Chrome: '{ChromePath}'
-            Firefox: '{FirefoxPath}'
+        Brave: '{BravePath}'
+        Chrome: '{ChromePath}'
+        Firefox: '{FirefoxPath}'
         """;
 
         readonly static string NoPythonMessage = $"""
-            BAM Manager (BAMM) was unable to detect any valid browser installations.\n\nValid Installation Locations:
+        BAM Manager (BAMM) was unable to detect any valid browser installations.\n\nValid Installation Locations:
 
-            Python 3.9.X: '{Python39Path}'
-            Python 3.10.X: '{Python310Path}'
-            Python 3.11.X: '{Python311Path}'
-            Python 3.12.X: '{Python312Path}'
-            Python 3.13.X: '{Python313Path}'
-            Python 3.14.X: '{Python314Path}'
+        Python 3.9.X: '{Python39Path}'
+        Python 3.10.X: '{Python310Path}'
+        Python 3.11.X: '{Python311Path}'
+        Python 3.12.X: '{Python312Path}'
+        Python 3.13.X: '{Python313Path}'
+        Python 3.14.X: '{Python314Path}'
         """;
 
 
         public static Installations Run() {
-            //Console.WriteLine(ProgramFiles);
-            Console.WriteLine(ProgramFilesPath);
-
-            Console.WriteLine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
             if (BravePresent) {  AppNames.Add(ApplicationNames.Brave); }
             if (ChromePresent) { AppNames.Add(ApplicationNames.Chrome); }
             if (FirefoxPresent) { AppNames.Add(ApplicationNames.Firefox); }

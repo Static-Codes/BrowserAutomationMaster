@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BrowserAutomationMaster
+﻿namespace BrowserAutomationMaster
 {
     public partial class SysCheck
     {
 
-        SysCheck(string[] args) {
+        public SysCheck(string[] args) {
             Verify64BitWindows();
             VerifyRootDrive(args);
         }

@@ -1,1 +1,3 @@
+browser "firefox"
+visit "https://google.com"
 click "#button"

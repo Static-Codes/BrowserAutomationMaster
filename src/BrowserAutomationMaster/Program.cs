@@ -1,21 +1,31 @@
-﻿// See https://aka.ms/new-console-template for more information
-using BrowserAutomationMaster;
+﻿using BrowserAutomationMaster;
 
-
-
+SysCheck _ = new([""]); // Runs a system compatibility check.
 Console.Title = "BrowserAutomationMaster Manager (BAMM!)";
 
-if (!Environment.Is64BitOperatingSystem) {
-    Errors.WriteErrorAndExit("BAM Manager (BAMM) was designed for 64 bit windows operating systems.\n\nIf you're reading this message, your current system is incompatible with this application.\n\nFor more information please visit the link below:\n\nhttps://answers.microsoft.com/en-us/windows/forum/all/what-is-the-advantage-of-going-to-64-biti-have-32/dea5fbb6-4b53-4c66-a0e6-70e76f934d79", 1);
+KeyValuePair<Parser.MenuOption, string> parserResult = Parser.New(); // value is
+switch (parserResult.Key)
+{
+    case Parser.MenuOption.Compile:
+        Transpiler.New(parserResult.Value);
+        break;
+
+    case Parser.MenuOption.Help:
+        break;
+
+    case Parser.MenuOption.Invalid:
+        break;
 }
-//Parser.New();
 
 
-//ParsedSelector parsedSelector = SelectorParser.Parse("#container");
+//ParsedSelector parsedSelector = SelectorParser.Parse("#container"); // Parse css/xpath selector
 //Console.WriteLine(parsedSelector);
-Transpiler.New("C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\bin\\Release\\net8.0\\win-x86\\publish\\userScripts\\with-features.BAMC");
+
+
+//string path = Path.Combine(AppContext.BaseDirectory, "userScripts", "with-features.BAMC");
+//Transpiler.New(path);
 //Console.ReadKey();
 
 
-//Console.WriteLine(UserAgentManager.GetUserAgent("firefox"));
+//Console.WriteLine(UserAgentManager.GetUserAgent("firefox")); // Get User Agent Example
 Console.ReadKey();

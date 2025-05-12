@@ -8,6 +8,11 @@ namespace BrowserAutomationMaster
 {
     internal class Errors
     {
+        public static string GenerateErrorMessage(string fileName, string line, int lineNumber, string issueText)
+        {
+            return $"BAM Manager (BAMM) was unable to compile the selected .BAMC script.\nFile: {fileName}\nLine Number: {lineNumber}\nLine: {line}\nIssue: {issueText}";
+        }
+
         public static void WriteErrorAndContinue(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
