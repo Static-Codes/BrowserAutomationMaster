@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace BrowserAutomationMaster
 {
@@ -19,15 +12,19 @@ namespace BrowserAutomationMaster
 
     internal class Transpiler
     {
-        readonly static string backupScriptFileName = "untitled-script";
+        readonly static string defaultScriptFileName = "untitled-script";
         readonly static string desiredSaveDirectory = "compiled";
-       
+        readonly static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
+        readonly static string requirementsFileName = "requirements.txt";
+        
+        readonly static string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
+
         static BrowserPackage browserPackage = BrowserPackage.selenium; // By default selenium is chosen, however aiohttp and tls-client as also possible options.
 
-        readonly static string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
         static string pythonScriptFileName = "";  // Modified by SetScriptName();
         static string pythonVersion = "3.10";  
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0"; // Default value if inhouse function fails.
+        
         static string selectedBrowser = "firefox"; // Defaults to firefox.  Brave, Chrome, Firefox
 
         static bool browserPresent = false; // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
@@ -51,12 +48,22 @@ namespace BrowserAutomationMaster
 
         public static void New(string filePath)
         {
+            CreateProjectDirectory();
             SetScriptName(filePath);
             SetFileLines(filePath);
             GetDesiredUrls();
-            AddBrowserImportsAndRequirements();
             Installations installations = InstallationCheck.Run();
             VerifyInstallations(installations);
+            AddBrowserImportsAndRequirements();
+
+
+            // Works but currently not needed (since script generation isn't done)
+            // HandleCompilation(filePath);
+            // WritePythonFile();
+            // WriteRequirementsFile();
+            // Console.ForegroundColor = ConsoleColor.Green;
+            // Console.WriteLine($"Compiled -> {pythonScriptFileName}");
+
         }
 
         public static void AddBrowserImportsAndRequirements() // Check for proxy and add logic to insert proxy into session/driver variable.
@@ -68,18 +75,31 @@ namespace BrowserAutomationMaster
             requirements.Add($"{browserPackage}=={version}");
 
             string braveNotFound = $"""
-            BAM Manager (BAMM) was unable to find an installation of Brave.\n\nPlease ensure Brave is installed at the following location:\n\n{InstallationCheck.FirefoxPath}
+            BAM Manager (BAMM) was unable to find an installation of Brave.
+            
+            Please ensure Brave is installed at the following location:
+            
+            {InstallationCheck.FirefoxPath}
             """;
 
             string chromeNotFound = $"""
-            BAM Manager (BAMM) was unable to find an installation of Chrome.\n\nPlease ensure Chrome is installed at the following location.\n\n{InstallationCheck.FirefoxPath}
+            BAM Manager (BAMM) was unable to find an installation of Chrome.
+            
+            Please ensure Chrome is installed at the following location.
+            
+            {InstallationCheck.FirefoxPath}
             """;
 
             string firefoxNotFound = $"""
-            BAM Manager (BAMM) was unable to find an installation of Firefox.\n\nPlease ensure Firefox is installed at the following location.\n\n{InstallationCheck.FirefoxPath}
+            BAM Manager (BAMM) was unable to find an installation of Firefox.
+            
+            Please ensure Firefox is installed at the following location.
+            
+            {InstallationCheck.FirefoxPath}
             """;
 
             string noUrlsFound = "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\nPlease ensure the selected file has atleast one 'visit' command.";
+
 
 
             if (desiredUrls.Count == 0) { Errors.WriteErrorAndExit(noUrlsFound, 1); return; }
@@ -106,6 +126,11 @@ namespace BrowserAutomationMaster
                     break;
 
                 case BrowserPackage.selenium:
+                    importStatements.AddRange([
+                        "from selenium.webdriver.common.by import By",
+                        "from selenium.webdriver.support.ui import WebDriverWait",
+                        "from selenium.webdriver.support import expected_conditions as EC"]
+                    );
                     switch (selectedBrowser)
                     {
                         case "brave":
@@ -182,23 +207,31 @@ namespace BrowserAutomationMaster
             }
             return false;
         }
-        public static string GenerateBackupFilename()
+        public static void CreateProjectDirectory()
         {
-            string potentialFileName = $"{backupScriptFileName}.py";
+            string projectDirectory = Path.Combine(desiredSaveDirectory, projectDirectoryName);
+            if (!Path.Exists(desiredSaveDirectory)) {
+                Directory.CreateDirectory(desiredSaveDirectory);
+            }
+            if (!Path.Exists(projectDirectory)) {
+                Directory.CreateDirectory(projectDirectory);
+            }
+        }
+        public static void GenerateBackupScriptName()
+        {
+            string potentialFileName = $"{defaultScriptFileName}.py";          
             int index = 2;
             while (true)
             {
-                if (!File.Exists(potentialFileName)) { return potentialFileName; }
-                potentialFileName = $"{backupScriptFileName}({index}).py";
+                if (!File.Exists(potentialFileName)) {
+                    pythonScriptFileName = potentialFileName;
+                }
+                potentialFileName = $"{defaultScriptFileName}({index}).py";
                 index++;
             }
         }
-        public static string GenerateErrorMessage(string fileName, string line, int lineNumber, string issueText){
-            return $"BAM Manager (BAMM) was unable to compile the selected .BAMC script.\nFile: {fileName}\nLine Number: {lineNumber}\nLine: {line}\nIssue: {issueText}";
-        }
-        public static void GetDesiredUrls() // ADD REGEX HERE PLEASE FOR THE LOVE OF GOD
+        public static void GetDesiredUrls()
         {
-            
             int lineNumber = 1;
             foreach (string line in configLines)
             {
@@ -225,28 +258,50 @@ namespace BrowserAutomationMaster
                 string[] splitLine = line.Split(' ');
                 int[] validLengths = [2, 3];
                 if (!validLengths.Contains(splitLine.Length)) {
-                    GenerateErrorMessage(fileName, line, lineNumber, "Invalid Feature Syntax.");
+                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "Invalid feature command syntax."), 1);
                 }
                 string firstArg = splitLine.First();
                 switch (firstArg)
                 {
                     case "click":
                         if (noBrowsersFound) {
-                            string message = GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
+                            string message = Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
                             Errors.WriteErrorAndExit(message, 1);
                         }
+                        string idSelector = splitLine[1].Replace('"', ' ').Trim();
+                        ParsedSelector parsedSelector = SelectorParser.Parse(idSelector); // Parse css/xpath selector
+                        switch (parsedSelector.Category) {
+                            case SelectorCategory.Id:
+                                switch (browserPackage)
+                                {
+                                    case BrowserPackage.aiohttp:
+                                        string aioMessage = Errors.GenerateErrorMessage(fileName, line, lineNumber, "'async' feature cannot be used in combination with action 'click', please remove this line and recompile.");
+                                        Errors.WriteErrorAndExit(aioMessage, 1);
+                                        break;
+                                    case BrowserPackage.tls_client:
+                                        string tlsMessage = Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile.");
+                                        Errors.WriteErrorAndExit(tlsMessage, 1);
+                                        break;
+                                    case BrowserPackage.selenium:
+                                        scriptBody.Add($"WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, {splitLine[1]})))");
+                                        break;
+
+                                }
+                                break;
+                        }
+
                         break;
                     case "click-button":
                         if (noBrowsersFound)
                         {
-                            string message = GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
+                            string message = Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
                             Errors.WriteErrorAndExit(message, 1);
                         }
                         break;
                     case "get-text":
                         if (noBrowsersFound)
                         {
-                            string message = GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
+                            string message = Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
                             Errors.WriteErrorAndExit(message, 1);
                         }
                         break;
@@ -255,7 +310,7 @@ namespace BrowserAutomationMaster
                     case "take-screenshot":
                         if (noBrowsersFound)
                         {
-                            string message = GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
+                            string message = Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
                             Errors.WriteErrorAndExit(message, 1);
                         }
                         break;
@@ -345,9 +400,17 @@ namespace BrowserAutomationMaster
                     Console.ForegroundColor = ConsoleColor.Red;
                     Errors.WriteErrorAndExit(failureMessage, 1);
                 }
-                pythonScriptFileName = fileName!.Split(".")[0] + ".py"; // I hate c#'s static compiler i already ensured fileName cannot be null, yet i have to yell at the compiler using !
+
+                try
+                {
+                    pythonScriptFileName = fileName!.Split(".")[0] + ".py"; // I hate c#'s static compiler i already ensured fileName cannot be null, yet i have to yell at the compiler using !
+                }
+                catch
+                {
+                    GenerateBackupScriptName();
+                }
             }
-            catch (Exception ex) { Console.WriteLine(ex.Message); Errors.WriteErrorAndExit(failureMessage, 1); }
+            catch (Exception) { Errors.WriteErrorAndExit(failureMessage, 1); }
         }
         public static void VerifyInstallations(Installations installations)
         {
@@ -396,6 +459,30 @@ namespace BrowserAutomationMaster
                 if (installedPyVersions.Any(x => bestVersions.Contains(x.ToString()))){
                     Errors.WriteErrorAndContinue(pythonWarningMessage);
                 }
+            }
+        }
+        public static void WriteRequirementsFile()
+        {
+            string filePath = Path.Combine(desiredSaveDirectory, projectDirectoryName, requirementsFileName);
+            using StreamWriter writer = new(filePath, false, Encoding.UTF8);
+            foreach (string requirement in requirements) { 
+                writer.WriteLine(requirement); 
+            }
+        }
+        public static void WritePythonFile()
+        {
+            string filePath = Path.Combine(desiredSaveDirectory, projectDirectoryName, pythonScriptFileName);
+            using StreamWriter writer = new(filePath, false, Encoding.UTF8);
+            foreach (string importStatement in importStatements){
+                writer.WriteLine(importStatement);
+            }
+
+            if (importStatements.Count > 0 && scriptBody.Count > 0){
+                writer.WriteLine();
+            }
+
+            foreach (string scriptLine in scriptBody){
+                writer.WriteLine(scriptLine);
             }
         }
     }

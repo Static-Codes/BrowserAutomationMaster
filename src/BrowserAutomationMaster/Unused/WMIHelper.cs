@@ -1,9 +1,6 @@
-﻿using System;
-using System.ComponentModel;
-using System.Management;
-using System.Numerics;
+﻿using System.Management;
 
-namespace System_Spec_Buddy
+namespace BrowserAutomationMaster
 {
     internal static class WMIHelper
     {
@@ -1291,7 +1288,7 @@ namespace System_Spec_Buddy
                     ManagementScope scope = new();    // Roslyn recommended this syntax over ManagementScope scope = new Management();
                     Dictionary<string, string> results = []; // Roslyn recommended this syntax over new Dictionary<string, string>
                     scope.Connect();
-                    using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher(scope, query))
+                    using (ManagementObjectSearcher objectSearcher = new(scope, query))
                     {
                         // Used for debugging;
                         // Console.WriteLine("Querying WMI...");
