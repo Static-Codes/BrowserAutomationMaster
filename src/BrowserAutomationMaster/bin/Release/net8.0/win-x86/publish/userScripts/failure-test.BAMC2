@@ -1,0 +1,11 @@
+browser "firefox"
+click "css-selector"
+visit "https://google.com"
+click-button "button-selector"
+get-text "example-selector"
+fill-textbox "textbox-selector" "value"
+select-dropdown "dropdown-selector"
+select-dropdown-element "dropdown-element-selector"
+save-as-html "filename.html"
+take-screenshot "filename.png"
+wait-for-seconds 5

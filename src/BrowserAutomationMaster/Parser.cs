@@ -291,8 +291,9 @@ namespace BrowserAutomationMaster
             try
             {
                 List<string> lines = [.. File.ReadAllLines(filePath).Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line))];
-                bool featureBlockFinished = false;
                 bool browserBlockFinished = false;
+                bool featureBlockFinished = false;
+                bool visitBlockFinished = false;
 
                 for (int i = 0; i < lines.Count; i++)
                 {
@@ -336,8 +337,25 @@ namespace BrowserAutomationMaster
                         }
                         usedFeatures.Add(line);
                     }
+                    else if (firstArg.Equals("visit"))
+                    {
+                        if (visitBlockFinished) { return true; }
+                        List<string> passedLines = [.. lines.Take(i + 1)];
+                        List<string> unavailableCommands = ["click", "click-button", "get-text", "fill-textbox", "select-dropdown", "select-dropdown-element", "save-as-html", "take-screenshot", "wait-for-seconds"];
+                        List<string> invalidLines = [..
+                            passedLines.Where(line => 
+                                unavailableCommands.Any(prefix => 
+                                    line.Trim().StartsWith(prefix)
+                                )
+                            )
+                        ];
+                        if (invalidLines.Count > 0) {
+                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, i, $"A 'visit' command must be placed before any of the following commands:\n\n{string.Join('\n', unavailableCommands)}"), 1);
+                        }
+                    }
 
-                    
+
+
                     else
                     {
                         bool validLine = HandleLineValidation(fileName, line, i);
