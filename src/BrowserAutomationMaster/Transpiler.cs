@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BrowserAutomationMaster
 {
@@ -10,12 +11,12 @@ namespace BrowserAutomationMaster
         tls_client
     }
 
-    internal class Transpiler
+    internal partial class Transpiler
     {
-        readonly static string defaultScriptFileName = "untitled-script";
-        readonly static string desiredSaveDirectory = "compiled";
+        readonly static string defaultScriptFileName = "untitled-script";  // This will be used in GenerateBackupName(); in the case of failure.
+        readonly static string desiredSaveDirectory = "compiled";  // This is the directory all projects are compiled to
         readonly static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
-        readonly static string requirementsFileName = "requirements.txt";
+        readonly static string requirementsFileName = "requirements.txt"; // This is the filename where the package requirements will be written to.
         
         readonly static string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
 
@@ -28,25 +29,28 @@ namespace BrowserAutomationMaster
         static string selectedBrowser = "firefox"; // Defaults to firefox.  Brave, Chrome, Firefox
 
         static bool browserPresent = false; // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
-        static bool featurePresent = false;
+        static bool featurePresent = false; // 
         static bool otherPresent = false; // This might not be needed.
 
         static bool asyncEnabled = false; // Parser ensures both async and bypassCloudflare cannot both be true in a valid file.
-        static bool bypassCloudflare = false;
-        static bool disablePycache = false;
+        static bool bypassCloudflare = false; // Instructs the parser to use tls-client with a client identifier of safari_ios_16.
+        static bool disablePycache = false;  // Disables Visual Studio Code from writing __pycache__ directory.
         static bool noBrowsersFound = false; // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
 
-
+        static int actionTimeout = 5; // This is the timeout applied to all WebDriverWait calls.
         readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
         static List<ApplicationNames> installedBrowsers = []; // Modified by VerifyInstallations();
         static List<ApplicationNames> installedPyVersions = []; // Modified by VerifyInstallations();
-        static List<string> configLines = [];
-        static List<string> featureLines = [];
+        static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
+        static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
         readonly static List<string> importStatements = [];
         readonly static List<string> scriptBody = [];
         readonly static List<string> requirements = [];
+        private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
 
-        public static void New(string filePath)
+        [GeneratedRegex(@"^--set-timeout==(\d+)$", RegexOptions.Compiled)]
+        private static partial Regex TimeoutRegex();
+        public static void New(string filePath, string[] args)
         {
             CreateProjectDirectory();
             SetScriptName(filePath);
@@ -58,11 +62,11 @@ namespace BrowserAutomationMaster
 
 
             // Works but currently not needed (since script generation isn't done)
-            // HandleCompilation(filePath);
-            // WritePythonFile();
-            // WriteRequirementsFile();
-            // Console.ForegroundColor = ConsoleColor.Green;
-            // Console.WriteLine($"Compiled -> {pythonScriptFileName}");
+            HandleCompilation(filePath, args);
+            WritePythonFile();
+            WriteRequirementsFile();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Compiled -> {pythonScriptFileName}");
 
         }
 
@@ -126,49 +130,50 @@ namespace BrowserAutomationMaster
                     break;
 
                 case BrowserPackage.selenium:
+                    version = PackageManager.New("selenium-wire", pythonVersion);
+                    requirements.Add($"selenium-wire=={version}");
                     importStatements.AddRange([
                         "from selenium.webdriver.common.by import By",
                         "from selenium.webdriver.support.ui import WebDriverWait",
-                        "from selenium.webdriver.support import expected_conditions as EC"]
+                        "from selenium.webdriver.support import expected_conditions as EC",
+                        "from seleniumwire import webdriver",
+                        ]
                     );
                     switch (selectedBrowser)
                     {
                         case "brave":
                             if (!installedBrowsers.Contains(ApplicationNames.Brave)) { Errors.WriteErrorAndExit(braveNotFound, 1); }
                             importStatements.AddRange([
-                                "from selenium import webdriver",
+                                "from selenium.webdriver.chrome.options import Options",
                                 "from selenium.webdriver.chrome.service import Service as BraveService",
                                 "from webdriver_manager.chrome import ChromeDriverManager",
                                 "from webdriver_manager.core.os_manager import ChromeType",
                             ]);
-                            scriptBody.Add("driver = webdriver.Chrome(service=BraveService(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()))");
+                            scriptBody.Add("service = webdriver.Chrome(service=BraveService(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()))");
                             break;
 
                         case "chrome":
                             if (!installedBrowsers.Contains(ApplicationNames.Chrome)) { Errors.WriteErrorAndExit(chromeNotFound, 1); }
                             importStatements.AddRange([
-                                "from selenium import webdriver",
+                                "from selenium.webdriver.chrome.options import Options",
                                 "from selenium.webdriver.chrome.service import Service as ChromeService",
                                 "from webdriver_manager.chrome import ChromeDriverManager",
                             ]);
-                            scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))");
+                            scriptBody.Add("service = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))");
                             break;
 
                         case "firefox":
                             if (!installedBrowsers.Contains(ApplicationNames.Firefox)) { Errors.WriteErrorAndExit(firefoxNotFound, 1); }
                             importStatements.AddRange([
-                                "from selenium import webdriver", 
+                                "from selenium.webdriver.firefox.options import Options",
                                 "from selenium.webdriver.firefox.service import Service as FirefoxService",
                                 "from webdriver_manager.firefox import GeckoDriverManager",
                             ]);
-                            scriptBody.Add("driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))");
+                            scriptBody.Add("service = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))");
                             break;
-
                     }
-
                     break;
             }
-
         }
         public static void CheckConfigLines()
         {
@@ -250,77 +255,165 @@ namespace BrowserAutomationMaster
             if (bypassCloudflare) { browserPackage = BrowserPackage.tls_client; }
         }
 
-        public static void HandleCompilation(string fileName) 
+        public static void HandleCompilation(string fileName, string[] args) 
         {
+            SetTimeout(args);
+            string[] browserlessActions = ["save-as-html", "wait-for-seconds"]; 
             int lineNumber = 1;
+            bool firstVisitFinished = false; // Prevent invalid formatting.
             foreach (string line in configLines)
             {
+                // int lastIndentCount = 0; // This will track the number of indents from the previous line, to prevent indentation errors. 
                 string[] splitLine = line.Split(' ');
                 int[] validLengths = [2, 3];
                 if (!validLengths.Contains(splitLine.Length)) {
                     Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "Invalid feature command syntax."), 1);
                 }
                 string firstArg = splitLine.First();
+                bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
+                if (!canRunBrowserless) {
+                    if (noBrowsersFound)
+                    {
+                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox."), 1);
+                    }
+                }
+                string sanitizedArg2 = splitLine[1].Replace('"', ' ').Trim();
                 switch (firstArg)
                 {
                     case "click":
-                        if (noBrowsersFound) {
-                            string message = Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
-                            Errors.WriteErrorAndExit(message, 1);
-                        }
-                        string idSelector = splitLine[1].Replace('"', ' ').Trim();
-                        ParsedSelector parsedSelector = SelectorParser.Parse(idSelector); // Parse css/xpath selector
-                        switch (parsedSelector.Category) {
-                            case SelectorCategory.Id:
-                                switch (browserPackage)
+                        string clickSelector = splitLine[1].Replace('"', ' ').Trim();
+                        ParsedSelector parsedClickSelector = SelectorParser.Parse(clickSelector); // Parse css/xpath selector
+                        switch (browserPackage)
+                        {
+                            case BrowserPackage.aiohttp:
+                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click', please remove this line and recompile."), 1);
+                                break;
+                            case BrowserPackage.tls_client:;
+                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                break;
+                            case BrowserPackage.selenium:
+                                switch (parsedClickSelector.Category)
                                 {
-                                    case BrowserPackage.aiohttp:
-                                        string aioMessage = Errors.GenerateErrorMessage(fileName, line, lineNumber, "'async' feature cannot be used in combination with action 'click', please remove this line and recompile.");
-                                        Errors.WriteErrorAndExit(aioMessage, 1);
+                                    case SelectorCategory.Id:
+                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.ID, {splitLine[1]}))).click()");
                                         break;
-                                    case BrowserPackage.tls_client:
-                                        string tlsMessage = Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile.");
-                                        Errors.WriteErrorAndExit(tlsMessage, 1);
+                                    case SelectorCategory.ClassName:
+                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.CLASS_NAME, {splitLine[1]}))).click()");
                                         break;
-                                    case BrowserPackage.selenium:
-                                        scriptBody.Add($"WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, {splitLine[1]})))");
+                                    case SelectorCategory.NameAttribute:
+                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.NAME, {splitLine[1]}))).click()");
+                                        break;
+                                    case SelectorCategory.XPath:
+                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.XPATH, {splitLine[1]}))).click()");
+                                        break;
+                                    case SelectorCategory.InvalidOrUnknown:
+                                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}"), 1);
                                         break;
 
                                 }
                                 break;
                         }
-
                         break;
+
                     case "click-button":
-                        if (noBrowsersFound)
+                        ParsedSelector parsedClickButtonSelector = SelectorParser.Parse(sanitizedArg2); // Parse css/xpath selector
+                        switch (browserPackage)
                         {
-                            string message = Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
-                            Errors.WriteErrorAndExit(message, 1);
+                            case BrowserPackage.aiohttp:
+                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click', please remove this line and recompile."), 1);
+                                break;
+                            case BrowserPackage.tls_client:
+                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                break;
+                            case BrowserPackage.selenium:
+                                switch (parsedClickButtonSelector.Category)
+                                {
+                                    case SelectorCategory.Id:
+                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.ID, {splitLine[1]})))");
+                                        break;
+                                    case SelectorCategory.ClassName:
+                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.CLASS_NAME, {splitLine[1]})))");
+                                        break;
+                                    case SelectorCategory.NameAttribute:
+                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}5).until(EC.element_to_be_clickable((By.NAME, {splitLine[1]})))");
+                                        break;
+                                    case SelectorCategory.XPath:
+                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.XPATH, {splitLine[1]})))");
+                                        break;
+                                    case SelectorCategory.InvalidOrUnknown:
+                                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}"), 1);
+                                        break;
+
+                                }
+                                break;
                         }
                         break;
                     case "get-text":
-                        if (noBrowsersFound)
-                        {
-                            string message = Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
-                            Errors.WriteErrorAndExit(message, 1);
-                        }
                         break;
                     case "save-as-html":
                         break;
                     case "take-screenshot":
-                        if (noBrowsersFound)
-                        {
-                            string message = Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox.");
-                            Errors.WriteErrorAndExit(message, 1);
-                        }
                         break;
                     case "visit":
+                        switch (browserPackage)
+                        {
+                            case BrowserPackage.aiohttp:
+                                Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported while using feature 'async'.");
+                                break;
+
+                            case BrowserPackage.tls_client:
+                                Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported while using feature 'bypass-cloudflare'.");
+                                break;
+
+                            case BrowserPackage.selenium:
+                                scriptBody.Add($"url = '{sanitizedArg2}'"); // Check additional logic to detection so that makeRequest(url) gets added on  
+                                if (!firstVisitFinished)
+                                {
+                                    scriptBody.AddRange(
+                                    [
+                                        "print('Initializing WebDriver...')",
+                                        "driver = None",
+                                        "status_code = None",
+                                        "final_url = url",
+                                        "request_url = None",
+                                        "sw_options = { 'enable_har': True }"
+                                    ]);
+                                    switch (selectedBrowser)
+                                    {
+                                        case "brave" or "chrome":
+                                            scriptBody.Add("driver = webdriver.Chrome(service=service, seleniumwire_options=sw_options)");
+                                            break;
+
+                                        case "firefox" or "safari":
+                                            scriptBody.Add("driver = webdriver.Firefox(service=service, seleniumwire_options=sw_options)");
+                                            break;
+                                    }
+                                    scriptBody.Add("print('Driver initialized.')");
+                                    scriptBody.Add("make_request(url)");
+                                }
+                                else {
+                                    scriptBody.Add("make_request(url)");
+                                }
+                                firstVisitFinished = true;
+                                break;
+                        }
                         break;
                     case "wait-for-seconds":
+                        bool waitTimeValidated = false;
+                        if (int.TryParse(sanitizedArg2, out int waitTime)){
+                            importStatements.Add("from time import sleep");
+                            scriptBody.Add($"sleep({waitTime}");
+                            waitTimeValidated = true;
+                        }
+                        if (!waitTimeValidated) {
+                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument '{splitLine[1]}'"), 1);
+                        }
                         break;
                 }
                 lineNumber++;
             }
+            scriptBody.Insert(0, BrowserFunctions.makeRequestFunction);
+            scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
         } // Finish me
         public static void HandleFeatureLine(string[] line, int lineNumber)
         {
@@ -364,8 +457,9 @@ namespace BrowserAutomationMaster
             }
         }
         public static string Indent(int numberOfIndents) { 
-            if (numberOfIndents < 1) { Errors.WriteErrorAndExit("Invalid value provided to Indent(), value must be >= 1.", 1); }
-            return String.Concat(Enumerable.Repeat(pythonIndent, numberOfIndents));
+            if (numberOfIndents < 0) { Errors.WriteErrorAndExit("Invalid value provided to Indent(), value must be >= 0.", 1); }
+            if (numberOfIndents == 0) { return string.Empty; } // Return an empty string if no indentations are needed.
+            return string.Concat(Enumerable.Repeat(pythonIndent, numberOfIndents));
         }
         public static bool IsValidPyVersion(string pyVersion)
         {
@@ -411,6 +505,64 @@ namespace BrowserAutomationMaster
                 }
             }
             catch (Exception) { Errors.WriteErrorAndExit(failureMessage, 1); }
+        }
+        public static void SetTimeout(string[] args)
+        {
+            List<string> timeoutArgs = [..args.Where(arg => arg.StartsWith("--set-timeout=="))];
+            if (timeoutArgs.Count == 0) { return; }
+
+            if (timeoutArgs.Count > 1)
+            {
+                Errors.WriteErrorAndExit(
+                    $"BAM Manager (BAMM) encountered a fatal error: '--set-timeout' can only be specified once.\n" +
+                    $"Found multiple instances:\n\n" +
+                    $"1.'{timeoutArgs[0]}'\n\n" +
+                    $"2.'{timeoutArgs[1]}'\n\n." +
+                    "Please remove duplicates and recompile.",
+                    1);
+            }
+
+            string timeoutArg = timeoutArgs[0];
+            Match match = ActionTimeoutRegex.Match(timeoutArg);
+
+            if (match.Success)
+            {
+                // Extract the captured digits (Group 1)
+                string valueString = match.Groups[1].Value;
+
+                // Try parsing the extracted string as an integer
+                if (int.TryParse(valueString, out int parsedTimeout))
+                {
+                    if (parsedTimeout >= 0)
+                    {
+                        actionTimeout = parsedTimeout;
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"Timeout set to {actionTimeout} seconds ({actionTimeout * 1000}ms)");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    else
+                    {
+                        Errors.WriteErrorAndExit(
+                            $"BAM Manager encountered a fatal error: Invalid value provided for '--set-timeout'.\n" +
+                            $"Value must be a non-negative integer.\n\nParsed Timeout: '{parsedTimeout}'\nRaw Argument: '{timeoutArg}'",
+                            1);
+                    }
+                }
+                else
+                {
+                    // This shouldn't be executed due to the strict regex.
+                    Errors.WriteErrorAndExit("BAM Manager encountered a a fatal error: Could not parse integer value from '--set-timeout' argument.\n", 1);
+                }
+            }
+            else
+            {
+                // Case for when the argument starts with --set-timeout== but doesn't match the expected format (For example '--set-timeout==X')
+                Errors.WriteErrorAndExit(
+                    $"BAM Manager encountered an error: Invalid format for '--set-timeout' argument.\n\n" +
+                    $"Expected Format: '--set-timeout==integer'" +
+                    $"Received: '{timeoutArg}'",
+                    1);
+            }
         }
         public static void VerifyInstallations(Installations installations)
         {
@@ -485,5 +637,7 @@ namespace BrowserAutomationMaster
                 writer.WriteLine(scriptLine);
             }
         }
+
+        
     }
 }
