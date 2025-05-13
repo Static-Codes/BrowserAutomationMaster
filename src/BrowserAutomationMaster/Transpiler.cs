@@ -132,6 +132,7 @@ namespace BrowserAutomationMaster
                 case BrowserPackage.selenium:
                     version = PackageManager.New("selenium-wire", pythonVersion);
                     requirements.Add($"selenium-wire=={version}");
+                    requirements.Add($"blinker==1.4"); // This fixes the mess that selenium-wire causes by installing blinker >=1.9
                     importStatements.AddRange([
                         "from selenium.webdriver.common.by import By",
                         "from selenium.webdriver.support.ui import WebDriverWait",
@@ -260,7 +261,7 @@ namespace BrowserAutomationMaster
             SetTimeout(args);
             string[] browserlessActions = ["save-as-html", "wait-for-seconds"]; 
             int lineNumber = 1;
-            bool firstVisitFinished = false; // Prevent invalid formatting.
+            bool firstVisitFinished = false; // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
             foreach (string line in configLines)
             {
                 // int lastIndentCount = 0; // This will track the number of indents from the previous line, to prevent indentation errors. 
@@ -353,7 +354,22 @@ namespace BrowserAutomationMaster
                     case "save-as-html":
                         break;
                     case "take-screenshot":
+                        switch (browserPackage)
+                        {
+                            case BrowserPackage.aiohttp:
+                                Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'take-screenshot' commands are currently unsupported while using feature 'async'.");
+                                break;
+
+                            case BrowserPackage.tls_client:
+                                Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'take-screenshot' commands are currently unsupported while using feature 'bypass-cloudflare'.");
+                                break;
+
+                            case BrowserPackage.selenium: 
+                                scriptBody.Add($"take_screenshot('{sanitizedArg2}')");
+                                break;
+                        }
                         break;
+
                     case "visit":
                         switch (browserPackage)
                         {
@@ -366,7 +382,7 @@ namespace BrowserAutomationMaster
                                 break;
 
                             case BrowserPackage.selenium:
-                                scriptBody.Add($"url = '{sanitizedArg2}'"); // Check additional logic to detection so that makeRequest(url) gets added on  
+                                scriptBody.Add($"url = '{sanitizedArg2}'");
                                 if (!firstVisitFinished)
                                 {
                                     scriptBody.AddRange(
@@ -413,6 +429,7 @@ namespace BrowserAutomationMaster
                 lineNumber++;
             }
             scriptBody.Insert(0, BrowserFunctions.makeRequestFunction);
+            scriptBody.Insert(1, BrowserFunctions.takeScreenshotFunction);
             scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
         } // Finish me
         public static void HandleFeatureLine(string[] line, int lineNumber)
