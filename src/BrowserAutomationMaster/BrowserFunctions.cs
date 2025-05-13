@@ -65,7 +65,17 @@ namespace BrowserAutomationMaster
     else:
          print(f""Could not determine status code using selenium-wire."")
 " + string.Concat(Enumerable.Repeat('\n', 3));
-    
-    public static string browserQuitCode = "print('Quitting driver...')\ndriver.quit()";
+
+        public static string takeScreenshotFunction = @"def take_screenshot(filename: str):
+    if not filename.endswith("".png""):
+        filename = ""screenshot.png""
+    try:
+        print(""Taking screenshot, please wait..."")
+        with open(f""{filename}"", ""wb"") as file:
+            file.write(driver.get_screenshot_as_png())
+    except Exception as e:
+        print(f""Unable to take screenshot, please check the error below:\n\n{e}"")" + string.Concat(Enumerable.Repeat('\n', 3));
+
+        public static string browserQuitCode = "print('Quitting driver...')\ndriver.quit()";
     }
 }
