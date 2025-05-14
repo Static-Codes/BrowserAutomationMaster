@@ -28,8 +28,8 @@ namespace BrowserAutomationMaster
     {
         // Used an LLM to help fix formatting on these regexes, I need to take the time to learn regex properly and not rely on a crutch.
         [GeneratedRegex(@"^(?:#(?<id>[\w-]+)|\.(?<class>[\w-]+)|\[\s*name\s*=\s*(?:\""(?<DQVal>[^\""]*)\""|'(?<SQVal>[^']*)'|(?<UQVal>[^\]\s'\""]+))\s*\]|(?<xpath>(?:\B\/|\.\/|\(\/).*)|(?<tag>[a-zA-Z][\w:-]*))$", RegexOptions.ExplicitCapture | RegexOptions.Compiled)]
-        private static partial Regex CompileSelectorRegex();
-        readonly static Regex SelectorRegex = CompileSelectorRegex();
+        private static partial Regex CompileMainSelectorRegex();
+        readonly static Regex SelectorRegex = CompileMainSelectorRegex();
 
         // Parses the provided selectorString and returns a ParsedSelector if successful, and exits if not; thus no need for a null check.
         public static ParsedSelector Parse(string selectorString)

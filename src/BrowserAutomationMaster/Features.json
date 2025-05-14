@@ -1,12 +1,13 @@
 {
   "Actions": {
     "click": "Clicks the specified button element",
-    "click-button": "Alternative to click, use this if click is causing issues for buttons",
-    "get-text": "Gets the text for a specified element.",
+    "click-experimental": "Alternative to click, use this if click is causing issues.",
+    "get-text-from-element": "Gets the text for a specified element.",
     "fill-textbox": "Fills the selected textbox with the specified value.",
+    "save-as-html": "Saves the current pages HTML to a file with the specified name.",
     "select-dropdown": "Selects a dropdown menu (<select><option></option></select>",
     "select-dropdown-element": "Selects an element from within a dropdown menu.",
-    "save-as-html": "Saves the current pages HTML to a file with the specified name.",
+    "select-element": "Selects the element associated with the provided selector (if found).",
     "take-screenshot": "Takes a screenshot of the browser after executing the previous line.",
     "visit": "Visits a specified url.",
     "wait-for-seconds": "Waits for the specified number of seconds before continuing."
