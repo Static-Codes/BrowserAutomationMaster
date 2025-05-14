@@ -1,3 +1,4 @@
 browser "firefox"
 visit "https://google.com"
 click "#button"
+wait-for-seconds 5

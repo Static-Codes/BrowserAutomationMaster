@@ -262,14 +262,18 @@ namespace BrowserAutomationMaster
             string[] browserlessActions = ["save-as-html", "wait-for-seconds"]; 
             int lineNumber = 1;
             bool firstVisitFinished = false; // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
+            bool isCE = false; // This prevents issues caused by CE having unique formatting.
             foreach (string line in configLines)
             {
-                // int lastIndentCount = 0; // This will track the number of indents from the previous line, to prevent indentation errors. 
-                string[] splitLine = line.Split(' ');
-                int[] validLengths = [2, 3];
-                if (!validLengths.Contains(splitLine.Length)) {
-                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "Invalid feature command syntax."), 1);
-                }
+                string[] splitLine;
+                if (line.StartsWith("click-experimental ")) { isCE = true; }
+                if (!isCE) { splitLine = line.Split(" "); }
+                else { splitLine = line.Split(" '"); }
+                //int[] validLengths = [2, 3];
+                //if (!validLengths.Contains(splitLine.Length))
+                //{
+                //    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "Invalid feature command syntax."), 1);
+                //}
                 string firstArg = splitLine.First();
                 bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
                 if (!canRunBrowserless) {
@@ -278,158 +282,179 @@ namespace BrowserAutomationMaster
                         Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox."), 1);
                     }
                 }
-                string sanitizedArg2 = splitLine[1].Replace('"', ' ').Trim();
+                string sanitizedArg2;
+                if (!isCE) { sanitizedArg2 = splitLine[1].Replace('"', ' ').Trim(); }
+                else { sanitizedArg2 = splitLine[1].Replace('\'', ' ').Trim(); }
                 switch (firstArg)
                 {
-                    case "click":
-                        string clickSelector = splitLine[1].Replace('"', ' ').Trim();
-                        ParsedSelector parsedClickSelector = SelectorParser.Parse(clickSelector); // Parse css/xpath selector
-                        switch (browserPackage)
-                        {
-                            case BrowserPackage.aiohttp:
-                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click', please remove this line and recompile."), 1);
-                                break;
-                            case BrowserPackage.tls_client:;
-                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
-                                break;
-                            case BrowserPackage.selenium:
-                                switch (parsedClickSelector.Category)
-                                {
-                                    case SelectorCategory.Id:
-                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.ID, {splitLine[1]}))).click()");
-                                        break;
-                                    case SelectorCategory.ClassName:
-                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.CLASS_NAME, {splitLine[1]}))).click()");
-                                        break;
-                                    case SelectorCategory.NameAttribute:
-                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.NAME, {splitLine[1]}))).click()");
-                                        break;
-                                    case SelectorCategory.XPath:
-                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.XPATH, {splitLine[1]}))).click()");
-                                        break;
-                                    case SelectorCategory.InvalidOrUnknown:
-                                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}"), 1);
-                                        break;
+                        case "click":
+                            string clickSelector = splitLine[1].Replace('"', ' ').Trim();
+                            ParsedSelector parsedClickSelector = SelectorParser.Parse(clickSelector); // Parse css/xpath selector
+                            switch (browserPackage)
+                            {
+                                case BrowserPackage.aiohttp:
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click', please remove this line and recompile."), 1);
+                                    break;
+                                case BrowserPackage.tls_client:
+                                    ;
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    break;
+                                case BrowserPackage.selenium:
+                                    switch (parsedClickSelector.Category)
+                                    {
+                                        case SelectorCategory.Id:
+                                            scriptBody.Add($"click_element(By.ID, {splitLine[1]}, {actionTimeout})");
+                                            break;
 
-                                }
-                                break;
-                        }
-                        break;
+                                        case SelectorCategory.ClassName:
+                                            scriptBody.Add($"click_element(By.CLASS_NAME, {splitLine[1]}, {actionTimeout})");
+                                            break;
+                                        case SelectorCategory.NameAttribute:
+                                            scriptBody.Add($"click_element(By.NAME, {splitLine[1]}, {actionTimeout})");
+                                            break;
+                                        case SelectorCategory.XPath:
+                                            scriptBody.Add($"click_element(By.XPATH, {splitLine[1]}, {actionTimeout})");
+                                            break;
+                                        case SelectorCategory.InvalidOrUnknown:
+                                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}"), 1);
+                                            break;
 
-                    case "click-button":
-                        ParsedSelector parsedClickButtonSelector = SelectorParser.Parse(sanitizedArg2); // Parse css/xpath selector
-                        switch (browserPackage)
-                        {
-                            case BrowserPackage.aiohttp:
-                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click', please remove this line and recompile."), 1);
-                                break;
-                            case BrowserPackage.tls_client:
-                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
-                                break;
-                            case BrowserPackage.selenium:
-                                switch (parsedClickButtonSelector.Category)
-                                {
-                                    case SelectorCategory.Id:
-                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.ID, {splitLine[1]})))");
-                                        break;
-                                    case SelectorCategory.ClassName:
-                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.CLASS_NAME, {splitLine[1]})))");
-                                        break;
-                                    case SelectorCategory.NameAttribute:
-                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}5).until(EC.element_to_be_clickable((By.NAME, {splitLine[1]})))");
-                                        break;
-                                    case SelectorCategory.XPath:
-                                        scriptBody.Add($"WebDriverWait(driver, {actionTimeout}).until(EC.element_to_be_clickable((By.XPATH, {splitLine[1]})))");
-                                        break;
-                                    case SelectorCategory.InvalidOrUnknown:
-                                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}"), 1);
-                                        break;
+                                    }
+                                    break;
+                            }
+                            break;
 
-                                }
-                                break;
-                        }
-                        break;
-                    case "get-text":
-                        break;
-                    case "save-as-html":
-                        break;
-                    case "take-screenshot":
-                        switch (browserPackage)
-                        {
-                            case BrowserPackage.aiohttp:
-                                Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'take-screenshot' commands are currently unsupported while using feature 'async'.");
-                                break;
+                        case "click-experimental":
+                            Console.WriteLine("Click-Experimental works fine, SelectorParser.Parse needs to be modified to include css selector parsing.");
+                            string ceSelector = splitLine[1].Replace('\'', ' ').Trim();
+                            Console.WriteLine(ceSelector);
+                            ParsedSelector parsedCESelector = SelectorParser.Parse(ceSelector); // Parse css/xpath selector
+                            switch (browserPackage)
+                            {
+                                case BrowserPackage.aiohttp:
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click', please remove this line and recompile."), 1);
+                                    break;
+                                case BrowserPackage.tls_client:
+                                    ;
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    break;
+                                case BrowserPackage.selenium:
+                                    switch (parsedCESelector.Category)
+                                    {
+                                        case SelectorCategory.Id or SelectorCategory.ClassName or SelectorCategory.NameAttribute:
+                                            scriptBody.Add($"click_element('css', '{sanitizedArg2}', {actionTimeout})");
+                                            break;
+                                        case SelectorCategory.XPath:
+                                            scriptBody.Add($"click_element('xpath', '{sanitizedArg2}', {actionTimeout})");
+                                            break;
+                                        case SelectorCategory.InvalidOrUnknown:
+                                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}"), 1);
+                                            break;
 
-                            case BrowserPackage.tls_client:
-                                Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'take-screenshot' commands are currently unsupported while using feature 'bypass-cloudflare'.");
-                                break;
+                                    }
+                                    break;
+                            }
+                            break;
 
-                            case BrowserPackage.selenium: 
-                                scriptBody.Add($"take_screenshot('{sanitizedArg2}')");
-                                break;
-                        }
-                        break;
+                        case "get-text-from-element":
+                            break;
 
-                    case "visit":
-                        switch (browserPackage)
-                        {
-                            case BrowserPackage.aiohttp:
-                                Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported while using feature 'async'.");
-                                break;
+                        case "save-as-html":
+                            break;
 
-                            case BrowserPackage.tls_client:
-                                Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported while using feature 'bypass-cloudflare'.");
-                                break;
+                        case "select-dropdown":
+                            break;
 
-                            case BrowserPackage.selenium:
-                                scriptBody.Add($"url = '{sanitizedArg2}'");
-                                if (!firstVisitFinished)
-                                {
-                                    scriptBody.AddRange(
-                                    [
-                                        "print('Initializing WebDriver...')",
+                        case "select-dropdown-element":
+                            break;
+
+                        case "select-element":
+                            break;
+
+                        case "take-screenshot":
+                            switch (browserPackage)
+                            {
+                                case BrowserPackage.aiohttp:
+                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'take-screenshot' commands are currently unsupported while using feature 'async'.");
+                                    break;
+
+                                case BrowserPackage.tls_client:
+                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'take-screenshot' commands are currently unsupported while using feature 'bypass-cloudflare'.");
+                                    break;
+
+                                case BrowserPackage.selenium:
+                                    scriptBody.Add($"take_screenshot('{sanitizedArg2}')");
+                                    break;
+                            }
+                            break;
+
+                        case "visit":
+                            switch (browserPackage)
+                            {
+                                case BrowserPackage.aiohttp:
+                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported while using feature 'async'.");
+                                    break;
+
+                                case BrowserPackage.tls_client:
+                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported while using feature 'bypass-cloudflare'.");
+                                    break;
+
+                                case BrowserPackage.selenium:
+                                    scriptBody.Add($"url = '{sanitizedArg2}'");
+                                    if (!firstVisitFinished)
+                                    {
+                                        scriptBody.AddRange(
+                                        [
+                                            "print('Initializing WebDriver...')",
                                         "driver = None",
                                         "status_code = None",
                                         "final_url = url",
                                         "request_url = None",
                                         "sw_options = { 'enable_har': True }"
-                                    ]);
-                                    switch (selectedBrowser)
-                                    {
-                                        case "brave" or "chrome":
-                                            scriptBody.Add("driver = webdriver.Chrome(service=service, seleniumwire_options=sw_options)");
-                                            break;
+                                        ]);
+                                        switch (selectedBrowser)
+                                        {
+                                            case "brave" or "chrome":
+                                                scriptBody.Add("driver = webdriver.Chrome(service=service, seleniumwire_options=sw_options)");
+                                                break;
 
-                                        case "firefox" or "safari":
-                                            scriptBody.Add("driver = webdriver.Firefox(service=service, seleniumwire_options=sw_options)");
-                                            break;
+                                            case "firefox" or "safari":
+                                                scriptBody.Add("driver = webdriver.Firefox(service=service, seleniumwire_options=sw_options)");
+                                                break;
+                                        }
+                                        scriptBody.Add("print('Driver initialized.')");
+                                        scriptBody.Add("make_request(url)");
                                     }
-                                    scriptBody.Add("print('Driver initialized.')");
-                                    scriptBody.Add("make_request(url)");
-                                }
-                                else {
-                                    scriptBody.Add("make_request(url)");
-                                }
-                                firstVisitFinished = true;
-                                break;
-                        }
-                        break;
-                    case "wait-for-seconds":
-                        bool waitTimeValidated = false;
-                        if (int.TryParse(sanitizedArg2, out int waitTime)){
-                            importStatements.Add("from time import sleep");
-                            scriptBody.Add($"sleep({waitTime}");
-                            waitTimeValidated = true;
-                        }
-                        if (!waitTimeValidated) {
-                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument '{splitLine[1]}'"), 1);
-                        }
-                        break;
-                }
+                                    else
+                                    {
+                                        scriptBody.Add("make_request(url)");
+                                    }
+                                    firstVisitFinished = true;
+                                    break;
+                            }
+                            break;
+
+                        case "wait-for-seconds":
+                            bool waitTimeValidated = false;
+                            if (int.TryParse(sanitizedArg2, out int waitTime))
+                            {
+                                importStatements.Add("from time import sleep");
+                                scriptBody.Add($"sleep({waitTime}");
+                                waitTimeValidated = true;
+                            }
+                            if (!waitTimeValidated)
+                            {
+                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument '{splitLine[1]}'"), 1);
+                            }
+                            break;
+                    }
                 lineNumber++;
             }
-            scriptBody.Insert(0, BrowserFunctions.makeRequestFunction);
-            scriptBody.Insert(1, BrowserFunctions.takeScreenshotFunction);
+            importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
+            scriptBody.Insert(0, BrowserFunctions.clickElementFunction);
+            scriptBody.Insert(1, BrowserFunctions.clickElementExperimentalFunction);
+            scriptBody.Insert(2, BrowserFunctions.makeRequestFunction);
+            scriptBody.Insert(3, BrowserFunctions.takeScreenshotFunction);
             scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
         } // Finish me
         public static void HandleFeatureLine(string[] line, int lineNumber)

@@ -22,6 +22,7 @@ namespace BrowserAutomationMaster
 
         public static void WriteErrorAndExit(string message, int status)
         {
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
             Console.ReadKey();
             Environment.Exit(status);

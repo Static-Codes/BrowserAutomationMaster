@@ -12,9 +12,12 @@ namespace BrowserAutomationMaster
         }
 
 
-        public readonly static string[] actionArgs = ["click", "click-button", "get-text", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", "take-screenshot", "wait-for-seconds", "visit"];
+        public readonly static string[] actionArgs = [
+            "click", "click-experimental", "get-text-from-element", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", 
+            "select-element", "take-screenshot", "wait-for-seconds", "visit"
+        ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
-        readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache"];
+        readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "no-ssl"];
         readonly static string[] browserArgs = ["brave", "chrome", "firefox", "safari", ];
         readonly static string[] featureArgs = [.. proxyFeatureArgs, .. otherFeatureArgs];
         readonly static string[] validArgs = [.. actionArgs, .. featureArgs];
@@ -141,7 +144,7 @@ namespace BrowserAutomationMaster
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
         }
 
-        public static bool IsEmailProxyFormat(string emailString)
+        public static bool IsValidLinkFormat(string emailString)
         {
             if (string.IsNullOrWhiteSpace(emailString)) { return false; }
             return PrecompiledLinkRegex().IsMatch(emailString);
@@ -170,22 +173,32 @@ namespace BrowserAutomationMaster
         
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
-            string[] lineArgs = line.Split(" ");
+            string[] lineArgs = line.Trim().Split(" ");
             string firstArg = lineArgs[0];
             string selectorString = "\"selector\""; // Defaults to "selector" for selector based actions
             switch (firstArg)
             {
-                case "click" or "click-button" or "get-text" or "select-dropdown" or "select-dropdown-element" or "save-as-html" or "take-screenshot" or "visit":
+                case "click" or "get-text-from-element" or "select-dropdown" or "select-dropdown-element" or "select-element" or "save-as-html" or "take-screenshot" or "visit":
                     if (firstArg.Equals("save-as-html")) { selectorString = "filename.html"; }
                     if (firstArg.Equals("take-screenshot")) { selectorString = "filename.png"; }
 
                     if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
                     {
+                       
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
                     }
-                    if (lineArgs[0].Equals("visit") && !IsEmailProxyFormat(lineArgs[1].Replace('"', ' ').Trim()))
+                    if (lineArgs[0].Equals("visit") && !IsValidLinkFormat(lineArgs[1].Replace('"', ' ').Trim()))
                     {
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid url format on line {lineNumber}\nLine: {line}\n", false);
+                    }
+                    return true;
+
+                case "click-experimental":
+                    lineArgs = line.Trim().Split(" '");
+                    selectorString = "'selector'";
+                    if (lineArgs.Length != 2 || !lineArgs[1].EndsWith('\''))
+                    {
+                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
                     }
                     return true;
 
@@ -341,7 +354,7 @@ namespace BrowserAutomationMaster
                     {
                         if (visitBlockFinished) { return true; }
                         List<string> passedLines = [.. lines.Take(i + 1)];
-                        List<string> unavailableCommands = ["click", "click-button", "get-text", "fill-textbox", "select-dropdown", "select-dropdown-element", "save-as-html", "take-screenshot", "wait-for-seconds"];
+                        List<string> unavailableCommands = ["click", "click-experimental", "get-text-from-element", "fill-textbox", "select-dropdown", "select-dropdown-element", "save-as-html", "take-screenshot", "wait-for-seconds"];
                         List<string> invalidLines = [..
                             passedLines.Where(line => 
                                 unavailableCommands.Any(prefix => 
@@ -358,7 +371,7 @@ namespace BrowserAutomationMaster
 
                     else
                     {
-                        bool validLine = HandleLineValidation(fileName, line, i);
+                        bool validLine = HandleLineValidation(fileName, line, i+1);
                         if (!validLine) { return false; }
                         featureBlockFinished = true; // This flag will be used to ensure all feature commands are placed before all others.
                     }

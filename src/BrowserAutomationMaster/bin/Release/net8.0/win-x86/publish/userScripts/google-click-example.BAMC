@@ -1,0 +1,5 @@
+browser "firefox"
+visit "https://google.com"
+click-experimental '.gbqfba > div:nth-child(1) > div:nth-child(8) > span:nth-child(1)'
+wait-for-seconds 5
+take-screenshot "filename.png"

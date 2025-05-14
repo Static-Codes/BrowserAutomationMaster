@@ -1,2 +1,0 @@
-﻿selenium==4.32.0
-selenium-wire==5.1.0
