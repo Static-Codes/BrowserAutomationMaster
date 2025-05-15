@@ -25,6 +25,7 @@ namespace BrowserAutomationMaster
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
             Console.ReadKey();
+            Console.ForegroundColor = ConsoleColor.White;
             Environment.Exit(status);
         }
         public static bool WriteErrorAndReturnBool(string message, bool returnBool)

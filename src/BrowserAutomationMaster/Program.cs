@@ -1,13 +1,14 @@
 ﻿using BrowserAutomationMaster;
 
-SysCheck _ = new(args); // Runs a system compatibility check.
+string[] programArgs = args;
+SysCheck _ = new(programArgs); // Runs a system compatibility check.
 Console.Title = "BrowserAutomationMaster Manager (BAMM!)";
 
 KeyValuePair<Parser.MenuOption, string> parserResult = Parser.New(); // value is
 switch (parserResult.Key)
 {
     case Parser.MenuOption.Compile:
-        Transpiler.New(parserResult.Value, args);
+        Transpiler.New(parserResult.Value, programArgs);
         break;
 
     case Parser.MenuOption.Help:
