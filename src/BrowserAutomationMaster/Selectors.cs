@@ -6,10 +6,11 @@ namespace BrowserAutomationMaster
     {
         Id,
         ClassName,
+        CssSelector,
         TagName,
         XPath,
         NameAttribute,
-        InvalidOrUnknown // This wont be handled its purely to please the compiler.
+        InvalidOrUnknown // Used for click-experimental action.
     }
 
     public class ParsedSelector(SelectorCategory category, string value, string rawInput)
@@ -80,8 +81,14 @@ namespace BrowserAutomationMaster
                     return new ParsedSelector(SelectorCategory.TagName, selectorMatch.Groups["tag"].Value, selectorTrimmed);
                 }
             }
-            Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to validate selector:, please ensure it's properly formatted then try compiling again.", 1);
-            return new ParsedSelector(SelectorCategory.InvalidOrUnknown, "", selectorTrimmed);
+
+            Warning.Write($"BAM Manager (BAMM) was unable to parse selector:\n'{selectorTrimmed}'\n\nIs this a css selector? [y/n]: ");
+            string? input = Console.ReadLine();
+            if (input == null || input.ToLower().Replace('\n', ' ').Trim() != "y") {
+                Errors.WriteErrorAndContinue($"\nBAM Manager (BAMM) was unable to validate selector: '{selectorTrimmed}', please ensure it's properly formatted then try compiling again.");
+            }
+            Warning.Write($"\nBAM Manager (BAMM) will continue without validating selector:\n'{selectorTrimmed}'\n\nIf you run into any issues, please recompile using a different selector.\n");
+            return new ParsedSelector(SelectorCategory.InvalidOrUnknown, selectorTrimmed, selectorTrimmed);
         }
         
     }

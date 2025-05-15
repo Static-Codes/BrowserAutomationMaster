@@ -8,6 +8,39 @@ namespace BrowserAutomationMaster
 {
     internal static class BrowserFunctions
     {
+        public static string browserQuitCode = "print('Quitting driver...')\ndriver.quit()";
+
+        public static string clickElementFunction = @"def click_element(byType: By, selector: str, actionTimeout: int):
+    try:
+        WebDriverWait(driver, actionTimeout).until(EC.element_to_be_clickable((byType, selector))).click()
+    except Exception as e:
+        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 3));
+
+        public static string clickElementExperimentalFunction = $@"def click_element_experimental(selectorType: str, selector: str):
+    byType = By.CSS_SELECTOR if selectorType == 'css' else By.XPATH
+    try:
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((byType, selector))).click()
+    except Exception as e:
+        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 3));
+
+        public static string getTextFromElementFunction = $@"def get_text_from_element(byType: By, selector: str, propertyName = 'value'):
+    # propertyName is optional and will be overwritten if provided.
+    try:
+        text = driver.find_element(byType, selector).get_property(propertyName)
+        return text
+    except Exception as e:
+        print('An error occured while trying to get text from element with the selector:', selector, '\n\nError:\n',e)
+        return None" + string.Concat(Enumerable.Repeat('\n', 3));
+
+        public static string fillTextFunction = @"def fill_text(byType: By, selector: str, value: str):
+    try:
+        element = driver.find_element(byType, selector)
+        driver.execute_script(f'arguments[0].innerText = ""{value}""', element)
+        return True
+    except Exception as e:
+        print('An error occured while trying to fill text on element with the selector:', selector, '\n\nError:\n',e)
+        return False" + string.Concat(Enumerable.Repeat('\n', 3));
+
         public static string makeRequestFunction = @"def make_request(url):
     status_code = None
     request_url = None
@@ -47,8 +80,6 @@ namespace BrowserAutomationMaster
         if driver:
             if hasattr(driver, 'requests'):
                  del driver.requests
-            print('Quitting driver...')
-            driver.quit()
         else:
             print('Driver was not initialized.')
     print('\n--- Result (using selenium-wire) ---')
@@ -75,21 +106,6 @@ namespace BrowserAutomationMaster
             file.write(driver.get_screenshot_as_png())
     except Exception as e:
         print(f'Unable to take screenshot, please check the error below:\n\n{e}')" + string.Concat(Enumerable.Repeat('\n', 3));
-
-        public static string browserQuitCode = "print('Quitting driver...')\ndriver.quit()";
-
-        public static string clickElementFunction = @"def click_element(byType: By, selector: str, actionTimeout: int):
-    try:
-        WebDriverWait(driver, actionTimeout).until(EC.element_to_be_clickable((byType, selector))).click()
-    except Exception as e:
-        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 3));
-
-        public static string clickElementExperimentalFunction = $@"def click_element_experimental(selectorType: str, selector: str):
-    byType = By.CSS_SELECTOR if selectorType == 'css' else By.XPATH
-    try:
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((byType, selector))).click()
-    except Exception as e:
-        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 3));
 
     }
 }

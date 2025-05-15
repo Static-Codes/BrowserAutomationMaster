@@ -3,7 +3,7 @@ visit "https://google.com"
 click "#id-selector"
 click-experimental 'ytd-popup-container.style-scope' 
 get-text-from-element "example-selector"
-fill-textbox "textbox-selector" "value"
+fill-text "textbox-selector" "value"
 select-dropdown "dropdown-selector"
 select-dropdown-element "dropdown-element-selector"
 save-as-html "filename.html"

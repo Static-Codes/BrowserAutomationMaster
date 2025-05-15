@@ -13,7 +13,7 @@ namespace BrowserAutomationMaster
 
 
         public readonly static string[] actionArgs = [
-            "click", "click-experimental", "get-text-from-element", "fill-textbox", "save-as-html", "select-dropdown", "select-dropdown-element", 
+            "click", "click-experimental", "get-text-from-element", "fill-text", "save-as-html", "select-dropdown", "select-dropdown-element", 
             "select-element", "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
@@ -32,7 +32,7 @@ namespace BrowserAutomationMaster
         const string LinkFormatPattern = @"(?i)\b(https?://(?:(?:(?:[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?\.)*(?:[a-z\u00a1-\uffff]{2,}|[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)\.?)|(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|\[(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[a-zA-Z0-9._~%-]+|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d))\]))(?::\d{2,5})?(?:[/?#][^\s<>""']*)?\b";
 
         const string ProxyFormatPattern = @"^([^:]+):([^@]+)@([^:]+):(\d+)$";
-
+        const string NumberFormatPattern = @"^(?:\d+(?:\.\d{1,3})?|\.\d{1,3})$";
 
         // Researched from: https://blog.nimblepros.com/blogs/using-generated-regex-attribute/
         // Source generation is used here at build time to create an optimized regex code block, which is then converted into MSIL prior to runtime; reducing overhead and improving efficiency.
@@ -42,6 +42,9 @@ namespace BrowserAutomationMaster
 
         [GeneratedRegex(LinkFormatPattern)]
         private static partial Regex PrecompiledLinkRegex();
+
+        [GeneratedRegex(NumberFormatPattern)]
+        private static partial Regex PrecompiledNumberRegex();
         public static bool CreateUserScriptsDirectory()
         {
             if (userScriptsDirectory == null) { return false; }
@@ -144,14 +147,16 @@ namespace BrowserAutomationMaster
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
         }
 
-        public static bool IsValidLinkFormat(string emailString)
-        {
+        public static bool IsValidNumberFormat(string numberString) {
+            if (string.IsNullOrEmpty(numberString)) { return false; }
+            return PrecompiledNumberRegex().IsMatch(numberString);
+        }
+        public static bool IsValidLinkFormat(string emailString) {
             if (string.IsNullOrWhiteSpace(emailString)) { return false; }
             return PrecompiledLinkRegex().IsMatch(emailString);
         }
 
-        public static bool IsValidProxyFormat(string proxyString)
-        {
+        public static bool IsValidProxyFormat(string proxyString) {
             if (string.IsNullOrWhiteSpace(proxyString)) { return false; }
             return PrecompiledProxyRegex().IsMatch(proxyString);
         }
@@ -173,7 +178,9 @@ namespace BrowserAutomationMaster
         
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
-            string[] lineArgs = line.Trim().Split(" ");
+            string[] lineArgs;
+            if (line.StartsWith("fill-text")) { lineArgs = line.Trim().Split(" \""); } // Special case to handle fill-text
+            else { lineArgs = line.Trim().Split(" "); } // Handle all others
             string firstArg = lineArgs[0];
             string selectorString = "\"selector\""; // Defaults to "selector" for selector based actions
             switch (firstArg)
@@ -182,13 +189,10 @@ namespace BrowserAutomationMaster
                     if (firstArg.Equals("save-as-html")) { selectorString = "filename.html"; }
                     if (firstArg.Equals("take-screenshot")) { selectorString = "filename.png"; }
 
-                    if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
-                    {
-                       
+                    if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"')) { 
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
                     }
-                    if (lineArgs[0].Equals("visit") && !IsValidLinkFormat(lineArgs[1].Replace('"', ' ').Trim()))
-                    {
+                    if (lineArgs[0].Equals("visit") && !IsValidLinkFormat(lineArgs[1].Replace('"', ' ').Trim())) {
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid url format on line {lineNumber}\nLine: {line}\n", false);
                     }
                     return true;
@@ -202,8 +206,8 @@ namespace BrowserAutomationMaster
                     }
                     return true;
 
-                case "fill-textbox":
-                    if (lineArgs.Length != 3 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"') || !lineArgs[2].StartsWith('"') || !lineArgs[2].EndsWith('"'))
+                case "fill-text":
+                    if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].Trim().EndsWith('"'))
                     {
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} \"value\"\n", false);
                     }
@@ -211,11 +215,11 @@ namespace BrowserAutomationMaster
 
                 case "wait-for-seconds":
                     selectorString = "5";
-                    if (lineArgs.Length != 2 || !int.TryParse(lineArgs[1], out int seconds) || seconds < 1)
-                    {
-                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
+                    if (!IsValidNumberFormat(lineArgs[1].Trim())) {
+                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid url format on line {lineNumber}\nLine: {line}\\nValid Syntax: {firstArg} {selectorString}\n", false);
                     }
                     return true;
+
 
                 case "browser":
                     if (lineArgs.Length != 2 || !browserArgs.Contains(lineArgs[1].Replace("\"", "")) || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
@@ -354,16 +358,16 @@ namespace BrowserAutomationMaster
                     {
                         if (visitBlockFinished) { return true; }
                         List<string> passedLines = [.. lines.Take(i + 1)];
-                        List<string> unavailableCommands = ["click", "click-experimental", "get-text-from-element", "fill-textbox", "select-dropdown", "select-dropdown-element", "save-as-html", "take-screenshot", "wait-for-seconds"];
+                        List<string> availableCommands = ["browser", "visit"];
                         List<string> invalidLines = [..
-                            passedLines.Where(line => 
-                                unavailableCommands.Any(prefix => 
+                            passedLines.Where(line =>
+                                !availableCommands.Any(prefix =>
                                     line.Trim().StartsWith(prefix)
                                 )
                             )
                         ];
                         if (invalidLines.Count > 0) {
-                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, i, $"A 'visit' command must be placed before any of the following commands:\n\n{string.Join('\n', unavailableCommands)}"), 1);
+                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, i, $"A 'visit' command must be placed before any of the following commands:\n\n{string.Join('\n', availableCommands)}"), 1);
                         }
                     }
 
