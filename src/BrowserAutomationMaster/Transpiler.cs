@@ -362,16 +362,16 @@ namespace BrowserAutomationMaster
                             }
                             break;
 
-                        case "get-text-from-element":
+                        case "get-text":
                             string textElementSelector = splitLine[1].Replace('"', ' ').Trim();
                             ParsedSelector parsedTextSelector = SelectorParser.Parse(textElementSelector);
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'get-text-from-element', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'get-text', please remove this line and recompile."), 1);
                                     break;
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'get-text-from-element'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'get-text'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
                                     break;
                                 case BrowserPackage.selenium:
                                     switch (parsedTextSelector.Category)
@@ -408,11 +408,11 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                     case BrowserPackage.aiohttp:
-                                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'get-text-from-element', please remove this line and recompile."), 1);
+                                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'get-text', please remove this line and recompile."), 1);
                                         break;
 
                                     case BrowserPackage.tls_client:
-                                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'get-text-from-element'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'get-text'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
                                         break;
 
                                     case BrowserPackage.selenium:
@@ -453,6 +453,19 @@ namespace BrowserAutomationMaster
                                 break;
 
                         case "save-as-html":
+                            switch (browserPackage)
+                            {
+                                case BrowserPackage.aiohttp:
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'get-text', please remove this line and recompile."), 1);
+                                    break;
+
+                                case BrowserPackage.tls_client:
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'get-text'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    break;
+
+                                case BrowserPackage.selenium:
+                                    break;
+                            }
                             break;
 
                         case "select-dropdown":

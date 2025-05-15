@@ -2,7 +2,7 @@
   "Actions": {
     "click": "Clicks the specified button element",
     "click-experimental": "Alternative to click, use this if click is causing issues.",
-    "get-text-from-element": "Gets the text for a specified element.",
+    "get-text": "Gets the text for a specified element.",
     "fill-text": "Assigns the specified value to the selected element.",
     "save-as-html": "Saves the current pages HTML to a file with the specified name.",
     "select-dropdown": "Selects a dropdown menu (<select><option></option></select>",

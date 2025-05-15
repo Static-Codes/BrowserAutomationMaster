@@ -2,7 +2,7 @@ browser "firefox"
 visit "https://google.com"
 click "#id-selector"
 click-experimental 'ytd-popup-container.style-scope' 
-get-text-from-element "example-selector"
+get-text "example-selector"
 fill-text "textbox-selector" "value"
 select-dropdown "dropdown-selector"
 select-dropdown-element "dropdown-element-selector"
