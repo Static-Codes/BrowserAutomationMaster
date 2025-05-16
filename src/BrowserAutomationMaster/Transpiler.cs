@@ -1,6 +1,4 @@
-﻿using System.CodeDom.Compiler;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
 namespace BrowserAutomationMaster
@@ -377,23 +375,23 @@ namespace BrowserAutomationMaster
                                     switch (parsedTextSelector.Category)
                                     {
                                         case SelectorCategory.Id:
-                                            scriptBody.Add($"text = get_text_from_element(By.ID, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.ID, '{sanitizedArg2}')");
                                             break;
 
                                         case SelectorCategory.ClassName:
-                                            scriptBody.Add($"text = get_text_from_element(By.CLASS_NAME, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.CLASS_NAME, '{sanitizedArg2}')");
                                             break;
                                         
                                         case SelectorCategory.NameAttribute:
-                                            scriptBody.Add($"text = get_text_from_element(By.NAME, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.NAME, '{sanitizedArg2}')");
                                             break;
 
                                         case SelectorCategory.XPath:
-                                            scriptBody.Add($"text = get_text_from_element(By.XPATH, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.XPATH, '{sanitizedArg2}')");
                                             break;
 
                                         case SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"text = get_text_from_element(By.CSS_SELECTOR, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.CSS_SELECTOR, '{sanitizedArg2}')");
                                             break;
                                     }
                                 break;
@@ -419,32 +417,32 @@ namespace BrowserAutomationMaster
                                         switch (parsedFillSelector.Category)
                                         {
                                             case SelectorCategory.Id:
-                                                scriptBody.Add($"isFilled = fill_text(By.ID, '{parsedFillSelector.Value}', '{sanitizedArg3}')");
-                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')\n");
+                                                scriptBody.Add($"isFilled = fill_text(By.ID, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')");
                                                 scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {sanitizedArg2}')\n");
                                                 break;
 
                                             case SelectorCategory.ClassName:
-                                                scriptBody.Add($"isFilled = fill_text(By.CLASS_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')");
-                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')\n");
+                                                scriptBody.Add($"isFilled = fill_text(By.CLASS_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')");
                                                 scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {sanitizedArg2}')\n");
                                                 break;
 
                                             case SelectorCategory.NameAttribute:
-                                                scriptBody.Add($"isFilled = fill_text(By.NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')");
-                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')\n");
+                                                scriptBody.Add($"isFilled = fill_text(By.NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')");
                                                 scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {sanitizedArg2}')\n");
                                                 break;
 
                                             case SelectorCategory.XPath:
-                                                scriptBody.Add($"isFilled = fill_text(By.XPATH, '{parsedFillSelector.Value}', '{sanitizedArg3}')");
-                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')\n");
+                                                scriptBody.Add($"isFilled = fill_text(By.XPATH, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')");
                                                 scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {sanitizedArg2}')\n");
                                                 break;
 
                                             case SelectorCategory.InvalidOrUnknown:
-                                                scriptBody.Add($"isFilled = fill_text(By.CSS_SELECTOR, '{parsedFillSelector.Value}', '{sanitizedArg3}')");
-                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')\n");
+                                                scriptBody.Add($"isFilled = fill_text(By.CSS_SELECTOR, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                                scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')");
                                                 scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {sanitizedArg2}')\n");
                                                 break;
                                         }
@@ -456,18 +454,40 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'get-text', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'save-as-html', please remove this line and recompile."), 1);
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'get-text'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'save-as-html'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
                                     break;
 
                                 case BrowserPackage.selenium:
+                                    scriptBody.Add($"isSaved = save_as_html('{sanitizedArg2}')\n");
+                                    scriptBody.Add($"if isSaved:\n{Indent(1)}print('Saved page source to: {sanitizedArg2}')");
+                                    scriptBody.Add($"else:\n{Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n");
                                     break;
                             }
                             break;
 
+                        case "save-as-html-experimental":
+                            switch (browserPackage)
+                            {
+                                case BrowserPackage.aiohttp:
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'save-as-html-experimental', please remove this line and recompile."), 1);
+                                    break;
+
+                                case BrowserPackage.tls_client:
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'save-as-html-experimental'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    break;
+
+                                case BrowserPackage.selenium:
+                                    scriptBody.Add($"isSaved = save_as_html_experimental('{sanitizedArg2}')\n");
+                                    scriptBody.Add($"if isSaved:\n{Indent(1)}print('Saved page source to: {sanitizedArg2}')");
+                                    scriptBody.Add($"else:\n{Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n");
+                                    break;
+                            }
+                            break;
+                        
                         case "select-dropdown":
                             break;
 
@@ -511,12 +531,12 @@ namespace BrowserAutomationMaster
                                     {
                                         scriptBody.AddRange(
                                         [
-                                            "print('Initializing WebDriver...')",
-                                        "driver = None",
-                                        "status_code = None",
-                                        "final_url = url",
-                                        "request_url = None",
-                                        "sw_options = { 'enable_har': True }"
+                                            "print('Initializing WebDriver...')\n",
+                                            "driver = None",
+                                            "status_code = None",
+                                            "final_url = url",
+                                            "request_url = None",
+                                            "sw_options = { 'enable_har': True }\n"
                                         ]);
                                         switch (selectedBrowser)
                                         {
@@ -533,7 +553,18 @@ namespace BrowserAutomationMaster
                                                 break;
                                         }
                                         scriptBody.Add("driver.maximize_window()");
-                                        scriptBody.Add("print('Driver initialized.')");
+                                        scriptBody.AddRange(
+                                            [
+                                                "bounds = get_screen_bounds()\n",
+                                                "if bounds is not None and len(bounds) == 2:",
+                                                $"{Indent(1)}height = bounds[1]",
+                                                $"{Indent(1)}width = bounds[0]",
+                                                "else:",
+                                                $"{Indent(1)}height = 1920",
+                                                $"{Indent(1)}width = 1080\n\n",
+                                                "driver.set_window_position(height, 0) # Sets the browser off the right of the primary display",
+                                                "print('Driver initialized.')\n\n"
+                                            ]);
                                         scriptBody.Add("make_request(url)");
                                     }
                                     else
@@ -566,10 +597,13 @@ namespace BrowserAutomationMaster
             importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
             scriptBody.Insert(0, BrowserFunctions.clickElementFunction);
             scriptBody.Insert(1, BrowserFunctions.clickElementExperimentalFunction);
-            scriptBody.Insert(2, BrowserFunctions.fillTextFunction);
-            scriptBody.Insert(3, BrowserFunctions.getTextFromElementFunction);
-            scriptBody.Insert(4, BrowserFunctions.makeRequestFunction);
-            scriptBody.Insert(5, BrowserFunctions.takeScreenshotFunction);
+            scriptBody.Insert(2, BrowserFunctions.getScreenBoundsFunction);
+            scriptBody.Insert(3, BrowserFunctions.fillTextFunction);
+            scriptBody.Insert(4, BrowserFunctions.getTextFunction);
+            scriptBody.Insert(5, BrowserFunctions.makeRequestFunction);
+            scriptBody.Insert(6, BrowserFunctions.saveAsHTMLFunction);
+            scriptBody.Insert(7, BrowserFunctions.saveAsHTMLExperimentalFunction);
+            scriptBody.Insert(8, BrowserFunctions.takeScreenshotFunction);
             scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
         } // Finish me
         public static void HandlePythonVersionSelection(Installations installations)

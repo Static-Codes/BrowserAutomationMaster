@@ -1,5 +1,6 @@
 ﻿using BrowserAutomationMaster;
 
+
 string[] programArgs = args;
 SysCheck _ = new(programArgs); // Runs a system compatibility check.
 Console.Title = "BrowserAutomationMaster Manager (BAMM!)";
