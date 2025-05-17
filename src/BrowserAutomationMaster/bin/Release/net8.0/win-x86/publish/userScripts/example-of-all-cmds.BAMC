@@ -4,8 +4,8 @@ click "#id-selector"
 click-experimental 'ytd-popup-container.style-scope' 
 get-text "example-selector"
 fill-text "textbox-selector" "value"
-select-dropdown "dropdown-selector"
-select-dropdown-element "dropdown-element-selector"
+select-option "dropdown-selector" 2
+select-element "dropdown-element-selector"
 save-as-html "filename.html"
 take-screenshot "filename.png"
 wait-for-seconds 5

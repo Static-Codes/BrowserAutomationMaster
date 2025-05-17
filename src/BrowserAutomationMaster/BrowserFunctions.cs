@@ -152,6 +152,38 @@
         print(f'Unable to write html to: {filename}, please check the error below:\n\n{e}')
         return False" + string.Concat(Enumerable.Repeat('\n', 3));
 
+        public static string selectElementFunction = @"def select_element(byType: By, selector: str, timeout: int):
+    try:
+        element = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((byType, selector)))
+        return element
+    except Exception as e:
+        print(""An error occured while trying to get text from element with the selector:"", selector, ""\n\nError:\n"", e)
+        return None" + string.Concat(Enumerable.Repeat('\n', 3));
+
+        public static string selectOptionByIndexFunction = @"def select_option_by_index(
+    byType: By,
+    selector: str,
+    index: int,
+    timeout: int = 10
+) -> bool:
+    select_tag_element = select_element(byType, selector, timeout)
+    if not select_tag_element:
+        print(f""Standard <select> element not found using selector:\n{selector}"")
+        return False
+
+    if select_tag_element.tag_name.lower() != 'select':
+        print(f""Element {selector} is not a <select> tag, found a <{select_tag_element.tag_name}> tag."")
+        return False
+
+    try:
+        select_obj = Select(select_tag_element)
+        select_obj.select_by_index(index)
+        print(f""Selected option #{index+1} from {selector}."")
+        return True
+    except Exception as e:
+        print(f""Error selecting option #{index+1} (Index: {index}) from <select> tag with selector:\n'{selector}'\nError: {e}"")
+        return False" + string.Concat(Enumerable.Repeat('\n', 3));
+
         public static string takeScreenshotFunction = @"def take_screenshot(filename: str):
     if not filename.endswith('.png'):
         filename = 'screenshot.png'

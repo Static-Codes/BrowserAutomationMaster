@@ -13,8 +13,8 @@ namespace BrowserAutomationMaster
 
 
         public readonly static string[] actionArgs = [
-            "click", "click-experimental", "get-text", "fill-text", "save-as-html", "save-as-html-experimental", "select-dropdown", "select-dropdown-element", 
-            "select-element", "take-screenshot", "wait-for-seconds", "visit"
+            "click", "click-experimental", "get-text", "fill-text", "save-as-html", "save-as-html-experimental", "select-element", "select-option", 
+            "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "no-ssl"];
@@ -185,12 +185,13 @@ namespace BrowserAutomationMaster
             string selectorString = "\"selector\""; // Defaults to "selector" for selector based actions
             switch (firstArg)
             {
-                case "click" or "get-text" or "select-dropdown" or "select-dropdown-element" or "select-element" or "take-screenshot" or "visit":
-                    if (firstArg.Equals("save-as-html")) { selectorString = "filename.html"; }
+                case "click" or "get-text" or "save-as-html" or "save-as-html-experimental" or "select-element" or "take-screenshot" or "visit":
+                    if (firstArg.Contains("save-as-html")) { selectorString = "filename.html"; }
                     if (firstArg.Equals("take-screenshot")) { selectorString = "filename.png"; }
+                    if (firstArg.Equals("select-option")) { selectorString = "option-selector"; }
 
                     if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"')) { 
-                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
+                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} \"{selectorString}\"\n", false);
                     }
                     if (lineArgs[0].Equals("visit") && !IsValidLinkFormat(lineArgs[1].Replace('"', ' ').Trim())) {
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid url format on line {lineNumber}\nLine: {line}\n", false);
@@ -207,20 +208,15 @@ namespace BrowserAutomationMaster
                     return true;
 
                 case "fill-text":
-                    if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].Trim().EndsWith('"')) {
-                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} \"value\"\n", false);
+                    if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].Trim().EndsWith('"'))
+                    {
+                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} \"{selectorString}\" \"value\"\n", false);
                     }
                     return true;
 
-                case "save-as-html":
-                    if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"')) {
-                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} \"value\"\n", false);
-                    }
-                    return true;
-
-                case "save-as-html-experimental":
-                    if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"')){
-                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} \"value\"\n\nPlease ensure there are no spaces in your filename.", false);
+                case "select-option":
+                    if (lineArgs.Length != 3 || !lineArgs[1].StartsWith('"') || !lineArgs[1].Trim().EndsWith('"') || !int.TryParse(lineArgs[2], out int parsedInt)) {
+                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} \"{selectorString}\" index\n", false);
                     }
                     return true;
 
