@@ -8,9 +8,9 @@
     <AssemblyName>bamm</AssemblyName>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Management" Version="9.0.4" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="System.Management" Version="9.0.4" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<None Update="packages.json">
@@ -22,6 +22,10 @@
 		<None Update="userAgents.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="userScripts\**\*" CopyToOutputDirectory="Always" />
 	</ItemGroup>
 
 </Project>
