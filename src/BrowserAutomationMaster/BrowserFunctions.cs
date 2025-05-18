@@ -4,18 +4,31 @@
     {
         public static string browserQuitCode = "print('Quitting driver...')\ndriver.quit()";
 
+        public static string checkImportFunction = @"def check_import(name: str):
+    module_name = name.split('==')[0].split('>=')[0].split('<=')[0].split('!=')[0].split('<')[0].split('>')[0].split('[')[0].strip()
+    error_msg = f'Unable to find package: {module_name}, please ensure you its installed via:\npip install {name}'
+    if module_name in modules:
+        return True
+        
+    try:
+        import_module(module_name)
+        return True
+    except:
+        print(error_msg)
+        return False" + string.Concat(Enumerable.Repeat('\n', 1));
+
         public static string clickElementFunction = @"def click_element(byType: By, selector: str, actionTimeout: int):
     try:
         WebDriverWait(driver, actionTimeout).until(EC.element_to_be_clickable((byType, selector))).click()
     except Exception as e:
-        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 3));
+        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string clickElementExperimentalFunction = $@"def click_element_experimental(selectorType: str, selector: str):
     byType = By.CSS_SELECTOR if selectorType == 'css' else By.XPATH
     try:
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((byType, selector))).click()
     except Exception as e:
-        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 3));
+        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string getScreenBoundsFunction = @"def get_screen_bounds():
     try:
@@ -35,7 +48,7 @@
             'Unable to determine screen boundaries of the current monitor.  '
             'You may see a portion of the browser while it executes.'
         )
-        return None" + string.Concat(Enumerable.Repeat('\n', 3));
+        return None" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string getTextFunction = $@"def get_text_from_element(byType: By, selector: str, propertyName = 'value'):
     # propertyName is optional and will be overwritten if provided.
@@ -44,7 +57,7 @@
         return text
     except Exception as e:
         print('An error occured while trying to get text from element with the selector:', selector, '\n\nError:\n',e)
-        return None" + string.Concat(Enumerable.Repeat('\n', 3));
+        return None" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string fillTextFunction = @"def fill_text(byType: By, selector: str, value: str):
     try:
@@ -53,7 +66,45 @@
         return True
     except Exception as e:
         print('An error occured while trying to fill text on element with the selector:', selector, '\n\nError:\n',e)
-        return False" + string.Concat(Enumerable.Repeat('\n', 3));
+        return False" + string.Concat(Enumerable.Repeat('\n', 1));
+
+        public static string installPackagesFunction = @"def install_packages(requirements_file: str, script_dir: str):
+    if not path.exists(script_dir):
+        print(f'Unable to find python scripts directory, please ensure it exists at the following path:\n{script_dir}')
+        return False
+    
+    raw_package_names = []
+    try:
+        with open(requirements_file, 'r') as file:
+            raw_package_names = file.read().splitlines()
+    except:
+        print(f'Unable to parse requirements.txt file, please ensure the following file is not actively being used:\n{requirements_file}')
+        exit()
+    
+    package_names = [name.strip() for name in raw_package_names if name.strip() and not name.strip().startswith('#')]
+    missing_packages = any(not check_import(package) for package in package_names)
+    if not missing_packages:
+        return True
+    
+    command = ['pip', 'install', '-r', requirements_file]
+    try:
+        process = run(command, cwd=script_dir, capture_output=True, text=True, check=False)
+        if process.returncode == 0:
+            print('Required packages installed successfully.')
+            if process.stderr:
+                print(f'pip response:\n{process.stderr}')
+            return True
+        else:
+            print(f'Error installing packages.')
+            if process.stderr:
+                print('Error:\n', process.stderr)
+            return False
+    except FileNotFoundError: # This exception occurs if 'pip' itself is not found
+        print('pip command not found, Please make sure Python and pip are installed and in your system PATH.')
+        return False
+    except Exception as e:
+        print(f'An unexpected error occurred while trying to run pip:\n{e}')
+        return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string makeRequestFunction = @"def make_request(url):
     status_code = None
@@ -108,7 +159,7 @@
         else:
             print('Status indicates success (or redirect).')
     else:
-         print(f'Could not determine status code using selenium-wire.')" + string.Concat(Enumerable.Repeat('\n', 3));
+         print(f'Could not determine status code using selenium-wire.')" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string saveAsHTMLFunction = @"def save_as_html(filename: str):
     if not filename.endswith('.html'):
@@ -126,7 +177,7 @@
         return True
     except Exception as e:
         print(f'Unable to save page source, please check the error below:\n\n{e}')
-        return False" + string.Concat(Enumerable.Repeat('\n', 3));
+        return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string saveAsHTMLExperimentalFunction = @"def save_as_html_experimental(filename: str, timeout: int):
     if not filename.endswith('.html'):
@@ -150,7 +201,7 @@
         return True
     except Exception as e:
         print(f'Unable to write html to: {filename}, please check the error below:\n\n{e}')
-        return False" + string.Concat(Enumerable.Repeat('\n', 3));
+        return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string selectElementFunction = @"def select_element(byType: By, selector: str, timeout: int):
     try:
@@ -158,7 +209,7 @@
         return element
     except Exception as e:
         print(""An error occured while trying to get text from element with the selector:"", selector, ""\n\nError:\n"", e)
-        return None" + string.Concat(Enumerable.Repeat('\n', 3));
+        return None" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string selectOptionByIndexFunction = @"def select_option_by_index(
     byType: By,
@@ -182,7 +233,7 @@
         return True
     except Exception as e:
         print(f""Error selecting option #{index+1} (Index: {index}) from <select> tag with selector:\n'{selector}'\nError: {e}"")
-        return False" + string.Concat(Enumerable.Repeat('\n', 3));
+        return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string takeScreenshotFunction = @"def take_screenshot(filename: str):
     if not filename.endswith('.png'):
@@ -192,7 +243,7 @@
         with open(f'{filename}', 'wb') as file:
             file.write(driver.get_screenshot_as_png())
     except Exception as e:
-        print(f'Unable to take screenshot, please check the error below:\n\n{e}')" + string.Concat(Enumerable.Repeat('\n', 3));
+        print(f'Unable to take screenshot, please check the error below:\n\n{e}')" + string.Concat(Enumerable.Repeat('\n', 1));
 
     }
 }

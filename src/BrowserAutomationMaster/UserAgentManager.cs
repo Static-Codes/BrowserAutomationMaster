@@ -4,7 +4,7 @@ namespace BrowserAutomationMaster
 {
     internal class UserAgentManager
     {
-        readonly static string UserAgentsFilePath = "UserAgents.json";
+        readonly static string UserAgentsFilePath = "userAgents.json";
         static Dictionary<string, List<string>>? userAgentsData;
         readonly static Random random = new();
         private static readonly object _lock = new(); // private modifier is needed here so lock is not accessed by external code. // _ required because lock is a reserved keyword
@@ -51,7 +51,7 @@ namespace BrowserAutomationMaster
 
             if (userAgentsData == null || userAgentsData.Count == 0)
             {
-                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to load UserAgents.json, please ensure this file exists and is populated.", 1);
+                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to load userAgents.json, please ensure this file exists and is populated.", 1);
                 return null; // This will never be reachable, as WriteErrorAndExit does exactly that.
             }
 

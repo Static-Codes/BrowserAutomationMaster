@@ -6,6 +6,7 @@ namespace BrowserAutomationMaster
     {
         public enum MenuOption
         {
+            Add,
             Compile,
             Help,
             Invalid
@@ -13,7 +14,7 @@ namespace BrowserAutomationMaster
 
 
         public readonly static string[] actionArgs = [
-            "click", "click-experimental", "get-text", "fill-text", "save-as-html", "save-as-html-experimental", "select-element", "select-option", 
+            "click", "click-exp", "get-text", "fill-text", "save-as-html", "save-as-html-exp", "select-element", "select-option", 
             "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
@@ -99,9 +100,7 @@ namespace BrowserAutomationMaster
         {
             if (validFiles.Count != 0)
             {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"BAM Manager (BAMM) located {validFiles.Count} valid .bamc files, please see below:\n");
-                Console.ForegroundColor = ConsoleColor.White;
+                Success.WriteSuccessMessage($"BAM Manager (BAMM) located {validFiles.Count} valid .bamc files, please see below:\n");
                 for (int i = 0; i < validFiles.Count; i++)
                 {
                     validFilesMapping.Add(i, validFiles[i]);
@@ -142,6 +141,7 @@ namespace BrowserAutomationMaster
             }
         }
 
+        public static string GetUserScriptDirectory() { return userScriptsDirectory; }
         public static string[] ValidateBAMCFiles(string[] BAMCFiles)
         {
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
@@ -185,7 +185,7 @@ namespace BrowserAutomationMaster
             string selectorString = "\"selector\""; // Defaults to "selector" for selector based actions
             switch (firstArg)
             {
-                case "click" or "get-text" or "save-as-html" or "save-as-html-experimental" or "select-element" or "take-screenshot" or "visit":
+                case "click" or "get-text" or "save-as-html" or "save-as-html-exp" or "select-element" or "take-screenshot" or "visit":
                     if (firstArg.Contains("save-as-html")) { selectorString = "filename.html"; }
                     if (firstArg.Equals("take-screenshot")) { selectorString = "filename.png"; }
                     if (firstArg.Equals("select-option")) { selectorString = "option-selector"; }
@@ -198,7 +198,7 @@ namespace BrowserAutomationMaster
                     }
                     return true;
 
-                case "click-experimental":
+                case "click-exp":
                     lineArgs = line.Trim().Split(" '");
                     selectorString = "'selector'";
                     if (lineArgs.Length != 2 || !lineArgs[1].EndsWith('\''))
@@ -325,16 +325,14 @@ namespace BrowserAutomationMaster
                     string[] lineArgs = line.Split(" ");
                     if (lineArgs.Length == 0) { return false; }
                     string firstArg = lineArgs[0];
-                    if (firstArg.Equals("browser"))
-                    {
+                    if (firstArg.Equals("browser")) {
                         if (i != 0 || browserBlockFinished)
                         {
                             return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid 'browser' command location on line {i + 1}.\n'browser' command must be placed at the top of the file.\n", false);
                         }
                         browserBlockFinished = true;
                     }
-                    else if (firstArg.Equals("feature"))
-                    {
+                    else if (firstArg.Equals("feature")) {
                         if (featureBlockFinished)
                         {
                             return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid 'feature' command location on line {i + 1}.\nAll 'feature' commands must be placed before any other command, except 'browser'.\n", false);
@@ -360,8 +358,7 @@ namespace BrowserAutomationMaster
                         }
                         usedFeatures.Add(line);
                     }
-                    else if (firstArg.Equals("visit"))
-                    {
+                    else if (firstArg.Equals("visit")) {
                         if (visitBlockFinished) { return true; }
                         List<string> passedLines = [.. lines.Take(i + 1)];
                         List<string> availableCommands = ["browser", "visit"];
@@ -376,11 +373,7 @@ namespace BrowserAutomationMaster
                             Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, i, $"A 'visit' command must be placed before any of the following commands:\n\n{string.Join('\n', availableCommands)}"), 1);
                         }
                     }
-
-
-
-                    else
-                    {
+                    else {
                         bool validLine = HandleLineValidation(fileName, line, i+1);
                         if (!validLine) { return false; }
                         featureBlockFinished = true; // This flag will be used to ensure all feature commands are placed before all others.
@@ -398,22 +391,22 @@ namespace BrowserAutomationMaster
             catch (IOException ex) { return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nAn IO Exception occurred while validating: '{fileName}'\nError: {ex.Message}\n", false); }
             
             // General catchall (LOG MORE SEVERLY IF HIT) 
-            catch (Exception ex){ return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nAn unexpected error occurred while validating:'{fileName}'\nError: {ex.Message}\n", false); }
+            catch (Exception ex){ return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nA fatal error occurred while validating:'{fileName}'\nError: {ex.Message}\n", false); }
         }
         
         public static MenuOption Menu()
         {
-           Dictionary<int, MenuOption> menuOptionsMapping = new()
-           {
+            Dictionary<int, MenuOption> menuOptionsMapping = new()
+            {
                 { 1, MenuOption.Compile },
                 { 2, MenuOption.Help },
-           };
+            };
             string menuText = """
             Welcome To The BAM Manager (BAMM)!
 
             Please select the number correlating to your desired action from the menu options below:
 
-            1. Compile .BAMC File
+            1. Compile .BAMC File from userScripts Directory
             2. Help
 
 
@@ -450,7 +443,7 @@ namespace BrowserAutomationMaster
                     index = HandleUserSelection(validFilesMapping);
                     selectedFile = BAMCFiles[index];
                     return KeyValuePair.Create(MenuOption.Compile, Path.Combine(AppContext.BaseDirectory, "userScripts", selectedFile));
-                    
+                
                 case MenuOption.Help:
                     return KeyValuePair.Create(MenuOption.Help, "");
             }

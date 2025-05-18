@@ -10,7 +10,7 @@ namespace BrowserAutomationMaster
         TagName,
         XPath,
         NameAttribute,
-        InvalidOrUnknown // Used for click-experimental action.
+        InvalidOrUnknown // Used for click-exp action.
     }
 
     public class ParsedSelector(SelectorCategory category, string value, string rawInput)

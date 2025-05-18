@@ -1,15 +1,23 @@
 ﻿using BrowserAutomationMaster;
 
+string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
-string[] programArgs = args;
-SysCheck _ = new(programArgs); // Runs a system compatibility check.
+SysCheck _ = new(pArgs); // Runs a system compatibility check.
 Console.Title = "BrowserAutomationMaster Manager (BAMM!)";
 
-KeyValuePair<Parser.MenuOption, string> parserResult = Parser.New(); // value is
+bool isCLI = false;
+if (pArgs.Length == 2) { isCLI = true; }
+
+
+if (isCLI) {
+    UserScriptManager usm = new(pArgs[1], pArgs[0]);
+}
+
+KeyValuePair<Parser.MenuOption, string> parserResult = Parser.New(); // value is the filepath of the selected file.
 switch (parserResult.Key)
 {
     case Parser.MenuOption.Compile:
-        Transpiler.New(parserResult.Value, programArgs);
+        Transpiler.New(parserResult.Value, args);
         break;
 
     case Parser.MenuOption.Help:
@@ -20,14 +28,5 @@ switch (parserResult.Key)
 }
 
 
-//ParsedSelector parsedSelector = SelectorParser.Parse("#container"); // Parse css/xpath selector
-//Console.WriteLine(parsedSelector);
-
-
-//string path = Path.Combine(AppContext.BaseDirectory, "userScripts", "with-features.BAMC");
-//Transpiler.New(path);
-//Console.ReadKey();
-
-
-//Console.WriteLine(UserAgentManager.GetUserAgent("firefox")); // Get User Agent Example
+Console.WriteLine("Press any key to exit..");
 Console.ReadKey();

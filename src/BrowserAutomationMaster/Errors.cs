@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Enumeration;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,8 +26,8 @@ namespace BrowserAutomationMaster
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
-            Console.ReadKey();
             Console.ForegroundColor = ConsoleColor.White;
+            Console.ReadKey();
             Environment.Exit(status);
         }
         public static bool WriteErrorAndReturnBool(string message, bool returnBool)
