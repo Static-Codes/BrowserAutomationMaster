@@ -5,6 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>bamm</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,13 +13,13 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<None Update="Packages.json">
+		<None Update="packages.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="UserAgents.json">
+		<None Update="userAgents.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

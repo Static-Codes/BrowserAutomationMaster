@@ -6,7 +6,6 @@ namespace BrowserAutomationMaster
 {
     public class PackageJson
     {
-        // Fix this so it is properly escaped and matches Packages.json also test to ensure the new GetSupportedPackageVersion() works.
         readonly public static string jsonString = """
         {
             "aiohttp": {
@@ -103,10 +102,8 @@ namespace BrowserAutomationMaster
                     return true; 
                 }
 
-                if (responseBody.Contains("<span>Latest version</span>") || responseBody.Contains("<span>Newer version available ("))
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine(validMessage);
+                if (responseBody.Contains("<span>Latest version</span>") || responseBody.Contains("<span>Newer version available (")) {
+                    Success.WriteSuccessMessage(validMessage);
                     return true;
                 }
 

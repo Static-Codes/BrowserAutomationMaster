@@ -1,0 +1,6 @@
+browser "firefox"
+visit "https://youtube.com"
+select-element 
+fill-text "/html/body/ytd-app/div[1]/div[2]/ytd-masthead/div[4]/div[2]/yt-searchbox/div[1]/form/input" "this is a test"
+wait-for-seconds .2
+take-screenshot "filename.png"

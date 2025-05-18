@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.IO;
+using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace BrowserAutomationMaster
@@ -16,7 +18,8 @@ namespace BrowserAutomationMaster
         readonly static string desiredSaveDirectory = "compiled";  // This is the directory all projects are compiled to
         readonly static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
         readonly static string requirementsFileName = "requirements.txt"; // This is the filename where the package requirements will be written to.
-        
+        static string projectDirectory = "";
+
         readonly static string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
 
         static BrowserPackage browserPackage = BrowserPackage.selenium; // By default selenium is chosen, however aiohttp and tls-client as also possible options.
@@ -42,7 +45,7 @@ namespace BrowserAutomationMaster
         static List<ApplicationNames> installedPyVersions = []; // Modified by VerifyInstallations();
         static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
         static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
-        readonly static List<string> importStatements = [];
+        readonly static List<string> importStatements = ["from importlib import import_module", "from os import path", "from subprocess import run", "from sys import modules"];
         readonly static List<string> scriptBody = [];
         readonly static List<string> requirements = [];
         private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
@@ -58,15 +61,14 @@ namespace BrowserAutomationMaster
             Installations installations = InstallationCheck.Run();
             VerifyInstallations(installations);
             AddBrowserImportsAndRequirements();
+            // HandlePythonVersionSelection(installations); // This isn't needed currently 
 
-
-            // Works but currently not needed (since script generation isn't done)
             HandleCompilation(filePath, args);
             WritePythonFile();
             WriteRequirementsFile();
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Compiled -> {pythonScriptFileName}");
 
+            Success.WriteSuccessMessage($"Compiled -> {pythonScriptFileName}");
+            Success.WriteSuccessMessage($"Location -> {projectDirectory}");
         }
 
         public static void AddBrowserImportsAndRequirements() // Check for proxy and add logic to insert proxy into session/driver variable.
@@ -131,8 +133,10 @@ namespace BrowserAutomationMaster
                     break;
 
                 case BrowserPackage.selenium:
-                    version = PackageManager.New("selenium-wire", pythonVersion);
-                    requirements.Add($"selenium-wire=={version}");
+                    string swVersion = PackageManager.New("selenium-wire", pythonVersion);
+                    string wmVersion = PackageManager.New("webdriver_manager", pythonVersion);
+                    requirements.Add($"selenium-wire=={swVersion}");
+                    requirements.Add($"webdriver_manager=={wmVersion}");
                     requirements.Add($"blinker==1.4"); // This fixes the mess that selenium-wire causes by installing blinker >=1.9
                     importStatements.AddRange([
                         "from selenium.webdriver.common.by import By",
@@ -213,7 +217,7 @@ namespace BrowserAutomationMaster
         }
         public static void CreateProjectDirectory()
         {
-            string projectDirectory = Path.Combine(desiredSaveDirectory, projectDirectoryName);
+            projectDirectory = Path.Combine(desiredSaveDirectory, projectDirectoryName);
             if (!Path.Exists(desiredSaveDirectory)) {
                 Directory.CreateDirectory(desiredSaveDirectory);
             }
@@ -259,17 +263,17 @@ namespace BrowserAutomationMaster
             string[] browserlessActions = ["save-as-html", "wait-for-seconds"]; 
             int lineNumber = 1;
             bool firstVisitFinished = false; // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
-            bool isCE = false; // This prevents issues caused by click-experimental having unique formatting.
+            bool isCE = false; // This prevents issues caused by click-exp having unique formatting.
             bool isFT = false; // This prevents issues caused by fill-text if the third argument has spaces in it.
             foreach (string line in configLines)
             {
                 string[] splitLine;
-                if (line.StartsWith("click-experimental ")) { isCE = true; }
+                if (line.StartsWith("click-exp ")) { isCE = true; }
                 if (line.StartsWith("fill-text")) { isFT = true; }
 
                 if (isFT) { splitLine = line.Split(" \""); } // This handles fill-text
-                else if (!isCE) { splitLine = line.Split(" "); } // This handles all but click-experimental and fill-text
-                else { splitLine = line.Split(" '"); } // This handles click-experimental
+                else if (!isCE) { splitLine = line.Split(" "); } // This handles all but click-exp and fill-text
+                else { splitLine = line.Split(" '"); } // This handles click-exp
 
                 int[] validLengths = [2, 3];
                 if (!validLengths.Contains(splitLine.Length)) {
@@ -329,7 +333,7 @@ namespace BrowserAutomationMaster
                             }
                             break;
 
-                        case "click-experimental":
+                        case "click-exp":
                             isCE = false; // Once since the case its safe to set this flag to false
                             string ceSelector = splitLine[1].Replace('\'', ' ').Trim();
                             ParsedSelector parsedCESelector = SelectorParser.Parse(ceSelector);
@@ -354,8 +358,6 @@ namespace BrowserAutomationMaster
                                         case SelectorCategory.InvalidOrUnknown:
                                             scriptBody.Add($"click_element('css', '{sanitizedArg2}', {actionTimeout})");
                                             break;
-                                        
-
                                     }
                                     break;
                             }
@@ -463,15 +465,15 @@ namespace BrowserAutomationMaster
                             }
                             break;
 
-                        case "save-as-html-experimental":
+                        case "save-as-html-exp":
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'save-as-html-experimental', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'save-as-html-exp', please remove this line and recompile."), 1);
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'save-as-html-experimental'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'save-as-html-exp'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
                                     break;
 
                                 case BrowserPackage.selenium:
@@ -665,17 +667,19 @@ namespace BrowserAutomationMaster
                 lineNumber++;
             }
             importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
-            scriptBody.Insert(0, BrowserFunctions.clickElementFunction);
-            scriptBody.Insert(1, BrowserFunctions.clickElementExperimentalFunction);
-            scriptBody.Insert(2, BrowserFunctions.getScreenBoundsFunction);
-            scriptBody.Insert(3, BrowserFunctions.fillTextFunction);
-            scriptBody.Insert(4, BrowserFunctions.getTextFunction);
-            scriptBody.Insert(5, BrowserFunctions.makeRequestFunction);
-            scriptBody.Insert(6, BrowserFunctions.saveAsHTMLFunction);
-            scriptBody.Insert(7, BrowserFunctions.saveAsHTMLExperimentalFunction);
-            scriptBody.Insert(8, BrowserFunctions.selectElementFunction);
-            scriptBody.Insert(9, BrowserFunctions.selectOptionByIndexFunction);
-            scriptBody.Insert(10, BrowserFunctions.takeScreenshotFunction);
+            scriptBody.Insert(0, BrowserFunctions.checkImportFunction);
+            scriptBody.Insert(1, BrowserFunctions.clickElementFunction);
+            scriptBody.Insert(2, BrowserFunctions.clickElementExperimentalFunction);
+            scriptBody.Insert(3, BrowserFunctions.getScreenBoundsFunction);
+            scriptBody.Insert(4, BrowserFunctions.fillTextFunction);
+            scriptBody.Insert(5, BrowserFunctions.getTextFunction);
+            scriptBody.Insert(6, BrowserFunctions.installPackagesFunction);
+            scriptBody.Insert(7, BrowserFunctions.makeRequestFunction);
+            scriptBody.Insert(8, BrowserFunctions.saveAsHTMLFunction);
+            scriptBody.Insert(9, BrowserFunctions.saveAsHTMLExperimentalFunction);
+            scriptBody.Insert(10, BrowserFunctions.selectElementFunction);
+            scriptBody.Insert(11, BrowserFunctions.selectOptionByIndexFunction);
+            scriptBody.Insert(12, BrowserFunctions.takeScreenshotFunction);
             scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
         } // Finish me
         public static void HandlePythonVersionSelection(Installations installations)
@@ -697,7 +701,7 @@ namespace BrowserAutomationMaster
             foreach (ApplicationNames app in installations.InstalledApps){
                 if (!versionMapping.TryGetValue(app, out string? version)){ continue; }
                 foundVersions.Add(version);
-                inputMessage += $"{iterationIndex}.     Python {version}\n";
+                inputMessage += $"{iterationIndex}. - Python {version}\n";
                 iterationIndex += 1;
             }
             while (true){
@@ -794,9 +798,7 @@ namespace BrowserAutomationMaster
                         if (parsedTimeout >= 0)
                         {
                             actionTimeout = parsedTimeout;
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine($"Timeout set to {actionTimeout} seconds ({actionTimeout * 1000}ms)");
-                            Console.ForegroundColor = ConsoleColor.White;
+                            Success.WriteSuccessMessage($"Timeout set to {actionTimeout} seconds ({actionTimeout * 1000}ms)");
                         }
                         else
                         {
