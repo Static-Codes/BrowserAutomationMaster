@@ -10,23 +10,34 @@ if (pArgs.Length == 2) { isCLI = true; }
 
 
 if (isCLI) {
-    UserScriptManager usm = new(pArgs[1], pArgs[0]);
+    if (pArgs[0].Equals("add")) { new UserScriptManager(pArgs[1], pArgs[0]); }
 }
 
-KeyValuePair<Parser.MenuOption, string> parserResult = Parser.New(); // value is the filepath of the selected file.
-switch (parserResult.Key)
+
+bool isRunning = true;
+while (isRunning)
 {
-    case Parser.MenuOption.Compile:
-        Transpiler.New(parserResult.Value, args);
-        break;
+    KeyValuePair<Parser.MenuOption, string> parserResult = Parser.New(); // value is the filepath of the selected file.
+    switch (parserResult.Key)
+    {
+        case Parser.MenuOption.Add:
+            bool overwriteConfirmation = (Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:") ?? "n").ToLower().Trim().Equals("y");
+            if (overwriteConfirmation) { Transpiler.New(parserResult.Value, args); }
+            break;
+        case Parser.MenuOption.Compile:
+            Transpiler.New(parserResult.Value, args);
+            break;
 
-    case Parser.MenuOption.Help:
-        break;
+        case Parser.MenuOption.Help:
+            break;
 
-    case Parser.MenuOption.Invalid:
-        break;
+        case Parser.MenuOption.Invalid:
+            isRunning = false;
+            break;
+    }
+    bool exitConfirmation = (Input.WriteTextAndReturnRawInput("\nWould you like to exit BAM Manager (BAMM)? [y/n]:") ?? "n").ToLower().Trim().Equals("y");
+    if (exitConfirmation) { isRunning = false; }
 }
 
-
-Console.WriteLine("Press any key to exit..");
+Console.WriteLine("\nPress any key to exit...");
 Console.ReadKey();

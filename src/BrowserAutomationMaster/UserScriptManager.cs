@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace BrowserAutomationMaster
+﻿namespace BrowserAutomationMaster
 {
     public class UserScriptManager
     {
@@ -62,7 +60,7 @@ namespace BrowserAutomationMaster
             string destinationScriptFile = Path.Combine(this.userScriptDirectory, fileName);
 
             if (File.Exists(destinationScriptFile)) {
-                string response = Input.WriteTextAndReturnRawInput($"\nThe file '{fileName}' already exists in the userScript directory. Overwrite? [y/n]: ") ?? "n";
+                string response = Input.WriteTextAndReturnRawInput($"\nThe file '{fileName}' already exists in the userScript directory. Overwrite? [y/n]:\n") ?? "n";
                 if (!response.ToLower().Trim().Equals("y")) {
                     Errors.WriteErrorAndExit("Operation canceled by user, exiting...", 0);
                     return;
@@ -72,16 +70,16 @@ namespace BrowserAutomationMaster
 
             try {
                 File.Copy(sourceFilePath, destinationScriptFile, overwrite);
-                Success.WriteSuccessMessageAndExit($"Successfully {(overwrite ? "overwritten" : "added")} '{fileName}' to user script directory.", 0);
+                Success.WriteSuccessMessage($"\nSuccessfully {(overwrite ? "overwritten" : "added")} '{fileName}' to the userScript directory.\n");
             }
             catch (UnauthorizedAccessException ex) {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to continue, permission denied.\nSource: {sourceFilePath}\nDestination: {destinationScriptFile}\nError: {ex.Message}", 1);
+                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to continue, permission denied.\nSource: {sourceFilePath}\nDestination: {destinationScriptFile}\nError: {ex.Message}", 1);
             }
             catch (IOException ex) {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to continue due to an I/O error.\nSource: {sourceFilePath}\nDestination: {destinationScriptFile}\nError: {ex.Message}", 1);
+                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\nSource: {sourceFilePath}\nDestination: {destinationScriptFile}\nError: {ex.Message}", 1);
             }
             catch (Exception ex) {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to {(overwrite ? "overwrite" : "add")} '{fileName}'.\nError: {ex.Message}", 1);
+                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to {(overwrite ? "overwrite" : "add")} '{fileName}'.\nError: {ex.Message}", 1);
             }
         }
     }

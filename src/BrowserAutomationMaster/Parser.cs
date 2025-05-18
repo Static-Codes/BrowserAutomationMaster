@@ -9,6 +9,7 @@ namespace BrowserAutomationMaster
             Add,
             Compile,
             Help,
+            Exit,
             Invalid
         }
 
@@ -26,8 +27,7 @@ namespace BrowserAutomationMaster
         static List<string> validFiles = [];
         
         readonly static Dictionary<int, string> validFilesMapping = [];
-        readonly static string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        readonly static string userScriptsDirectory = Path.Combine([baseDirectory, "userScripts"]);
+        readonly static string userScriptsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster",  "userScripts");
 
         static string noFilesFoundMessage = "";
         const string LinkFormatPattern = @"(?i)\b(https?://(?:(?:(?:[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?\.)*(?:[a-z\u00a1-\uffff]{2,}|[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)\.?)|(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|\[(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[a-zA-Z0-9._~%-]+|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d))\]))(?::\d{2,5})?(?:[/?#][^\s<>""']*)?\b";
@@ -46,19 +46,17 @@ namespace BrowserAutomationMaster
 
         [GeneratedRegex(NumberFormatPattern)]
         private static partial Regex PrecompiledNumberRegex();
-        public static bool CreateUserScriptsDirectory()
+        public static bool CreateUserScriptsDirectory() // Write more detailed error handling.
         {
             if (userScriptsDirectory == null) { return false; }
             noFilesFoundMessage = $"""
             BAM Manager (BAMM) was unable to find any valid .bamc files.
-                
+            
             Please check the 'userScripts' directory and contains atleast one .bamc file!
 
             Location: {userScriptsDirectory}
 
             If this directory wasn't already created please rerun this application.
-
-            Press any key to exit...
             """;
 
             if (Directory.Exists(userScriptsDirectory)) { return true; }
@@ -77,7 +75,7 @@ namespace BrowserAutomationMaster
                 }
                 catch (UnauthorizedAccessException uae)
                 {
-                    Console.Write(uae.GetType().Name);
+                    Console.WriteLine(uae.GetType().Name);
                     Console.WriteLine(uae.Message);
                     return false;
                 }
@@ -87,10 +85,22 @@ namespace BrowserAutomationMaster
                     Console.WriteLine(ptle.Message);
                     return false;
                 }
+                catch (DirectoryNotFoundException dnfe)
+                {
+                    Console.WriteLine(dnfe.GetType().Name);
+                    Console.WriteLine(dnfe.Message);
+                    return false;
+                }
                 catch (IOException ie)
                 {
                     Console.WriteLine(ie.GetType().Name);
                     Console.WriteLine(ie.Message);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An unexpected error occurred while creating userScript directory:\n{ex.GetType().Name}");
+                    Console.WriteLine(ex.Message);
                     return false;
                 }
             }
@@ -182,7 +192,7 @@ namespace BrowserAutomationMaster
             if (line.StartsWith("fill-text")) { lineArgs = line.Trim().Split(" \""); } // Special case to handle fill-text
             else { lineArgs = line.Trim().Split(" "); } // Handle all others
             string firstArg = lineArgs[0];
-            string selectorString = "\"selector\""; // Defaults to "selector" for selector based actions
+            string selectorString = "selector"; // Defaults to "selector" for selector based actions
             switch (firstArg)
             {
                 case "click" or "get-text" or "save-as-html" or "save-as-html-exp" or "select-element" or "take-screenshot" or "visit":
@@ -398,20 +408,24 @@ namespace BrowserAutomationMaster
         {
             Dictionary<int, MenuOption> menuOptionsMapping = new()
             {
-                { 1, MenuOption.Compile },
-                { 2, MenuOption.Help },
+                { 1, MenuOption.Add },
+                { 2, MenuOption.Compile },
+                { 3, MenuOption.Help },
+                { 4, MenuOption.Exit },
             };
             string menuText = """
             Welcome To The BAM Manager (BAMM)!
 
             Please select the number correlating to your desired action from the menu options below:
 
-            1. Compile .BAMC File from userScripts Directory
-            2. Help
+            1. Add local .BAMC File to userScripts Directory
+            2. Compile .BAMC File from userScripts Directory
+            3. Help
+            4. Exit
 
 
             """;
-            string invalidChoiceText = "Invalid option please enter a number either 1 or 2.\n\n" + menuText;
+            string invalidChoiceText = "Invalid option please enter a number between 1 and 4.\n\n" + menuText;
 
             Console.WriteLine(menuText);
             while (true)
@@ -438,6 +452,13 @@ namespace BrowserAutomationMaster
             int index;
             switch (selection)
             {
+                case MenuOption.Add:
+                    string input = Input.WriteTextAndReturnRawInput("Drag and drop the file you wish to add to the userScripts directory, or enter 'exit'.\n\n") ?? "exit";
+                    if (input.Equals("exit")) { Errors.WriteErrorAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); }
+                    if (!File.Exists(input)) { Errors.WriteErrorAndExit($"BAMM Manager (BAMM) was unable to find the provided file, please ensure the file below exists:\n{input}", 1); }
+                    UserScriptManager _ = new(input, "add");
+                    return KeyValuePair.Create(MenuOption.Add, input);
+
                 case MenuOption.Compile:
                     HandleBAMCFileValidation(BAMCFiles);
                     index = HandleUserSelection(validFilesMapping);
@@ -446,6 +467,10 @@ namespace BrowserAutomationMaster
                 
                 case MenuOption.Help:
                     return KeyValuePair.Create(MenuOption.Help, "");
+
+                case MenuOption.Exit:
+                    Environment.Exit(0);
+                    break; // Stupid requirement for c#'s static compiler
             }
 
             return KeyValuePair.Create(MenuOption.Help, "This should never be triggered");
