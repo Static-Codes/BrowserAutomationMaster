@@ -19,9 +19,7 @@ DefaultDirName={autopf}\{#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
-; Uncomment the following line to run in non administrative install mode (install for current user only).
-;PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=dialog
+PrivilegesRequired=admin
 OutputDir=C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\Published Builds\BAMM-v1.0.0A-x86
 OutputBaseFilename=BAMM-v1.0.0A-x86-Setup
 SolidCompression=yes
@@ -32,6 +30,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "addtopath"; Description: "Add application directory to your system PATH"; GroupDescription: "Advanced Options:"; Flags: checkedonce
 
 [Files]
 Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
@@ -40,10 +39,10 @@ Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomati
 Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\userScripts\*"; DestDir: "{userappdata}\BrowserAutomationMaster\userScripts"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall skipifsourcedoesntexist;
 
 [Registry]
-Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}"; ValueType: string; ValueName: ""; ValueData: "{#MyAppAssocName}"; Flags: uninsdeletekey
-Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"
-Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+Root: HKLM; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Classes\{#MyAppAssocKey}"; ValueType: string; ValueName: ""; ValueData: "{#MyAppAssocName}"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Classes\{#MyAppAssocKey}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"
+Root: HKLM; Subkey: "Software\Classes\{#MyAppAssocKey}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -52,3 +51,208 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
+[Code]
+type
+  WPARAM = LongWord;
+  LPARAM_STR_PTR = PAnsiChar; // Specific type for this use case
+  LRESULT = LongInt;
+ var
+  cbDeleteUserData: TCheckBox;
+
+
+const
+  SystemEnvKey = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
+  WM_SETTINGCHANGE = $001A;
+  SMTO_ABORTIFHUNG = $0002;
+
+
+function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM_STR_PTR; fuFlags: UINT; uTimeout: UINT; var lpdwResult: DWORD): LRESULT;
+  external 'SendMessageTimeoutA@user32.dll stdcall';
+
+function GetEnvironmentVariable(Name: String): String;
+  begin
+    if not RegQueryStringValue(HKEY_LOCAL_MACHINE, SystemEnvKey, Name, Result) then
+      Result := '';
+  end;
+
+procedure SetEnvironmentVariable(Name, Value: String);
+  begin
+    if not RegWriteStringValue(HKEY_LOCAL_MACHINE, SystemEnvKey, Name, Value) then
+      RaiseException(Format('Failed to write environment variable "%s".', [Name]));
+  end;
+
+procedure BroadcastSettingsChange;
+  var
+    S: AnsiString; // Must be AnsiString for PAnsiChar
+    dwResult: DWORD;
+  begin
+    S := 'Environment'; // This AnsiString will be passed as PAnsiChar
+    SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, PAnsiChar(S), SMTO_ABORTIFHUNG, 5000, dwResult);
+    Log(Format('Broadcast WM_SETTINGCHANGE for "%s". Result: %d', [S, dwResult]));
+  end;
+  
+function RemoveTrailingBackslash(S: String): String;
+  begin
+    if (Length(S) > 0) and (S[Length(S)] = '\') then
+      Result := Copy(S, 1, Length(S) - 1)
+    else
+      Result := S;
+  end;
+
+function Explode(const S: String; const Delimiter: Char): TArrayOfString;
+  var
+    P: Integer;
+    Count: Integer;
+    TempS: String;
+  begin
+    Count := 0;
+    TempS := S;
+    SetArrayLength(Result, 0);
+
+  if Trim(TempS) = '' then Exit;
+
+  while Length(TempS) > 0 do
+    begin
+      P := Pos(Delimiter, TempS);
+      SetArrayLength(Result, Count + 1);
+      if P > 0 then
+        begin
+          Result[Count] := Copy(TempS, 1, P - 1);
+          TempS := Copy(TempS, P + 1, Length(TempS));
+        end
+      else
+        begin
+          Result[Count] := TempS;
+          TempS := '';
+        end;
+      Inc(Count);
+    end;
+  end;
+
+
+
+procedure AddToPath;
+  var
+    OldPath, NewPath, AppPath: String;
+    PathParts: TArrayOfString;
+    I: Integer;
+    AlreadyExists: Boolean;
+  begin
+    AppPath := ExpandConstant('{app}');
+    OldPath := GetEnvironmentVariable('Path');
+    PathParts := Explode(OldPath, ';');
+    AlreadyExists := False;
+
+  for I := 0 to GetArrayLength(PathParts) - 1 do
+    begin
+      if CompareText(RemoveTrailingBackslash(Trim(PathParts[I])), RemoveTrailingBackslash(AppPath)) = 0 then
+      begin
+        AlreadyExists := True;
+        break;
+      end;
+    end;
+
+  if not AlreadyExists then
+    begin
+      if OldPath = '' then
+        NewPath := AppPath
+      else if (Length(OldPath) > 0) and (OldPath[Length(OldPath)] = ';') then
+        NewPath := OldPath + AppPath
+      else
+        NewPath := OldPath + ';' + AppPath;
+
+      SetEnvironmentVariable('Path', NewPath);
+      BroadcastSettingsChange;
+      Log(Format('Added "%s" to system PATH.', [AppPath]));
+    end
+  else
+    begin
+      Log(Format('"%s" is already in system PATH.', [AppPath]));
+    end;
+end;
+
+procedure RemoveFromPath;
+  var
+    OldPath, NewPath, AppPath: String;
+    PathParts: TArrayOfString;
+    I: Integer;
+    PathChanged: Boolean;
+  begin
+    AppPath := ExpandConstant('{app}');
+    OldPath := GetEnvironmentVariable('Path');
+    PathParts := Explode(OldPath, ';');
+    NewPath := '';
+    PathChanged := False;
+
+  for I := 0 to GetArrayLength(PathParts) - 1 do
+  begin
+    if Trim(PathParts[I]) <> '' then
+    begin
+      if CompareText(RemoveTrailingBackslash(Trim(PathParts[I])), RemoveTrailingBackslash(AppPath)) <> 0 then
+      begin
+        if NewPath <> '' then
+          NewPath := NewPath + ';';
+        NewPath := NewPath + Trim(PathParts[I]);
+      end
+      else
+      begin
+        PathChanged := True;
+      end;
+    end;
+  end;
+
+  if PathChanged then
+  begin
+    SetEnvironmentVariable('Path', NewPath);
+    BroadcastSettingsChange;
+    Log(Format('Removed "%s" from system PATH.', [AppPath]));
+  end
+  else
+  begin
+    Log(Format('"%s" was not found in system PATH or PATH unchanged during removal attempt.', [AppPath]));
+  end;
+  end;
+ procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+  begin
+    if WizardIsTaskSelected('addtopath') then
+    begin
+      AddToPath;
+    end;
+  end;
+end;
+
+
+
+procedure InitializeUninstallProgressForm;
+begin
+  cbDeleteUserData := TCheckBox.Create(UninstallProgressForm);
+  cbDeleteUserData.Parent := UninstallProgressForm;
+  cbDeleteUserData.Top := UninstallProgressForm.CancelButton.Top + 30;
+  cbDeleteUserData.Left := UninstallProgressForm.CancelButton.Left;
+  cbDeleteUserData.Width := UninstallProgressForm.ClientWidth - cbDeleteUserData.Left * 2;
+  cbDeleteUserData.Caption := 'Remove user data (AppData\Roaming\BAM Manager (BAMM))';
+  cbDeleteUserData.Checked := True;
+end;
+
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  userAppDataPath: string;
+begin
+  if CurUninstallStep = usUninstall then
+  begin
+    RemoveFromPath;
+
+    if Assigned(cbDeleteUserData) and cbDeleteUserData.Checked then
+    begin
+      userAppDataPath := ExpandConstant('{userappdata}\BrowserAutomationMaster');
+      if DirExists(userAppDataPath) then
+      begin
+        DelTree(userAppDataPath, True, True, True);
+        Log('Deleted user data: ' + userAppDataPath);
+      end;
+    end;
+  end;
+end;
