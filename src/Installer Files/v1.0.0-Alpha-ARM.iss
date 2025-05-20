@@ -22,7 +22,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=C:\Users\Nerdy\Downloads\BAMM-v1.0.0A-ARM
+OutputDir=C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\Published Builds\BAMM-v1.0.0A-ARM
 OutputBaseFilename=BAMM-v1.0.0A-ARM-Setup
 SolidCompression=yes
 WizardStyle=modern

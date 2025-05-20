@@ -34,6 +34,8 @@ namespace BrowserAutomationMaster
 
         readonly private static string malformedJSONMessage = "$BAM Manager: (BAMM) Failed to parse package data from 'packages.json'. JSON is malformed.";
         private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];
+        readonly static string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        readonly static string PackagesFilePath = Path.Combine(ProgramFilesPath, "BAM Manager (BAMM)", "packages.json");
 
         public static string New(string packageName, string pythonVersion)
         {
@@ -41,7 +43,7 @@ namespace BrowserAutomationMaster
                 Errors.WriteErrorAndExit("Invalid packageName provided to PackageManager(), please check your spelling and try again.", 1);
             }
             string jsonString;
-            try { jsonString = File.ReadAllText("packages.json"); }
+            try { jsonString = File.ReadAllText(PackagesFilePath); }
             catch { jsonString = PackageJson.jsonString; }
             if (string.IsNullOrEmpty(jsonString)) {
                 Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to parse packages.json, please ensure this file exists in the same directory as BAMM.exe", 1);

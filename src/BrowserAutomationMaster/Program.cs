@@ -1,5 +1,6 @@
 ﻿using BrowserAutomationMaster;
 
+bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
 SysCheck _ = new(pArgs); // Runs a system compatibility check.
@@ -13,8 +14,13 @@ if (isCLI) {
     if (pArgs[0].Equals("add")) { new UserScriptManager(pArgs[1], pArgs[0]); }
 }
 
+if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pArgs[0])) {
+    Transpiler.New(pArgs[0], pArgs);
+    isRunning = false;
+}
 
-bool isRunning = true;
+
+
 while (isRunning)
 {
     KeyValuePair<Parser.MenuOption, string> parserResult = Parser.New(); // value is the filepath of the selected file.

@@ -4,7 +4,9 @@ namespace BrowserAutomationMaster
 {
     internal class UserAgentManager
     {
-        readonly static string UserAgentsFilePath = "userAgents.json";
+        readonly static string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        readonly static string UserAgentsFilePath = Path.Combine(ProgramFilesPath, "BAM Manager (BAMM)", "userAgents.json");
+        
         static Dictionary<string, List<string>>? userAgentsData;
         readonly static Random random = new();
         private static readonly object _lock = new(); // private modifier is needed here so lock is not accessed by external code. // _ required because lock is a reserved keyword
