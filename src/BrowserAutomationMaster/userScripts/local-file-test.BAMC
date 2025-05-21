@@ -1,3 +1,4 @@
+browser "firefox"
 visit "file:///C:/Users/TestEnv/Desktop/test.html"
 wait-for-seconds .2
 select-option "#cars" 2
