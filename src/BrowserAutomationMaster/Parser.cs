@@ -178,7 +178,10 @@ namespace BrowserAutomationMaster
             {
                 Errors.WriteErrorAndExit(noFilesFoundMessage, 1);
             }
-            CreateValidFilesMapping(validFiles);
+            if (validFilesMapping.Count != validFiles.Count)
+            {
+                CreateValidFilesMapping(validFiles);
+            }
             if (validFilesMapping.Count == 0)
             {
                 Errors.WriteErrorAndExit(noFilesFoundMessage, 1);
