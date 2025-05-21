@@ -417,6 +417,7 @@ namespace BrowserAutomationMaster
                 { 4, MenuOption.Exit },
             };
             string menuText = """
+            
             Welcome To The BAM Manager (BAMM)!
 
             Please select the number correlating to your desired action from the menu options below:
