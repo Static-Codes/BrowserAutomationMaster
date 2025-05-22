@@ -4,8 +4,7 @@ bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
 SysCheck _ = new(pArgs); // Runs a system compatibility check.
-Console.Title = "BrowserAutomationMaster Manager (BAMM!)";
-
+Console.Title = "BrowserAutomationMaster Manager (BAMM!)"; // Dont waste memory if the system isn't compatible.
 
 
 bool isCLI = false;

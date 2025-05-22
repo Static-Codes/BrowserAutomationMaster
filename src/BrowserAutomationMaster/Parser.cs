@@ -15,8 +15,8 @@ namespace BrowserAutomationMaster
 
 
         public readonly static string[] actionArgs = [
-            "click", "click-exp", "get-text", "fill-text", "save-as-html", "save-as-html-exp", "select-element", "select-option", 
-            "take-screenshot", "wait-for-seconds", "visit"
+            "click", "click-exp", "end-javascript", "fill-text", "get-text", "save-as-html", "save-as-html-exp", "select-element", "select-option", 
+            "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "no-ssl"];
@@ -327,73 +327,98 @@ namespace BrowserAutomationMaster
             try
             {
                 List<string> lines = [.. File.ReadAllLines(filePath).Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line))];
+                List<string> currentJSBlockContent = [];
+                int lineCurrentJSBlockStarts = 0; // Will be modified assuming a javascript block is provided.
                 bool browserBlockFinished = false;
                 bool featureBlockFinished = false;
                 bool visitBlockFinished = false;
+                bool jsBlockFinished = true; // Starts off as true and will change below
 
                 for (int i = 0; i < lines.Count; i++)
                 {
                     string selectorString = "value";
                     string line = lines[i];
-                    string[] lineArgs = line.Split(" ");
-                    if (lineArgs.Length == 0) { return false; }
-                    string firstArg = lineArgs[0];
-                    if (firstArg.Equals("browser")) {
-                        if (i != 0 || browserBlockFinished)
-                        {
-                            return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid 'browser' command location on line {i + 1}.\n'browser' command must be placed at the top of the file.\n", false);
-                        }
-                        browserBlockFinished = true;
-                    }
-                    else if (firstArg.Equals("feature")) {
-                        if (featureBlockFinished)
-                        {
-                            return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid 'feature' command location on line {i + 1}.\nAll 'feature' commands must be placed before any other command, except 'browser'.\n", false);
-                        }
-                        if (usedFeatures.Contains(line))
-                        {
-                            return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nDuplicate command on line {i + 1}:\n{line}\nAll 'feature' commands may only be defined once.\n", false);
-                        }
-                        string[] proxyFeatures = ["\"use-http-proxy\"", "\"use-https-proxy\"", "\"use-socks4-proxy\"", "\"use-socks5-proxy\""];
-                        if (proxyFeatures.Contains(lineArgs[1]))
-                        {
-                            if (lineArgs.Length != 3 || lineArgs[2].Count(c => (c == ':')) != 2 || lineArgs[2].Count(c => (c == '@')) != 1)
-                            {
-                                selectorString = lineArgs[1];
-                                return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
-                            }
+                    string trimmedLine = line.Trim();
 
-                            bool validProxy = IsValidProxyFormat(lineArgs[2]);
-                            if (!validProxy)
-                            {
-                                return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
-                            }
+                    if (!jsBlockFinished) {
+                        if (trimmedLine.StartsWith("end-javascript")) { jsBlockFinished = true; }
+                        else if (trimmedLine.StartsWith("start-javascript")) {
+                            lineCurrentJSBlockStarts = i + 1;
+                            return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\n\nError: Attempted to create a second JavaScript block on line {lineCurrentJSBlockStarts} while the previous block has not been closed.\n\nPlease ensure end-javascript is placed at or before line {i}.", false);
                         }
-                        usedFeatures.Add(line);
+                        else {
+                            currentJSBlockContent.Add(line);
+                        }
                     }
-                    else if (firstArg.Equals("visit")) {
-                        if (visitBlockFinished) { return true; }
-                        List<string> passedLines = [.. lines.Take(i + 1)];
-                        List<string> availableCommands = ["browser", "visit"];
-                        List<string> invalidLines = [..
+                    else
+                    {
+                        string[] lineArgs = trimmedLine.Split(" ");
+                        if (lineArgs.Length == 0) { return false; }
+                        string firstArg = lineArgs[0];
+                        if (firstArg.Equals("browser"))
+                        {
+                            if (i != 0 || browserBlockFinished)
+                            {
+                                return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid 'browser' command location on line {i + 1}.\n'browser' command must be placed at the top of the file.\n", false);
+                            }
+                            browserBlockFinished = true;
+                        }
+                        else if (firstArg.Equals("feature"))
+                        {
+                            if (featureBlockFinished)
+                            {
+                                return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid 'feature' command location on line {i + 1}.\nAll 'feature' commands must be placed before any other command, except 'browser'.\n", false);
+                            }
+                            if (usedFeatures.Contains(line))
+                            {
+                                return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nDuplicate command on line {i + 1}:\n{line}\nAll 'feature' commands may only be defined once.\n", false);
+                            }
+                            string[] proxyFeatures = ["\"use-http-proxy\"", "\"use-https-proxy\"", "\"use-socks4-proxy\"", "\"use-socks5-proxy\""];
+                            if (proxyFeatures.Contains(lineArgs[1]))
+                            {
+                                if (lineArgs.Length != 3 || lineArgs[2].Count(c => (c == ':')) != 2 || lineArgs[2].Count(c => (c == '@')) != 1)
+                                {
+                                    selectorString = lineArgs[1];
+                                    return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
+                                }
+
+                                bool validProxy = IsValidProxyFormat(lineArgs[2]);
+                                if (!validProxy)
+                                {
+                                    return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
+                                }
+                            }
+                            usedFeatures.Add(line);
+                        }
+                        else if (firstArg.Equals("visit"))
+                        {
+                            if (visitBlockFinished) { return true; }
+                            List<string> passedLines = [.. lines.Take(i + 1)];
+                            List<string> availableCommands = ["browser", "visit"];
+                            List<string> invalidLines = [..
                             passedLines.Where(line =>
                                 !availableCommands.Any(prefix =>
                                     line.Trim().StartsWith(prefix)
                                 )
                             )
-                        ];
-                        if (invalidLines.Count > 0) {
-                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, i, $"A 'visit' command must be placed before any of the following commands:\n\n{string.Join('\n', availableCommands)}"), 1);
+                            ];
+                            if (invalidLines.Count > 0)
+                            {
+                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, i, $"A 'visit' command must be placed before any of the following commands:\n\n{string.Join('\n', availableCommands)}"), 1);
+                            }
                         }
-                    }
-                    else {
-                        bool validLine = HandleLineValidation(fileName, line, i+1);
-                        if (!validLine) { return false; }
-                        featureBlockFinished = true; // This flag will be used to ensure all feature commands are placed before all others.
+                        else if (trimmedLine.StartsWith("start-javascript")){ jsBlockFinished = false; }
+                        else if (trimmedLine.StartsWith("end-javascript")) { jsBlockFinished = true; }
+                        else
+                        {
+                            bool validLine = HandleLineValidation(fileName, trimmedLine, i + 1);
+                            if (!validLine) { return false; }
+                            featureBlockFinished = true; // This flag will be used to ensure all feature commands are placed before all others.
+                        }
                     }
                 }
                 if (usedFeatures.Any(x=>x.Contains("async")) && usedFeatures.Any(x=>x.Contains("bypass-cloudflare"))) {
-                    Errors.WriteErrorAndReturnBool("BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\n\nError: Script cannot contain both \"async\" and \"bypass-cloudflare\"\n", false);
+                    return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\n\nError: Script cannot contain both \"async\" and \"bypass-cloudflare\"\n", false);
                 }
                 return true;
             }
