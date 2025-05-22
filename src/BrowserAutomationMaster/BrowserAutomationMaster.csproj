@@ -9,10 +9,6 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Management" Version="9.0.4" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<None Update="packages.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
@@ -26,6 +22,14 @@
 
 	<ItemGroup>
 		<Content Include="userScripts\**\*" CopyToOutputDirectory="Always" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Unused\WMIHelper.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Esprima" Version="3.0.5" />
 	</ItemGroup>
 
 </Project>
