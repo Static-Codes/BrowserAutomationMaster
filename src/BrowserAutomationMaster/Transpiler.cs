@@ -265,19 +265,51 @@ namespace BrowserAutomationMaster
             bool firstVisitFinished = false; // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
             bool isCE = false; // This prevents issues caused by click-exp having unique formatting.
             bool isFT = false; // This prevents issues caused by fill-text if the third argument has spaces in it.
+            bool isJSBlock = false; // This prevents issues caused by embedding javascript code into python code.
+            bool isJSLine = false;  // Also prevents issued caused by embedding javascript code into python code.
+            string jsBlockContent = "";  
             foreach (string line in configLines)
             {
                 string[] splitLine;
                 if (line.StartsWith("click-exp ")) { isCE = true; }
-                if (line.StartsWith("fill-text")) { isFT = true; }
+                else if (line.StartsWith("fill-text")) { isFT = true; }
+                else if (line.StartsWith("start-javascript")) { isJSBlock = true; continue; } // Added continue to fix a bug
+                else if (line.StartsWith("end-javascript")) { isJSBlock = false; }
 
                 if (isFT) { splitLine = line.Split(" \""); } // This handles fill-text
                 else if (!isCE) { splitLine = line.Split(" "); } // This handles all but click-exp and fill-text
                 else { splitLine = line.Split(" '"); } // This handles click-exp
-
+                if (isJSBlock) { isJSLine = true;} // Prevents the length check below from returning an error for javascript code blocks.
+                    
                 int[] validLengths = [2, 3];
-                if (!validLengths.Contains(splitLine.Length)) {
+                if (!validLengths.Contains(splitLine.Length) && !isJSLine) {
                     Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "Invalid feature command syntax."), 1);
+                } // Doesn't include 'start-javascript' and 'end-javascript'
+
+                // Handle case where user attempts to create another jsBlock before closing the previous one.
+                if (isJSBlock && line.StartsWith("start-javascript")) {
+                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The previous javascript code block was not closed before attempting to create another.  Please close the previous javascript code block and recompile."), 1);
+                }
+
+                // Add prevalidated line content to the jsBlock.
+                else if (isJSBlock) { 
+                    jsBlockContent += $"{line}\n";
+                    continue;
+                }
+
+                // Writes the actual JS Block as python code.
+                if (line.StartsWith("end-javascript") && !isJSBlock)
+                {
+                    PreprocessJSCodeBlock(jsBlockContent); // Handles cases where Esprima might be more lenient towards invalid code.
+                    if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error)) {
+                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber + 1, $"Invalid javascript code block:\n\nParser Error:\n\n{error}"), 1);
+                    }
+
+
+                    scriptBody.Add($"driver.execute_script('''{jsBlockContent}''')\n");
+                    jsBlockContent = string.Empty;
+                    isJSLine = false;
+                    continue;
                 }
 
                 string firstArg = splitLine.First();
@@ -719,6 +751,12 @@ namespace BrowserAutomationMaster
                 }
             }
         }
+        public static bool HasUnclosedQuotes(string line)
+        {
+            int singleQuote = line.Count(c => c == '\'');
+            int doubleQuote = line.Count(c => c == '"');
+            return singleQuote % 2 != 0 || doubleQuote % 2 != 0;
+        }
         public static string Indent(int numberOfIndents) { 
             if (numberOfIndents < 0) { Errors.WriteErrorAndExit("Invalid value provided to Indent(), value must be >= 0.", 1); }
             if (numberOfIndents == 0) { return string.Empty; } // Return an empty string if no indentations are needed.
@@ -731,6 +769,16 @@ namespace BrowserAutomationMaster
             if (parts.Length != 2) { return false; }
             if (!int.TryParse(parts[0], out int major) || !int.TryParse(parts[1], out int minor)) { return false; }
             return major == 3 && minor >= 9 && minor <= 13;
+        }
+        public static void PreprocessJSCodeBlock(string jsCodeBlock)
+        {
+            int lineNumber = 0;
+            foreach (string line in jsCodeBlock.Split()) {
+                lineNumber++;
+                if (HasUnclosedQuotes(line)) {
+                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\nLine {lineNumber} contains an unescape quote, please fix this and recompile.", 1);
+                }
+            }
         }
         public static void SetFileLines(string filePath)
         {
