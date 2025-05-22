@@ -327,7 +327,7 @@ namespace BrowserAutomationMaster
             try
             {
                 List<string> lines = [.. File.ReadAllLines(filePath).Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line))];
-                List<string> currentJSBlockContent = [];
+                string currentJSBlockContent = string.Empty;
                 int lineCurrentJSBlockStarts = 0; // Will be modified assuming a javascript block is provided.
                 bool browserBlockFinished = false;
                 bool featureBlockFinished = false;
@@ -347,7 +347,7 @@ namespace BrowserAutomationMaster
                             return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\n\nError: Attempted to create a second JavaScript block on line {lineCurrentJSBlockStarts} while the previous block has not been closed.\n\nPlease ensure end-javascript is placed at or before line {i}.", false);
                         }
                         else {
-                            currentJSBlockContent.Add(line);
+                            currentJSBlockContent += $"{line}\n";
                         }
                     }
                     else
@@ -408,7 +408,15 @@ namespace BrowserAutomationMaster
                             }
                         }
                         else if (trimmedLine.StartsWith("start-javascript")){ jsBlockFinished = false; }
-                        else if (trimmedLine.StartsWith("end-javascript")) { jsBlockFinished = true; }
+                        else if (trimmedLine.StartsWith("end-javascript")) 
+                        {
+                            //Console.WriteLine(currentJSBlockContent);
+                            //if (!JavaScript.IsValidSyntax(currentJSBlockContent, out string? error)) {
+                            //    return Errors.WriteErrorAndReturnBool(Errors.GenerateErrorMessage(fileName, line, i + 1, $"Invalid javascript code block:\n\nParser Error:\n\n{error}"), false);
+                            //}
+                            jsBlockFinished = true;
+                            currentJSBlockContent = string.Empty;
+                        }
                         else
                         {
                             bool validLine = HandleLineValidation(fileName, trimmedLine, i + 1);

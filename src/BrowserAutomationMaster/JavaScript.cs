@@ -2,10 +2,9 @@
 
 internal class JavaScript
 {
-    // ADD ROBUST POST PROCESSING
     public static bool IsValidSyntax(string jsCode, out string? error)
     {
-        string sanitizedCode = jsCode.Replace('\'', '"');
+        string sanitizedCode = SanitizeJSForPython(jsCode);
         try
         {
             ParserOptions options = new() { Tolerant = false };
@@ -19,6 +18,34 @@ internal class JavaScript
             error = ex.Message;
             return false;
         }
+    }
+    public static string SanitizeJSForPython(string jsCode)
+    {
+        if (jsCode == null || jsCode == string.Empty) { return string.Empty; }
+
+        // Escapes backslashes first so later replacements dont double up on escape
+        string sanitized = jsCode.Replace("\\", "\\\\");
+
+        // Escapes single quotes to prevent closing the outer python string
+        sanitized = sanitized.Replace("'", "\\'");
+
+        // Escapes double quotes ONLY if needed inside double-quoted python strings
+        // Since js is embedded inside single quotes, this is technically optional
+        sanitized = sanitized.Replace("\"", "\\\"");
+
+        // Normalizes line endings
+        sanitized = sanitized.Replace("\r\n", "\n").Replace("\r", "\n");
+
+        // Flattens lines into a single line with "\n" inside the string
+        sanitized = sanitized.Replace("\n", "\\n");
+
+        // Escapes tab characters
+        sanitized = sanitized.Replace("\t", "\\t");
+
+        // Escapes backticks
+        sanitized = sanitized.Replace("`", "\\`");
+
+        return sanitized;
     }
 }
 
