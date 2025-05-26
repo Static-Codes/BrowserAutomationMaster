@@ -1,4 +1,5 @@
 ﻿using Esprima;
+using Esprima.Ast;
 
 internal class JavaScript
 {

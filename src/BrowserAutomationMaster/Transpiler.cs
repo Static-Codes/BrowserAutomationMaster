@@ -129,7 +129,7 @@ namespace BrowserAutomationMaster
                     //importStatements.Add("from tls_client import Session");
                     //scriptBody.Add("session = Session(client_identifier='safari_ios_16_0'");
                     //scriptBody.Add($"session.get('{desiredUrls.ElementAt(0)}')");
-                    Errors.WriteErrorAndExit("BAM Manager (BAMM) currently lacks support for the 'async' feature, this message will be modified, when this status changes.", 1);
+                    Errors.WriteErrorAndExit("BAM Manager (BAMM) currently lacks support for the 'bypass-cloudflare' feature, this message will be modified, when this status changes.", 1);
                     break;
 
                 case BrowserPackage.selenium:
@@ -190,12 +190,12 @@ namespace BrowserAutomationMaster
             if (browserPresent) { selectedBrowser = configLines[0].Split(' ')[1].Replace('"', ' ').Trim(); }
             featureLines = [.. configLines.Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line) && line.StartsWith("feature"))];
             featurePresent = featureLines.Count > 0; // Roslyn recommend Any() over Count() > 0
-            if (featurePresent ||  featureLines.Any(line => line.Contains(" \"disable-pycache\""))) { disablePycache = true; }
+            if (featurePresent && featureLines.Any(line => line.Contains(" \"disable-pycache\""))) { disablePycache = true; }
             otherPresent = CheckOtherPresent();
             if (!otherPresent) { Warning.Write("BAM Manager (BAMM) was unable to find any requests logic, if this is intentional, you can safely ignore this warning."); }
             if (disablePycache) { importStatements.AddRange(["import sys", "sys.dont_write_byte_code"]); }
-            if (featurePresent || featureLines.Any(line => line.Contains(" \"async\""))) { asyncEnabled = true; }
-            if (featurePresent || featureLines.Any(line => line.Contains(" \"bypass-cloudflare\""))) { bypassCloudflare = true; }
+            if (featurePresent && featureLines.Any(line => line.Contains(" \"async\""))) { asyncEnabled = true; }
+            if (featurePresent && featureLines.Any(line => line.Contains(" \"bypass-cloudflare\""))) { bypassCloudflare = true; }
             
         }
         public static bool CheckOtherPresent()
@@ -304,8 +304,6 @@ namespace BrowserAutomationMaster
                     if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error)) {
                         Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber + 1, $"Invalid javascript code block:\n\nParser Error:\n\n{error}"), 1);
                     }
-
-
                     scriptBody.Add($"driver.execute_script('''{jsBlockContent}''')\n");
                     jsBlockContent = string.Empty;
                     isJSLine = false;
@@ -315,8 +313,7 @@ namespace BrowserAutomationMaster
                 string firstArg = splitLine.First();
                 bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
                 if (!canRunBrowserless) {
-                    if (noBrowsersFound)
-                    {
+                    if (noBrowsersFound) {
                         Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox."), 1);
                     }
                 }
@@ -346,7 +343,6 @@ namespace BrowserAutomationMaster
                                         case SelectorCategory.Id:
                                             scriptBody.Add($"click_element(By.ID, {splitLine[1]}, {actionTimeout})");
                                             break;
-
                                         case SelectorCategory.ClassName:
                                             scriptBody.Add($"click_element(By.CLASS_NAME, {splitLine[1]}, {actionTimeout})");
                                             break;
@@ -359,7 +355,6 @@ namespace BrowserAutomationMaster
                                         case SelectorCategory.InvalidOrUnknown:
                                             Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}\nIf this is a CSS Selector, please use:\nclick-experimental '{sanitizedArg2}'"), 1);
                                             break;
-
                                     }
                                     break;
                             }
@@ -712,6 +707,9 @@ namespace BrowserAutomationMaster
             scriptBody.Insert(10, BrowserFunctions.selectElementFunction);
             scriptBody.Insert(11, BrowserFunctions.selectOptionByIndexFunction);
             scriptBody.Insert(12, BrowserFunctions.takeScreenshotFunction);
+
+
+
             scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
         } // Finish me
         public static void HandlePythonVersionSelection(Installations installations)
@@ -773,10 +771,10 @@ namespace BrowserAutomationMaster
         public static void PreprocessJSCodeBlock(string jsCodeBlock)
         {
             int lineNumber = 0;
-            foreach (string line in jsCodeBlock.Split()) {
+            foreach (string line in jsCodeBlock.Split('\n')) {
                 lineNumber++;
                 if (HasUnclosedQuotes(line)) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\nLine {lineNumber} contains an unescape quote, please fix this and recompile.", 1);
+                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\nLine {lineNumber} contains an unescape quoted, please fix this and recompile.", 1);
                 }
             }
         }
