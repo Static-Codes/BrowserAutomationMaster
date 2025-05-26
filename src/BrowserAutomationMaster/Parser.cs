@@ -22,7 +22,7 @@ namespace BrowserAutomationMaster
         readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "no-ssl"];
         readonly static string[] browserArgs = ["brave", "chrome", "firefox", "safari", ];
         readonly static string[] featureArgs = [.. proxyFeatureArgs, .. otherFeatureArgs];
-        readonly static string[] validArgs = [.. actionArgs, .. featureArgs];
+        //readonly static string[] validArgs = [.. actionArgs, .. featureArgs];
         static string selectedFile = string.Empty;
         static List<string> validFiles = [];
         
@@ -253,12 +253,11 @@ namespace BrowserAutomationMaster
                         selectorString = "\"feature-name\"";
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
                     }
-                    string[] proxyFeatures = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
-                    if (proxyFeatures.Contains(lineArgs[1]))
+                    if (proxyFeatureArgs.Contains(lineArgs[1]))
                     {
+                        selectorString = $"\"{lineArgs[1]}\"";
                         if (lineArgs.Length != 3 || lineArgs[2].Count(c => (c == ':')) != 2 || lineArgs[2].Count(c => (c == '@')) != 1)
                         {
-                            selectorString = $"\"{lineArgs}\"";
                             return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
                         }
 
@@ -408,17 +407,11 @@ namespace BrowserAutomationMaster
                             }
                         }
                         else if (trimmedLine.StartsWith("start-javascript")){ jsBlockFinished = false; }
-                        else if (trimmedLine.StartsWith("end-javascript")) 
-                        {
-                            //Console.WriteLine(currentJSBlockContent);
-                            //if (!JavaScript.IsValidSyntax(currentJSBlockContent, out string? error)) {
-                            //    return Errors.WriteErrorAndReturnBool(Errors.GenerateErrorMessage(fileName, line, i + 1, $"Invalid javascript code block:\n\nParser Error:\n\n{error}"), false);
-                            //}
+                        else if (trimmedLine.StartsWith("end-javascript")) {
                             jsBlockFinished = true;
                             currentJSBlockContent = string.Empty;
                         }
-                        else
-                        {
+                        else {
                             bool validLine = HandleLineValidation(fileName, trimmedLine, i + 1);
                             if (!validLine) { return false; }
                             featureBlockFinished = true; // This flag will be used to ensure all feature commands are placed before all others.
