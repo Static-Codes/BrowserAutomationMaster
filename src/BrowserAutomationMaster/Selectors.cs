@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster
 {

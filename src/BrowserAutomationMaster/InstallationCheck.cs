@@ -1,4 +1,6 @@
-﻿namespace BrowserAutomationMaster
+﻿using BrowserAutomationMaster.Messaging;
+
+namespace BrowserAutomationMaster
 {
     public enum ApplicationNames
     {
@@ -15,14 +17,25 @@
 
     public partial class Installations
     {
-        public List<ApplicationNames> InstalledApps {get; set;}
-        public Installations(List<ApplicationNames> detectedApplications)
+        public List<ApplicationNames> AppNames {get; set;}
+        public Installations(List<AppInfo> detectedApplications)
         {
-            InstalledApps = detectedApplications ?? [];
+            AppNames = [];
+            //AppNames = detectedApplications ?? [];
+            foreach (AppInfo app in detectedApplications)
+            {
+                if (app == null) { continue; }
+                if (app.Name == null) { continue; }
+                if (app.Name.Length == 0) { continue; }
+                if (app.Name.Equals("Brave")) { AppNames.Add(ApplicationNames.Brave);}
+                else if (app.Name.Equals("Google Chrome")) { AppNames.Add(ApplicationNames.Chrome); }
+                else if (app.Name.Equals("Firefox")) { AppNames.Add(ApplicationNames.Firefox); }
+                Console.WriteLine(app.Name);
+            }
         }
         public Installations() // Empty constructor used as a fallback.
         {
-            InstalledApps = [];
+            AppNames = [];
         }
 
     }
@@ -53,7 +66,7 @@
         readonly static bool Python312Present = File.Exists(Python312Path);
         readonly static bool Python313Present = File.Exists(Python313Path);
         readonly static bool Python314Present = File.Exists(Python314Path);
-        readonly static List<ApplicationNames> AppNames = [];
+        readonly static List<AppInfo> AppNames = [];
         public readonly static List<ApplicationNames> BrowserApps = [ApplicationNames.Brave, ApplicationNames.Chrome, ApplicationNames.Firefox];
         public readonly static List<ApplicationNames> PythonApps = [ApplicationNames.Python3_9, ApplicationNames.Python3_10, ApplicationNames.Python3_11, ApplicationNames.Python3_12, ApplicationNames.Python3_13, ApplicationNames.Python3_14];
 
@@ -79,17 +92,20 @@
 
 
         public static Installations Run() {
-            if (BravePresent) {  AppNames.Add(ApplicationNames.Brave); }
-            if (ChromePresent) { AppNames.Add(ApplicationNames.Chrome); }
-            if (FirefoxPresent) { AppNames.Add(ApplicationNames.Firefox); }
-            if (PythonBasePresent && Python39Present) { AppNames.Add(ApplicationNames.Python3_9); }
-            if (PythonBasePresent && Python310Present) { AppNames.Add(ApplicationNames.Python3_10); }
-            if (PythonBasePresent && Python311Present) { AppNames.Add(ApplicationNames.Python3_11); }
-            if (PythonBasePresent && Python312Present) { AppNames.Add(ApplicationNames.Python3_12); }
-            if (PythonBasePresent && Python313Present) { AppNames.Add(ApplicationNames.Python3_13); }
-            if (PythonBasePresent && Python314Present) { AppNames.Add(ApplicationNames.Python3_14); }
-            if (!AppNames.Any(x => BrowserApps.Contains(x))) { Errors.WriteErrorAndExit(NoBrowsersMessage, 1); }
-            if (!AppNames.Any(x => PythonApps.Contains(x))) { Errors.WriteErrorAndExit(NoPythonMessage, 1); }
+            if (BravePresent) { AppNames.Add(new AppInfo { Name = "Brave" }); }
+            if (ChromePresent) { AppNames.Add(new AppInfo { Name = "Google Chrome" }); }
+            if (FirefoxPresent) { AppNames.Add(new AppInfo { Name = "Firefox" }); }
+
+            // ADD LOGIC BELOW
+
+            //if (PythonBasePresent && Python39Present) { AppNames.Add(ApplicationNames.Python3_9); }
+            //if (PythonBasePresent && Python310Present) { AppNames.Add(ApplicationNames.Python3_10); }
+            //if (PythonBasePresent && Python311Present) { AppNames.Add(ApplicationNames.Python3_11); }
+            //if (PythonBasePresent && Python312Present) { AppNames.Add(ApplicationNames.Python3_12); }
+            //if (PythonBasePresent && Python313Present) { AppNames.Add(ApplicationNames.Python3_13); }
+            //if (PythonBasePresent && Python314Present) { AppNames.Add(ApplicationNames.Python3_14); }
+            //if (!AppNames.Any(x => BrowserApps.Contains(x))) { Errors.WriteErrorAndExit(NoBrowsersMessage, 1); }
+            //if (!AppNames.Any(x => PythonApps.Contains(x))) { Errors.WriteErrorAndExit(NoPythonMessage, 1); }
             return new Installations(AppNames);
         }
     }

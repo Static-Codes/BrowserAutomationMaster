@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BrowserAutomationMaster
+namespace BrowserAutomationMaster.Messaging
 {
     internal class Errors
     {

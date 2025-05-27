@@ -1,4 +1,5 @@
 ﻿using BrowserAutomationMaster;
+using BrowserAutomationMaster.Messaging;
 
 bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.

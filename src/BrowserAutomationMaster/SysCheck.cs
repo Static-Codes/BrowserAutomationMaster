@@ -1,4 +1,6 @@
-﻿namespace BrowserAutomationMaster
+﻿using BrowserAutomationMaster.Messaging;
+
+namespace BrowserAutomationMaster
 {
     public partial class SysCheck
     {

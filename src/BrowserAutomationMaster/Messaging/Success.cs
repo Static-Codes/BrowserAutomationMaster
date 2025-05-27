@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BrowserAutomationMaster
+namespace BrowserAutomationMaster.Messaging
 {
     internal class Success
     {
