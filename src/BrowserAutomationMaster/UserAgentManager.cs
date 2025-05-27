@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster
 {

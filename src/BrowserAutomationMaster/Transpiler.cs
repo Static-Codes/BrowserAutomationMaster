@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster
 {
@@ -54,18 +55,18 @@ namespace BrowserAutomationMaster
         private static partial Regex TimeoutRegex();
         public static void New(string filePath, string[] args)
         {
-            CreateProjectDirectory();
-            SetScriptName(filePath);
-            SetFileLines(filePath);
-            GetDesiredUrls();
+            //CreateProjectDirectory();
+            //SetScriptName(filePath);
+            //SetFileLines(filePath);
+            //GetDesiredUrls();
             Installations installations = InstallationCheck.Run();
-            VerifyInstallations(installations);
-            AddBrowserImportsAndRequirements();
+            //VerifyInstallations(installations);
+            //AddBrowserImportsAndRequirements();
             // HandlePythonVersionSelection(installations); // This isn't needed currently 
 
-            HandleCompilation(filePath, args);
-            WritePythonFile();
-            WriteRequirementsFile();
+            //HandleCompilation(filePath, args);
+            //WritePythonFile();
+            //WriteRequirementsFile();
 
             Success.WriteSuccessMessage($"Compiled -> {pythonScriptFileName}");
             Success.WriteSuccessMessage($"Location -> {projectDirectory}");
@@ -728,7 +729,7 @@ namespace BrowserAutomationMaster
             """;
 
             int iterationIndex = 0;
-            foreach (ApplicationNames app in installations.InstalledApps){
+            foreach (ApplicationNames app in installations.AppNames){
                 if (!versionMapping.TryGetValue(app, out string? version)){ continue; }
                 foundVersions.Add(version);
                 inputMessage += $"{iterationIndex}. - Python {version}\n";
@@ -906,8 +907,8 @@ namespace BrowserAutomationMaster
             You will be prompted shortly to select a version to compile with, Please select either Python 3.10 or 3.11, unless you are explicitly testing other versions.
             """;
 
-            installedBrowsers = [.. installations.InstalledApps.Where(x => InstallationCheck.BrowserApps.Contains(x))];
-            installedPyVersions = [.. installations.InstalledApps.Where(x => InstallationCheck.PythonApps.Contains(x))];
+            installedBrowsers = [.. installations.AppNames.Where(x => InstallationCheck.BrowserApps.Contains(x))];
+            installedPyVersions = [.. installations.AppNames.Where(x => InstallationCheck.PythonApps.Contains(x))];
 
             if (installedPyVersions.Count == 0) { Errors.WriteErrorAndExit(pythonErrorMessage, 1); }
             if (installedBrowsers.Count == 0) { 

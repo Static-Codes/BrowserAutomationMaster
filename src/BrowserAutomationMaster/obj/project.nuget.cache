@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "4jf88e1Hrzg=",
+  "dgSpecHash": "jgcrKERZVME=",
   "success": true,
   "projectFilePath": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Nerdy\\.nuget\\packages\\esprima\\3.0.5\\esprima.3.0.5.nupkg.sha512",
     "C:\\Users\\Nerdy\\.nuget\\packages\\system.codedom\\9.0.5\\system.codedom.9.0.5.nupkg.sha512",
-    "C:\\Users\\Nerdy\\.nuget\\packages\\system.management\\9.0.5\\system.management.9.0.5.nupkg.sha512"
+    "C:\\Users\\Nerdy\\.nuget\\packages\\system.management\\9.0.5\\system.management.9.0.5.nupkg.sha512",
+    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.netcore.app.host.osx-x64\\8.0.15\\microsoft.netcore.app.host.osx-x64.8.0.15.nupkg.sha512"
   ],
   "logs": []
 }

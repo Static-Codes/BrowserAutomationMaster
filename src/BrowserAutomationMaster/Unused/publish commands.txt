@@ -1,0 +1,9 @@
+MacOS Template: 
+dotnet bundle --name "BAMM vX.X.XA" \
+              --output "dist/osx-x64" \
+              --identifier "com.static.bamm" \
+              --icon "path/to/your/icon.icns" \
+              bin/Release/netX.0/osx-x64/publish/BAMM-vX.X.XA
+
+MacOS Command:
+dotnet bundle --name "BAMM v1.0.0A" --output "dist/osx-x64" --identifier "com.static.bamm" bin/Release/netX.0/osx-x64/publish/BAMM-v1.0.0A

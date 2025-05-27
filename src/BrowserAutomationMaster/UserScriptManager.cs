@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster
 {

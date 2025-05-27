@@ -1,0 +1,14 @@
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\userScripts\example-of-all-cmds.BAMC
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\userScripts\google-click-example.BAMC
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\userScripts\local-file-test.BAMC
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\userScripts\youtube.BAMC
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\userAgents.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\bamm
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\packages.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\bamm.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\bamm.deps.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\bamm.runtimeconfig.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\bamm.pdb
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\Esprima.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\System.CodeDom.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\osx-x64\publish\System.Management.dll
