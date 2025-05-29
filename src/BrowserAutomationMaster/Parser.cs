@@ -1,4 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster
@@ -28,7 +32,10 @@ namespace BrowserAutomationMaster
         static List<string> validFiles = [];
         
         readonly static Dictionary<int, string> validFilesMapping = [];
-        readonly static string userScriptsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster",  "userScripts");
+
+        // This needs to be modified to properly support cross platform file structures 
+        //readonly static string userScriptsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster",  "userScripts");
+        readonly static string? userScriptsDirectory = null;
 
         static string noFilesFoundMessage = "";
         const string LinkFormatPattern = @"(?i)\b(https?://(?:(?:(?:[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?\.)*(?:[a-z\u00a1-\uffff]{2,}|[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)\.?)|(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|\[(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[a-zA-Z0-9._~%-]+|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d))\]))(?::\d{2,5})?(?:[/?#][^\s<>""']*)?\b";
@@ -49,6 +56,7 @@ namespace BrowserAutomationMaster
         private static partial Regex PrecompiledNumberRegex();
         public static bool CreateUserScriptsDirectory() // Write more detailed error handling.
         {
+            
             if (userScriptsDirectory == null) { return false; }
             noFilesFoundMessage = $"""
             BAM Manager (BAMM) was unable to find any valid .bamc files.
@@ -66,6 +74,15 @@ namespace BrowserAutomationMaster
                 try
                 {
                     Directory.CreateDirectory(userScriptsDirectory);
+                    foreach (KeyValuePair<string, string> example in UserScriptExamples.AllExamples)
+                    {
+                        string filename = example.Key;
+                        string contents = example.Value;
+                        if (string.IsNullOrEmpty(filename) || string.IsNullOrEmpty(contents)) { continue; }
+                        string filepath = Path.Combine(userScriptsDirectory, filename);
+                        if (File.Exists(filepath)) { continue; } // This is an unnecessary check but i felt the need to include it
+                        File.WriteAllText(filepath, contents); // Writes the actual contents
+                    }
                     return true;
                 }
                 catch (ArgumentNullException ane)
@@ -142,6 +159,7 @@ namespace BrowserAutomationMaster
         {
             try
             {
+                if (userScriptsDirectory == null) { return []; }
                 return [.. Directory.GetFiles(userScriptsDirectory).Where(x => x.ToLower().EndsWith(".bamc"))];
             }
             catch (Exception ex)
@@ -152,7 +170,13 @@ namespace BrowserAutomationMaster
             }
         }
 
-        public static string GetUserScriptDirectory() { return userScriptsDirectory; }
+        public static string GetUserScriptDirectory() {
+            if (userScriptsDirectory == null)
+            {
+                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to determine the path to the userScripts directory, please try again, and if this error continues, it is likely a developmental flaw and not an issue with your system.", 1);
+                return string.Empty; // this will never be trigger but is here to appease c#'s static compiler
+            }
+            return userScriptsDirectory; }
         public static string[] ValidateBAMCFiles(string[] BAMCFiles)
         {
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
@@ -166,12 +190,10 @@ namespace BrowserAutomationMaster
             if (string.IsNullOrWhiteSpace(emailString)) { return false; }
             return PrecompiledLinkRegex().IsMatch(emailString);
         }
-
         public static bool IsValidProxyFormat(string proxyString) {
             if (string.IsNullOrWhiteSpace(proxyString)) { return false; }
             return PrecompiledProxyRegex().IsMatch(proxyString);
         }
-
         public static void HandleBAMCFileValidation(string[] BAMCFiles)
         {
             validFiles = [.. ValidateBAMCFiles(BAMCFiles)];

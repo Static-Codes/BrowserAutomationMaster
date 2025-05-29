@@ -1,8 +1,7 @@
-﻿using System.IO;
-using System.Reflection;
+﻿using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers;
 using System.Text;
 using System.Text.RegularExpressions;
-using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster
 {
@@ -16,7 +15,7 @@ namespace BrowserAutomationMaster
     internal partial class Transpiler
     {
         readonly static string defaultScriptFileName = "untitled-script";  // This will be used in GenerateBackupName(); in the case of failure.
-        readonly static string desiredSaveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster", "compiled");
+        readonly static string desiredSaveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster", "compiled"); // Needs to be a parameter since this application will include cross platform
         readonly static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
         readonly static string requirementsFileName = "requirements.txt"; // This is the filename where the package requirements will be written to.
         static string projectDirectory = "";

@@ -11,7 +11,6 @@
         "dependencies": {
           "Esprima": "3.0.5",
           "Microsoft.NET.ILLink.Tasks": "8.0.15",
-          "System.Management": "9.0.5",
           "runtimepack.Microsoft.NETCore.App.Runtime.osx-x64": "8.0.15"
         },
         "runtime": {
@@ -702,26 +701,7 @@
           }
         }
       },
-      "Microsoft.NET.ILLink.Tasks/8.0.15": {},
-      "System.CodeDom/9.0.5": {
-        "runtime": {
-          "lib/net8.0/System.CodeDom.dll": {
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.525.21509"
-          }
-        }
-      },
-      "System.Management/9.0.5": {
-        "dependencies": {
-          "System.CodeDom": "9.0.5"
-        },
-        "runtime": {
-          "lib/net8.0/System.Management.dll": {
-            "assemblyVersion": "9.0.0.5",
-            "fileVersion": "9.0.525.21509"
-          }
-        }
-      }
+      "Microsoft.NET.ILLink.Tasks/8.0.15": {}
     }
   },
   "libraries": {
@@ -748,20 +728,6 @@
       "sha512": "sha512-s4eXlcRGyHeCgFUGQnhq0e/SCHBPp0jOHgMqZg3fQ2OCHJSm1aOUhI6RFWuVIcEb9ig2WgI2kWukk8wu72EbUQ==",
       "path": "microsoft.net.illink.tasks/8.0.15",
       "hashPath": "microsoft.net.illink.tasks.8.0.15.nupkg.sha512"
-    },
-    "System.CodeDom/9.0.5": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-cuzLM2MWutf9ZBEMPYYfd0DXwYdvntp7VCT6a/wvbKCa2ZuvGmW74xi+YBa2mrfEieAXqM4TNKlMmSnfAfpUoQ==",
-      "path": "system.codedom/9.0.5",
-      "hashPath": "system.codedom.9.0.5.nupkg.sha512"
-    },
-    "System.Management/9.0.5": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-n6o9PZm9p25+zAzC3/48K0oHnaPKTInRrxqFq1fi/5TPbMLjuoCm/h//mS3cUmSy+9AO1Z+qsC/Ilt/ZFatv5Q==",
-      "path": "system.management/9.0.5",
-      "hashPath": "system.management.9.0.5.nupkg.sha512"
     }
   },
   "runtimes": {
