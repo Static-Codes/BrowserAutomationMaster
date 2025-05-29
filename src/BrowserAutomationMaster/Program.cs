@@ -1,4 +1,5 @@
 ﻿using BrowserAutomationMaster;
+using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 
 bool isRunning = true;

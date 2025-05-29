@@ -3,27 +3,9 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Messaging;
 
-namespace BrowserAutomationMaster
+namespace BrowserAutomationMaster.Managers
 {
-    public class PackageJson
-    {
-        readonly public static string jsonString = """
-        {
-            "aiohttp": {
-                "3.11.18": [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
-            },
-            "selenium": {
-                "4.32.0": [ "3.10", "3.11", "3.12" ]
-            },
-            "tls_client": {
-                "1.0.1": [ "3.9", "3.10", "3.11", "3.12" ]
-            },
-            "webdriver_manager": {
-                "4.0.2": [ "3.9", "3.10", "3.11" ]
-            }
-        }
-    """;
-    }
+    
 
     public partial class PackageManager
     {
@@ -35,21 +17,24 @@ namespace BrowserAutomationMaster
 
         readonly private static string malformedJSONMessage = "$BAM Manager: (BAMM) Failed to parse package data from 'packages.json'. JSON is malformed.";
         private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];
-        readonly static string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-        readonly static string PackagesFilePath = Path.Combine(ProgramFilesPath, "BAM Manager (BAMM)", "packages.json");
+
+        // Old logic, its much easier for compatibility to embed the required data and update per release.
+        //readonly static string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        //readonly static string PackagesFilePath = Path.Combine(ProgramFilesPath, "BAM Manager (BAMM)", "packages.json");
+        
 
         public static string New(string packageName, string pythonVersion)
         {
             if (packageName == null || !PrecompiledPackageRegex().IsMatch(packageName)) {
                 Errors.WriteErrorAndExit("Invalid packageName provided to PackageManager(), please check your spelling and try again.", 1);
             }
-            string jsonString;
-            try { jsonString = File.ReadAllText(PackagesFilePath); }
-            catch { jsonString = PackageJson.jsonString; }
-            if (string.IsNullOrEmpty(jsonString)) {
-                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to parse packages.json, please ensure this file exists in the same directory as BAMM.exe", 1);
+            //string jsonString;
+            //try { jsonString = File.ReadAllText(PackagesFilePath); }
+            //catch { jsonString = PackageJson.jsonString; }
+            if (string.IsNullOrEmpty(PackageJson.jsonString)) {
+                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to parse the required package versions, please try again and if this error persists it is likely a developmental flaw.", 1);
             }
-            try { packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(jsonString)!; }
+            try { packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(PackageJson.jsonString)!; }
             catch { Errors.WriteErrorAndExit(malformedJSONMessage, 1); }
             string packageVersion = GetSupportedPackageVersion(packageName!, pythonVersion) ?? "Not Found"; // C# requires notice that the value is for certain not nullable, thus the !
             return packageVersion; // "Not Found" should never be returned its purely to appease the compiler.
@@ -155,5 +140,26 @@ namespace BrowserAutomationMaster
         }
 
 
+    }
+
+    public class PackageJson
+    {
+        readonly public static string jsonString = """
+        {
+            "aiohttp": {
+                "3.11.18": [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+            },
+            "selenium": {
+                "4.32.0": [ "3.10", "3.11", "3.12" ]
+            },
+            "tls_client": {
+                "1.0.1": [ "3.9", "3.10", "3.11", "3.12" ]
+            },
+            "webdriver_manager": {
+                "4.0.2": [ "3.9", "3.10", "3.11" ]
+            }
+        }
+        """;
+        
     }
 }
