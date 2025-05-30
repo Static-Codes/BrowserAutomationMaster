@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BrowserAutomationMaster.Messaging
 {
-    internal class Errors
+    public class Errors
     {
         public static string GenerateErrorMessage(string fileName, string line, int lineNumber, string issueText)
         {

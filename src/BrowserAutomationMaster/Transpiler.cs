@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Managers;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 
 namespace BrowserAutomationMaster
 {
@@ -58,7 +59,14 @@ namespace BrowserAutomationMaster
             //SetScriptName(filePath);
             //SetFileLines(filePath);
             //GetDesiredUrls();
-            Installations installations = InstallationCheck.Run();
+            Installations installations;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                installations = WindowsInstallationCheck.Run();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                installations = MacInstallationCheck.Run(); // Write MacInstallationCheck
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                installations = LinuxInstallationCheck.Run(); // Write LinuxInstallationCheck 
+            else { throw new PlatformNotSupportedException("Unsupported OS."); }
             //VerifyInstallations(installations);
             //AddBrowserImportsAndRequirements();
             // HandlePythonVersionSelection(installations); // This isn't needed currently 
@@ -73,35 +81,39 @@ namespace BrowserAutomationMaster
 
         public static void AddBrowserImportsAndRequirements() // Check for proxy and add logic to insert proxy into session/driver variable.
         {
+            string braveNotFound = "BAM Manager (BAMM) was unable to find an installation of Brave.";
+            string chromeNotFound = "BAM Manager (BAMM) was unable to find an installation of Chrome.";
+            string firefoxNotFound = "BAM Manager (BAMM) was unable to find an installation of Firefox.";
             HandleBrowserCmd();
 
             // This function will exit if a null value is reached so no worries about a null check here
             string version = PackageManager.New(browserPackage.ToString(), pythonVersion);
             requirements.Add($"{browserPackage}=={version}");
 
-            string braveNotFound = $"""
-            BAM Manager (BAMM) was unable to find an installation of Brave.
-            
-            Please ensure Brave is installed at the following location:
-            
-            {InstallationCheck.FirefoxPath}
-            """;
 
-            string chromeNotFound = $"""
-            BAM Manager (BAMM) was unable to find an installation of Chrome.
-            
-            Please ensure Chrome is installed at the following location.
-            
-            {InstallationCheck.FirefoxPath}
-            """;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                braveNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.BravePath}";
+                chromeNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.ChromePath}";
+                firefoxNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.FirefoxPath}";
+            }
 
-            string firefoxNotFound = $"""
-            BAM Manager (BAMM) was unable to find an installation of Firefox.
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                braveNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.BravePath}";
+                chromeNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.ChromePath}";
+                firefoxNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.FirefoxPath}";
+            }
+
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                braveNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.BravePath}";
+                chromeNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.ChromePath}";
+                firefoxNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.FirefoxPath}";
+            }
             
-            Please ensure Firefox is installed at the following location.
-            
-            {InstallationCheck.FirefoxPath}
-            """;
+            else {
+                throw new PlatformNotSupportedException("Unsupported OS.");
+            }
 
             string noUrlsFound = "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\nPlease ensure the selected file has atleast one 'visit' command.";
 
@@ -906,8 +918,14 @@ namespace BrowserAutomationMaster
             You will be prompted shortly to select a version to compile with, Please select either Python 3.10 or 3.11, unless you are explicitly testing other versions.
             """;
 
-            installedBrowsers = [.. installations.AppNames.Where(x => InstallationCheck.BrowserApps.Contains(x))];
-            installedPyVersions = [.. installations.AppNames.Where(x => InstallationCheck.PythonApps.Contains(x))];
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                installedBrowsers = [.. installations.AppNames.Where(x => WindowsInstallationCheck.BrowserApps.Contains(x))];
+                installedPyVersions = [.. installations.AppNames.Where(x => WindowsInstallationCheck.PythonApps.Contains(x))];
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                installedBrowsers = [];
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                installedBrowsers = [];
+            
 
             if (installedPyVersions.Count == 0) { Errors.WriteErrorAndExit(pythonErrorMessage, 1); }
             if (installedBrowsers.Count == 0) { 

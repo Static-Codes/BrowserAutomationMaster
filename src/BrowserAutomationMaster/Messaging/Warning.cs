@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BrowserAutomationMaster.Messaging
 {
-    internal class Warning
+    public class Warning
     {
         public static void Write(string message)
         {

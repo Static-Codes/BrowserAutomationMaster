@@ -39,7 +39,8 @@ namespace BrowserAutomationMaster
         }
 
     }
-    public static class InstallationCheck
+
+    public static class WindowsInstallationCheck
     {
         readonly static string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         // Handles both x64 and x86 based systems
@@ -92,21 +93,42 @@ namespace BrowserAutomationMaster
 
 
         public static Installations Run() {
+            bool browserFound = false;
+            bool pythonFound = false;
+            if (BravePresent || ChromePresent || FirefoxPresent) { browserFound = true; } // Setting this flag to true in one line is the easiest solution.
             if (BravePresent) { AppNames.Add(new AppInfo { Name = "Brave" }); }
             if (ChromePresent) { AppNames.Add(new AppInfo { Name = "Google Chrome" }); }
             if (FirefoxPresent) { AppNames.Add(new AppInfo { Name = "Firefox" }); }
 
-            // ADD LOGIC BELOW
 
-            //if (PythonBasePresent && Python39Present) { AppNames.Add(ApplicationNames.Python3_9); }
-            //if (PythonBasePresent && Python310Present) { AppNames.Add(ApplicationNames.Python3_10); }
-            //if (PythonBasePresent && Python311Present) { AppNames.Add(ApplicationNames.Python3_11); }
-            //if (PythonBasePresent && Python312Present) { AppNames.Add(ApplicationNames.Python3_12); }
-            //if (PythonBasePresent && Python313Present) { AppNames.Add(ApplicationNames.Python3_13); }
-            //if (PythonBasePresent && Python314Present) { AppNames.Add(ApplicationNames.Python3_14); }
-            //if (!AppNames.Any(x => BrowserApps.Contains(x))) { Errors.WriteErrorAndExit(NoBrowsersMessage, 1); }
-            //if (!AppNames.Any(x => PythonApps.Contains(x))) { Errors.WriteErrorAndExit(NoPythonMessage, 1); }
+            if (PythonBasePresent && Python39Present) { AppNames.Add(new AppInfo { Name = ApplicationNames.Python3_9.ToString().Replace("Python3_", "Python 3.") }); }
+            if (PythonBasePresent && Python310Present) { AppNames.Add(new AppInfo { Name = ApplicationNames.Python3_9.ToString().Replace("Python3_", "Python 3.") }); }
+            if (PythonBasePresent && Python311Present) { AppNames.Add(new AppInfo { Name = ApplicationNames.Python3_9.ToString().Replace("Python3_", "Python 3.") }); }
+            if (PythonBasePresent && Python312Present) { AppNames.Add(new AppInfo { Name = ApplicationNames.Python3_9.ToString().Replace("Python3_", "Python 3.") }); }
+            if (PythonBasePresent && Python313Present) { AppNames.Add(new AppInfo { Name = ApplicationNames.Python3_9.ToString().Replace("Python3_", "Python 3.") }); }
+            if (PythonBasePresent && Python314Present) { AppNames.Add(new AppInfo { Name = ApplicationNames.Python3_9.ToString().Replace("Python3_", "Python 3.") }); }
+            
+            if (AppNames.Any(x=>x.Name.StartsWith("Python 3."))) { pythonFound = true; }
+            
+            if (!browserFound) { Errors.WriteErrorAndExit(NoBrowsersMessage, 1); }
+            if (!pythonFound) { Errors.WriteErrorAndExit(NoPythonMessage, 1); }
             return new Installations(AppNames);
+        }
+    }
+    
+    public static class LinuxInstallationCheck
+    {
+        public static Installations Run()
+        {
+            return new Installations();
+        }
+    }
+
+    public static class MacInstallationCheck
+    {
+        public static Installations Run()
+        {
+            return new Installations();
         }
     }
 }

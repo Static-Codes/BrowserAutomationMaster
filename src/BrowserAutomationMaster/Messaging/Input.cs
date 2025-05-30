@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BrowserAutomationMaster.Messaging
 {
-    internal class Input
+    public class Input
     {
         public static string? WriteTextAndReturnRawInput(string inputMessage)
         {

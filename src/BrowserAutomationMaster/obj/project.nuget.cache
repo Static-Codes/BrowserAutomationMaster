@@ -1,14 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "JHJx/M0vxRg=",
+  "dgSpecHash": "Q7MXbCUy9fQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Nerdy\\.nuget\\packages\\esprima\\3.0.5\\esprima.3.0.5.nupkg.sha512",
-    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.15\\microsoft.net.illink.tasks.8.0.15.nupkg.sha512",
-    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.netcore.app.runtime.osx-x64\\8.0.15\\microsoft.netcore.app.runtime.osx-x64.8.0.15.nupkg.sha512",
-    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.osx-x64\\8.0.15\\microsoft.aspnetcore.app.runtime.osx-x64.8.0.15.nupkg.sha512",
-    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.netcore.app.host.osx-x64\\8.0.15\\microsoft.netcore.app.host.osx-x64.8.0.15.nupkg.sha512"
+    "C:\\Users\\Nerdy\\.nuget\\packages\\esprima\\3.0.5\\esprima.3.0.5.nupkg.sha512"
   ],
   "logs": []
 }

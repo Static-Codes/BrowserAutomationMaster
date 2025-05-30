@@ -12,8 +12,6 @@ C:\Users\Nerdy\source\repos\BrowserAutomationMaster\BrowserAutomationMaster\obj\
 C:\Users\Nerdy\source\repos\BrowserAutomationMaster\BrowserAutomationMaster\obj\Debug\net8.0\BrowserAutomationMaster.pdb
 C:\Users\Nerdy\source\repos\BrowserAutomationMaster\BrowserAutomationMaster\obj\Debug\net8.0\BrowserAutomationMaster.genruntimeconfig.cache
 C:\Users\Nerdy\source\repos\BrowserAutomationMaster\BrowserAutomationMaster\obj\Debug\net8.0\ref\BrowserAutomationMaster.dll
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\Packages.json
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\UserAgents.json
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\BrowserAutomationMaster.csproj.AssemblyReference.cache
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\BrowserAutomationMaster.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\BrowserAutomationMaster.AssemblyInfoInputs.cache
@@ -23,10 +21,6 @@ C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\BrowserA.23E5FB20.Up2Date
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\obj\Debug\net8.0\BrowserAutomationMaster.genruntimeconfig.cache
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\bamm.exe
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\userScripts\example-of-all-cmds.BAMC
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\userScripts\google-click-example.BAMC
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\userScripts\local-file-test.BAMC
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\userScripts\youtube.BAMC
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\bamm.deps.json
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\bamm.runtimeconfig.json
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Debug\net8.0\bamm.dll

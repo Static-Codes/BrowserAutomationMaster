@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BrowserAutomationMaster.Messaging
 {
-    internal class Success
+    public class Success
     {
         public static void WriteSuccessMessage(string message) {
             Console.ForegroundColor = ConsoleColor.Green;

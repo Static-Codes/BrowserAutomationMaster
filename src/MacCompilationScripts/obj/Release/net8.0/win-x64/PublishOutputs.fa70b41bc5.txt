@@ -1,0 +1,2 @@
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\win-x64\publish\MacCompilationScripts.pdb
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\win-x64\publish\MacCompilationScripts.exe

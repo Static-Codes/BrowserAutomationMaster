@@ -1,0 +1,15 @@
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\MacCompilationScripts.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\MacCompilationScripts.AssemblyInfoInputs.cache
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\MacCompilationScripts.AssemblyInfo.cs
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\MacCompilationScripts.csproj.CoreCompileInputs.cache
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\MacCompilationScripts.sourcelink.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Debug\net8.0\MacCompilationScripts.exe
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Debug\net8.0\MacCompilationScripts.deps.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Debug\net8.0\MacCompilationScripts.runtimeconfig.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Debug\net8.0\MacCompilationScripts.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Debug\net8.0\MacCompilationScripts.pdb
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\MacCompilationScripts.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\refint\MacCompilationScripts.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\MacCompilationScripts.pdb
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\MacCompilationScripts.genruntimeconfig.cache
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Debug\net8.0\ref\MacCompilationScripts.dll
