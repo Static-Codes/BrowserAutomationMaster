@@ -131,47 +131,139 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndExit($"An unexpected error of type: '{ex.GetType().Name}' occurred while trying to delete file: '{scriptPath}'\n", 1);
             }
         }
+
         public static string GetUserScriptDirectory()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster", "userScripts");
+            string appName = "BrowserAutomationMaster";
+            string userScriptsFolderName = "userScripts";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string userScriptsPath = Path.Combine(appDataPath, appName, userScriptsFolderName);
+                EnsureDirectoryExists(userScriptsPath, "Windows");
+                return userScriptsPath;
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                string username = Environment.UserName;
-                if (username == null)
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string userScriptsPath;
+
+                if (string.IsNullOrEmpty(homeDirectory))
                 {
-                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) was unable to determine the active user's username.");
-                    bool manuallyEntering = (Input.WriteTextAndReturnRawInput("Would you like to manually enter this? [y/n]: ") ?? "n").ToLower().Equals("y");
+                    Errors.WriteErrorAndContinue($"BAM Manager (BAMM) could not automatically determine the user's home directory (UserProfile was empty).");
+                    string? username = Environment.UserName; // Try Environment.UserName as a fallback
+                    if (string.IsNullOrEmpty(username))
+                    {
+                        Errors.WriteErrorAndContinue("BAM Manager (BAMM) was also unable to determine the active user's username automatically.");
+                        bool manuallyEntering = (Input.WriteTextAndReturnRawInput("Would you like to manually enter the username? [y/n]: ") ?? "n").ToLower().Equals("y");
 
-                    if (manuallyEntering) {
-                        username = Input.WriteTextAndReturnRawInput("Please enter the exact username of the current active user: ") ?? string.Empty;
-                        if (string.IsNullOrEmpty(username)) { Errors.WriteErrorAndExit("Invalid username provided, BAM Manager (BAMM) will now exit, press any key to exit...", 1); }
+                        if (manuallyEntering)
+                        {
+                            username = Input.WriteTextAndReturnRawInput("Please enter the exact username of the current active user: ") ?? string.Empty;
+                            if (string.IsNullOrEmpty(username))
+                            {
+                                Errors.WriteErrorAndExit("Invalid username provided. BAM Manager (BAMM) will now exit. Press any key to exit...", 1);
+                                return ""; // Should not be reached due to exit
+                            }
+                        }
+                        else
+                        {
+                            Errors.WriteErrorAndExit("Username not provided. Press any key to exit...", 1);
+                            return ""; // Should not be reached due to exit
+                        }
                     }
-
-                    else { Errors.WriteErrorAndExit("Press any key to exit...", 1); return ""; }
-                    string directory = $"/Users/{username}/Library/Application Support/BrowserAutomationMaster/userScripts";
-                    if (!Directory.Exists(directory)) {
-                        Errors.WriteErrorAndContinue("BAM Manager (BAMM) was unable to determine the path to the userScripts directory, if this issue persists, its likely not a system fault but instead a developmental flaw.");
-                    }
-                    return directory;
+                    // Assuming username is a non null value, created using /Users/{username} structure
+                    homeDirectory = $"/Users/{username}"; // Use this as the base for the Application Support path
+                    userScriptsPath = Path.Combine(homeDirectory, "Library", "Application Support", appName, userScriptsFolderName);
                 }
+                else
+                {
+                    // Fallback if user profile is available
+                    userScriptsPath = Path.Combine(homeDirectory, "Library", "Application Support", appName, userScriptsFolderName);
+                }
+
+                EnsureDirectoryExists(userScriptsPath, "macOS");
+                return userScriptsPath;
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                string? userName = Environment.GetEnvironmentVariable("USER");
-                if (!string.IsNullOrEmpty(userName)) { return userName; }
-                userName = Environment.GetEnvironmentVariable("LOGNAME");
-                if (!string.IsNullOrEmpty(userName)) { return userName; }
-                return Environment.UserName;
+                string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (string.IsNullOrEmpty(homeDirectory)) { 
+                    homeDirectory = Environment.GetEnvironmentVariable("HOME"); 
+                }
+
+                if (string.IsNullOrEmpty(homeDirectory)) {
+                    Errors.WriteErrorAndExit("BAM Manager (BAMM) could not determine home directory on Linux.\nPress any key to exit...", 1);
+                    return ""; // Should not be reached
+                }
+
+                // Ensures compliance with XDG specs using $XDG_CONFIG_HOME or $HOME/.config
+                string? configHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+                if (string.IsNullOrEmpty(configHome)) {
+                    configHome = Path.Combine(homeDirectory, ".config");
+                }
+
+                string userScriptsPath = Path.Combine(configHome, appName, userScriptsFolderName);
+                EnsureDirectoryExists(userScriptsPath, "Linux");
+                return userScriptsPath;
             }
             else
             {
-                throw new PlatformNotSupportedException("Unsupported OS or developmental flaw in UserScriptManager.GetUserScriptDirectory();");
+                throw new PlatformNotSupportedException($"Unsupported OS ({RuntimeInformation.OSDescription}) or developmental flaw in UserScriptManager.GetUserScriptDirectory();");
             }
-
         }
+        static void EnsureDirectoryExists(string path, string osHint) {
+            if (!Directory.Exists(path)) {
+                try { Directory.CreateDirectory(path); }
+                catch (Exception) { Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"); }
+            }
+        }
+
+
+        //public static string GetUserScriptDirectory()
+        //{
+        //    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+        //        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster", "userScripts");
+        //    }
+
+        //    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+        //        string username = Environment.UserName;
+        //        if (username == null)
+        //        {
+        //            Errors.WriteErrorAndContinue("BAM Manager (BAMM) was unable to determine the active user's username.");
+        //            bool manuallyEntering = (Input.WriteTextAndReturnRawInput("Would you like to manually enter this? [y/n]: ") ?? "n").ToLower().Equals("y");
+
+        //            if (manuallyEntering) {
+        //                username = Input.WriteTextAndReturnRawInput("Please enter the exact username of the current active user: ") ?? string.Empty;
+        //                if (string.IsNullOrEmpty(username)) { Errors.WriteErrorAndExit("Invalid username provided, BAM Manager (BAMM) will now exit, press any key to exit...", 1); }
+        //            }
+
+        //            else { Errors.WriteErrorAndExit("Press any key to exit...", 1); return ""; }
+        //            string directory = $"/Users/{username}/Library/Application Support/BrowserAutomationMaster/userScripts";
+        //            if (!Directory.Exists(directory)) {
+        //                Errors.WriteErrorAndContinue("BAM Manager (BAMM) was unable to determine the path to the userScripts directory, if this issue persists, its likely not a system fault but instead a developmental flaw.");
+        //            }
+        //            return directory;
+        //        }
+        //    }
+
+        //    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        //    {
+        //        string? userName = Environment.GetEnvironmentVariable("USER");
+        //        if (!string.IsNullOrEmpty(userName)) { return userName; }
+        //        userName = Environment.GetEnvironmentVariable("LOGNAME");
+        //        if (!string.IsNullOrEmpty(userName)) { return userName; }
+        //        return Environment.UserName;
+        //    }
+        //    else
+        //    {
+        //        throw new PlatformNotSupportedException("Unsupported OS or developmental flaw in UserScriptManager.GetUserScriptDirectory();");
+        //    }
+
+        //}
     }
 
     public static class UserScriptExamples
@@ -263,6 +355,24 @@ end-javascript";
             new KeyValuePair<string, string>("google-example.bamc", GoogleFillExample),
             new KeyValuePair<string, string>("js-embed-example.bamc", JSEmbedExample),
         ];
+
+        public static void WriteScriptExamples()
+        {
+            foreach (KeyValuePair<string, string> example in UserScriptExamples.AllExamples) {
+                try
+                {
+                    string filename = example.Key;
+                    string contents = example.Value;
+                    if (string.IsNullOrEmpty(filename) || string.IsNullOrEmpty(contents)) { continue; }
+                    string filepath = Path.Combine(UserScriptManager.GetUserScriptDirectory(), filename);
+                    if (File.Exists(filepath)) { continue; } // This is an unnecessary check but i felt the need to include it
+                    File.WriteAllText(filepath, contents); // Writes the actual contents
+                }
+                catch {
+                    Warning.Write($"Unable to write example file: {example.Key}");  continue; 
+                }
+            }
+        }
 
     }
 }

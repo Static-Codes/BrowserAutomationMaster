@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>bamm</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>com.static.bamm</string>
+
+    <key>CFBundleName</key>
+    <string>BAMM v1.0.0A-OSX64</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>BAMM v1.0.0A-OSX64</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string> <!-- Identifies this as an application -->
+
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0A-OSX64</string>
+
+    <key>CFBundleVersion</key>
+    <string>1</string>
+
+    <!-- Icon File (Optional for now, but good to have the key) -->
+    <key>CFBundleIconFile</key>
+    <string>myappicon.icns</string> <!-- **EDIT THIS**: Name of your .icns file in Contents/Resources (e.g., AppIcon.icns) -->
+                                     <!-- If you don't have an icon yet, macOS will use a generic one. -->
+
+    <!-- Other Important Keys -->
+    <key>LSMinimumSystemVersion</key>
+    <string>11.0</string> <!-- **EDIT THIS**: Minimum macOS version your app supports.
+                                  10.13 (High Sierra) is a reasonable baseline for .NET Core apps.
+                                  For .NET 6+, 10.15 (Catalina) might be safer. For .NET 8, maybe 11.0 (Big Sur).
+                                  Check .NET documentation for official minimums. -->
+
+    <key>NSHighResolutionCapable</key>
+    <true/> <!-- Enable support for Retina displays -->
+
+    <!-- For GUI apps, you might need NSPrincipalClass, but for a self-contained .NET single-file executable,
+         the OS launching CFBundleExecutable is usually enough.
+         If it's a console app you want to pop a terminal, this is fine.
+         If it's supposed to be a windowed app without a console, more might be needed (often handled by UI frameworks).
+    -->
+    <!-- <key>NSPrincipalClass</key> -->
+    <!-- <string>NSApplication</string> -->
+
+</dict>
+</plist>
