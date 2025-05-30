@@ -57,7 +57,7 @@ namespace BrowserAutomationMaster
         public static bool CreateUserScriptsDirectory() // Write more detailed error handling.
         {
             
-            if (userScriptsDirectory == null) { return false; }
+            if (string.IsNullOrEmpty(userScriptsDirectory)) { return false; }
             noFilesFoundMessage = $"""
             BAM Manager (BAMM) was unable to find any valid .bamc files.
             
@@ -68,21 +68,16 @@ namespace BrowserAutomationMaster
             If this directory wasn't already created please rerun this application.
             """;
 
-            if (Directory.Exists(userScriptsDirectory)) { return true; }
+            if (Directory.Exists(userScriptsDirectory)) {
+                UserScriptExamples.WriteScriptExamples();
+                return true; 
+            }
             else
             {
                 try
                 {
                     Directory.CreateDirectory(userScriptsDirectory);
-                    foreach (KeyValuePair<string, string> example in UserScriptExamples.AllExamples)
-                    {
-                        string filename = example.Key;
-                        string contents = example.Value;
-                        if (string.IsNullOrEmpty(filename) || string.IsNullOrEmpty(contents)) { continue; }
-                        string filepath = Path.Combine(userScriptsDirectory, filename);
-                        if (File.Exists(filepath)) { continue; } // This is an unnecessary check but i felt the need to include it
-                        File.WriteAllText(filepath, contents); // Writes the actual contents
-                    }
+                    UserScriptExamples.WriteScriptExamples();
                     return true;
                 }
                 catch (ArgumentNullException ane)
@@ -487,8 +482,8 @@ namespace BrowserAutomationMaster
         
         public static KeyValuePair<MenuOption, string> New()
         {
-            bool configDirectoryExists = CreateUserScriptsDirectory();
-            if (!configDirectoryExists) { return KeyValuePair.Create(MenuOption.Invalid, Errors.WriteErrorAndReturnEmptyString(noFilesFoundMessage)); }
+            bool userScriptDirExists = CreateUserScriptsDirectory();
+            if (!userScriptDirExists) { return KeyValuePair.Create(MenuOption.Invalid, Errors.WriteErrorAndReturnEmptyString(noFilesFoundMessage)); }
 
             string[] BAMCFiles = GetBAMCFiles();
             if (BAMCFiles.Length == 0) { return KeyValuePair.Create(MenuOption.Invalid, Errors.WriteErrorAndReturnEmptyString(noFilesFoundMessage)); }
@@ -508,6 +503,7 @@ namespace BrowserAutomationMaster
                     HandleBAMCFileValidation(BAMCFiles);
                     index = HandleUserSelection(validFilesMapping);
                     selectedFile = BAMCFiles[index];
+                    //return KeyValuePair.Create(MenuOption.Compile, Path.Combine(UserScriptManager.GetUserScriptDirectory(), selectedFile));
                     return KeyValuePair.Create(MenuOption.Compile, Path.Combine(AppContext.BaseDirectory, "userScripts", selectedFile));
                 
                 case MenuOption.Help:

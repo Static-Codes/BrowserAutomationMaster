@@ -23,19 +23,30 @@ namespace BrowserAutomationMaster.AppManager.OS
                 {
                     if (!Directory.Exists(dir)) { continue; }
 
-                    foreach (var item in Directory.GetFileSystemEntries(dir, "*.app"))
+                    foreach (var item in Directory.GetFiles(dir))
                     {
                         var appName = Path.GetFileNameWithoutExtension(item);
                         apps.Add(new AppInfo
                         {
                             Name = appName,
-                            Version = "Unable to parse.", // Will implement the logic for this in the future
-                            Publisher = "Unable to parse."
+                            Version = "Not supported currently.",
+                            Publisher = "Not supported currently."
+                        });
+                    }
+
+                    foreach (var item in Directory.GetFileSystemEntries(dir, "*.app"))
+                    {
+                        var appName = Path.GetFileNameWithoutExtension(item);
+                        apps.Add(new AppInfo { 
+                            Name = appName,
+                            Version = "Not supported currently.",
+                            Publisher = "Not supported currently."
                         });
                     }
                 }
             }
             catch { Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to find any installed applications, exiting...", 1); }
+            if (apps.Count == 0) { Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to find any installed applications, exiting...", 1); }
             return apps;
         }
     }

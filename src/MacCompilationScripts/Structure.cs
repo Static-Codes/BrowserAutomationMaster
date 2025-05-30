@@ -40,31 +40,15 @@ namespace MacCompilationScripts
 
         public static void AddAppBundle(string bundleFilePath)
         {
-            string bundleContents;
             try
             {
-                bundleContents = File.ReadAllText(bundleFilePath);
-                if (string.IsNullOrEmpty(bundleContents))
-                {
-                    Errors.WriteErrorAndExit("Unable to read bundle contents, please recompile and try again.", 1);
-                    return; // Added to appease c#'s static compiler
-
-                }
+                string outputPath = Path.Combine(macOSDirectory!, "bamm");
+                File.Copy(bundleFilePath, outputPath);
+                Success.WriteSuccessMessage($"\nSuccessfully added bundle contents to:\n{outputPath}\n");
+                
             }
             catch { 
-                Errors.WriteErrorAndExit("Unable to read bundle contents, please ensure proper syntax and recompile.", 1); 
-                return; // Added to appease c#'s static compiler
-            }
-            try
-            {
-                string outputLocation = Path.Combine(macOSDirectory!, "bamm");
-                File.WriteAllText(outputLocation, bundleContents);
-                Success.WriteSuccessMessage($"\nSuccessfully wrote bundle contents to:\n{outputLocation}");
-            }
-
-
-            catch {
-                Errors.WriteErrorAndExit("Unable to write bundle contents, please ensure proper syntax and recompile.", 1);
+                Errors.WriteErrorAndExit("Unable to bundle app contents, please ensure proper syntax and recompile.", 1); 
                 return; // Added to appease c#'s static compiler
             }
         }

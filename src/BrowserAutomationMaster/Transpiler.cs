@@ -3,6 +3,8 @@ using BrowserAutomationMaster.Managers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
+using System.Reflection.Metadata;
+using BrowserAutomationMaster.AppManager;
 
 namespace BrowserAutomationMaster
 {
@@ -16,11 +18,12 @@ namespace BrowserAutomationMaster
     internal partial class Transpiler
     {
         readonly static string defaultScriptFileName = "untitled-script";  // This will be used in GenerateBackupName(); in the case of failure.
-        readonly static string desiredSaveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster", "compiled"); // Needs to be a parameter since this application will include cross platform
+        
+        static string desiredSaveDirectory = "";
         readonly static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
         readonly static string requirementsFileName = "requirements.txt"; // This is the filename where the package requirements will be written to.
         static string projectDirectory = "";
-
+        
         readonly static string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
 
         static BrowserPackage browserPackage = BrowserPackage.selenium; // By default selenium is chosen, however aiohttp and tls-client as also possible options.
@@ -42,8 +45,6 @@ namespace BrowserAutomationMaster
 
         static int actionTimeout = 5; // This is the timeout applied to all WebDriverWait calls.
         readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
-        static List<ApplicationNames> installedBrowsers = []; // Modified by VerifyInstallations();
-        static List<ApplicationNames> installedPyVersions = []; // Modified by VerifyInstallations();
         static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
         static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
         readonly static List<string> importStatements = ["from importlib import import_module", "from os import path", "from subprocess import run", "from sys import modules"];
@@ -55,25 +56,19 @@ namespace BrowserAutomationMaster
         private static partial Regex TimeoutRegex();
         public static void New(string filePath, string[] args)
         {
-            //CreateProjectDirectory();
-            //SetScriptName(filePath);
-            //SetFileLines(filePath);
-            //GetDesiredUrls();
-            Installations installations;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                installations = WindowsInstallationCheck.Run();
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                installations = MacInstallationCheck.Run(); // Write MacInstallationCheck
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                installations = LinuxInstallationCheck.Run(); // Write LinuxInstallationCheck 
-            else { throw new PlatformNotSupportedException("Unsupported OS."); }
-            //VerifyInstallations(installations);
-            //AddBrowserImportsAndRequirements();
-            // HandlePythonVersionSelection(installations); // This isn't needed currently 
+            SetDesiredSaveDirectory();
+            CreateProjectDirectory(); // Also sets variable projectDirectory
+            SetScriptName(filePath);
+            SetFileLines(filePath);
+            GetDesiredUrls();
 
-            //HandleCompilation(filePath, args);
-            //WritePythonFile();
-            //WriteRequirementsFile();
+            Installations installations = new(InstalledApps.GetInstalledApps());
+            AddBrowserImportsAndRequirements();
+            //HandlePythonVersionSelection(installations); // This isn't needed currently 
+
+            HandleCompilation(filePath, args);
+            WritePythonFile();
+            WriteRequirementsFile();
 
             Success.WriteSuccessMessage($"Compiled -> {pythonScriptFileName}");
             Success.WriteSuccessMessage($"Location -> {projectDirectory}");
@@ -81,39 +76,11 @@ namespace BrowserAutomationMaster
 
         public static void AddBrowserImportsAndRequirements() // Check for proxy and add logic to insert proxy into session/driver variable.
         {
-            string braveNotFound = "BAM Manager (BAMM) was unable to find an installation of Brave.";
-            string chromeNotFound = "BAM Manager (BAMM) was unable to find an installation of Chrome.";
-            string firefoxNotFound = "BAM Manager (BAMM) was unable to find an installation of Firefox.";
             HandleBrowserCmd();
 
             // This function will exit if a null value is reached so no worries about a null check here
             string version = PackageManager.New(browserPackage.ToString(), pythonVersion);
             requirements.Add($"{browserPackage}=={version}");
-
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                braveNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.BravePath}";
-                chromeNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.ChromePath}";
-                firefoxNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.FirefoxPath}";
-            }
-
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                braveNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.BravePath}";
-                chromeNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.ChromePath}";
-                firefoxNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.FirefoxPath}";
-            }
-
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                braveNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.BravePath}";
-                chromeNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.ChromePath}";
-                firefoxNotFound += $"\nPlease ensure Brave is installed at the following location:\n{WindowsInstallationCheck.FirefoxPath}";
-            }
-            
-            else {
-                throw new PlatformNotSupportedException("Unsupported OS.");
-            }
 
             string noUrlsFound = "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\nPlease ensure the selected file has atleast one 'visit' command.";
 
@@ -160,7 +127,6 @@ namespace BrowserAutomationMaster
                     switch (selectedBrowser)
                     {
                         case "brave":
-                            if (!installedBrowsers.Contains(ApplicationNames.Brave)) { Errors.WriteErrorAndExit(braveNotFound, 1); }
                             importStatements.AddRange([
                                 "from selenium.webdriver.chrome.options import Options",
                                 "from selenium.webdriver.chrome.service import Service as ChromeService",
@@ -170,7 +136,6 @@ namespace BrowserAutomationMaster
                             break;
 
                         case "chrome":
-                            if (!installedBrowsers.Contains(ApplicationNames.Chrome)) { Errors.WriteErrorAndExit(chromeNotFound, 1); }
                             importStatements.AddRange([
                                 "from selenium.webdriver.chrome.options import Options",
                                 "from selenium.webdriver.chrome.service import Service as ChromeService",
@@ -179,7 +144,6 @@ namespace BrowserAutomationMaster
                             break;
 
                         case "firefox":
-                            if (!installedBrowsers.Contains(ApplicationNames.Firefox)) { Errors.WriteErrorAndExit(firefoxNotFound, 1); }
                             importStatements.AddRange([
                                 "from selenium.webdriver.firefox.options import Options",
                                 "from selenium.webdriver.firefox.service import Service as FirefoxService",
@@ -229,13 +193,25 @@ namespace BrowserAutomationMaster
         }
         public static void CreateProjectDirectory()
         {
+            try {
+                if (!Directory.Exists(desiredSaveDirectory)) { Directory.CreateDirectory(desiredSaveDirectory); }
+            }
+            catch { Errors.WriteErrorAndExit("BAMM Manager (BAMM) was unable to create the desired project directory, please try again.", 1); }
+            
             projectDirectory = Path.Combine(desiredSaveDirectory, projectDirectoryName);
-            if (!Path.Exists(desiredSaveDirectory)) {
-                Directory.CreateDirectory(desiredSaveDirectory);
+            try {
+                if (!Path.Exists(desiredSaveDirectory)) {
+                    Directory.CreateDirectory(desiredSaveDirectory);
+                }
             }
-            if (!Path.Exists(projectDirectory)) {
-                Directory.CreateDirectory(projectDirectory);
+            catch { }
+
+            try {
+                if (!Path.Exists(projectDirectory)) {
+                    Directory.CreateDirectory(projectDirectory);
+                }
             }
+            catch { Errors.WriteErrorAndExit("BAMM Manager (BAMM) was unable to create the desired project directory, please try again.", 1); }
         }
         public static void GenerateBackupScriptName()
         {
@@ -723,7 +699,7 @@ namespace BrowserAutomationMaster
 
 
             scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
-        } // Finish me
+        }
         public static void HandlePythonVersionSelection(Installations installations)
         {
             List<string> foundVersions = [];
@@ -760,7 +736,7 @@ namespace BrowserAutomationMaster
                     }
                 }
             }
-        }
+        } // Currently unused.
         public static bool HasUnclosedQuotes(string line)
         {
             int singleQuote = line.Count(c => c == '\'');
@@ -789,6 +765,28 @@ namespace BrowserAutomationMaster
                     Errors.WriteErrorAndExit($"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\nLine {lineNumber} contains an unescape quoted, please fix this and recompile.", 1);
                 }
             }
+        }
+        public static void SetDesiredSaveDirectory()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                desiredSaveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster", "compiled");
+            }
+
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                string userScriptDirectory = UserScriptManager.GetUserScriptDirectory();
+                string parentDirectory = Path.GetDirectoryName(userScriptDirectory) ?? Environment.CurrentDirectory;
+                desiredSaveDirectory = Path.Combine(parentDirectory, "compiled");
+            }
+
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Console.WriteLine("Linux");
+                desiredSaveDirectory = "";
+            }
+
+            else { throw new PlatformNotSupportedException("Unsupported OS."); }
         }
         public static void SetFileLines(string filePath)
         {
@@ -880,64 +878,6 @@ namespace BrowserAutomationMaster
                         $"Expected Format: '--set-timeout==integer'" +
                         $"Received: '{timeoutArg}'",
                         1);
-                }
-            }
-        }
-        public static void VerifyInstallations(Installations installations)
-        {
-            string pythonErrorMessage = """
-            BAM Manager (BAMM) was unable to detect any valid versions of Python.
-
-            BAMM was designed for Python 3.10 and 3.11.
-
-            Please install one of these versions using the links below:
-
-            Python 3.10: https://www.python.org/downloads/release/python-31011/
-            Python 3.11: https://www.python.org/downloads/release/python-3119/
-            """;
-
-            string browserWarningMessage = """
-            BAM Manager (BAMM) was unable to detect any supported browser installations.
-
-            BAMM was designed mostly for browser automation, but has a few commands that can be used to automate raw requests (This is only for advanced users).
-            
-            Please install one of supported browsers below to fully utilize:
-
-            Brave: https://brave.com/download/
-            Chrome: https://google.com/chrome/
-            Firefox: https://www.mozilla.org/en-US/firefox/
-            """;
-
-            string pythonWarningMessage = """
-            BAM Manager (BAMM) detected multiple versions of Python.
-            
-            BAMM was designed for Python 3.10 and 3.11.
-            
-            While it's possible that scripts compiled with BAMM may run on 3.9, 3.12, 3.13, and 3.14, this should be avoided unless you intend to contribute to development.
-            
-            You will be prompted shortly to select a version to compile with, Please select either Python 3.10 or 3.11, unless you are explicitly testing other versions.
-            """;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                installedBrowsers = [.. installations.AppNames.Where(x => WindowsInstallationCheck.BrowserApps.Contains(x))];
-                installedPyVersions = [.. installations.AppNames.Where(x => WindowsInstallationCheck.PythonApps.Contains(x))];
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                installedBrowsers = [];
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                installedBrowsers = [];
-            
-
-            if (installedPyVersions.Count == 0) { Errors.WriteErrorAndExit(pythonErrorMessage, 1); }
-            if (installedBrowsers.Count == 0) { 
-                noBrowsersFound = true; 
-                Warning.Write(browserWarningMessage); 
-            }
-
-            List<string> problematicVersions = ["3.9", "3.12", "3.13", "3.14"];
-            List<string> bestVersions = ["3.10", "3.11"];
-            if (installedPyVersions.Any(x => problematicVersions.Contains(x.ToString()))) { 
-                if (installedPyVersions.Any(x => bestVersions.Contains(x.ToString()))){
-                    Warning.Write(pythonWarningMessage);
                 }
             }
         }
