@@ -34,9 +34,10 @@ Name: "addtopath"; Description: "Add application directory to your system PATH";
 
 [Files]
 Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\packages.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\userAgents.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\userScripts\*"; DestDir: "{userappdata}\BrowserAutomationMaster\userScripts"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall skipifsourcedoesntexist;
+// These files are no longer needed since the app is developed to be cross platform with the OOBE
+// Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\packages.json"; DestDir: "{app}"; Flags: ignoreversion
+// Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\userAgents.json"; DestDir: "{app}"; Flags: ignoreversion
+// Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\userScripts\*"; DestDir: "{userappdata}\BrowserAutomationMaster\userScripts"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall skipifsourcedoesntexist;
 
 [Registry]
 Root: HKLM; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue

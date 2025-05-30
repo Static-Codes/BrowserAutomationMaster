@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,22 +7,6 @@
     <Nullable>enable</Nullable>
     <AssemblyName>bamm</AssemblyName>
   </PropertyGroup>
-
-	<ItemGroup>
-		<None Update="packages.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Update="userAgents.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Content Include="userScripts\**\*" CopyToOutputDirectory="Always" />
-	</ItemGroup>
 
 	<ItemGroup>
 	  <Compile Remove="Unused\WMIHelper.cs" />

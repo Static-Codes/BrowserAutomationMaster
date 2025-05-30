@@ -12,7 +12,7 @@ namespace BrowserAutomationMaster.Managers
         public UserScriptManager(string filePath, string method)
         {
             // Performs path validation 1/6 (Ensures userScriptDirectory's value is not null or empty)
-            userScriptDirectory = Parser.GetUserScriptDirectory();
+            userScriptDirectory = GetUserScriptDirectory();
             if (string.IsNullOrEmpty(userScriptDirectory)) {
                 Errors.WriteErrorAndExit("Path to userScripts directory could not be determined, if this continues please reinstall the application.", 1);
             }
@@ -260,8 +260,8 @@ end-javascript";
 
             new KeyValuePair<string, string>("all-commands.bamc", AllCmdsExample),
             new KeyValuePair<string, string>("local-file.bamc", LocalFileExample),
-            new KeyValuePair<string, string>("google-example", GoogleFillExample),
-            new KeyValuePair<string, string>("google-example", JSEmbedExample),
+            new KeyValuePair<string, string>("google-example.bamc", GoogleFillExample),
+            new KeyValuePair<string, string>("js-embed-example.bamc", JSEmbedExample),
         ];
 
     }
