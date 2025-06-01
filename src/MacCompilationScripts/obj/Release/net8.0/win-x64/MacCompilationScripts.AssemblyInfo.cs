@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MacCompilationScripts")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4839d4ee6056927d0a7dc87b357c518808b0a3bd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0824fee77e09150a82e022c619b03d65c3687b4a")]
 [assembly: System.Reflection.AssemblyProductAttribute("MacCompilationScripts")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MacCompilationScripts")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

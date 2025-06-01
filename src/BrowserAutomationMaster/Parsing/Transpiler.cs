@@ -72,6 +72,7 @@ namespace BrowserAutomationMaster
 
             Success.WriteSuccessMessage($"Compiled -> {pythonScriptFileName}");
             Success.WriteSuccessMessage($"Location -> {projectDirectory}");
+            ResetTranspilerState();
         }
 
         public static void AddBrowserImportsAndRequirements() // Check for proxy and add logic to insert proxy into session/driver variable.
@@ -233,7 +234,8 @@ namespace BrowserAutomationMaster
             {
                 string[] args = line.Split(' ') ?? [];
                 if (args.Length == 2 && line.Contains("visit")){
-                    desiredUrls.Add(args[1].Replace('"', ' ').Trim(), lineNumber);
+                    string sanitizedArg = args[1].Replace('"', ' ').Trim();
+                    desiredUrls.TryAdd(sanitizedArg, lineNumber);
                 }
                 lineNumber++;
             }
@@ -739,9 +741,39 @@ namespace BrowserAutomationMaster
         } // Currently unused.
         public static bool HasUnclosedQuotes(string line)
         {
-            int singleQuote = line.Count(c => c == '\'');
-            int doubleQuote = line.Count(c => c == '"');
-            return singleQuote % 2 != 0 || doubleQuote % 2 != 0;
+            bool inSingleQuote = false;
+            bool inDoubleQuote = false;
+            bool isEscaped = false; // True if the previous character was a backslash
+            foreach (char c in line.Trim())
+            {
+                if (isEscaped) { 
+                    // If this flag is hit the previous character was a backslash, indicating this character is escaped and should be ignored.
+                    isEscaped = false;
+                    continue;
+                }
+                if (c == '\\') {
+                    // If this flag is hit it indicates the current character is a backslash and the next character will be escaped & ignored.
+                    isEscaped = true;
+                    continue;
+                }
+                if (c == '\'') {
+                    // If a single quote is inside a set of double quotes, the single quote is a literal character (most likely an apostrophe)
+                    if (!inDoubleQuote) {
+                        // A single quote is only a delimiter if it's not inside a set of double quotes.
+                        inSingleQuote = !inSingleQuote;
+                    }
+                }
+                else if (c == '"') {
+                    // If a quote quote is inside a set of single quotes, the double quote is a literal character.
+                    if (!inSingleQuote) {
+                        // A double quote is only a delimiter if it's not inside a set of single quotes.
+                        inDoubleQuote = !inDoubleQuote;
+                    }
+                }
+            }
+
+            // If either flag is true at the end, a quote was left unclosed
+            return inSingleQuote || inDoubleQuote;
         }
         public static string Indent(int numberOfIndents) { 
             if (numberOfIndents < 0) { Errors.WriteErrorAndExit("Invalid value provided to Indent(), value must be >= 0.", 1); }
@@ -762,9 +794,27 @@ namespace BrowserAutomationMaster
             foreach (string line in jsCodeBlock.Split('\n')) {
                 lineNumber++;
                 if (HasUnclosedQuotes(line)) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\nLine {lineNumber} contains an unescape quoted, please fix this and recompile.", 1);
+                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\nLine {lineNumber} contains an unescape quoted, please fix this and recompile.\n\nLine:{line}", 1);
                 }
             }
+        }
+        public static void ResetTranspilerState()
+        {
+            desiredUrls.Clear();
+            scriptBody.Clear();
+            requirements.Clear();
+            configLines.Clear();
+            featureLines.Clear();
+            browserPresent = false;
+            featurePresent = false;
+            otherPresent = false;
+            asyncEnabled = false;
+            bypassCloudflare = false;
+            disablePycache = false;
+            noBrowsersFound = false;
+            actionTimeout = 5;
+            importStatements.AddRange(["from importlib import import_module", "from os import path", "from subprocess import run", "from sys import modules"]);
+            requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
         public static void SetDesiredSaveDirectory()
         {

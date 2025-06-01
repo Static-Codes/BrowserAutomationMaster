@@ -5,12 +5,12 @@ internal class JavaScript
 {
     public static bool IsValidSyntax(string jsCode, out string? error)
     {
-        string sanitizedCode = SanitizeJSForPython(jsCode);
+        //string sanitizedCode = SanitizeJSForPython(jsCode);
         try
         {
             ParserOptions options = new() { Tolerant = false };
             JavaScriptParser parser = new(options);
-            parser.ParseScript(sanitizedCode);
+            parser.ParseScript(jsCode);
             error = null;
             return true;
         }
@@ -20,6 +20,7 @@ internal class JavaScript
             return false;
         }
     }
+    // Currently unused
     public static string SanitizeJSForPython(string jsCode)
     {
         if (jsCode == null || jsCode == string.Empty) { return string.Empty; }
