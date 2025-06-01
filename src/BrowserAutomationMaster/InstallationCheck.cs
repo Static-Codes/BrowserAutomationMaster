@@ -60,7 +60,7 @@ Supported versions include:
                 if (app == null) { continue; }
                 if (app.Name == null) { continue; }
                 if (app.Name.Length == 0) { continue; }
-                Console.WriteLine(app.Name);
+                //Console.WriteLine(app.Name);
                 if (app.Name.ToLower().Contains("brave")) {
                     if (!AppNames.Contains(ApplicationNames.Brave)) {
                         AppNames.Add(ApplicationNames.Brave);
