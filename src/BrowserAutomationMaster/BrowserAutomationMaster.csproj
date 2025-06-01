@@ -6,14 +6,48 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>bamm</AssemblyName>
+	<PublishSingleFile>true</PublishSingleFile>
+	<SelfContained>true</SelfContained>
   </PropertyGroup>
 
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+		<PublishSingleFile>true</PublishSingleFile>
+		<SelfContained>true</SelfContained>
+
+		<PackAsTool>false</PackAsTool>
+		<PackageId>bamm</PackageId>
+		<PackageVersion>1.0.0</PackageVersion>
+		<Authors>Static</Authors>
+		<Description>Domain Specific Language Compiler converting an english like language into valid Python code on Python &gt;= 3.9 </Description>
+		<Copyright>Copyright © Static</Copyright>
+		<PackageTags>console;utility;linux</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<DebianPackageMaintainer>Static</DebianPackageMaintainer>
+		<DebianPackageDescription>$(Description)</DebianPackageDescription>
+		<DebianPackageSection>utils</DebianPackageSection>
+		<DebianPackagePriority>optional</DebianPackagePriority>
+		<DebianPackageRequires>libicu-dev</DebianPackageRequires>
+		<DebianDesktopFile>$(PackageId).desktop</DebianDesktopFile>
+		<DebianDesktopCategories>Utility;Console;</DebianDesktopCategories>
+		<DebianDesktopTerminal>true</DebianDesktopTerminal>
+		<DebianDesktopName>BAM Manager 1.0.0A</DebianDesktopName>
+	</PropertyGroup>
+	
 	<ItemGroup>
 	  <Compile Remove="Unused\WMIHelper.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="Esprima" Version="3.0.5" />
+	  <PackageReference Include="Packaging.Targets" Version="0.1.232">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
 	</ItemGroup>
 
 </Project>

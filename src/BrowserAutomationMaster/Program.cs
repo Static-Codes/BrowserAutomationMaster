@@ -6,12 +6,12 @@ bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
 
-//string testMessage = @$"OS Version: {Environment.OSVersion}
-//Platform: {Environment.OSVersion.Platform}
-//Current Dir: {Environment.CurrentDirectory}
-//Base Dir: {AppContext.BaseDirectory}
-//UserScripts Dir: {UserScriptManager.GetUserScriptDirectory()}";
-//Debug.WriteTestMessage(testMessage);
+string testMessage = @$"OS Version: {Environment.OSVersion}
+Platform: {Environment.OSVersion.Platform}
+Current Dir: {Environment.CurrentDirectory}
+Base Dir: {AppContext.BaseDirectory}
+UserScripts Dir: {UserScriptManager.GetUserScriptDirectory()}";
+Debug.WriteTestMessage(testMessage);
 
 SysCheck _ = new(pArgs); // Runs a system compatibility check.
 Console.Title = "BrowserAutomationMaster Manager (BAMM!)"; // Dont waste memory if the system isn't compatible.

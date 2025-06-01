@@ -773,17 +773,11 @@ namespace BrowserAutomationMaster
                 desiredSaveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster", "compiled");
             }
 
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 string userScriptDirectory = UserScriptManager.GetUserScriptDirectory();
                 string parentDirectory = Path.GetDirectoryName(userScriptDirectory) ?? Environment.CurrentDirectory;
                 desiredSaveDirectory = Path.Combine(parentDirectory, "compiled");
-            }
-
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Console.WriteLine("Linux");
-                desiredSaveDirectory = "";
             }
 
             else { throw new PlatformNotSupportedException("Unsupported OS."); }
