@@ -1,14 +1,16 @@
 {
   "version": 2,
-  "dgSpecHash": "JHJx/M0vxRg=",
+  "dgSpecHash": "zZanFhOlYSw=",
   "success": true,
   "projectFilePath": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Nerdy\\.nuget\\packages\\esprima\\3.0.5\\esprima.3.0.5.nupkg.sha512",
     "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.15\\microsoft.net.illink.tasks.8.0.15.nupkg.sha512",
-    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.netcore.app.runtime.osx-x64\\8.0.15\\microsoft.netcore.app.runtime.osx-x64.8.0.15.nupkg.sha512",
-    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.osx-x64\\8.0.15\\microsoft.aspnetcore.app.runtime.osx-x64.8.0.15.nupkg.sha512",
-    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.netcore.app.host.osx-x64\\8.0.15\\microsoft.netcore.app.host.osx-x64.8.0.15.nupkg.sha512"
+    "C:\\Users\\Nerdy\\.nuget\\packages\\packaging.targets\\0.1.232\\packaging.targets.0.1.232.nupkg.sha512",
+    "C:\\Users\\Nerdy\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512",
+    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.netcore.app.runtime.linux-x64\\8.0.15\\microsoft.netcore.app.runtime.linux-x64.8.0.15.nupkg.sha512",
+    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.netcore.app.host.linux-x64\\8.0.15\\microsoft.netcore.app.host.linux-x64.8.0.15.nupkg.sha512",
+    "C:\\Users\\Nerdy\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.linux-x64\\8.0.15\\microsoft.aspnetcore.app.runtime.linux-x64.8.0.15.nupkg.sha512"
   ],
   "logs": []
 }

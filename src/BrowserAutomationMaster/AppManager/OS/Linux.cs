@@ -7,14 +7,18 @@ namespace BrowserAutomationMaster.AppManager.OS
     {
         public static List<AppInfo> GetApps()
         {
+            List<AppInfo> apps = [];
             if (CommandExists("dpkg"))
-                return ParseDpkgList();
+                apps.AddRange(ParseDpkgList());
             if (CommandExists("rpm"))
-                return ParseRpmList();
+                apps.AddRange(ParseRpmList());
             if (CommandExists("flatpak"))
-                return ParseFlatpakList();
-            Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to detect any of the following commands:\n\ndpkg\nflatpak\nrpm\n", 1);
-            return []; // This wont actually be returned but its here to appease the compiler's static nature.
+                apps.AddRange(ParseFlatpakList());
+            if (apps.Count == 0){
+                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to detect any of the following commands:\n\ndpkg\nflatpak\nrpm\n", 1);
+                return []; // This wont actually be returned but its here to appease the compiler's static nature.
+            }
+            return apps;
         }
 
         // Instead of parsing each distro by type finding the available commands is much more efficient.
@@ -41,20 +45,24 @@ namespace BrowserAutomationMaster.AppManager.OS
             }
         }
 
-        // Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt installed.)
+        // Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.)
         private static List<AppInfo> ParseDpkgList()
         {
-            var apps = new List<AppInfo>();
-            var output = RunCommand("dpkg-query", "-W -f='${Package} ${Version}\n'");
-            foreach (var line in output.Split('\n'))
-            {
-                var parts = line.Trim('\'').Split(' ');
-                if (parts.Length >= 2)
+            try {
+                var apps = new List<AppInfo>();
+                var output = RunCommand("dpkg-query", "-W -f \"${Package}\t${Version}\n\"");
+                foreach (var line in output.Split('\n'))
                 {
-                    apps.Add(new AppInfo { Name = parts[0], Version = parts[1] });
+                    var parts = line.Trim('\'').Split("\t");
+                    if (parts.Length >= 2)
+                    {
+                        Success.WriteSuccessMessage("Dpkg App Found");
+                        apps.Add(new AppInfo { Name = parts[0], Version = parts[1] });
+                    }
                 }
+                return apps;
             }
-            return apps;
+            catch { Errors.WriteErrorAndContinue("Houston we have a problem");  return []; } // Silently catches the error, no output is currently required.
         }
 
         // Parses app installed via RPM (Red Hat Package Manager) (only for CentOS, Fedora, Oracle Linux, etc.)
@@ -66,6 +74,7 @@ namespace BrowserAutomationMaster.AppManager.OS
             {
                 if (!string.IsNullOrWhiteSpace(line))
                 {
+                    Success.WriteSuccessMessage("Rpm App Found");
                     apps.Add(new AppInfo { Name = line });
                 }
             }
@@ -82,29 +91,54 @@ namespace BrowserAutomationMaster.AppManager.OS
                 var parts = line.Split('\t');
                 if (parts.Length >= 2)
                 {
+                    Success.WriteSuccessMessage("Flatpak App Found");
                     apps.Add(new AppInfo { Name = parts[0], Version = parts[1] });
                 }
             }
             return apps;
         }
 
-        private static string RunCommand(string cmd, string args)
+
+    private static string RunCommand(string cmd, string args)
+    {
+        try
         {
-            try
+            Console.WriteLine($"Running command: {cmd} {args}");
+            var procStartInfo = new ProcessStartInfo
             {
-                var proc = Process.Start(new ProcessStartInfo
+                FileName = cmd,
+                Arguments = args,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var proc = Process.Start(procStartInfo))
+            {
+                if (proc == null)
                 {
-                    FileName = cmd,
-                    Arguments = args,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false
-                });
-                if (proc == null) { return string.Empty; }
+                    Console.WriteLine("DEBUG: Process.Start returned null.");
+                    return string.Empty;
+                }
+
                 string output = proc.StandardOutput.ReadToEnd();
+                string errorOutput = proc.StandardError.ReadToEnd();
+
                 proc.WaitForExit();
-                return output;
+
+                Console.WriteLine($"Exit Code: {proc.ExitCode}");
+                if (!string.IsNullOrEmpty(output)) { Console.WriteLine($"Stdout:\n{output}"); }
+                if (!string.IsNullOrEmpty(errorOutput)) { Errors.WriteErrorAndContinue($"Stderr:\n{errorOutput}"); }
+                if (proc.ExitCode == 0) {  return output; }
+                else { return string.Empty; }
             }
-            catch { return string.Empty; }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DEBUG: Exception in RunCommand: {ex.ToString()}"); // Debug line
+            return string.Empty; // Original behavior
         }
     }
+}
 }

@@ -188,7 +188,7 @@ namespace BrowserAutomationMaster.Managers
                 return userScriptsPath;
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                 if (string.IsNullOrEmpty(homeDirectory)) { 
@@ -304,7 +304,6 @@ save-as-html ""filename.html""";
         public readonly static string JSEmbedExample = @"browser ""firefox""
 visit ""https://google.com""
 start-javascript
-// Single and double quotes
 let singleQuote = 'This is a single-quoted string';
 let doubleQuote = ""This is a double-quoted string"";
 let mixedQuotes = 'He said, ""It\'s a great day!""';
@@ -346,7 +345,6 @@ function complexFunction() {
 
 console.log(""All tests executed."");
 end-javascript";
-
 
         public readonly static List<KeyValuePair<string, string>> AllExamples = [
 

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MacCompilationScripts")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4839d4ee6056927d0a7dc87b357c518808b0a3bd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+625162bc531fca2601f04c5b32e41b21b3c6eaad")]
 [assembly: System.Reflection.AssemblyProductAttribute("MacCompilationScripts")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MacCompilationScripts")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

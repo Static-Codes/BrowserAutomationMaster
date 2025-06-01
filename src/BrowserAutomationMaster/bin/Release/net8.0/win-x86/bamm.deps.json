@@ -9,8 +9,8 @@
     ".NETCoreApp,Version=v8.0/win-x86": {
       "bamm/1.0.0": {
         "dependencies": {
+          "Esprima": "3.0.5",
           "Microsoft.NET.ILLink.Tasks": "8.0.15",
-          "System.Management": "9.0.4",
           "runtimepack.Microsoft.NETCore.App.Runtime.win-x86": "8.0.15"
         },
         "runtime": {
@@ -737,26 +737,15 @@
           }
         }
       },
-      "Microsoft.NET.ILLink.Tasks/8.0.15": {},
-      "System.CodeDom/9.0.4": {
+      "Esprima/3.0.5": {
         "runtime": {
-          "lib/net8.0/System.CodeDom.dll": {
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.425.16305"
+          "lib/netstandard2.1/Esprima.dll": {
+            "assemblyVersion": "3.0.5.0",
+            "fileVersion": "3.0.5.0"
           }
         }
       },
-      "System.Management/9.0.4": {
-        "dependencies": {
-          "System.CodeDom": "9.0.4"
-        },
-        "runtime": {
-          "runtimes/win/lib/net8.0/System.Management.dll": {
-            "assemblyVersion": "9.0.0.4",
-            "fileVersion": "9.0.425.16305"
-          }
-        }
-      }
+      "Microsoft.NET.ILLink.Tasks/8.0.15": {}
     }
   },
   "libraries": {
@@ -770,26 +759,19 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Esprima/3.0.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-yJrbImpXdJAwKoa0FOgK3JV4wuOPHhKI1vWmNepJD5U/t6ENwEr0FX6gl06rIxxKbVGrKCd8JMmm7rieT/4dIw==",
+      "path": "esprima/3.0.5",
+      "hashPath": "esprima.3.0.5.nupkg.sha512"
+    },
     "Microsoft.NET.ILLink.Tasks/8.0.15": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-s4eXlcRGyHeCgFUGQnhq0e/SCHBPp0jOHgMqZg3fQ2OCHJSm1aOUhI6RFWuVIcEb9ig2WgI2kWukk8wu72EbUQ==",
       "path": "microsoft.net.illink.tasks/8.0.15",
       "hashPath": "microsoft.net.illink.tasks.8.0.15.nupkg.sha512"
-    },
-    "System.CodeDom/9.0.4": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-aJdv7Z87PoPW8ijvGIincocooYRbH3Umtlz7OrJKf6GDInbdu1bvk5X1fFlmbl7WP+9ntoIBd7NjKz+siVFdHA==",
-      "path": "system.codedom/9.0.4",
-      "hashPath": "system.codedom.9.0.4.nupkg.sha512"
-    },
-    "System.Management/9.0.4": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-MfY9+SrkSvchAoFiChTkhQYCAjBaQQ9u3LwiKmho7oTbujucnxCzORlPgLhId/ChLSptsQ/1UmtPGLZaKYVdsA==",
-      "path": "system.management/9.0.4",
-      "hashPath": "system.management.9.0.4.nupkg.sha512"
     }
   },
   "runtimes": {

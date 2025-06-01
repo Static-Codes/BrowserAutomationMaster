@@ -60,20 +60,20 @@ Supported versions include:
                 if (app == null) { continue; }
                 if (app.Name == null) { continue; }
                 if (app.Name.Length == 0) { continue; }
-
-                if (app.Name.StartsWith("Brave")) {
+                Console.WriteLine(app.Name);
+                if (app.Name.ToLower().Contains("brave")) {
                     if (!AppNames.Contains(ApplicationNames.Brave)) {
                         AppNames.Add(ApplicationNames.Brave);
                     }
                 }
 
-                else if (app.Name.Contains("Chrome")) {
+                else if (app.Name.ToLower().Contains("chrome")) {
                     if (!AppNames.Contains(ApplicationNames.Chrome)) {
                         AppNames.Add(ApplicationNames.Chrome);
                     }
                 }
 
-                else if (app.Name.Contains("Firefox")) {
+                else if (app.Name.ToLower().Contains("firefox")) {
                     if (!AppNames.Contains(ApplicationNames.Firefox)) {
                         AppNames.Add(ApplicationNames.Firefox);
                     }

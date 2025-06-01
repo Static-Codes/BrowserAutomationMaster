@@ -1,0 +1,15 @@
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\linux-x64\MacCompilationScripts
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\linux-x64\MacCompilationScripts.deps.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\linux-x64\MacCompilationScripts.runtimeconfig.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\linux-x64\MacCompilationScripts.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\linux-x64\MacCompilationScripts.pdb
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\MacCompilationScripts.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\MacCompilationScripts.AssemblyInfoInputs.cache
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\MacCompilationScripts.AssemblyInfo.cs
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\MacCompilationScripts.csproj.CoreCompileInputs.cache
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\MacCompilationScripts.sourcelink.json
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\MacCompilationScripts.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\refint\MacCompilationScripts.dll
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\MacCompilationScripts.pdb
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\MacCompilationScripts.genruntimeconfig.cache
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\obj\Release\net8.0\linux-x64\ref\MacCompilationScripts.dll

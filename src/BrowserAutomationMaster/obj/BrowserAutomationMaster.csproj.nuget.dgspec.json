@@ -59,6 +59,12 @@
               "target": "Package",
               "version": "[8.0.15, )",
               "autoReferenced": true
+            },
+            "Packaging.Targets": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[0.1.232, )"
             }
           },
           "imports": [
@@ -74,15 +80,15 @@
           "warn": true,
           "downloadDependencies": [
             {
-              "name": "Microsoft.AspNetCore.App.Runtime.osx-x64",
+              "name": "Microsoft.AspNetCore.App.Runtime.linux-x64",
               "version": "[8.0.15, 8.0.15]"
             },
             {
-              "name": "Microsoft.NETCore.App.Host.osx-x64",
+              "name": "Microsoft.NETCore.App.Host.linux-x64",
               "version": "[8.0.15, 8.0.15]"
             },
             {
-              "name": "Microsoft.NETCore.App.Runtime.osx-x64",
+              "name": "Microsoft.NETCore.App.Runtime.linux-x64",
               "version": "[8.0.15, 8.0.15]"
             }
           ],
@@ -95,7 +101,7 @@
         }
       },
       "runtimes": {
-        "osx-x64": {
+        "linux-x64": {
           "#import": []
         }
       }

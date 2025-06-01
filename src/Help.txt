@@ -1,0 +1,6 @@
+For MacOS users:
+
+- If you are unable to find the "Library" directory located at: <YOUR DRIVE NAME>/Users/<YOUR USERNAME HERE>/Library
+   -> Go to <YOUR DRIVE NAME>/Users/<YOUR USERNAME HERE>
+   -> Right click anywhere in the folder and select "Show View Options" then check "Show Library Folder" and click "Use as Defaults" then close this popup
+
