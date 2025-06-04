@@ -70,8 +70,8 @@ namespace BrowserAutomationMaster
             WritePythonFile();
             WriteRequirementsFile();
 
-            Success.WriteSuccessMessage($"Compiled -> {pythonScriptFileName}");
-            Success.WriteSuccessMessage($"Location -> {projectDirectory}");
+            Success.WriteSuccessMessage($"\nCompiled -> {pythonScriptFileName}");
+            Success.WriteSuccessMessage($"Location -> {projectDirectory}\n");
             ResetTranspilerState();
         }
 

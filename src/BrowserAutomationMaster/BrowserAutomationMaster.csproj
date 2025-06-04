@@ -1,32 +1,44 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AssemblyName>bamm</AssemblyName>
-	<PublishSingleFile>true</PublishSingleFile>
-	<SelfContained>true</SelfContained>
-  </PropertyGroup>
 
 	<PropertyGroup>
+		<!-- Core Properties -->
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+		<AssemblyName>bamm</AssemblyName>
+
+		<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
+		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+
+		<!-- Global Publish Settings  -->
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
+	</PropertyGroup>
 
+	<PropertyGroup>
+		<!-- NuGet Package Metadata -->
 		<PackAsTool>false</PackAsTool>
 		<PackageId>bamm</PackageId>
 		<PackageVersion>1.0.0</PackageVersion>
 		<Authors>Static</Authors>
 		<Description>Domain Specific Language Compiler converting an english like language into valid Python code on Python &gt;= 3.9 </Description>
 		<Copyright>Copyright © Static</Copyright>
-		<PackageTags>console;utility;linux</PackageTags>
+		<PackageTags>console;utility;windows;linux;osx</PackageTags>
+		<!-- Windows & OSX License -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
+
+	<!-- MacOS Specific Build Logic To Run App By Double Clicking App Icon -->
+	<PropertyGroup Condition="'$(OS)' == 'Darwin' AND $(RuntimeIdentifier.StartsWith('osx-'))">
+		<PostBuildEvent>
+			if [ -f "$(PublishDir)launcher.sh" ]; then chmod +x "$(PublishDir)launcher.sh"; fi
+			if [ -f "$(PublishDir)$(AssemblyName)" ]; then chmod +x "$(PublishDir)$(AssemblyName)"; fi
+		</PostBuildEvent>
+	</PropertyGroup>
+	
+	<!-- Debian Packaging Properties -->
+	<PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
 		<DebianPackageMaintainer>Static</DebianPackageMaintainer>
 		<DebianPackageDescription>$(Description)</DebianPackageDescription>
 		<DebianPackageSection>utils</DebianPackageSection>
@@ -37,17 +49,40 @@
 		<DebianDesktopTerminal>true</DebianDesktopTerminal>
 		<DebianDesktopName>BAM Manager 1.0.0A</DebianDesktopName>
 	</PropertyGroup>
-	
-	<ItemGroup>
-	  <Compile Remove="Unused\WMIHelper.cs" />
-	</ItemGroup>
 
+	<!-- This will be removed from the source eventually -->
 	<ItemGroup>
-	  <PackageReference Include="Esprima" Version="3.0.5" />
-	  <PackageReference Include="Packaging.Targets" Version="0.1.232">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
+		<Compile Remove="Unused\WMIHelper.cs" />
 	</ItemGroup>
+	
+	<!-- Esprima (JS Validation) + Packaging.Targets (Cross Platform Publishing) -->
+	<ItemGroup>
+		<PackageReference Include="Esprima" Version="3.0.5" />
+		<PackageReference Include="Packaging.Targets" Version="0.1.232">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+	
+	<!--  MacOS Specific Launcher-->
+	<ItemGroup>
+		<Content Include="BuildTools\MacOS\launcher.sh" Condition="$(RuntimeIdentifier.StartsWith('osx-x64'))">
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+			<Link>launcher.sh</Link>
+			<PublishTargetPath>launcher.sh</PublishTargetPath>
+		</Content>
+	</ItemGroup>
+	
+	<!-- Makes the launcher executable so its not just a text file.-->
+	<Target Name="ChmodMacOsLauncher" AfterTargets="Publish"
+          Condition="$(RuntimeIdentifier.StartsWith('osx-x64'))">
+		<Message Text="Attempting to set execute permissions for launcher.sh on macOS in $(PublishDir)..." Importance="high" />
+		<Exec Command="chmod +x '$(PublishDir)launcher.sh'"
+			  Condition="Exists('$(PublishDir)launcher.sh')"
+			  ContinueOnError="WarnAndContinue" />
+		<Message Text="Execute permission set for $(PublishDir)launcher.sh (if it existed)." Importance="high" Condition="Exists('$(PublishDir)launcher.sh')"/>
+		<Warning Text="launcher.sh not found in $(PublishDir) to set execute permissions." Condition="!Exists('$(PublishDir)launcher.sh')" />
+	</Target>
+	
 
 </Project>

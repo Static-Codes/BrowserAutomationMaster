@@ -49,5 +49,6 @@ namespace BrowserAutomationMaster.AppManager.OS
             if (apps.Count == 0) { Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to find any installed applications, exiting...", 1); }
             return apps;
         }
+        
     }
 }
