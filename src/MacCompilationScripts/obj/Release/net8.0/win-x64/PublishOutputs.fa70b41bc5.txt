@@ -1,5 +1,2 @@
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\win-x64\publish\MacCompilationScripts.exe
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\win-x64\publish\MacCompilationScripts.dll
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\win-x64\publish\MacCompilationScripts.deps.json
-C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\win-x64\publish\MacCompilationScripts.runtimeconfig.json
 C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\win-x64\publish\MacCompilationScripts.pdb
+C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\MacCompilationScripts\bin\Release\net8.0\win-x64\publish\MacCompilationScripts.exe

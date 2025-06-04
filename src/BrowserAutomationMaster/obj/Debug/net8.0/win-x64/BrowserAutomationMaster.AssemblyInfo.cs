@@ -11,10 +11,13 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("bamm")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Static")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright © Static")]
+[assembly: System.Reflection.AssemblyDescriptionAttribute("Domain Specific Language Compiler converting an english like language into valid " +
+    "Python code on Python >= 3.9 ")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+625162bc531fca2601f04c5b32e41b21b3c6eaad")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+280653d5b1baaf44bb5ff884117a6e75d37001d2")]
 [assembly: System.Reflection.AssemblyProductAttribute("bamm")]
 [assembly: System.Reflection.AssemblyTitleAttribute("bamm")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
