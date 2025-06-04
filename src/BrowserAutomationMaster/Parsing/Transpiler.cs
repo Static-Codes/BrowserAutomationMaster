@@ -343,7 +343,7 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"click_element(By.XPATH, {splitLine[1]}, {actionTimeout})");
                                             break;
                                         case SelectorCategory.InvalidOrUnknown:
-                                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}\nIf this is a CSS Selector, please use:\nclick-experimental '{sanitizedArg2}'"), 1);
+                                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}\nIf this is a CSS Selector, please use:\nclick-exp '{sanitizedArg2}'"), 1);
                                             break;
                                     }
                                     break;

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj": {}
+    "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj": {
+    "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj",
+        "projectUniqueName": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj",
         "projectName": "bamm",
-        "projectPath": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj",
+        "projectPath": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserAutomationMaster.csproj",
         "packagesPath": "C:\\Users\\Nerdy\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\obj\\",
+        "outputPath": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -80,15 +80,15 @@
           "warn": true,
           "downloadDependencies": [
             {
-              "name": "Microsoft.AspNetCore.App.Runtime.osx-x64",
+              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
               "version": "[8.0.15, 8.0.15]"
             },
             {
-              "name": "Microsoft.NETCore.App.Host.osx-x64",
+              "name": "Microsoft.NETCore.App.Runtime.win-x64",
               "version": "[8.0.15, 8.0.15]"
             },
             {
-              "name": "Microsoft.NETCore.App.Runtime.osx-x64",
+              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
               "version": "[8.0.15, 8.0.15]"
             }
           ],
@@ -101,7 +101,7 @@
         }
       },
       "runtimes": {
-        "osx-x64": {
+        "win-x64": {
           "#import": []
         }
       }

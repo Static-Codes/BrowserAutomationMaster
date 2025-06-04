@@ -1,8 +1,22 @@
 browser "firefox"
-visit "https://google.com"
+feature "async"
+
+feature "bypass-cloudflare"
+feature "disable-pycache"
+feature ""use-http-proxy"" ""USERNAME:PASSWORD@IP:PORT""
+feature ""use-https-proxy"" ""USERNAME:PASSWORD@IP:PORT""
+feature ""use-socks4-proxy"" ""USERNAME:PASSWORD@IP:PORT""
+feature ""use-socks5-proxy"" ""USERNAME:PASSWORD@IP:PORT""
+visit "https://url-to-visit.com"
 click "#id-selector"
-click-exp 'ytd-popup-container.style-scope' 
-get-text "example-selector"
+click ".class_name_selector"
+click "//xpath//supported//aswell"
+click "tag-name"
+click-exp 'css-selectors-supported.with-click-exp'
+get-text "#id-selector"
+get-text ".class_name_selector"
+get-text "//xpath//supported//aswell"
+get-text "tag-name"
 fill-text "textbox-selector" "value"
 select-option "dropdown-selector" 2
 select-element "dropdown-element-selector"

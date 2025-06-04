@@ -65,16 +65,16 @@
 	</ItemGroup>
 	
 	<!--  MacOS Specific Launcher-->
-	<ItemGroup>
+	<!-- <ItemGroup>
 		<Content Include="BuildTools\MacOS\launcher.sh" Condition="$(RuntimeIdentifier.StartsWith('osx-x64'))">
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 			<Link>launcher.sh</Link>
-			<PublishTargetPath>launcher.sh</PublishTargetPath>
+			<PublishTargetPath>'$(PublishDir)launcher.sh'</PublishTargetPath>
 		</Content>
-	</ItemGroup>
+	</ItemGroup> -->
 	
 	<!-- Makes the launcher executable so its not just a text file.-->
-	<Target Name="ChmodMacOsLauncher" AfterTargets="Publish"
+	<!-- <Target Name="ChmodMacOsLauncher" AfterTargets="Publish"
           Condition="$(RuntimeIdentifier.StartsWith('osx-x64'))">
 		<Message Text="Attempting to set execute permissions for launcher.sh on macOS in $(PublishDir)..." Importance="high" />
 		<Exec Command="chmod +x '$(PublishDir)launcher.sh'"
@@ -82,7 +82,7 @@
 			  ContinueOnError="WarnAndContinue" />
 		<Message Text="Execute permission set for $(PublishDir)launcher.sh (if it existed)." Importance="high" Condition="Exists('$(PublishDir)launcher.sh')"/>
 		<Warning Text="launcher.sh not found in $(PublishDir) to set execute permissions." Condition="!Exists('$(PublishDir)launcher.sh')" />
-	</Target>
-	
+	</Target> -->
+
 
 </Project>

@@ -2,6 +2,9 @@
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 
+
+Help.Test();
+Environment.Exit(0);
 bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
