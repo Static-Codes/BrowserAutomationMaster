@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("Domain Specific Language Compiler converting an english like language into valid " +
     "Python code on Python >= 3.9 "))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+468efcb3b649ed21f786035653f75c77c04615a3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ed19bf2546ca1b2130ba161fa2e79cb6f38db45e")]
 [assembly: System.Reflection.AssemblyProductAttribute("bamm")]
 [assembly: System.Reflection.AssemblyTitleAttribute("bamm")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
