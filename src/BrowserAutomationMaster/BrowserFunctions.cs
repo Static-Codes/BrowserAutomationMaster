@@ -106,13 +106,24 @@
         print(f'An unexpected error occurred while trying to run pip:\n{e}')
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
-        public static string makeRequestFunction = @"def make_request(url):
+        public static string makeRequestFunction(string userAgent)
+        {
+            string pythonSafeUserAgent = userAgent.Replace("\\", "\\\\").Replace("'", "\\'"); // Handles formatting before issues occur.
+            return @"def make_request(url):
     status_code = None
     request_url = None
     final_url = None
-    try:
+" +
+$"    headers = {{" +
+//@$"
+//        'User-Agent': '{pythonSafeUserAgent}'," +
+
+@$"
+        'User-Agent': '{pythonSafeUserAgent}'," +
+$"\n    }}\n" +
+@"    try:
         print(f'Navigating to: {url}')
-        driver.get(url)
+        driver.get(url, header=headers)
         final_url = driver.current_url
         print(f'Navigation complete. Final URL: {final_url}')
         target_request = None
@@ -145,8 +156,6 @@
         if driver:
             if hasattr(driver, 'requests'):
                  del driver.requests
-        else:
-            print('Driver was not initialized.')
     print('\n--- Result (using selenium-wire) ---')
     print(f'Requested URL: {url}')
     if final_url and final_url != url:
@@ -160,6 +169,7 @@
             print('Status indicates success (or redirect).')
     else:
          print(f'Could not determine status code using selenium-wire.')" + string.Concat(Enumerable.Repeat('\n', 1));
+        }
 
         public static string saveAsHTMLFunction = @"def save_as_html(filename: str):
     if not filename.endswith('.html'):

@@ -691,7 +691,7 @@ namespace BrowserAutomationMaster
             scriptBody.Insert(4, BrowserFunctions.fillTextFunction);
             scriptBody.Insert(5, BrowserFunctions.getTextFunction);
             scriptBody.Insert(6, BrowserFunctions.installPackagesFunction);
-            scriptBody.Insert(7, BrowserFunctions.makeRequestFunction);
+            scriptBody.Insert(7, BrowserFunctions.makeRequestFunction(requestUserAgent));
             scriptBody.Insert(8, BrowserFunctions.saveAsHTMLFunction);
             scriptBody.Insert(9, BrowserFunctions.saveAsHTMLExperimentalFunction);
             scriptBody.Insert(10, BrowserFunctions.selectElementFunction);
