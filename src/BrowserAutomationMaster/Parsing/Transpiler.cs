@@ -624,8 +624,45 @@ namespace BrowserAutomationMaster
                                             "status_code = None",
                                             "final_url = url",
                                             "request_url = None",
-                                            "sw_options = { 'enable_har': True }\n"
                                         ]);
+                                        string proxyLine = featureLines.Where(x => x.Contains("use-") && x.Contains("-proxy")).FirstOrDefault() ?? "";
+                                        if (!string.IsNullOrEmpty(proxyLine)) {
+                                            string[] splitProxyLine = [];
+                                            // Handles cases of malformed lines, although this shouldn't happen
+                                            try {
+                                                splitProxyLine = proxyLine.Trim().Split(" ");
+                                                if (splitProxyLine.Length != 3) {
+                                                    scriptBody.Add("sw_options = { 'enable_har': True }\n");
+                                                    continue;
+                                                }
+                                            }
+                                            catch { scriptBody.Add("sw_options = { 'enable_har': True }\n"); continue; }
+                                            string prefix = "use-";
+                                            string suffix = "-proxy";
+
+                                            int startIndexActual = proxyLine.IndexOf(prefix) + prefix.Length;
+                                            int endIndexActual = proxyLine.IndexOf(suffix);
+
+                                            if (startIndexActual >= prefix.Length && endIndexActual > startIndexActual)
+                                            {
+                                                int length = endIndexActual - startIndexActual;
+                                                string proxyType = proxyLine.Substring(startIndexActual, length);
+
+                                                scriptBody.Add(
+                                                    $"sw_options = {{\n  'enable_har': True,\n   'proxy':{{\n    '" 
+                                                    + proxyType 
+                                                    + "': '" 
+                                                    + proxyType + 
+                                                    $"://{splitProxyLine[2]}'\n   }}\n}}"
+                                                );
+                                            }
+                                            else {
+                                                Warning.Write("Unable to add proxy to script, if you reading this, there is a huge bug in the use-proxyType-proxy feature.");
+                                            }
+                                        }  
+                                        else {
+                                            scriptBody.Add("sw_options = { 'enable_har': True }\n");
+                                        }
                                         switch (selectedBrowser)
                                         {
                                             case "brave":
