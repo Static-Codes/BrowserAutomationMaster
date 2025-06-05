@@ -396,8 +396,9 @@ namespace BrowserAutomationMaster
                                     selectorString = lineArgs[1];
                                     return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
                                 }
+                                Console.WriteLine(lineArgs[2]);
 
-                                bool validProxy = IsValidProxyFormat(lineArgs[2]);
+                                bool validProxy = IsValidProxyFormat(lineArgs[2].Replace("\"", ""));
                                 if (!validProxy)
                                 {
                                     return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
@@ -409,7 +410,7 @@ namespace BrowserAutomationMaster
                         {
                             if (visitBlockFinished) { return true; }
                             List<string> passedLines = [.. lines.Take(i + 1)];
-                            List<string> availableCommands = ["browser", "visit"];
+                            List<string> availableCommands = ["browser", "feature", "visit"];
                             List<string> invalidLines = [..
                             passedLines.Where(line =>
                                 !availableCommands.Any(prefix =>
@@ -419,7 +420,10 @@ namespace BrowserAutomationMaster
                             ];
                             if (invalidLines.Count > 0)
                             {
-                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, i, $"A 'visit' command must be placed before any of the following commands:\n\n{string.Join('\n', availableCommands)}"), 1);
+                                Errors.WriteErrorAndExit(
+                                    Errors.GenerateErrorMessage(fileName, line, i, 
+                                    $"A 'visit' command must be placed after 'browser' commands in addition to 'feature' commands (if used)."), 
+                                1);
                             }
                         }
                         else if (trimmedLine.StartsWith("start-javascript")){ jsBlockFinished = false; }

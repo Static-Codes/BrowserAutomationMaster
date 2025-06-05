@@ -653,7 +653,7 @@ namespace BrowserAutomationMaster
                                                     + proxyType 
                                                     + "': '" 
                                                     + proxyType + 
-                                                    $"://{splitProxyLine[2]}'\n   }}\n}}"
+                                                    $"://{splitProxyLine[2].Replace("\"", " ").Trim()}'\n   }}\n}}"
                                                 );
                                             }
                                             else {
