@@ -3,8 +3,8 @@ using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 
 
-Help.Test();
-Environment.Exit(0);
+//Help.Test();
+//Environment.Exit(0);
 bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
@@ -21,14 +21,15 @@ Console.Title = "BrowserAutomationMaster Manager (BAMM!)"; // Dont waste memory 
 
 
 bool isCLI = false;
-if (pArgs.Length == 2) { isCLI = true; }
+if (pArgs.Length == 2 && !pArgs.Contains("help")) { isCLI = true; }
 
-List<string> validCLIArgs = ["add", "compile", "delete"];
+List<string> validCLIArgs = ["add", "compile", "delete", "help"];
 
 // Handles direct CLI cases
 // -> bamm add "file.bamc"
 // -> bamm compile "file.bamc" (if userScript directory contains file.bamc)
 // -> bamm delete "file.bamc"
+// -> bamm help --all
 if (isCLI) {
     if (validCLIArgs.Contains(pArgs[0])) { var __ = new UserScriptManager(pArgs[1], pArgs[0]); }
 }
@@ -37,7 +38,7 @@ if (isCLI) {
 // Handles cases where file is double clicked. (Functions the same as bamm add "file.bamc")
 // The file is added to userScripts directory.
 // (Logic to compile automatically is commented out as to not be intrusive, opting for user confirmation.)
-if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pArgs[0])) { 
+if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pArgs[0])) {
     var __ = new UserScriptManager(pArgs[0], "add");
     bool wantsToContinue = (Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ") ?? "n").ToLower().Trim().Equals("y");
     if (!wantsToContinue) { isRunning = false; }
@@ -45,6 +46,15 @@ if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pAr
     //isRunning = false;
 }
 
+// Handles cases where "bamm help" is not supplied
+else if (pArgs.Length == 1 && pArgs[0] == "help") {
+    Errors.WriteErrorAndContinue("Invalid command: 'bamm help'\n\nTo see available entries for the 'help' command please type: 'bamm help --all'\n\nPress any key to continue.");
+    Console.ReadKey();
+}
+else if (pArgs.Length > 1 && pArgs[0] == "help")
+{
+    Parser.HandleHelpSelection();
+}
 
 
 while (isRunning)

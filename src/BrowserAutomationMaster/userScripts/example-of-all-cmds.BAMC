@@ -18,9 +18,9 @@ get-text ".class_name_selector"
 get-text "//xpath//supported//aswell"
 get-text "tag-name"
 fill-text "textbox-selector" "value"
-select-option "dropdown-selector" 2
-select-element "dropdown-element-selector"
 save-as-html "filename.html"
 save-as-html-exp "filename2.html"
+select-option "dropdown-selector" 2
+select-element "dropdown-element-selector"
 take-screenshot "filename.png"
 wait-for-seconds 5
