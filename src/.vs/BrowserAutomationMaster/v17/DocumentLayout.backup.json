@@ -1,26 +1,30 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\",
+  "WorkspaceRootPath": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\portfolio\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\parsing\\transpiler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\parsing\\transpiler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\portfolio\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\messaging\\help.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\messaging\\help.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\portfolio\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\github\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\portfolio\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\features.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\features.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\github\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\parsing\\parser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\parsing\\parser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\portfolio\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\appmanager\\os\\linux.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\appmanager\\os\\linux.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\github\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\messaging\\help.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\messaging\\help.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\github\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\parsing\\transpiler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\parsing\\transpiler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\github\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\userscripts\\example-of-all-cmds.bamc||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\userscripts\\example-of-all-cmds.bamc||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\github\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\features.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\features.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,7 +34,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
@@ -51,51 +55,51 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "Parser.cs",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parsing\\Parser.cs",
+              "RelativeDocumentMoniker": "BrowserAutomationMaster\\Parsing\\Parser.cs",
+              "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parsing\\Parser.cs",
+              "RelativeToolTip": "BrowserAutomationMaster\\Parsing\\Parser.cs",
+              "ViewState": "AgIAAPEBAAAAAAAAAAAIwAMCAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-04T22:33:03.961Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "Help.cs",
-              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Messaging\\Help.cs",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Messaging\\Help.cs",
               "RelativeDocumentMoniker": "BrowserAutomationMaster\\Messaging\\Help.cs",
-              "ToolTip": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Messaging\\Help.cs",
+              "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Messaging\\Help.cs",
               "RelativeToolTip": "BrowserAutomationMaster\\Messaging\\Help.cs",
-              "ViewState": "AgIAACkAAAAAAAAAAAAmwAUAAAAXAAAAAAAAAA==",
+              "ViewState": "AgIAACAAAAAAAAAAAAAIwHoAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-04T00:44:21.533Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Linux.cs",
-              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\AppManager\\OS\\Linux.cs",
-              "RelativeDocumentMoniker": "BrowserAutomationMaster\\AppManager\\OS\\Linux.cs",
-              "ToolTip": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\AppManager\\OS\\Linux.cs",
-              "RelativeToolTip": "BrowserAutomationMaster\\AppManager\\OS\\Linux.cs",
-              "ViewState": "AgIAAJMAAAAAAAAAAAAmwKMAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-01T01:25:27.983Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
               "Title": "Transpiler.cs",
-              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parsing\\Transpiler.cs",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parsing\\Transpiler.cs",
               "RelativeDocumentMoniker": "BrowserAutomationMaster\\Parsing\\Transpiler.cs",
-              "ToolTip": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parsing\\Transpiler.cs",
+              "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parsing\\Transpiler.cs",
               "RelativeToolTip": "BrowserAutomationMaster\\Parsing\\Transpiler.cs",
-              "ViewState": "AgIAAI4DAAAAAAAAAAAewFkBAADaAAAAAAAAAA==",
+              "ViewState": "AgIAAMICAAAAAAAAAAAWwFkBAADaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-31T23:28:54.351Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Program.cs",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Program.cs",
               "RelativeDocumentMoniker": "BrowserAutomationMaster\\Program.cs",
-              "ToolTip": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Program.cs",
+              "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Program.cs",
               "RelativeToolTip": "BrowserAutomationMaster\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAUAAAAAAAAAA==",
+              "ViewState": "AgIAADUAAAAAAAAAAADwvz4AAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-31T21:32:00.908Z",
               "EditorCaption": ""
@@ -114,6 +118,40 @@
         "Y": 353,
         "Width": 1603,
         "Height": 965,
+        "WindowState": 0
+      },
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Features.json",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Features.json",
+              "RelativeDocumentMoniker": "BrowserAutomationMaster\\Features.json",
+              "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Features.json",
+              "RelativeToolTip": "BrowserAutomationMaster\\Features.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-06-03T23:13:50.079Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "FloatingWindowState": {
+        "Id": "1068c314-adc7-4fbf-8cc0-1d50770f5b37",
+        "Display": 1,
+        "X": -21,
+        "Y": 640,
+        "Width": 1603,
+        "Height": 965,
         "WindowState": 2
       },
       "DocumentGroups": [
@@ -123,15 +161,15 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Features.json",
-              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Features.json",
-              "RelativeDocumentMoniker": "BrowserAutomationMaster\\Features.json",
-              "ToolTip": "C:\\Users\\Nerdy\\Documents\\Portfolio\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Features.json",
-              "RelativeToolTip": "BrowserAutomationMaster\\Features.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-06-03T23:13:50.079Z",
+              "DocumentIndex": 4,
+              "Title": "example-of-all-cmds.BAMC",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\userScripts\\example-of-all-cmds.BAMC",
+              "RelativeDocumentMoniker": "BrowserAutomationMaster\\userScripts\\example-of-all-cmds.BAMC",
+              "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\userScripts\\example-of-all-cmds.BAMC",
+              "RelativeToolTip": "BrowserAutomationMaster\\userScripts\\example-of-all-cmds.BAMC",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-06-04T22:09:39.788Z",
               "EditorCaption": ""
             }
           ]

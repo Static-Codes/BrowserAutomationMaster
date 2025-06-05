@@ -118,7 +118,6 @@ namespace BrowserAutomationMaster
                 }
             }
         }
-
         public static void CreateValidFilesMapping(List<string> validFiles)
         {
             if (validFiles.Count != 0)
@@ -130,7 +129,6 @@ namespace BrowserAutomationMaster
                 }
             }
         }
-
         public static void DisplayValidFiles()
         {
             Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -149,7 +147,6 @@ namespace BrowserAutomationMaster
             Console.WriteLine("\n\nPress any key to exit...");
             Console.ReadKey();
         }
-
         public static string[] GetBAMCFiles()
         {
             try
@@ -168,7 +165,6 @@ namespace BrowserAutomationMaster
         {
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
         }
-
         public static bool IsValidNumberFormat(string numberString) {
             if (string.IsNullOrEmpty(numberString)) { return false; }
             return PrecompiledNumberRegex().IsMatch(numberString);
@@ -198,7 +194,17 @@ namespace BrowserAutomationMaster
             }
 
         }
-        
+        public static void HandleHelpSelection()
+        {
+            while (true) {
+                bool isContinuing = false;
+                Help.DisplayAvailableCommands();
+                string? command = Input.WriteTextAndReturnRawInput("Please find the command you wish to learn more about, then type it below.") ?? "Not Found";
+                Help.ShowCommandDetails(command.Trim());
+                isContinuing = (Input.WriteTextAndReturnRawInput("\nWould you like to continue learning more about BAM Manager (BAMM)? [y/n]:") ?? "n").ToLower().Trim().Equals("y");
+                if (!isContinuing) { break; }
+            }
+        }
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
             string[] lineArgs;
@@ -507,7 +513,8 @@ namespace BrowserAutomationMaster
                     return KeyValuePair.Create(MenuOption.Compile, Path.Combine(AppContext.BaseDirectory, "userScripts", selectedFile));
                 
                 case MenuOption.Help:
-                    return KeyValuePair.Create(MenuOption.Help, "");
+                    HandleHelpSelection();
+                    return KeyValuePair.Create(MenuOption.Help, ""); // This just needs to passthrough, action will be taken back in program.cs 
 
                 case MenuOption.Exit:
                     Environment.Exit(0);
