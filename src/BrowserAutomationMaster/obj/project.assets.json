@@ -46,7 +46,163 @@
         }
       }
     },
+    "net8.0/linux-x64": {
+      "Esprima/3.0.5": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Esprima.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/Esprima.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.NET.ILLink.Tasks/8.0.15": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.NET.ILLink.Tasks.props": {}
+        }
+      },
+      "Packaging.Targets/0.1.232": {
+        "type": "package",
+        "dependencies": {
+          "System.Buffers": "4.5.1"
+        },
+        "build": {
+          "build/Packaging.Targets.targets": {}
+        }
+      },
+      "System.Buffers/4.5.1": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp2.0/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.0/_._": {}
+        }
+      }
+    },
+    "net8.0/osx-x64": {
+      "Esprima/3.0.5": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Esprima.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/Esprima.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.NET.ILLink.Tasks/8.0.15": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.NET.ILLink.Tasks.props": {}
+        }
+      },
+      "Packaging.Targets/0.1.232": {
+        "type": "package",
+        "dependencies": {
+          "System.Buffers": "4.5.1"
+        },
+        "build": {
+          "build/Packaging.Targets.targets": {}
+        }
+      },
+      "System.Buffers/4.5.1": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp2.0/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.0/_._": {}
+        }
+      }
+    },
+    "net8.0/win-arm64": {
+      "Esprima/3.0.5": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Esprima.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/Esprima.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.NET.ILLink.Tasks/8.0.15": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.NET.ILLink.Tasks.props": {}
+        }
+      },
+      "Packaging.Targets/0.1.232": {
+        "type": "package",
+        "dependencies": {
+          "System.Buffers": "4.5.1"
+        },
+        "build": {
+          "build/Packaging.Targets.targets": {}
+        }
+      },
+      "System.Buffers/4.5.1": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp2.0/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.0/_._": {}
+        }
+      }
+    },
     "net8.0/win-x64": {
+      "Esprima/3.0.5": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Esprima.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/Esprima.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.NET.ILLink.Tasks/8.0.15": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.NET.ILLink.Tasks.props": {}
+        }
+      },
+      "Packaging.Targets/0.1.232": {
+        "type": "package",
+        "dependencies": {
+          "System.Buffers": "4.5.1"
+        },
+        "build": {
+          "build/Packaging.Targets.targets": {}
+        }
+      },
+      "System.Buffers/4.5.1": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp2.0/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.0/_._": {}
+        }
+      }
+    },
+    "net8.0/win-x86": {
       "Esprima/3.0.5": {
         "type": "package",
         "compile": {
@@ -293,7 +449,43 @@
         "warn": true,
         "downloadDependencies": [
           {
+            "name": "Microsoft.AspNetCore.App.Runtime.linux-x64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.AspNetCore.App.Runtime.osx-x64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.AspNetCore.App.Runtime.win-arm64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
             "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.AspNetCore.App.Runtime.win-x86",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.linux-x64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.osx-x64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Runtime.linux-x64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Runtime.osx-x64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Runtime.win-arm64",
             "version": "[8.0.15, 8.0.15]"
           },
           {
@@ -301,7 +493,19 @@
             "version": "[8.0.15, 8.0.15]"
           },
           {
+            "name": "Microsoft.NETCore.App.Runtime.win-x86",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Runtime.win-arm64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
             "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Runtime.win-x86",
             "version": "[8.0.15, 8.0.15]"
           }
         ],
@@ -314,7 +518,19 @@
       }
     },
     "runtimes": {
+      "linux-x64": {
+        "#import": []
+      },
+      "osx-x64": {
+        "#import": []
+      },
+      "win-arm64": {
+        "#import": []
+      },
       "win-x64": {
+        "#import": []
+      },
+      "win-x86": {
         "#import": []
       }
     }

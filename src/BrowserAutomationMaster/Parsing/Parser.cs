@@ -129,6 +129,25 @@ namespace BrowserAutomationMaster
                 }
             }
         }
+        public static string DeleteCommentIfPresent(string line)
+        {
+            if (string.IsNullOrEmpty(line)) {
+                return string.Empty;
+            }
+
+            int commentIndex = line.IndexOf("//");
+
+            // If no comment is found, commentIndex will equal -1, meaning the entire line is just code.
+            if (commentIndex == -1) {                
+                return line.Trim();
+            }
+            
+            // If a comment is found, it gets removed since comments aren't valid commands.
+            string codePart = line[..commentIndex];
+
+            // Trim whitespace from the code part and return it
+            return codePart.Trim();
+        }
         public static void DisplayValidFiles()
         {
             Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -207,6 +226,8 @@ namespace BrowserAutomationMaster
         }
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
+            //line = DeleteCommentIfPresent(line);
+            //Console.WriteLine(line);
             string[] lineArgs;
             if (line.StartsWith("fill-text")) { lineArgs = line.Trim().Split(" \""); } // Special case to handle fill-text
             else { lineArgs = line.Trim().Split(" "); } // Handle all others
@@ -354,6 +375,7 @@ namespace BrowserAutomationMaster
                     string selectorString = "value";
                     string line = lines[i];
                     string trimmedLine = line.Trim();
+                    trimmedLine = DeleteCommentIfPresent(trimmedLine);
 
                     if (!jsBlockFinished) {
                         if (trimmedLine.StartsWith("end-javascript")) { jsBlockFinished = true; }
@@ -396,7 +418,6 @@ namespace BrowserAutomationMaster
                                     selectorString = lineArgs[1];
                                     return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {i + 1}\nLine: {line}\nValid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\nIf no authentication is required: NULL:NULL@IP:PORT\n", false);
                                 }
-                                Console.WriteLine(lineArgs[2]);
 
                                 bool validProxy = IsValidProxyFormat(lineArgs[2].Replace("\"", ""));
                                 if (!validProxy)

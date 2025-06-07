@@ -11,6 +11,7 @@
         "dependencies": {
           "Esprima": "3.0.5",
           "Microsoft.NET.ILLink.Tasks": "8.0.15",
+          "Packaging.Targets": "0.1.232",
           "runtimepack.Microsoft.NETCore.App.Runtime.win-x86": "8.0.15"
         },
         "runtime": {
@@ -745,7 +746,13 @@
           }
         }
       },
-      "Microsoft.NET.ILLink.Tasks/8.0.15": {}
+      "Microsoft.NET.ILLink.Tasks/8.0.15": {},
+      "Packaging.Targets/0.1.232": {
+        "dependencies": {
+          "System.Buffers": "4.5.1"
+        }
+      },
+      "System.Buffers/4.5.1": {}
     }
   },
   "libraries": {
@@ -772,6 +779,20 @@
       "sha512": "sha512-s4eXlcRGyHeCgFUGQnhq0e/SCHBPp0jOHgMqZg3fQ2OCHJSm1aOUhI6RFWuVIcEb9ig2WgI2kWukk8wu72EbUQ==",
       "path": "microsoft.net.illink.tasks/8.0.15",
       "hashPath": "microsoft.net.illink.tasks.8.0.15.nupkg.sha512"
+    },
+    "Packaging.Targets/0.1.232": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-4FqQN8mn4BzmiGIGYuPQWWMGOkozZoXz5bfbR1yabn3Q7iThb5PLSRynIBliJ/9vVxnRkv9ph43uh5myisev/g==",
+      "path": "packaging.targets/0.1.232",
+      "hashPath": "packaging.targets.0.1.232.nupkg.sha512"
+    },
+    "System.Buffers/4.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Rw7ijyl1qqRS0YQD/WycNst8hUUMgrMH4FCn1nNm27M4VxchZ1js3fVjQaANHO5f3sN4isvP4a+Met9Y4YomAg==",
+      "path": "system.buffers/4.5.1",
+      "hashPath": "system.buffers.4.5.1.nupkg.sha512"
     }
   },
   "runtimes": {

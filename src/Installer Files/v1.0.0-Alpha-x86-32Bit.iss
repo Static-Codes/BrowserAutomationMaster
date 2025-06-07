@@ -34,9 +34,9 @@ Name: "addtopath"; Description: "Add application directory to your system PATH";
 
 [Files]
 Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\packages.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\userAgents.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\userScripts\*"; DestDir: "{userappdata}\BrowserAutomationMaster\userScripts"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall skipifsourcedoesntexist;
+// Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\packages.json"; DestDir: "{app}"; Flags: ignoreversion
+// Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\userAgents.json"; DestDir: "{app}"; Flags: ignoreversion
+// Source: "C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\userScripts\*"; DestDir: "{userappdata}\BrowserAutomationMaster\userScripts"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall skipifsourcedoesntexist;
 
 [Registry]
 Root: HKLM; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue

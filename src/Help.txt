@@ -1,4 +1,17 @@
-For MacOS users:
+MacOS Instructions:
+
+Step 1. Extract the zip file "bamm.app.zip" (Preferrably to your desktop for easy access)
+
+Step 2. Once you extract the zip file you should see an app "bamm" (If this isnt the case please repeat step 1)
+
+Step 3: Open terminal and type cd "path/to/extraction_location/"             -> I recommend extracting it to your desktop for ease of use, if this is the case type cd "Desktop"
+
+Step 4: Type chmod +x bamm.app/Contents/MacOS/bamm     -> This will make the app an executable (This requirement should be removed in the future, but as it stands, with my lack of experience in OSX development, this is my current solution) 
+
+Step 5: Type bamm.app/Contents/MacOS/bamm
+
+
+Additional Advice:
 
 - If you are unable to find the "Library" directory located at: <YOUR DRIVE NAME>/Users/<YOUR USERNAME HERE>/Library
    -> Go to <YOUR DRIVE NAME>/Users/<YOUR USERNAME HERE>
