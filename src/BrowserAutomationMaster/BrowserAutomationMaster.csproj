@@ -9,7 +9,7 @@
 		<AssemblyName>bamm</AssemblyName>
 
 		<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
-		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+		<RuntimeIdentifiers>win-arm64;win-x64;win-x86;linux-x64;osx-x64</RuntimeIdentifiers>
 
 		<!-- Global Publish Settings  -->
 		<PublishSingleFile>true</PublishSingleFile>

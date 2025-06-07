@@ -9,16 +9,16 @@
     <string>com.static.bamm</string>
 
     <key>CFBundleName</key>
-    <string>BAMM v1.0.0A-OSX64</string>
+    <string>BAMM v1.0.0A</string>
 
     <key>CFBundleDisplayName</key>
-    <string>BAMM v1.0.0A-OSX64</string>
+    <string>BAMM v1.0.0A</string>
 
     <key>CFBundlePackageType</key>
     <string>APPL</string> <!-- Identifies this as an application -->
 
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0A-OSX64</string>
+    <string>1.0.0A</string>
 
     <key>CFBundleVersion</key>
     <string>1</string>

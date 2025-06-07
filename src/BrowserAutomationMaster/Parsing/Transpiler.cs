@@ -252,19 +252,25 @@ namespace BrowserAutomationMaster
             SetTimeout(args);
             string[] browserlessActions = ["save-as-html", "wait-for-seconds"]; 
             int lineNumber = 1;
+            bool hasComment = false;
             bool firstVisitFinished = false; // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
             bool isCE = false; // This prevents issues caused by click-exp having unique formatting.
             bool isFT = false; // This prevents issues caused by fill-text if the third argument has spaces in it.
             bool isJSBlock = false; // This prevents issues caused by embedding javascript code into python code.
             bool isJSLine = false;  // Also prevents issued caused by embedding javascript code into python code.
             string jsBlockContent = "";  
-            foreach (string line in configLines)
+            foreach (string originalLine in configLines)
             {
+                string line = originalLine; // Since iterators can't be overwritten, storing it as a local variable is current solution.
                 string[] splitLine;
+                if (string.IsNullOrEmpty(line)) { continue; } // Skip blank lines.
+                if (line.Contains("//") && !isJSBlock) { hasComment = true; }
+                if (hasComment) { line = Parser.DeleteCommentIfPresent(line); }
+
                 if (line.StartsWith("click-exp ")) { isCE = true; }
                 else if (line.StartsWith("fill-text")) { isFT = true; }
-                else if (line.StartsWith("start-javascript")) { isJSBlock = true; continue; } // Added continue to fix a bug
-                else if (line.StartsWith("end-javascript")) { isJSBlock = false; }
+                else if (line.StartsWith("start-javascript")) { isJSBlock = true; continue; }
+                else if (line.StartsWith("end-javascript")) { isJSBlock = false; continue; }
 
                 if (isFT) { splitLine = line.Split(" \""); } // This handles fill-text
                 else if (!isCE) { splitLine = line.Split(" "); } // This handles all but click-exp and fill-text
@@ -324,7 +330,6 @@ namespace BrowserAutomationMaster
                                     Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click', please remove this line and recompile."), 1);
                                     break;
                                 case BrowserPackage.tls_client:
-                                    ;
                                     Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
                                     break;
                                 case BrowserPackage.selenium:
@@ -338,6 +343,9 @@ namespace BrowserAutomationMaster
                                             break;
                                         case SelectorCategory.NameAttribute:
                                             scriptBody.Add($"click_element(By.NAME, {splitLine[1]}, {actionTimeout})");
+                                            break;
+                                        case SelectorCategory.TagName:
+                                            scriptBody.Add($"click_element(By.TAG_NAME, {splitLine[1]}, {actionTimeout})");
                                             break;
                                         case SelectorCategory.XPath:
                                             scriptBody.Add($"click_element(By.XPATH, {splitLine[1]}, {actionTimeout})");
@@ -366,7 +374,7 @@ namespace BrowserAutomationMaster
                                 case BrowserPackage.selenium:
                                     switch (parsedCESelector.Category)
                                     {
-                                        case SelectorCategory.Id or SelectorCategory.ClassName or SelectorCategory.NameAttribute:
+                                        case SelectorCategory.Id or SelectorCategory.ClassName or SelectorCategory.NameAttribute or SelectorCategory.TagName:
                                             scriptBody.Add($"click_element('css', '{sanitizedArg2}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.XPath:
@@ -404,6 +412,10 @@ namespace BrowserAutomationMaster
                                         
                                         case SelectorCategory.NameAttribute:
                                             scriptBody.Add($"text = get_text(By.NAME, '{sanitizedArg2}')");
+                                            break;
+
+                                        case SelectorCategory.TagName:
+                                            scriptBody.Add($"text = get_text(By.TAG_NAME, '{sanitizedArg2}')");
                                             break;
 
                                         case SelectorCategory.XPath:
@@ -448,6 +460,11 @@ namespace BrowserAutomationMaster
                                         case SelectorCategory.NameAttribute:
                                             scriptBody.Add($"isFilled = fill_text(By.NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
                                             break;
+
+                                        case SelectorCategory.TagName:
+                                            scriptBody.Add($"isFilled = fill_text(By.TAG_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                            break;
+
 
                                         case SelectorCategory.XPath:
                                             scriptBody.Add($"isFilled = fill_text(By.XPATH, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
@@ -530,6 +547,11 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"element = select_element(By.NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n");
                                             break;
 
+                                        case SelectorCategory.TagName:
+                                            scriptBody.Add($"element = select_element(By.TAG_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n");
+                                            break;
+
+
                                         case SelectorCategory.XPath:
                                             scriptBody.Add($"element = select_element(By.XPATH, '{parsedSelectSelector.Value}', {actionTimeout})\n");
                                             break;
@@ -571,6 +593,10 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"isSelected = select_option_by_index(By.NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n");
                                             break;
 
+                                        case SelectorCategory.TagName:
+                                            scriptBody.Add($"isSelected = select_option_by_index(By.TAG_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n");
+                                            break;
+                                        
                                         case SelectorCategory.XPath:
                                             scriptBody.Add($"isSelected = select_option_by_index(By.XPATH, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n");
                                             break;
@@ -850,6 +876,7 @@ namespace BrowserAutomationMaster
             disablePycache = false;
             noBrowsersFound = false;
             actionTimeout = 5;
+            importStatements.Clear(); // Since its read only clearing it and reassigning the default values is the ideal solution.
             importStatements.AddRange(["from importlib import import_module", "from os import path", "from subprocess import run", "from sys import modules"]);
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
