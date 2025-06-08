@@ -43,7 +43,7 @@ namespace BrowserAutomationMaster
         static bool disablePycache = false;  // Disables Visual Studio Code from writing __pycache__ directory.
         static bool noBrowsersFound = false; // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
 
-        static int actionTimeout = 5; // This is the timeout applied to all WebDriverWait calls.
+        static int actionTimeout = 10; // This is the timeout applied to all WebDriverWait calls.
         readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
         static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
         static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
@@ -118,7 +118,9 @@ namespace BrowserAutomationMaster
                     requirements.Add($"selenium-wire=={swVersion}");
                     requirements.Add($"webdriver_manager=={wmVersion}");
                     requirements.Add($"blinker==1.4"); // This fixes the mess that selenium-wire causes by installing blinker >=1.9
+
                     importStatements.AddRange([
+                        "from selenium.common.exceptions import NoSuchElementException",
                         "from selenium.webdriver.common.by import By",
                         "from selenium.webdriver.support.ui import Select, WebDriverWait",
                         "from selenium.webdriver.support import expected_conditions as EC",
@@ -264,7 +266,7 @@ namespace BrowserAutomationMaster
                 string line = originalLine; // Since iterators can't be overwritten, storing it as a local variable is current solution.
                 string[] splitLine;
                 if (string.IsNullOrEmpty(line)) { continue; } // Skip blank lines.
-                if (line.Contains("//") && !isJSBlock) { hasComment = true; }
+                if (line.Contains(" // ") && !isJSBlock) { hasComment = true; }
                 if (hasComment) { line = Parser.DeleteCommentIfPresent(line); }
 
                 if (line.StartsWith("click-exp ")) { isCE = true; }
@@ -336,19 +338,19 @@ namespace BrowserAutomationMaster
                                     switch (parsedClickSelector.Category)
                                     {
                                         case SelectorCategory.Id:
-                                            scriptBody.Add($"click_element(By.ID, {splitLine[1]}, {actionTimeout})");
+                                            scriptBody.Add($"click_element(By.ID, '{parsedClickSelector.Value}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.ClassName:
-                                            scriptBody.Add($"click_element(By.CLASS_NAME, {splitLine[1]}, {actionTimeout})");
+                                            scriptBody.Add($"click_element(By.CLASS_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.NameAttribute:
-                                            scriptBody.Add($"click_element(By.NAME, {splitLine[1]}, {actionTimeout})");
+                                            scriptBody.Add($"click_element(By.NAME, '{parsedClickSelector.Value}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.TagName:
-                                            scriptBody.Add($"click_element(By.TAG_NAME, {splitLine[1]}, {actionTimeout})");
+                                            scriptBody.Add($"click_element(By.TAG_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.XPath:
-                                            scriptBody.Add($"click_element(By.XPATH, {splitLine[1]}, {actionTimeout})");
+                                            scriptBody.Add($"click_element(By.XPATH, '{parsedClickSelector.Value}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.InvalidOrUnknown:
                                             Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}\nIf this is a CSS Selector, please use:\nclick-exp '{sanitizedArg2}'"), 1);
@@ -375,10 +377,10 @@ namespace BrowserAutomationMaster
                                     switch (parsedCESelector.Category)
                                     {
                                         case SelectorCategory.Id or SelectorCategory.ClassName or SelectorCategory.NameAttribute or SelectorCategory.TagName:
-                                            scriptBody.Add($"click_element('css', '{sanitizedArg2}', {actionTimeout})");
+                                            scriptBody.Add($"click_element_experimental('css', '{parsedCESelector.Value}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.XPath:
-                                            scriptBody.Add($"click_element('xpath', '{sanitizedArg2}', {actionTimeout})");
+                                            scriptBody.Add($"click_element_experimental('xpath', '{parsedCESelector.Value}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.InvalidOrUnknown:
                                             scriptBody.Add($"click_element('css', '{sanitizedArg2}', {actionTimeout})");
@@ -403,27 +405,27 @@ namespace BrowserAutomationMaster
                                     switch (parsedTextSelector.Category)
                                     {
                                         case SelectorCategory.Id:
-                                            scriptBody.Add($"text = get_text(By.ID, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.ID, '{parsedTextSelector.Value}')");
                                             break;
 
                                         case SelectorCategory.ClassName:
-                                            scriptBody.Add($"text = get_text(By.CLASS_NAME, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.CLASS_NAME, '{parsedTextSelector.Value}')");
                                             break;
                                         
                                         case SelectorCategory.NameAttribute:
-                                            scriptBody.Add($"text = get_text(By.NAME, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.NAME, '{parsedTextSelector.Value}')");
                                             break;
 
                                         case SelectorCategory.TagName:
-                                            scriptBody.Add($"text = get_text(By.TAG_NAME, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.TAG_NAME, '{parsedTextSelector.Value}')");
                                             break;
 
                                         case SelectorCategory.XPath:
-                                            scriptBody.Add($"text = get_text(By.XPATH, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.XPATH, '{parsedTextSelector.Value}')");
                                             break;
 
                                         case SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"text = get_text(By.CSS_SELECTOR, '{sanitizedArg2}')");
+                                            scriptBody.Add($"text = get_text(By.CSS_SELECTOR, '{parsedTextSelector.Value}')");
                                             break;
                                     }
                                     scriptBody.Add($"if text == None:\n{Indent(1)}print('The element: {sanitizedArg2} did not return any text.')\n");
@@ -465,7 +467,6 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"isFilled = fill_text(By.TAG_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
                                             break;
 
-
                                         case SelectorCategory.XPath:
                                             scriptBody.Add($"isFilled = fill_text(By.XPATH, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
                                             break;
@@ -475,7 +476,7 @@ namespace BrowserAutomationMaster
                                             break;
                                     }
                                     scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')");
-                                    scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {sanitizedArg2}')\n");
+                                    scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {sanitizedArg2}')\n{Indent(1)}exit()\n");
                                     break;
                             }
                             break;
@@ -536,7 +537,6 @@ namespace BrowserAutomationMaster
                                     {
                                         case SelectorCategory.Id:
                                             scriptBody.Add($"element = select_element(By.ID, '{parsedSelectSelector.Value}', {actionTimeout})\n");
-                                            
                                             break;
 
                                         case SelectorCategory.ClassName:
@@ -551,7 +551,6 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"element = select_element(By.TAG_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n");
                                             break;
 
-
                                         case SelectorCategory.XPath:
                                             scriptBody.Add($"element = select_element(By.XPATH, '{parsedSelectSelector.Value}', {actionTimeout})\n");
                                             break;
@@ -560,7 +559,7 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"element = select_element(By.CSS_SELECTOR, '{parsedSelectSelector.Value}', {actionTimeout})\n");
                                             break;
                                     }
-                                    scriptBody.Add($"if not element:\n{Indent(1)}print('The element: {sanitizedArg2} could not be selected, please try again or use a different selector.')");
+                                    scriptBody.Add($"if not element:\n{Indent(1)}print('The element: {sanitizedArg2} could not be selected, please try again or use a different selector.')\n{Indent(1)}exit()\n");
                                     break;
                             }
                             break;
@@ -606,7 +605,7 @@ namespace BrowserAutomationMaster
                                             break;
 
                                     }
-                                    scriptBody.Add($"if not isSelected:\n{Indent(1)}print('Could not select the element: {sanitizedArg2}')\n");
+                                    scriptBody.Add($"if not isSelected:\n{Indent(1)}print('Could not select the element: {sanitizedArg2}')\n{Indent(1)}exit()\n");
                                     break;
                             }
                             break;
@@ -747,19 +746,20 @@ namespace BrowserAutomationMaster
                 lineNumber++;
             }
             importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
-            scriptBody.Insert(0, BrowserFunctions.checkImportFunction);
-            scriptBody.Insert(1, BrowserFunctions.clickElementFunction);
-            scriptBody.Insert(2, BrowserFunctions.clickElementExperimentalFunction);
-            scriptBody.Insert(3, BrowserFunctions.getScreenBoundsFunction);
-            scriptBody.Insert(4, BrowserFunctions.fillTextFunction);
-            scriptBody.Insert(5, BrowserFunctions.getTextFunction);
-            scriptBody.Insert(6, BrowserFunctions.installPackagesFunction);
-            scriptBody.Insert(7, BrowserFunctions.makeRequestFunction(requestUserAgent));
-            scriptBody.Insert(8, BrowserFunctions.saveAsHTMLFunction);
-            scriptBody.Insert(9, BrowserFunctions.saveAsHTMLExperimentalFunction);
-            scriptBody.Insert(10, BrowserFunctions.selectElementFunction);
-            scriptBody.Insert(11, BrowserFunctions.selectOptionByIndexFunction);
-            scriptBody.Insert(12, BrowserFunctions.takeScreenshotFunction);
+            scriptBody.Insert(0, BrowserFunctions.addHeadersFunction("User-Agent", requestUserAgent));
+            scriptBody.Insert(1, BrowserFunctions.checkImportFunction);
+            scriptBody.Insert(2, BrowserFunctions.clickElementFunction);
+            scriptBody.Insert(3, BrowserFunctions.clickElementExperimentalFunction);
+            scriptBody.Insert(4, BrowserFunctions.getScreenBoundsFunction);
+            scriptBody.Insert(5, BrowserFunctions.fillTextFunction);
+            scriptBody.Insert(6, BrowserFunctions.getTextFunction);
+            scriptBody.Insert(7, BrowserFunctions.installPackagesFunction);
+            scriptBody.Insert(8, BrowserFunctions.makeRequestFunction(requestUserAgent));
+            scriptBody.Insert(9, BrowserFunctions.saveAsHTMLFunction);
+            scriptBody.Insert(10, BrowserFunctions.saveAsHTMLExperimentalFunction);
+            scriptBody.Insert(11, BrowserFunctions.selectElementFunction);
+            scriptBody.Insert(12, BrowserFunctions.selectOptionByIndexFunction);
+            scriptBody.Insert(13, BrowserFunctions.takeScreenshotFunction);
 
 
 

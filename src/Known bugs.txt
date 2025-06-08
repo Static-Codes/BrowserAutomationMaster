@@ -1,0 +1,9 @@
+Bug: tls_client_hello.py", line 10, in <module> 
+	from pkg_resources import parse_version
+     ModuleNotFoundError: No module named 'pkg_resources'
+
+Windows Solution: 
+python -m pip install --upgrade pip setuptools
+
+MacOS & Linux Solution
+python3 -m pip install --upgrade pip setuptools

@@ -2,6 +2,13 @@
 {
     internal static class BrowserFunctions
     {
+
+        public static string addHeadersFunction(string headerName, string headerValue) {
+            return @$"def interceptor(request):
+    request.headers['{headerName}'] = '{headerValue}'
+";
+        }
+
         public static string browserQuitCode = "print('Quitting driver...')\ndriver.quit()";
 
         public static string checkImportFunction = @"def check_import(name: str):
@@ -20,15 +27,23 @@
         public static string clickElementFunction = @"def click_element(byType: By, selector: str, actionTimeout: int):
     try:
         WebDriverWait(driver, actionTimeout).until(EC.element_to_be_clickable((byType, selector))).click()
+    except NoSuchElementException:
+        print(f'Unable to find element:', selector)
+        exit()
     except Exception as e:
-        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 1));
+        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)
+        exit()" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string clickElementExperimentalFunction = $@"def click_element_experimental(selectorType: str, selector: str):
     byType = By.CSS_SELECTOR if selectorType == 'css' else By.XPATH
     try:
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((byType, selector))).click()
+    except NoSuchElementException:
+        print(f'Unable to find element:', selector)
+        exit()
     except Exception as e:
-        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)" + string.Concat(Enumerable.Repeat('\n', 1));
+        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)
+        exit()" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string getScreenBoundsFunction = @"def get_screen_bounds():
     try:
@@ -55,18 +70,29 @@
     try:
         text = driver.find_element(byType, selector).get_property(propertyName)
         return text
+    except NoSuchElementException:
+        print(f'Unable to find element:', selector)
+        exit()
     except Exception as e:
         print('An error occured while trying to get text from element with the selector:', selector, '\n\nError:\n',e)
-        return None" + string.Concat(Enumerable.Repeat('\n', 1));
+        exit()" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string fillTextFunction = @"def fill_text(byType: By, selector: str, value: str):
     try:
         element = driver.find_element(byType, selector)
-        driver.execute_script(f'arguments[0].innerText = ""{value}""', element)
+        element.send_keys(value)
         return True
+    except NoSuchElementException:
+        print(f'Unable to find element:', selector)
+        exit()
     except Exception as e:
-        print('An error occured while trying to fill text on element with the selector:', selector, '\n\nError:\n',e)
-        return False" + string.Concat(Enumerable.Repeat('\n', 1));
+        print(
+            'An error occured while trying to fill text on element with the selector:',
+            selector,
+            '\n\nError:\n',
+            e,
+        )
+        exit()" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string installPackagesFunction = @"def install_packages(requirements_file: str, script_dir: str):
     if not path.exists(script_dir):
@@ -105,7 +131,6 @@
     except Exception as e:
         print(f'An unexpected error occurred while trying to run pip:\n{e}')
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
-
         public static string makeRequestFunction(string userAgent)
         {
             string pythonSafeUserAgent = userAgent.Replace("\\", "\\\\").Replace("'", "\\'"); // Handles formatting before issues occur.
@@ -114,16 +139,11 @@
     request_url = None
     final_url = None
 " +
-$"    headers = {{" +
-//@$"
-//        'User-Agent': '{pythonSafeUserAgent}'," +
-
-@$"
-        'User-Agent': '{pythonSafeUserAgent}'," +
-$"\n    }}\n" +
 @"    try:
         print(f'Navigating to: {url}')
-        driver.get(url, header=headers)
+        driver.request_interceptor = interceptor
+"+
+@"        driver.get(url)
         final_url = driver.current_url
         print(f'Navigation complete. Final URL: {final_url}')
         target_request = None
@@ -217,9 +237,12 @@ $"\n    }}\n" +
     try:
         element = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((byType, selector)))
         return element
+    except NoSuchElementException:
+        print(f'Unable to find element:', selector)
+        exit()
     except Exception as e:
         print(""An error occured while trying to get text from element with the selector:"", selector, ""\n\nError:\n"", e)
-        return None" + string.Concat(Enumerable.Repeat('\n', 1));
+        exit()" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string selectOptionByIndexFunction = @"def select_option_by_index(
     byType: By,
@@ -241,6 +264,9 @@ $"\n    }}\n" +
         select_obj.select_by_index(index)
         print(f""Selected option #{index+1} from {selector}."")
         return True
+    except NoSuchElementException:
+        print(f'Unable to find element:', selector)
+        return False
     except Exception as e:
         print(f""Error selecting option #{index+1} (Index: {index}) from <select> tag with selector:\n'{selector}'\nError: {e}"")
         return False" + string.Concat(Enumerable.Repeat('\n', 1));

@@ -7,6 +7,10 @@
       "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\parsing\\transpiler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\github\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\browserfunctions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\browserfunctions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|c:\\users\\nerdy\\documents\\github\\browserautomationmaster\\browserautomationmaster\\src\\browserautomationmaster\\parsing\\parser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C9370506-CCF5-4C09-B5DE-6372EA337D98}|BrowserAutomationMaster\\BrowserAutomationMaster.csproj|solutionrelative:browserautomationmaster\\parsing\\parser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -18,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -39,12 +43,25 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "BrowserFunctions.cs",
+              "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserFunctions.cs",
+              "RelativeDocumentMoniker": "BrowserAutomationMaster\\BrowserFunctions.cs",
+              "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\BrowserFunctions.cs",
+              "RelativeToolTip": "BrowserAutomationMaster\\BrowserFunctions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACQAAABhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-07T23:54:02.576Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "Parser.cs",
               "DocumentMoniker": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parsing\\Parser.cs",
               "RelativeDocumentMoniker": "BrowserAutomationMaster\\Parsing\\Parser.cs",
               "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parsing\\Parser.cs",
               "RelativeToolTip": "BrowserAutomationMaster\\Parsing\\Parser.cs",
-              "ViewState": "AgIAANQAAAAAAAAAAAAiwOYAAAAeAAAAAAAAAA==",
+              "ViewState": "AgIAALYAAAAAAAAAAAA3wPMAAAC6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-07T22:20:02.635Z",
               "EditorCaption": ""
@@ -57,7 +74,7 @@
               "RelativeDocumentMoniker": "BrowserAutomationMaster\\Parsing\\Transpiler.cs",
               "ToolTip": "C:\\Users\\Nerdy\\Documents\\GitHub\\BrowserAutomationMaster\\BrowserAutomationMaster\\src\\BrowserAutomationMaster\\Parsing\\Transpiler.cs",
               "RelativeToolTip": "BrowserAutomationMaster\\Parsing\\Transpiler.cs",
-              "ViewState": "AgIAAMIAAAAAAAAAAAA6wAwBAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAEEBAAAAAAAAAAAYwLUAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-07T21:45:31.139Z",
               "EditorCaption": ""

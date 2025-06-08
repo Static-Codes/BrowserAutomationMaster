@@ -1,0 +1,43 @@
+
+- feature "no-ssl" -> Disables SSL for selenium
+- feature "headless" -> Runs the browser headless
+
+- bamm clear compiled -> Clears all projects from the current user's "compiled" directory
+- bamm clear userScripts -> Clears all scripts from the current user's "userScript" directory
+- bamm uninstall 
+	-> On Windows: execute unins000.exe
+	-> On MacOS: 
+	-> On Linux: execute apt uninstall bamm
+
+
+
+- set-element-property "element" "property" "value"
+
+EXAMPLE: 
+HTML: <div _ngcontent-home-c123="" idpsetfocus="" class="idp-dropdown__selected" id="idp-month__selected" data-selected-value="01">
+COMMAND: set-element-property "#idp-month__selected" "data-selected-value" "02"
+
+
+
+
+
+- fill-text-exp "selector" "value"
+
+FUNCTION:
+def fill_text(byType: By, selector: str, value: str):
+    try:
+        element = driver.find_element(byType, selector)
+        driver.execute_script(f'arguments[0].innerText = "{value}"', element)
+        return True
+    except Exception as e:
+        print('An error occured while trying to fill text on element with the selector:', selector, '\n\nError:\n',e)
+        return False
+
+
+
+
+- Add option for user to copy the path of the compiled script directory to their clipboard (or open a new explorer window if 100MB of ram is available.
+
+
+
+
