@@ -135,7 +135,7 @@ namespace BrowserAutomationMaster
                 return string.Empty;
             }
 
-            int commentIndex = line.IndexOf("//");
+            int commentIndex = line.IndexOf(" // ");
 
             // If no comment is found, commentIndex will equal -1, meaning the entire line is just code.
             if (commentIndex == -1) {                
