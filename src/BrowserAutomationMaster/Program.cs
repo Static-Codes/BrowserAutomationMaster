@@ -2,7 +2,7 @@
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 
-
+//SelectorParser.TestSelectors();
 bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 

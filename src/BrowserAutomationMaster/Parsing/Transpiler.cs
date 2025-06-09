@@ -376,14 +376,21 @@ namespace BrowserAutomationMaster
                                 case BrowserPackage.selenium:
                                     switch (parsedCESelector.Category)
                                     {
-                                        case SelectorCategory.Id or SelectorCategory.ClassName or SelectorCategory.NameAttribute or SelectorCategory.TagName:
-                                            scriptBody.Add($"click_element_experimental('css', '{parsedCESelector.Value}', {actionTimeout})");
+                                        case
+                                        SelectorCategory.Attribute or
+                                        SelectorCategory.ClassName or
+                                        SelectorCategory.Id or
+                                        SelectorCategory.NameAttribute or
+                                        SelectorCategory.PseudoClass or
+                                        SelectorCategory.PseudoElement or
+                                        SelectorCategory.TagName:
+                                            scriptBody.Add($"click_element_experimental('css', {parsedCESelector.rawInput}, {actionTimeout})");
                                             break;
                                         case SelectorCategory.XPath:
-                                            scriptBody.Add($"click_element_experimental('xpath', '{parsedCESelector.Value}', {actionTimeout})");
+                                            scriptBody.Add($"click_element_experimental('xpath', '{parsedCESelector.rawInput}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"click_element('css', '{sanitizedArg2}', {actionTimeout})");
+                                            scriptBody.Add($"click_element('css', \"{sanitizedArg2}\", {actionTimeout})");
                                             break;
                                     }
                                     break;
@@ -424,11 +431,14 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"text = get_text(By.XPATH, '{parsedTextSelector.Value}')");
                                             break;
 
-                                        case SelectorCategory.InvalidOrUnknown:
+                                        case SelectorCategory.Attribute or
+                                        SelectorCategory.PseudoClass or
+                                        SelectorCategory.PseudoElement or 
+                                        SelectorCategory.InvalidOrUnknown:
                                             scriptBody.Add($"text = get_text(By.CSS_SELECTOR, '{parsedTextSelector.Value}')");
                                             break;
                                     }
-                                    scriptBody.Add($"if text == None:\n{Indent(1)}print('The element: {sanitizedArg2} did not return any text.')\n");
+                                    scriptBody.Add($"if text == None:\n{Indent(1)}print('The element: {parsedTextSelector.Value} did not return any text.')\n");
                                     break;
                             }
                             break;
@@ -471,12 +481,15 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"isFilled = fill_text(By.XPATH, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
                                             break;
 
-                                        case SelectorCategory.InvalidOrUnknown:
+                                        case SelectorCategory.Attribute or
+                                        SelectorCategory.PseudoClass or
+                                        SelectorCategory.PseudoElement or
+                                        SelectorCategory.InvalidOrUnknown:
                                             scriptBody.Add($"isFilled = fill_text(By.CSS_SELECTOR, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
                                             break;
                                     }
-                                    scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {sanitizedArg2} should be filled, as no error was thrown.')");
-                                    scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {sanitizedArg2}')\n{Indent(1)}exit()\n");
+                                    scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {parsedFillSelector.Value} should be filled, as no error was thrown.')");
+                                    scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {parsedFillSelector.Value}')\n{Indent(1)}exit()\n");
                                     break;
                             }
                             break;
@@ -555,11 +568,14 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"element = select_element(By.XPATH, '{parsedSelectSelector.Value}', {actionTimeout})\n");
                                             break;
 
-                                        case SelectorCategory.InvalidOrUnknown:
+                                        case SelectorCategory.Attribute or
+                                        SelectorCategory.PseudoClass or
+                                        SelectorCategory.PseudoElement or
+                                        SelectorCategory.InvalidOrUnknown:
                                             scriptBody.Add($"element = select_element(By.CSS_SELECTOR, '{parsedSelectSelector.Value}', {actionTimeout})\n");
                                             break;
                                     }
-                                    scriptBody.Add($"if not element:\n{Indent(1)}print('The element: {sanitizedArg2} could not be selected, please try again or use a different selector.')\n{Indent(1)}exit()\n");
+                                    scriptBody.Add($"if not element:\n{Indent(1)}print('The element: {parsedSelectSelector.Value} could not be selected, please try again or use a different selector.')\n{Indent(1)}exit()\n");
                                     break;
                             }
                             break;
@@ -600,7 +616,10 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"isSelected = select_option_by_index(By.XPATH, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n");
                                             break;
 
-                                        case SelectorCategory.InvalidOrUnknown:
+                                        case SelectorCategory.Attribute or
+                                        SelectorCategory.PseudoClass or
+                                        SelectorCategory.PseudoElement or
+                                        SelectorCategory.InvalidOrUnknown:
                                             scriptBody.Add($"isSelected = select_option_by_index(By.CSS_SELECTOR, '{parsedOptionSelector.Value}', '{sanitizedArg3}, {actionTimeout}')\n");
                                             break;
 
