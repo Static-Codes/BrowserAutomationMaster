@@ -7,3 +7,11 @@ python -m pip install --upgrade pip setuptools
 
 MacOS & Linux Solution
 python3 -m pip install --upgrade pip setuptools
+
+
+
+Bug: Combined selectors will not compile, examples:
+	"div.my-class" 
+	ul > li
+
+Solution: None by the user, currently this isn't supported.
