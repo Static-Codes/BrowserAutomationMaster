@@ -10,8 +10,20 @@
 	-> On Linux: execute apt uninstall bamm
 
 
+- set-custom-useragent "User Agent" -> sets requestUserAgent
+
+- add-cookie "name" "value"
+
+- add-cookies {"name": "value", "name2": "value2"}
+
+- add-header "name" "value"
+
+- add-headers {"name": "value", "name2": "value2"}
 
 - set-element-property "element" "property" "value"
+
+
+
 
 EXAMPLE: 
 HTML: <div _ngcontent-home-c123="" idpsetfocus="" class="idp-dropdown__selected" id="idp-month__selected" data-selected-value="01">

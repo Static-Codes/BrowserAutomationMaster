@@ -8,7 +8,7 @@ namespace BrowserAutomationMaster
 {
     public enum ApplicationNames
     {
-        Brave,
+        //Brave,
         Chrome,
         Firefox,
         Python3_X, // This flag is for MacOS since the default python installer is not a .app bundle
@@ -30,8 +30,10 @@ namespace BrowserAutomationMaster
             ApplicationNames.Python3_14
         ];
 
-        readonly List<ApplicationNames> validBrowsersApps = [ApplicationNames.Brave, ApplicationNames.Chrome, ApplicationNames.Firefox];
-        
+        //readonly List<ApplicationNames> validBrowsersApps = [ApplicationNames.Brave, ApplicationNames.Chrome, ApplicationNames.Firefox];
+        readonly List<ApplicationNames> validBrowsersApps = [ApplicationNames.Chrome, ApplicationNames.Firefox];
+
+
         readonly static string NoBrowsersMessage = @"BAM Manager (BAMM) was unable to detect any valid browser installations.
 
 Supported browsers include:
@@ -61,11 +63,11 @@ Supported versions include:
                 if (app.Name == null) { continue; }
                 if (app.Name.Length == 0) { continue; }
                 //Console.WriteLine(app.Name);
-                if (app.Name.ToLower().Contains("brave")) {
-                    if (!AppNames.Contains(ApplicationNames.Brave)) {
-                        AppNames.Add(ApplicationNames.Brave);
-                    }
-                }
+                //if (app.Name.ToLower().Contains("brave")) {
+                //    if (!AppNames.Contains(ApplicationNames.Brave)) {
+                //        AppNames.Add(ApplicationNames.Brave);
+                //    }
+                //}
 
                 else if (app.Name.ToLower().Contains("chrome")) {
                     if (!AppNames.Contains(ApplicationNames.Chrome)) {
