@@ -1,0 +1,7 @@
+visit "https://www.youtube.com/"
+wait-for-seconds 1.5
+fill-text ".ytSearchboxComponentInput" "This is a test, it works!"
+wait-for-seconds 1.5
+click ".ytSearchboxComponentSearchButton"
+wait-for-seconds 5
+take-screenshot "youtube-feed.png"

@@ -129,14 +129,14 @@ namespace BrowserAutomationMaster
                     );
                     switch (selectedBrowser)
                     {
-                        case "brave":
-                            importStatements.AddRange([
-                                "from selenium.webdriver.chrome.options import Options",
-                                "from selenium.webdriver.chrome.service import Service as ChromeService",
-                                "from webdriver_manager.chrome import ChromeDriverManager",
-                                "from webdriver_manager.core.os_manager import ChromeType",
-                            ]);
-                            break;
+                        //case "brave":
+                        //    importStatements.AddRange([
+                        //        "from selenium.webdriver.chrome.options import Options",
+                        //        "from selenium.webdriver.chrome.service import Service as ChromeService",
+                        //        "from webdriver_manager.chrome import ChromeDriverManager",
+                        //        "from webdriver_manager.core.os_manager import ChromeType",
+                        //    ]);
+                        //    break;
 
                         case "chrome":
                             importStatements.AddRange([
@@ -312,7 +312,8 @@ namespace BrowserAutomationMaster
                 bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
                 if (!canRunBrowserless) {
                     if (noBrowsersFound) {
-                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox."), 1);
+                        //Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox."), 1);
+                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install chrome or firefox."), 1);
                     }
                 }
                 string sanitizedArg2;
@@ -709,9 +710,9 @@ namespace BrowserAutomationMaster
                                         }
                                         switch (selectedBrowser)
                                         {
-                                            case "brave":
-                                                scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()))");
-                                                break;
+                                            //case "brave":
+                                            //    scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()))");
+                                            //    break;
 
                                             case "chrome":
                                                 scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)");

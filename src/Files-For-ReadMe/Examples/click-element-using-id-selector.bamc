@@ -1,9 +1,0 @@
-browser "firefox"
-visit "https://www.codedpad.com/"
-fill-text "#pad_code" "Thisisapasswordexamplethatisnotverysecure"
-wait-for-seconds 1
-click "#home_submit_open"
-wait-for-seconds 1.5
-fill-text "#pad_content" "If you are reading this then this script has worked for you"
-wait-for-seconds .5
-click "#submit_save"

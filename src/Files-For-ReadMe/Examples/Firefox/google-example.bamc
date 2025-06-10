@@ -1,0 +1,6 @@
+browser "firefox"
+visit "https://google.com"
+fill-text "#APjFqb" "This is a test"
+wait-for-seconds .2
+take-screenshot "filename.png"
+save-as-html "filename.html"
