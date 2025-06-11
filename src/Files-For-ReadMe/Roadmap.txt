@@ -1,3 +1,4 @@
+Include checks for imports (function is already written and included but not implemented in compiled .py files)
 
 - feature "no-ssl" -> Disables SSL for selenium
 - feature "headless" -> Runs the browser headless
