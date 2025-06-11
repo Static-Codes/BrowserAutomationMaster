@@ -47,7 +47,7 @@ namespace BrowserAutomationMaster
         readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
         static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
         static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
-        readonly static List<string> importStatements = ["from importlib import import_module", "from os import path", "from subprocess import run", "from sys import modules"];
+        readonly static List<string> importStatements = ["from importlib import import_module", "from subprocess import run", "from sys import modules"];
         readonly static List<string> scriptBody = [];
         readonly static List<string> requirements = [];
         private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
@@ -78,10 +78,12 @@ namespace BrowserAutomationMaster
         public static void AddBrowserImportsAndRequirements() // Check for proxy and add logic to insert proxy into session/driver variable.
         {
             HandleBrowserCmd();
+            requirements.Add("setuptools");
 
             // This function will exit if a null value is reached so no worries about a null check here
             string version = PackageManager.New(browserPackage.ToString(), pythonVersion);
             requirements.Add($"{browserPackage}=={version}");
+            
 
             string noUrlsFound = "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\nPlease ensure the selected file has atleast one 'visit' command.";
 
@@ -156,6 +158,12 @@ namespace BrowserAutomationMaster
                     }
                     break;
             }
+        }
+        
+        public static void AddPipToScript()
+        {
+
+            
         }
         public static void CheckConfigLines()
         {
@@ -766,6 +774,19 @@ namespace BrowserAutomationMaster
                 lineNumber++;
             }
             importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
+            importStatements.Insert(0, "from os import path, system");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                importStatements.Insert(1, "system('pip install -r requirements.txt')\n");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                importStatements.Insert(1, "system('python3 -m pip install -r requirements.txt')\n");
+            }
+            else
+            {
+                Errors.WriteErrorAndExit("BAMM is somehow running an unsupported platform, if this is intentional, and you're contributing to the project, simply remove this check.", 1);
+            }
             scriptBody.Insert(0, BrowserFunctions.addHeadersFunction("User-Agent", requestUserAgent));
             scriptBody.Insert(1, BrowserFunctions.checkImportFunction);
             scriptBody.Insert(2, BrowserFunctions.clickElementFunction);
@@ -781,8 +802,7 @@ namespace BrowserAutomationMaster
             scriptBody.Insert(12, BrowserFunctions.selectOptionByIndexFunction);
             scriptBody.Insert(13, BrowserFunctions.takeScreenshotFunction);
 
-
-
+            AddPipToScript();
             scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
         }
         public static void HandlePythonVersionSelection(Installations installations)
@@ -897,7 +917,7 @@ namespace BrowserAutomationMaster
             noBrowsersFound = false;
             actionTimeout = 5;
             importStatements.Clear(); // Since its read only clearing it and reassigning the default values is the ideal solution.
-            importStatements.AddRange(["from importlib import import_module", "from os import path", "from subprocess import run", "from sys import modules"]);
+            importStatements.AddRange(["from importlib import import_module", "from subprocess import run", "from sys import modules"]);
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
         public static void SetDesiredSaveDirectory()
