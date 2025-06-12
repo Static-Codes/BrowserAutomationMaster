@@ -60,7 +60,6 @@ The following actions can be used in your BAMC scripts:
 
 - `browser`: This MUST be the first valid line of the file. If not supplied, defaults to a Firefox instance or user agent (depending on the other defined features).
   - **Syntax:**
-    - `browser "brave"`
     - `browser "chrome"`
     - `browser "firefox"`
 - `click`: Clicks the specified button element.
