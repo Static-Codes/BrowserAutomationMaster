@@ -175,7 +175,7 @@ Before you begin, ensure you have the following installed on your system:
 1.  **Download and Extract the Source Code:**
 
     - Go to the latest release page: `https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest/`
-    - Download the `source.zip` file.
+    - Download the `BAMM-{Version}-Source.zip` file.
     - Extract/Unzip the source.
 
 2.  **Navigate to the Source Directory:**
@@ -367,5 +367,5 @@ This section outlines the planned commands and features for BAMM.
 
 - Adding an option for users to **copy the path of the compiled script directory** to their clipboard.
 - Alternatively, users will be able to **open a new explorer/finder window** to that directory, provided there's at least 100MB of RAM available.
-- Finally if the user wishes to simply execute the compiled script directly from BAMM, this feature will be added in a future update.
+- Finally, if the user wishes to simply execute the compiled script directly from BAMM, this feature will be added in a future update.
 ---
