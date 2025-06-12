@@ -54,6 +54,9 @@ A Domain Specific Language (DSL) that compiles into valid python code!
 
 ## BAMC Documentation
 
+### Examples
+- [Chrome Examples](/src/Files-For-ReadMe/Examples/Chrome)
+- [Firefox Examples](/src/Files-For-ReadMe/Examples/Firefox)
 ### Actions
 
 The following actions can be used in your BAMC scripts:
