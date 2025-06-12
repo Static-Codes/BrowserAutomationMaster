@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using BrowserAutomationMaster.AppManager;
 using BrowserAutomationMaster.Messaging;
 
-namespace BrowserAutomationMaster
+namespace BrowserAutomationMaster.Checks
 {
     public enum ApplicationNames
     {

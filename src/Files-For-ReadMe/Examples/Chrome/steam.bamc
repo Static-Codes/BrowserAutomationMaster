@@ -1,0 +1,12 @@
+browser "chrome"
+visit "https://store.steampowered.com/"
+wait-for-seconds 1.5
+
+fill-text "#store_nav_search_term" "Shooters"
+wait-for-seconds 1
+start-javascript		
+document.getElementById("searchform").submit(); 
+end-javascript
+
+wait-for-seconds 10
+save-as-html "shooters.html"

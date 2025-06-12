@@ -186,6 +186,7 @@ namespace BrowserAutomationMaster
         public static void TestSelectors()
         {
             string[] selectors = [
+                "//div[@class='ql-editor ql-blank textarea new-input-ui']//p",
                 "#main-content",
                 ".btn-primary",
                 "div",

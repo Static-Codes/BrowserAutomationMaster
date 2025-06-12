@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Messaging;
 
-namespace BrowserAutomationMaster
+namespace BrowserAutomationMaster.Checks
 {
     public partial class SysCheck
     {

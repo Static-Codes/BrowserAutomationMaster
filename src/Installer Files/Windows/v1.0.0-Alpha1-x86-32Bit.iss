@@ -20,7 +20,7 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
-OutputDir=..\..\BrowserAutomationMaster\src\Published Builds\BAMM-v1.0.0A1-x86
+OutputDir=..\..\Published Builds\BAMM-v1.0.0A1-x86
 OutputBaseFilename=BAMM-v1.0.0A1-x86-Setup
 SolidCompression=yes
 WizardStyle=modern
@@ -33,10 +33,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "addtopath"; Description: "Add application directory to your system PATH"; GroupDescription: "Advanced Options:"; Flags: checkedonce
 
 [Files]
-Source: "..\..\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-// Source: "..\..\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\packages.json"; DestDir: "{app}"; Flags: ignoreversion
-// Source: "..\..\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\userAgents.json"; DestDir: "{app}"; Flags: ignoreversion
-// Source: "..\..\BrowserAutomationMaster\src\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\userScripts\*"; DestDir: "{userappdata}\BrowserAutomationMaster\userScripts"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall skipifsourcedoesntexist;
+Source: "..\..\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+// Source: "..\..\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\packages.json"; DestDir: "{app}"; Flags: ignoreversion
+// Source: "..\..\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\userAgents.json"; DestDir: "{app}"; Flags: ignoreversion
+// Source: "..\..\BrowserAutomationMaster\bin\Release\net8.0\win-x86\publish\userScripts\*"; DestDir: "{userappdata}\BrowserAutomationMaster\userScripts"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall skipifsourcedoesntexist;
 
 [Registry]
 Root: HKLM; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue

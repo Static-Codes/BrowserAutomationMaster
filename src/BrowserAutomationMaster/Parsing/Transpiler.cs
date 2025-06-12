@@ -1,10 +1,10 @@
-﻿using BrowserAutomationMaster.Messaging;
+﻿using BrowserAutomationMaster.AppManager;
+using BrowserAutomationMaster.Checks;
+using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Managers;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Runtime.InteropServices;
-using System.Reflection.Metadata;
-using BrowserAutomationMaster.AppManager;
 
 namespace BrowserAutomationMaster
 {
@@ -13,6 +13,13 @@ namespace BrowserAutomationMaster
         aiohttp,
         selenium,
         tls_client
+    }
+
+    // Implement
+    enum SendKeys
+    {
+        backspace,
+        enter,
     }
 
     internal partial class Transpiler
@@ -280,7 +287,7 @@ namespace BrowserAutomationMaster
                 if (line.StartsWith("click-exp ")) { isCE = true; }
                 else if (line.StartsWith("fill-text")) { isFT = true; }
                 else if (line.StartsWith("start-javascript")) { isJSBlock = true; continue; }
-                else if (line.StartsWith("end-javascript")) { isJSBlock = false; continue; }
+                else if (line.StartsWith("end-javascript")) { isJSBlock = false; }
 
                 if (isFT) { splitLine = line.Split(" \""); } // This handles fill-text
                 else if (!isCE) { splitLine = line.Split(" "); } // This handles all but click-exp and fill-text
@@ -486,8 +493,8 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"isFilled = fill_text(By.TAG_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
                                             break;
 
-                                        case SelectorCategory.XPath:
-                                            scriptBody.Add($"isFilled = fill_text(By.XPATH, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                        case SelectorCategory.XPath: // Special case to handle xpath's (keep the escaped double quotes)
+                                            scriptBody.Add($"isFilled = fill_text(By.XPATH, \"{parsedFillSelector.Value}\", '{sanitizedArg3}')\n");
                                             break;
 
                                         case SelectorCategory.Attribute or
@@ -497,8 +504,8 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"isFilled = fill_text(By.CSS_SELECTOR, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
                                             break;
                                     }
-                                    scriptBody.Add($"if isFilled:\n{Indent(1)}print('The element: {parsedFillSelector.Value} should be filled, as no error was thrown.')");
-                                    scriptBody.Add($"else:\n{Indent(1)}print('Could not fill the element: {parsedFillSelector.Value}')\n{Indent(1)}exit()\n");
+                                    scriptBody.Add($"if isFilled:\n{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
+                                    scriptBody.Add($"else:\n{Indent(1)}print(\"Could not fill the element: {sanitizedArg2}\")\n{Indent(1)}exit()\n");
                                     break;
                             }
                             break;
@@ -897,7 +904,7 @@ namespace BrowserAutomationMaster
             foreach (string line in jsCodeBlock.Split('\n')) {
                 lineNumber++;
                 if (HasUnclosedQuotes(line)) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\nLine {lineNumber} contains an unescape quoted, please fix this and recompile.\n\nLine:{line}", 1);
+                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\nLine {lineNumber} contains an unescape quoted, please fix this and recompile.\n\nLine:\n{line}", 1);
                 }
             }
         }

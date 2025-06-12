@@ -1,4 +1,5 @@
 ﻿using BrowserAutomationMaster;
+using BrowserAutomationMaster.Checks;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 
