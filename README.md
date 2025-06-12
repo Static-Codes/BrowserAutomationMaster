@@ -6,7 +6,6 @@ A Domain Specific Language (DSL) that compiles into valid python code!
 
 ### Supported Browsers
 
-- **Brave**
 - **Chrome**
 - **Firefox**
 
