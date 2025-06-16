@@ -325,7 +325,7 @@ This section outlines the planned commands and features for BAMM.
 ## Features
 
 - **`feature "no-ssl"`**: This feature will disable SSL certificate validation when using Selenium, allowing for more flexible connections.
-- **`feature "headless"`**: We'll implement a headless mode, letting you run the browser without a visible user interface, which is great for background tasks and server environments.
+- **`feature "headless"`**: This feature will run the browser in headless mode, which is great for background tasks and server environments.
 
 ## Management
 
