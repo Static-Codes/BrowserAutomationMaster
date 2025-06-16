@@ -31,7 +31,7 @@ A Domain Specific Language (DSL) that compiles into valid python code!
 - **x64**
 - **ARM64**
 
-### System Requirements (Minimum)
+### System Requirements (Minimum Tested)
 
 - 2+ Core CPU
 - 4GB DDR3 RAM (The application itself uses under 200MB of RAM)
