@@ -50,8 +50,7 @@ namespace BrowserAutomationMaster.Managers
             }
 
             // Performs path validation 6/6 (Locates the file within the userScript directory)
-            if (!File.Exists(filePath))
-            {
+            if (!File.Exists(filePath)) {
                 Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to locate the source file: {filePath}, please check for typos.", 1);
             }
 
@@ -70,6 +69,7 @@ namespace BrowserAutomationMaster.Managers
                 case "delete":
                     DeleteScript();
                     break;
+
                 default:
                     Errors.WriteErrorAndExit($"Unknown method: {method}. Please type:\nbamm help\n\nFor further instructions.", 1);
                     break;
@@ -141,7 +141,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string userScriptsPath = Path.Combine(appDataPath, appName, userScriptsFolderName);
-                EnsureDirectoryExists(userScriptsPath, "Windows");
+                EnsureDirectoryExists(userScriptsPath);
                 return userScriptsPath;
             }
 
@@ -184,7 +184,7 @@ namespace BrowserAutomationMaster.Managers
                     userScriptsPath = Path.Combine(homeDirectory, "Library", "Application Support", appName, userScriptsFolderName);
                 }
 
-                EnsureDirectoryExists(userScriptsPath, "macOS");
+                EnsureDirectoryExists(userScriptsPath);
                 return userScriptsPath;
             }
 
@@ -207,7 +207,7 @@ namespace BrowserAutomationMaster.Managers
                 }
 
                 string userScriptsPath = Path.Combine(configHome, appName, userScriptsFolderName);
-                EnsureDirectoryExists(userScriptsPath, "Linux");
+                EnsureDirectoryExists(userScriptsPath);
                 return userScriptsPath;
             }
             else
@@ -215,7 +215,7 @@ namespace BrowserAutomationMaster.Managers
                 throw new PlatformNotSupportedException($"Unsupported OS ({RuntimeInformation.OSDescription}) or developmental flaw in UserScriptManager.GetUserScriptDirectory();");
             }
         }
-        static void EnsureDirectoryExists(string path, string osHint) {
+        static void EnsureDirectoryExists(string path) {
             if (!Directory.Exists(path)) {
                 try { Directory.CreateDirectory(path); }
                 catch (Exception) { Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"); }
@@ -268,29 +268,25 @@ namespace BrowserAutomationMaster.Managers
 
     public static class UserScriptExamples
     {
-        public readonly static string AllCmdsExample = @"browser ""firefox""
-visit ""https://google.com""
-click ""#id-selector""
-click-exp 'ytd-popup-container.style-scope' 
-get-text ""example-selector""
-fill-text ""textbox-selector"" ""value""
-select-option ""dropdown-selector"" 2
-select-element ""dropdown-element-selector""
-save-as-html ""filename.html""
-save-as-html-exp ""filename2.html""
-take-screenshot ""filename.png""
-wait-for-seconds 5";
+        public readonly static string EBayExample = @"browser ""chrome""
+visit ""https://www.ebay.com/""
+wait-for-seconds 1.5
+fill-text ""#gh-ac"" ""Awesome deals""
+wait-for-seconds 1
+click ""#gh-search-btn""
+wait-for-seconds 10
+save-as-html ""ebay-search.html""";
 
-
-
-        public readonly static string LocalFileExample = @"browser ""firefox""
-visit ""file:///C:/Users/TestEnv/Desktop/test.html""
-wait-for-seconds .2
-select-option ""#cars"" 2
-wait-for-seconds .2
-take-screenshot ""filename.png""";
-
-
+        public readonly static string CodedpadExample = @"browser ""firefox""
+visit ""https://www.codedpad.com/""
+wait-for-seconds 2
+fill-text ""#pad_code"" ""Thisisapasswordexamplethatisnotverysecure""
+wait-for-seconds 1
+click ""#home_submit_open""
+wait-for-seconds 1.5
+fill-text ""#pad_content"" ""If you are reading this then this script has worked for you""
+wait-for-seconds .5
+click ""#submit_save""";
 
         public readonly static string GoogleFillExample = @"browser ""firefox""
 visit ""https://google.com""
@@ -299,7 +295,23 @@ wait-for-seconds .2
 take-screenshot ""filename.png""
 save-as-html ""filename.html""";
 
+        public readonly static string GoogleGeminiExample = @"browser ""chrome""
+visit ""https://gemini.google.com/app""
+wait-for-seconds 3
+start-javascript
+document.querySelector('.ql-editor p').textContent = 'What is the perceived meaning of life?'
+new Promise((resolve) => setTimeout(resolve, 1000));
+end-javascript
+click "".send-button""
+wait-for-seconds 30
+take-screenshot ""gemini-response.png""";
 
+        public readonly static string GoogleMapsExample = @"visit ""https://www.google.com/maps/""
+wait-for-seconds 1.5
+fill-text ""#searchboxinput"" ""Topeka, KS""
+click ""#searchbox-searchbutton""
+wait-for-seconds 5
+take-screenshot ""google-maps.png""";
 
         public readonly static string JSEmbedExample = @"browser ""firefox""
 visit ""https://google.com""
@@ -347,12 +359,79 @@ function complexFunction() {
 console.log(""All tests executed."");
 end-javascript";
 
+        public readonly static string MarketplaceExample = @"browser ""chrome"" // this also works in firefox
+visit ""https://www.facebook.com/marketplace/""
+wait-for-seconds 1.5
+start-javascript
+var button = document.querySelector(""div[aria-label='Close']"");
+if (button){
+    button.click();
+}
+else{
+    alert('Not Found');
+}
+end-javascript
+
+wait-for-seconds 2
+
+fill-text ""/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/span/div/div/div/div/label/input"" ""free stuff""
+
+wait-for-seconds 2
+
+start-javascript
+const enterEvent = new KeyboardEvent('keydown', {
+  key: 'Enter',
+  code: 'Enter',
+  which: 13,
+  keyCode: 13,
+  bubbles: true,
+  cancelable: true
+});
+var textbox = document.querySelector(""input[placeholder='Search Marketplace']"");
+if (textbox){
+    textbox.dispatchEvent(enterEvent);
+}
+else {
+    alert('Unable to submit click event');
+}
+end-javascript
+
+wait-for-seconds 15
+take-screenshot ""marketplace-search.png""";
+
+        public readonly static string SteamExample = @"browser ""chrome""
+visit ""https://store.steampowered.com/""
+wait-for-seconds 1.5
+
+fill-text ""#store_nav_search_term"" ""Shooters""
+wait-for-seconds 1
+start-javascript		
+document.getElementById(""searchform"").submit(); 
+end-javascript
+
+wait-for-seconds 10
+save-as-html ""shooters.html""";
+
+        public readonly static string YoutubeSearchExample = @"visit ""https://www.youtube.com/""
+wait-for-seconds 1.5
+fill-text "".ytSearchboxComponentInput"" ""This is a test, it works!""
+wait-for-seconds 1.5
+click "".ytSearchboxComponentSearchButton""
+wait-for-seconds 5
+take-screenshot ""youtube-feed.png""";
+
         public readonly static List<KeyValuePair<string, string>> AllExamples = [
 
-            new KeyValuePair<string, string>("all-commands.bamc", AllCmdsExample),
-            new KeyValuePair<string, string>("local-file.bamc", LocalFileExample),
-            new KeyValuePair<string, string>("google-example.bamc", GoogleFillExample),
-            new KeyValuePair<string, string>("js-embed-example.bamc", JSEmbedExample),
+            new KeyValuePair<string, string>("ebay.bamc", EBayExample),
+            new KeyValuePair<string, string>("codedpad.bamc", CodedpadExample),
+            new KeyValuePair<string, string>("google-gemini.bamc", GoogleGeminiExample),
+            new KeyValuePair<string, string>("google-maps.bamc", GoogleMapsExample),
+            new KeyValuePair<string, string>("fill-text-by-id.bamc", GoogleFillExample),
+            new KeyValuePair<string, string>("js-embed.bamc", JSEmbedExample),
+            new KeyValuePair<string, string>("marketplace.bamc", MarketplaceExample),
+            new KeyValuePair<string, string>("steam.bamc", SteamExample),
+            new KeyValuePair<string, string>("youtube-search.bamc", SteamExample),
+
         ];
 
         public static void WriteScriptExamples()
