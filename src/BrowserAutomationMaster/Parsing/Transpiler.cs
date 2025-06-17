@@ -81,8 +81,7 @@ namespace BrowserAutomationMaster
             Success.WriteSuccessMessage($"Location -> {projectDirectory}\n");
             ResetTranspilerState();
         }
-
-        public static void AddBrowserImportsAndRequirements() // Check for proxy and add logic to insert proxy into session/driver variable.
+        public static void AddBrowserImportsAndRequirements() 
         {
             HandleBrowserCmd();
             requirements.Add("setuptools");
@@ -165,12 +164,6 @@ namespace BrowserAutomationMaster
                     }
                     break;
             }
-        }
-        
-        public static void AddPipToScript()
-        {
-
-            
         }
         public static void CheckConfigLines()
         {
@@ -645,6 +638,13 @@ namespace BrowserAutomationMaster
                             }
                             break;
 
+                        case "set-custom-useragent":
+                            // Parser already ensures this line is valid so a second null check is not required; assuming set-custom-useragent is not modified without testing.
+                            string customUserAgent = splitLine[1].Replace('"', ' ').Trim();
+                            requestUserAgent = customUserAgent;
+                            Success.WriteSuccessMessage($"Successfully set custom user agent on line {lineNumber}.");
+                            break;
+
                         case "take-screenshot":
                             switch (browserPackage)
                             {
@@ -794,6 +794,7 @@ namespace BrowserAutomationMaster
             {
                 Errors.WriteErrorAndExit("BAMM is somehow running an unsupported platform, if this is intentional, and you're contributing to the project, simply remove this check.", 1);
             }
+
             scriptBody.Insert(0, BrowserFunctions.addHeadersFunction("User-Agent", requestUserAgent));
             scriptBody.Insert(1, BrowserFunctions.checkImportFunction);
             scriptBody.Insert(2, BrowserFunctions.clickElementFunction);
@@ -809,7 +810,6 @@ namespace BrowserAutomationMaster
             scriptBody.Insert(12, BrowserFunctions.selectOptionByIndexFunction);
             scriptBody.Insert(13, BrowserFunctions.takeScreenshotFunction);
 
-            AddPipToScript();
             scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
         }
         public static void HandlePythonVersionSelection(Installations installations)
@@ -929,19 +929,7 @@ namespace BrowserAutomationMaster
         }
         public static void SetDesiredSaveDirectory()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                desiredSaveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster", "compiled");
-            }
-
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                string userScriptDirectory = UserScriptManager.GetUserScriptDirectory();
-                string parentDirectory = Path.GetDirectoryName(userScriptDirectory) ?? Environment.CurrentDirectory;
-                desiredSaveDirectory = Path.Combine(parentDirectory, "compiled");
-            }
-
-            else { throw new PlatformNotSupportedException("Unsupported OS."); }
+            desiredSaveDirectory = DirectoryManager.GetDesiredSaveDirectory();
         }
         public static void SetFileLines(string filePath)
         {
@@ -982,7 +970,6 @@ namespace BrowserAutomationMaster
         }
         public static void SetTimeout(string[] args)
         {
-
             List<string> timeoutArgs = [.. args.Where(arg => arg.StartsWith("--set-timeout=="))];
 
             if (timeoutArgs.Count > 1)

@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using BrowserAutomationMaster.Messaging;
 using Microsoft.Win32;
@@ -46,6 +47,16 @@ namespace BrowserAutomationMaster.AppManager.OS
                 }
             }
             return list;
+        }
+
+        public static void VerifyRootDrive(string[] args)
+        {
+            if (args.Contains("--ignore-drive-root")) { return; }
+            string? rootDrive = Path.GetPathRoot(AppContext.BaseDirectory);
+
+            if (rootDrive == null || !rootDrive.StartsWith("C:")) {
+                Errors.WriteErrorAndExit("BAM Manager (BAMM) was developed to be ran on the C: drive.\n\nRunning this application on a different drive caused too many unforseeable bugs, so i've decided to prevent it from happening all together.\n\nIf you are contributing to development, you can bypass this restriction by passing the argument '--ignore-drive-root'.", 1);
+            }
         }
     }
 }

@@ -14,9 +14,9 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright © Static")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("Domain Specific Language Compiler converting an english like language into valid " +
-    "Python code on Python >= 3.9 "))]
+    "Python code on Python >= 3.X "))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a202828b31021a1dc404c0caafd4659f70327dfb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+25b8b426b91333cd8dc7f7a09881528e458fd7b9")]
 [assembly: System.Reflection.AssemblyProductAttribute("bamm")]
 [assembly: System.Reflection.AssemblyTitleAttribute("bamm")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

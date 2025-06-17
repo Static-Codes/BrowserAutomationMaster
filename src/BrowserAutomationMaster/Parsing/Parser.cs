@@ -20,8 +20,8 @@ namespace BrowserAutomationMaster
 
 
         public readonly static string[] actionArgs = [
-            "click", "click-exp", "end-javascript", "fill-text", "get-text", "save-as-html", "save-as-html-exp", "select-element", "select-option", 
-            "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
+            "click", "click-exp", "end-javascript", "fill-text", "get-text", "save-as-html", "save-as-html-exp", "select-element", "select-option",
+            "set-custom-useragent", "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "no-ssl"];
@@ -44,6 +44,8 @@ namespace BrowserAutomationMaster
 
         const string ProxyFormatPattern = @"^([^:]+):([^@]+)@([^:]+):(\d+)$";
         const string NumberFormatPattern = @"^(?:\d+(?:\.\d{1,3})?|\.\d{1,3})$";
+        const string UserAgentFormatPattern = "^[^\\s\\/]+(?:\\/[^\\s]+)?(?:[ ]\\(.*?\\))?(?:[ ][^\\s\\/]+(?:\\/[^\\s]+)?(?:[ ]\\(.*?\\))?)*$";
+
 
         // Researched from: https://blog.nimblepros.com/blogs/using-generated-regex-attribute/
         // Source generation is used here at build time to create an optimized regex code block, which is then converted into MSIL prior to runtime; reducing overhead and improving efficiency.
@@ -56,6 +58,11 @@ namespace BrowserAutomationMaster
 
         [GeneratedRegex(NumberFormatPattern)]
         private static partial Regex PrecompiledNumberRegex();
+        
+        [GeneratedRegex(UserAgentFormatPattern)]
+        private static partial Regex PrecompiledUserAgentRegex();
+
+
         public static bool CreateUserScriptsDirectory() // Write more detailed error handling.
         {
             
@@ -198,6 +205,10 @@ namespace BrowserAutomationMaster
             if (string.IsNullOrWhiteSpace(proxyString)) { return false; }
             return PrecompiledProxyRegex().IsMatch(proxyString);
         }
+        public static bool IsValidUserAgentFormat(string userAgentString) {
+            if (string.IsNullOrEmpty(userAgentString)) { return false; }
+            return PrecompiledNumberRegex().IsMatch(userAgentString);
+        }
         public static void HandleBAMCFileValidation(string[] BAMCFiles)
         {
             validFiles = [.. ValidateBAMCFiles(BAMCFiles)];
@@ -217,13 +228,13 @@ namespace BrowserAutomationMaster
         }
         public static void HandleHelpSelection()
         {
-            while (true) {
-                bool isContinuing = false;
+            bool isContinuing = true;
+            while (isContinuing) {
+                isContinuing = false;
                 Help.DisplayAvailableCommands();
                 string? command = Input.WriteTextAndReturnRawInput("Please find the command you wish to learn more about, then type it below.") ?? "Not Found";
                 Help.ShowCommandDetails(command.Trim());
                 isContinuing = (Input.WriteTextAndReturnRawInput("\nWould you like to continue learning more about BAM Manager (BAMM)? [y/n]:") ?? "n").ToLower().Trim().Equals("y");
-                if (!isContinuing) { break; }
             }
         }
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
@@ -272,6 +283,16 @@ namespace BrowserAutomationMaster
                     }
                     return true;
 
+                case "set-custom-useragent":
+                    selectorString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
+                    if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].Trim().EndsWith('"')) {
+                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} \"{selectorString}\"\n", false);
+                    }
+                    else if (!IsValidUserAgentFormat(lineArgs[1].Trim())) {
+                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid useragent on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} \"{selectorString}\"\n", false);
+                    }
+                    return true;
+
                 case "wait-for-seconds":
                     selectorString = "5";
                     if (!IsValidNumberFormat(lineArgs[1].Trim())) {
@@ -315,7 +336,6 @@ namespace BrowserAutomationMaster
 
             }
         }
-        
         public static int HandleUserSelection(Dictionary<int, string> mapping)
         {
             Type desiredType = typeof(int);

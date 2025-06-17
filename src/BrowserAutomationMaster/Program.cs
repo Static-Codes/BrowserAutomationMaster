@@ -1,11 +1,12 @@
-﻿using BrowserAutomationMaster;
-using BrowserAutomationMaster.Checks;
+﻿using System.Runtime.InteropServices;
+using BrowserAutomationMaster;
+using BrowserAutomationMaster.AppManager.OS;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 
-//SelectorParser.TestSelectors();
 bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { Windows.VerifyRootDrive(pArgs); }
 
 
 string testMessage = @$"OS Version: {Environment.OSVersion}
@@ -15,14 +16,15 @@ Base Dir: {AppContext.BaseDirectory}
 UserScripts Dir: {UserScriptManager.GetUserScriptDirectory()}";
 Debug.WriteTestMessage(testMessage);
 
-SysCheck _ = new(pArgs); // Runs a system compatibility check.
 Console.Title = "BrowserAutomationMaster Manager (BAMM!)"; // Dont waste memory if the system isn't compatible.
+
+List<string> validCLIArgs = ["add", "clear", "compile", "delete", "help", "uninstall"];
+List<string> nonUserScriptArgs = ["clear", "help", "uninstall"]; // These commands are handled within the program loop instead of in UserScriptManager
 
 
 bool isCLI = false;
-if (pArgs.Length == 2 && !pArgs.Contains("help")) { isCLI = true; }
+if (pArgs.Length == 2 && !nonUserScriptArgs.Contains(pArgs[0].ToLower())) { isCLI = true; }
 
-List<string> validCLIArgs = ["add", "compile", "delete", "help"];
 
 // Handles direct CLI cases
 // -> bamm add "file.bamc"
@@ -37,23 +39,48 @@ if (isCLI) {
 // Handles cases where file is double clicked. (Functions the same as bamm add "file.bamc")
 // The file is added to userScripts directory.
 // (Logic to compile automatically is commented out as to not be intrusive, opting for user confirmation.)
-if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pArgs[0])) {
+if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pArgs[0]))
+{
     var __ = new UserScriptManager(pArgs[0], "add");
     bool wantsToContinue = (Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ") ?? "n").ToLower().Trim().Equals("y");
     if (!wantsToContinue) { isRunning = false; }
-    //Transpiler.New(pArgs[0], pArgs);
-    //isRunning = false;
 }
 
-// Handles cases where "bamm help" is not supplied
-else if (pArgs.Length == 1 && pArgs[0] == "help") {
+else if (pArgs.Length == 1 && pArgs[0].Equals("clear", StringComparison.CurrentCultureIgnoreCase)) {
+    Errors.WriteErrorAndContinue("Invalid 'clear' command.\n\nValid commands:\nbamm clear userScripts\nbamm clear compiled\n\nPress any key to continue...");
+    Console.ReadKey();
+}
+
+else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentCultureIgnoreCase)) {
+    if (pArgs[1].Equals("userScripts", StringComparison.CurrentCultureIgnoreCase)){
+        if ((Input.WriteTextAndReturnRawInput("Are you sure you want to delete the 'userScripts' directory? [y/n]:") ?? "n").ToLower().Trim().Equals("y")) {
+            DirectoryManager.DeleteDirectory(UserScriptManager.GetUserScriptDirectory());
+        }
+        else { isRunning = false; }
+    }
+    else if (pArgs[1].Equals("compiled", StringComparison.CurrentCultureIgnoreCase)){
+        if ((Input.WriteTextAndReturnRawInput("Are you sure you want to delete the 'compiled' directory? [y/n]:") ?? "n").ToLower().Trim().Equals("y")) {
+            DirectoryManager.DeleteDirectory(DirectoryManager.GetDesiredSaveDirectory());
+        }
+        else { isRunning = false; }
+    }
+    else {
+        Errors.WriteErrorAndContinue("Invalid 'clear' command.\n\nValid commands:\nbamm clear userScripts\nbamm clear compiled\n\nPress any key to continue...");
+        Console.ReadKey();
+    }
+
+}
+
+// Handles cases where only bare "bamm help" command is supplied
+else if (pArgs.Length == 1 && pArgs[0].Equals("help", StringComparison.CurrentCultureIgnoreCase)) {
     Errors.WriteErrorAndContinue("Invalid command: 'bamm help'\n\nTo see available entries for the 'help' command please type: 'bamm help --all'\n\nPress any key to continue.");
     Console.ReadKey();
 }
-else if (pArgs.Length > 1 && pArgs[0] == "help")
-{
-    Parser.HandleHelpSelection();
-}
+
+// Handles bamm help "command-name"
+else if (pArgs.Length == 2 && pArgs[0].Equals("help", StringComparison.CurrentCultureIgnoreCase)) { Help.ShowCommandDetails(pArgs[1]); }
+
+
 
 
 while (isRunning)

@@ -22,7 +22,7 @@
 		<PackageId>bamm</PackageId>
 		<PackageVersion>1.0.0</PackageVersion>
 		<Authors>Static</Authors>
-		<Description>Domain Specific Language Compiler converting an english like language into valid Python code on Python &gt;= 3.9 </Description>
+		<Description>Domain Specific Language Compiler converting an english like language into valid Python code on Python &gt;= 3.X </Description>
 		<Copyright>Copyright © Static</Copyright>
 		<PackageTags>console;utility;windows;linux;osx</PackageTags>
 		<!-- Windows & OSX License -->
@@ -47,13 +47,10 @@
 		<DebianDesktopFile>$(PackageId).desktop</DebianDesktopFile>
 		<DebianDesktopCategories>Utility;Console;</DebianDesktopCategories>
 		<DebianDesktopTerminal>true</DebianDesktopTerminal>
-		<DebianDesktopName>BAM Manager 1.0.0A</DebianDesktopName>
+		<DebianDesktopName>BAM Manager 1.0.0A1</DebianDesktopName>
 	</PropertyGroup>
 
 	<!-- This will be removed from the source eventually -->
-	<ItemGroup>
-		<Compile Remove="Unused\WMIHelper.cs" />
-	</ItemGroup>
 	
 	<!-- Esprima (JS Validation) + Packaging.Targets (Cross Platform Publishing) -->
 	<ItemGroup>

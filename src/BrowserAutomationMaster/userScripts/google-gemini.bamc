@@ -1,0 +1,10 @@
+browser "chrome"
+visit "https://gemini.google.com/app"
+wait-for-seconds 3
+start-javascript
+document.querySelector('.ql-editor p').textContent = 'What is the perceived meaning of life?'
+new Promise((resolve) => setTimeout(resolve, 1000));
+end-javascript
+click ".send-button"
+wait-for-seconds 30
+take-screenshot "gemini-response.png"
