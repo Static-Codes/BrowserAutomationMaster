@@ -72,16 +72,14 @@ A Domain Specific Language (DSL) that compiles into valid Python code!
 - **MacOS**
   The compiled application will be in `bin/Release/netX.Y/osx-arm64/publish/`.
   Place it on your Desktop for easy access!
-  use sudo chmod +x Desktop/bamm to make it an executable!
+  use `sudo chmod +x Desktop/bamm` to make it an executable!
 - **Windows**
   Simply double click the installer in `BrowserAutomationMaster\src\Published Builds\{Your architecture}\`
 
 ## Opening BAMM
 
-- **MacOS**
-  Desktop/bamm
+- **MacOS:** `Desktop/bamm`
 
-- **Linux and Windows**
-  bamm
+- **Linux/Windows:** `bamm`
 
 ---
