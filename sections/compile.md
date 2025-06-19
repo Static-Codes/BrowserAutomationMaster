@@ -66,7 +66,7 @@ If you don't want a `.deb` package or are on a non-Debian-based Linux distributi
     ```
     The compiled application will be in `bin/Release/netX.Y/linux-x64/publish/` (where `X.Y` is the .NET version, e.g., `net8.0`).
 
-### macOS
+## macOS
 
 This will create a self-contained application for macOS 11.0+ (Both Intel and Apple Silicon via Rosetta 2).
 
@@ -85,7 +85,7 @@ This will create a self-contained application for macOS 11.0+ (Both Intel and Ap
     ```
     The compiled application will be in `bin/Release/netX.Y/osx-arm64/publish/`.
 
-### Windows
+## Windows
 
 This will create self-contained applications for different Windows architectures.
 
