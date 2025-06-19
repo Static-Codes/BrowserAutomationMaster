@@ -1,6 +1,9 @@
 # Compile BrowserAutomationMaster (BAM) from Source
 
+---
 This guide provides instructions on how to compile BrowserAutomationMaster Manager (BAMM) from its source code for various operating systems.
+- To return to the previous page, [click here](..)
+---
 
 ## Prerequisites
 
