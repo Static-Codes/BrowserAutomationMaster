@@ -48,6 +48,7 @@ namespace BrowserAutomationMaster
         static bool asyncEnabled = false; // Parser ensures both async and bypassCloudflare cannot both be true in a valid file.
         static bool bypassCloudflare = false; // Instructs the parser to use tls-client with a client identifier of safari_ios_16.
         static bool disablePycache = false;  // Disables Visual Studio Code from writing __pycache__ directory.
+        static bool disableSSL = false; // Disables SSL certificate authorization session wide.
         static bool noBrowsersFound = false; // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
 
         static int actionTimeout = 10; // This is the timeout applied to all WebDriverWait calls.
@@ -178,12 +179,15 @@ namespace BrowserAutomationMaster
             featureLines = [.. configLines.Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line) && line.StartsWith("feature"))];
             featurePresent = featureLines.Count > 0; // Roslyn recommend Any() over Count() > 0
             if (featurePresent && featureLines.Any(line => line.Contains(" \"disable-pycache\""))) { disablePycache = true; }
+            if (featurePresent && featureLines.Any(line => line.Contains(" \"no-ssl\""))) { disableSSL = true; }
             otherPresent = CheckOtherPresent();
             if (!otherPresent) { Warning.Write("BAM Manager (BAMM) was unable to find any requests logic, if this is intentional, you can safely ignore this warning."); }
             if (disablePycache) { importStatements.AddRange(["import sys", "sys.dont_write_byte_code"]); }
+            if (disableSSL && configLines[0].Contains("\"chrome\"")) { importStatements.Add("from selenium.webdriver.chrome.options import Options"); }
+            else if (disableSSL && configLines[0].Contains("\"firefox\"")) { importStatements.Add("from selenium.webdriver.firefox.options import Options"); }
             if (featurePresent && featureLines.Any(line => line.Contains(" \"async\""))) { asyncEnabled = true; }
             if (featurePresent && featureLines.Any(line => line.Contains(" \"bypass-cloudflare\""))) { bypassCloudflare = true; }
-            
+
         }
         public static bool CheckOtherPresent()
         {
@@ -275,7 +279,7 @@ namespace BrowserAutomationMaster
                 string[] splitLine;
                 if (string.IsNullOrEmpty(line)) { continue; } // Skip blank lines.
                 if (line.Contains(" // ") && !isJSBlock) { hasComment = true; }
-                if (hasComment) { line = Parser.DeleteCommentIfPresent(line); }
+                if (hasComment) { if (line.StartsWith(" // ")) { Console.WriteLine(line); } line = Parser.DeleteCommentIfPresent(line); }
 
                 if (line.StartsWith("click-exp ")) { isCE = true; }
                 else if (line.StartsWith("fill-text")) { isFT = true; }
@@ -304,8 +308,7 @@ namespace BrowserAutomationMaster
                 }
 
                 // Writes the actual JS Block as python code.
-                if (line.StartsWith("end-javascript") && !isJSBlock)
-                {
+                if (line.StartsWith("end-javascript") && !isJSBlock) {
                     PreprocessJSCodeBlock(jsBlockContent); // Handles cases where Esprima might be more lenient towards invalid code.
                     if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error)) {
                         Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber + 1, $"Invalid javascript code block:\n\nParser Error:\n\n{error}"), 1);
@@ -730,11 +733,25 @@ namespace BrowserAutomationMaster
                                             //    break;
 
                                             case "chrome":
-                                                scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)");
+                                                if (disableSSL) {
+                                                    scriptBody.Add("options = Options()");
+                                                    scriptBody.Add("options.add_argument('--ignore-certificate-errors')");
+                                                    scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options, seleniumwire_options=sw_options)");
+                                                }
+                                                else {
+                                                    scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)");
+                                                }
                                                 break;
 
                                             case "firefox" or "safari":
-                                                scriptBody.Add("driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)");
+                                                if (disableSSL) {
+                                                    scriptBody.Add("options = Options()");
+                                                    scriptBody.Add("options.accept_insecure_certs = True");
+                                                    scriptBody.Add("driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options, seleniumwire_options=sw_options)");
+                                                }
+                                                else {
+                                                    scriptBody.Add("driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)");
+                                                }
                                                 break;
                                         }
                                         scriptBody.Add("driver.maximize_window()");

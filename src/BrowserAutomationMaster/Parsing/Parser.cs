@@ -239,8 +239,7 @@ namespace BrowserAutomationMaster
         }
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
-            //line = DeleteCommentIfPresent(line);
-            //Console.WriteLine(line);
+            if (line.Trim().StartsWith(" //") || line.Trim().StartsWith("//")) { return true; } // This is assumed as a comment
             string[] lineArgs;
             if (line.StartsWith("fill-text")) { lineArgs = line.Trim().Split(" \""); } // Special case to handle fill-text
             else { lineArgs = line.Trim().Split(" "); } // Handle all others
@@ -396,8 +395,7 @@ namespace BrowserAutomationMaster
                 {
                     string selectorString = "value";
                     string line = lines[i];
-                    string trimmedLine = line.Trim();
-                    trimmedLine = DeleteCommentIfPresent(trimmedLine);
+                    string trimmedLine = DeleteCommentIfPresent(line);
 
                     if (!jsBlockFinished) {
                         if (trimmedLine.StartsWith("end-javascript")) { jsBlockFinished = true; }
@@ -457,8 +455,8 @@ namespace BrowserAutomationMaster
                             List<string> invalidLines = [..
                             passedLines.Where(line =>
                                 !availableCommands.Any(prefix =>
-                                    line.Trim().StartsWith(prefix)
-                                )
+                                    line.Trim().StartsWith(prefix)) && !line.Trim().StartsWith("//") // Ignores comments
+                                
                             )
                             ];
                             if (invalidLines.Count > 0)
@@ -477,7 +475,9 @@ namespace BrowserAutomationMaster
                         else {
                             bool validLine = HandleLineValidation(fileName, trimmedLine, i + 1);
                             if (!validLine) { return false; }
-                            featureBlockFinished = true; // This flag will be used to ensure all feature commands are placed before all others.
+                            if (!trimmedLine.StartsWith("//")){ // Ignores comments
+                                featureBlockFinished = true; // This flag will be used to ensure all feature commands are placed before all others.
+                            }
                         }
                     }
                 }
