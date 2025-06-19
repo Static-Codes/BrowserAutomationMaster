@@ -16,7 +16,7 @@ Base Dir: {AppContext.BaseDirectory}
 UserScripts Dir: {UserScriptManager.GetUserScriptDirectory()}";
 Debug.WriteTestMessage(testMessage);
 
-Console.Title = "BrowserAutomationMaster Manager (BAMM!)"; // Dont waste memory if the system isn't compatible.
+Console.Title = "BrowserAutomationMaster Manager (BAMM!)";
 
 List<string> validCLIArgs = ["add", "clear", "compile", "delete", "help", "uninstall"];
 List<string> nonUserScriptArgs = ["clear", "help", "uninstall"]; // These commands are handled within the program loop instead of in UserScriptManager
@@ -52,13 +52,13 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("clear", StringComparison.CurrentC
 }
 
 else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentCultureIgnoreCase)) {
-    if (pArgs[1].Equals("userScripts", StringComparison.CurrentCultureIgnoreCase)){
+    if (pArgs[1].Equals("userScripts", StringComparison.CurrentCultureIgnoreCase)) {
         if ((Input.WriteTextAndReturnRawInput("Are you sure you want to delete the 'userScripts' directory? [y/n]:") ?? "n").ToLower().Trim().Equals("y")) {
             DirectoryManager.DeleteDirectory(UserScriptManager.GetUserScriptDirectory());
         }
         else { isRunning = false; }
     }
-    else if (pArgs[1].Equals("compiled", StringComparison.CurrentCultureIgnoreCase)){
+    else if (pArgs[1].Equals("compiled", StringComparison.CurrentCultureIgnoreCase)) {
         if ((Input.WriteTextAndReturnRawInput("Are you sure you want to delete the 'compiled' directory? [y/n]:") ?? "n").ToLower().Trim().Equals("y")) {
             DirectoryManager.DeleteDirectory(DirectoryManager.GetDesiredSaveDirectory());
         }
@@ -80,6 +80,7 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("help", StringComparison.CurrentCu
 // Handles bamm help "command-name"
 else if (pArgs.Length == 2 && pArgs[0].Equals("help", StringComparison.CurrentCultureIgnoreCase)) { Help.ShowCommandDetails(pArgs[1]); }
 
+else if (pArgs.Length == 1 && pArgs[0].Equals("uninstall", StringComparison.CurrentCultureIgnoreCase)){ new UninstallationManager().Uninstall(); }
 
 
 
