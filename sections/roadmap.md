@@ -3,7 +3,7 @@
 ---
 
 This section outlines the planned commands and features for later BAMM releases.
-
+- To return to the previous page, [click here](..)
 ---
 
 ## Features
