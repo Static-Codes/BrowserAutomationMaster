@@ -54,9 +54,9 @@ A Domain Specific Language (DSL) that compiles into valid Python code!
 
 ## Table of Contents
 
-- [BAMC Documentation (Actions, Arguments, Features, Selectors)](sections\documentation.md)
-- [Compile BrowserAutomationMaster from Source](sections\compile.md)
-- [Roadmap](sections\roadmap.md)
+- [BAMC Documentation (Actions, Arguments, Features, Selectors)](sections/documentation.md)
+- [Compile BrowserAutomationMaster from Source](sections/compile.md)
+- [Roadmap](sections/roadmap.md)
 
 ---
 
