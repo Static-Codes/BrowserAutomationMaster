@@ -27,6 +27,7 @@
 		<PackageTags>console;utility;windows;linux;osx</PackageTags>
 		<!-- Windows & OSX License -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<ApplicationIcon>bamm.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<!-- MacOS Specific Build Logic To Run App By Double Clicking App Icon -->
@@ -49,6 +50,9 @@
 		<DebianDesktopTerminal>true</DebianDesktopTerminal>
 		<DebianDesktopName>BAM Manager 1.0.0A1</DebianDesktopName>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Content Include="bamm.ico" />
+	</ItemGroup>
 
 	<!-- This will be removed from the source eventually -->
 	

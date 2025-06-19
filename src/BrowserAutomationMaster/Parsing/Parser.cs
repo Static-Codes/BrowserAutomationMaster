@@ -207,7 +207,7 @@ namespace BrowserAutomationMaster
         }
         public static bool IsValidUserAgentFormat(string userAgentString) {
             if (string.IsNullOrEmpty(userAgentString)) { return false; }
-            return PrecompiledNumberRegex().IsMatch(userAgentString);
+            return PrecompiledUserAgentRegex().IsMatch(userAgentString);
         }
         public static void HandleBAMCFileValidation(string[] BAMCFiles)
         {

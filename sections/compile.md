@@ -14,7 +14,7 @@ Before you begin, ensure you have the following installed on your system:
 1.  **Download and Extract the Source Code:**
 
     - Go to the latest release page: `https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest/`
-    - Download the `source.zip` file.
+    - Download the `BAMM-{Version}-Source.zip` file.
     - Extract/Unzip the source.
 
 2.  **Navigate to the Source Directory:**
@@ -120,32 +120,7 @@ This will create self-contained applications for different Windows architectures
 
     The installer will be in `BrowserAutomationMaster\src\Published Builds\{Your architecture}\`
 
-## Installation
-
-- **Linux `.deb` package**
-  You can install the package by double clicking the .deb file, or by using:
-  ```bash
-  sudo dpkg -i <package_name>.deb
-  # If there are dependency issues, fix them with:
-  sudo apt-get install -f
-  ```
-- **MacOS**
-  The compiled application will be in `bin/Release/netX.Y/osx-arm64/publish/`.
-  Place it on your Desktop for easy access!
-  use chmod +x Desktop/bamm to make it an executable!
-- **Windows**
-  Simply double click the installer in `BrowserAutomationMaster\src\Published Builds\{Your architecture}\`
-
-## Opening BAMM
-
-- **MacOS**
-  Desktop/bamm
-
-- **Linux and Windows**
-  bamm
-
-## Troubleshooting
+## Troubleshooting Compilation Issues.
 
 - **.NET SDK Not Found:** Ensure the .NET SDK is installed correctly and that the `dotnet` command is available in your system's PATH.
-- **Permission Issues:** On Linux/macOS, you might need to use `sudo` for global tool installation or for installing `.deb` packages. For compilation itself, `sudo` is generally not required or recommended.
 - **Incorrect Runtime Identifier:** Ensure you're using a valid runtime identifier (RID) for your target platform. You can find a list of RIDs [here](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog).

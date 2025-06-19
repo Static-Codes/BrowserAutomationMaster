@@ -1,6 +1,6 @@
 # Browser Automation Master
 
-A Domain Specific Language (DSL) that compiles into valid Python code!
+A Domain Specific Language (DSL) that compiles into valid python code!
 
 ---
 
@@ -52,14 +52,6 @@ A Domain Specific Language (DSL) that compiles into valid Python code!
 
 ---
 
-## Table of Contents
-
-- [BAMC Documentation (Actions, Arguments, Features, Selectors)](sections\documentation.md)
-- [Compile BrowserAutomationMaster from Source](sections\compile.md)
-- [Roadmap](sections\roadmap.md)
-
----
-
 ## Installation
 
 - **Linux `.deb` package**
@@ -83,5 +75,3 @@ A Domain Specific Language (DSL) that compiles into valid Python code!
 
 - **Linux and Windows**
   bamm
-
----

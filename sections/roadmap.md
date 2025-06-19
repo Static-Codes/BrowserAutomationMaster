@@ -2,27 +2,16 @@
 
 ---
 
-This section outlines the planned commands and features for BAMM.
+This section outlines the planned commands and features for later BAMM releases.
 
 ---
 
 ## Features
 
-- **`feature "no-ssl"`**: This feature will disable SSL certificate validation when using Selenium, allowing for more flexible connections.
 - **`feature "headless"`**: This feature will run the browser in headless mode, which is great for background tasks and server environments.
-
-## Management
-
-- **`bamm clear compiled`**: This command will clear all project files from the current user's "compiled" directory, helping you manage disk space.
-- **`bamm clear userScripts`**: Similarly, this command will clear all scripts from the current user's "userScripts" directory.
-- **`bamm uninstall`**:
-  - **On Windows**: This will execute `unins000.exe`.
-  - **On MacOS**: (Specific uninstallation steps to be determined and implemented.)
-  - **On Linux**: This will execute `apt uninstall bamm` for a clean removal.
 
 ## Browser Commands
 
-- **`set-custom-useragent "User Agent String"`**: You'll be able to set a custom `requestUserAgent` for all your browser requests, useful for mimicking different devices or browsers.
 - **`add-cookie "name" "value"`**: This command will let you add a single cookie to the browser session.
 - **`add-cookies {"name": "value", "name2": "value2"}`**: For more complex scenarios, you'll be able to add multiple cookies using a JSON object.
 - **`add-header "name" "value"`**: Add a single HTTP header to your requests.
