@@ -1,5 +1,6 @@
-## BAMC Documentation
+# BAMC Documentation
 
+- To return to the previous page, [click here](..)
 ### Examples
 
 - [Chrome Examples](/src/Files-For-ReadMe/Examples/Chrome)
