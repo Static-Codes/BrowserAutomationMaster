@@ -58,10 +58,18 @@ namespace BrowserAutomationMaster
         readonly static List<string> importStatements = ["from importlib import import_module", "from subprocess import run", "from sys import modules"];
         readonly static List<string> scriptBody = [];
         readonly static List<string> requirements = [];
-        private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
 
+        // Used for --set-timeout==5 (or any desired timeout)
+        private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
         [GeneratedRegex(@"^--set-timeout==(\d+)$", RegexOptions.Compiled)]
         private static partial Regex TimeoutRegex();
+
+        // Used for --set-custom-useragent=="user-agent-string-here"
+        private static readonly Regex CustomUserAgentRegex = CLIUserAgentRegex(); 
+        [GeneratedRegex(@"^--set-custom-useragent==(.+?)$", RegexOptions.Compiled)]
+        private static partial Regex CLIUserAgentRegex();
+        
+        
         public static void New(string filePath, string[] args)
         {
             SetDesiredSaveDirectory();
@@ -263,6 +271,7 @@ namespace BrowserAutomationMaster
         }
         public static void HandleCompilation(string fileName, string[] args) 
         {
+            SetCustomUserAgent(args);
             SetTimeout(args);
             string[] browserlessActions = ["save-as-html", "wait-for-seconds"]; 
             int lineNumber = 1;
@@ -944,6 +953,50 @@ namespace BrowserAutomationMaster
             importStatements.AddRange(["from importlib import import_module", "from subprocess import run", "from sys import modules"]);
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
+        public static void SetCustomUserAgent(string[] args)
+        {
+            List<string> userAgentArgs = [.. args.Where(arg => arg.StartsWith("--set-custom-useragent=="))];
+            if (userAgentArgs.Count > 1)
+            {
+                Errors.WriteErrorAndExit(
+                     $"BAM Manager (BAMM) encountered a fatal error: '--set-custom-useragent' can only be specified once.\n" +
+                     $"Found multiple instances:\n\n" +
+                     $"1.'{userAgentArgs[0]}'\n\n" +
+                     $"2.'{userAgentArgs[1]}'\n\n." +
+                     "Please remove duplicate arguments and restart.",
+                     1);
+            }
+            if (userAgentArgs.Count == 0) { return; }
+            else
+            {
+                string customUserAgent = userAgentArgs[0];
+                Match match = CustomUserAgentRegex.Match(customUserAgent);
+
+                if (match.Success)
+                {
+                    string newUserAgent = match.Groups[1].Value.Replace("%20", ""); // Fixes formatting issues caused by passing a string as an argument via cli.
+                    if (Parser.IsValidUserAgentFormat(newUserAgent)) {
+                        requestUserAgent = newUserAgent;
+                        Success.WriteSuccessMessage($"\nOverrode default UserAgent with:");
+                        Warning.Write($"{newUserAgent}");
+                    }
+                    else
+                    {
+                        // This shouldn't be executed due to the strict regex.
+                        Errors.WriteErrorAndExit("BAM Manager (BAMM) encountered a fatal error: Could not parse user agent string from the '--set-custom-useragent' argument.\n", 1);
+                    }
+                }
+                else
+                {
+                    // Case for when the argument starts with --set-custom-useragent== but doesn't match the expected format (For example '--set-custom-useragent==X')
+                    Errors.WriteErrorAndExit(
+                        $"BAM Manager encountered an error: Invalid format for '--set-custom-useragent' argument.\n\n" +
+                        $"Expected Format: '--set-custom-useragent==\"UserAgentString\"",
+                        1);
+                }
+            }
+        }
+
         public static void SetDesiredSaveDirectory()
         {
             desiredSaveDirectory = DirectoryManager.GetDesiredSaveDirectory();
@@ -996,7 +1049,7 @@ namespace BrowserAutomationMaster
                     $"Found multiple instances:\n\n" +
                     $"1.'{timeoutArgs[0]}'\n\n" +
                     $"2.'{timeoutArgs[1]}'\n\n." +
-                    "Please remove duplicates and recompile.",
+                    "Please remove duplicate arguments and restart.",
                     1);
             }
             if (timeoutArgs.Count == 0) { return; }

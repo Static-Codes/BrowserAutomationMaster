@@ -1,55 +1,9 @@
-# Browser Automation Master
-
-A Domain Specific Language that compiles into valid python code!
-
-### Supported Browsers
-
-- **Brave**
-- **Chrome**
-- **Firefox**
-
-### Supported Python Versions
-
-- **3.9.x**
-- **3.10.x**
-- **3.11.x**
-- **3.12.x**
-- **3.13.x**
-- **3.14.x**
-
-### Supported Operating Systems
-
-- Linux **(x64)**
-- MacOS 11.0+ **(x64)**
-- Windows 10 **(ARM64, x64, x86)**
-- Windows 11 **(ARM64, x64, x86)**
-
-### Supported Platforms
-
-- **x86**
-- **x64**
-- **ARM64**
-
-### System Requirements (Minimum)
-
-- 2+ Core CPU
-- 4GB DDR3 RAM (The application itself uses under 200MB of RAM)
-- Any Supported Browser
-- Any Supported Python Version
-
-### Tested On
-
-- AMD Athlon Gold 3150U
-- AMD Ryzen 7 2700X
-- AMD EPYC 7282
-- AMD Ryzen 9 5950X
-- Intel I5 4260U (Mac Mini 2014)
-- Intel I3 6100
-- Intel I5 6500
-- Intel I7 7700
-- Intel I5 8500
-
 ## BAMC Documentation
+
+### Examples
+
+- [Chrome Examples](/src/Files-For-ReadMe/Examples/Chrome)
+- [Firefox Examples](/src/Files-For-ReadMe/Examples/Firefox)
 
 ### Actions
 
@@ -57,13 +11,10 @@ The following actions can be used in your BAMC scripts:
 
 - `browser`: This MUST be the first valid line of the file. If not supplied, defaults to a Firefox instance or user agent (depending on the other defined features).
   - **Syntax:**
-    - `browser "brave"`
     - `browser "chrome"`
     - `browser "firefox"`
 - `click`: Clicks the specified button element.
-
   - **Syntax:** `click "selector" \\ Supports ID, NAME, TAG NAME, and XPATH`
-
 - `click-exp`: Alternative to `click`; use this if `click` is causing issues.
   - **Syntax:** `click-exp 'css-selector.item_element' \\ Supports CSS SELECTOR`
 - `end-javascript`: Instructs the parser that the end of a javascript code block was reached. An error will be thrown if end-javascript is not found within the file (when a "start-javascript" is present)
@@ -81,9 +32,7 @@ The following actions can be used in your BAMC scripts:
 - `select-element`: Selects the element associated with the provided selector (if found).
   - **Syntax:** `select-element "selector" \\ This currently works but, theres no logic to access the selected element, this should only be done if youre manually editing the compiled python script.'`
 - `start-javascript`: Instructs the parser to read all following lines as a .js code block, until end-javascript is found; Will throw an error if end-javascript is not found within the file.
-
   - **Syntax:** `start-javascript`
-
 - `take-screenshot`: Takes a screenshot of the browser after executing the previous line.
   - **Syntax:** `take-screenshot "filename.png" \\ It's recommended to add a "wait-for-seconds" command before executing this.`
 - `visit`: Visits a specified URL.
@@ -96,17 +45,11 @@ The following actions can be used in your BAMC scripts:
 These arguments can be used when running BAMC from the command line:
 
 - `add`: Adds a `.bamc` file to the `userScripts` directory.
-
   - **Syntax:** `bamm add 'path/to/filename.bamc'`
-
 - `compile`: Compiles a `.bamc` file that isn't located in the `userScripts` directory.
-
   - **Syntax:** `bamm compile 'path/to/filename.bamc'`
-
 - `delete`: Adds a local `.bamc` file to the `userScripts` directory.
-
   - **Syntax:** `bamm delete 'filename.bamc'`
-
 - `help`: Adds a local `.bamc` file to the `userScripts` directory.
   - **Syntax:**
     - `bamm help --all` -> This displays information for all available commands.
@@ -132,3 +75,37 @@ These features can be enabled or configured in your BAMC scripts:
   - **Syntax:** `feature "use-socks4-proxy" "USER:PASS@IP:PORT"` -> Use `NULL:NULL@IP:PORT" if no user:pass authentication is required.
 - `use-socks5-proxy`: Uses the entered SOCKS5 proxy for the session.
   - **Syntax:** `feature "use-socks5-proxy" "USER:PASS@IP:PORT"` -> Use `NULL:NULL@IP:PORT" if no user:pass authentication is required.
+
+---
+
+## Supported Selectors
+
+### Basic
+
+- **ID:** `#main-content`
+- **Class:** `.btn-primary`
+- **Type / Tag:** `div`
+- **Custom Element:** `my-custom-element`
+- **Name Attribute:** `[name="elementName"]` (Note this is NOT the same as Tag)
+- **XPath Selector:** `//form[@class='exampleClassName']//input[@type='text']`
+
+### Advanced
+
+- **Universal:** `*`
+- **Attribute (Presence):** `[href]`
+- **Attribute (Value):** `[target=_blank]`
+- **Attribute (Quoted Value):** `[title='A simple title']`
+- **Attribute (Complex Quoted Value):** `[data-value="some complex 'value' with quotes"]`
+- **Pseudo-class:** `:hover`
+- **Pseudo-class (with arguments):** `:nth-child(2n+1)`
+- **Pseudo-class (with complex arguments):** `:not(.visible, #main)`
+- **Pseudo-element:** `::before`
+
+### Limitations
+
+- For complex/nested selectors like `:not(div > .item)`, it will capture `div > .item` as a single string but will not parse further.
+- This handles attributes with quoted strings quite well, but it doesn't fully support **all** CSS escaping rules Example: `"id="foo.bar""` would require the selector `"#foo\.bar"`.
+- This is **not** full CSS/XPATH parsing and will not catch all invalid selectors, however most rules are currently supported.
+- The CSS parsing currently doesn't support the following characters: ">", "+", "~", " ", etc.
+
+---

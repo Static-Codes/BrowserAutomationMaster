@@ -1,12 +1,15 @@
 # Roadmap
+
 ---
+
 This section outlines the planned commands and features for BAMM.
 
 ---
+
 ## Features
 
 - **`feature "no-ssl"`**: This feature will disable SSL certificate validation when using Selenium, allowing for more flexible connections.
-- **`feature "headless"`**: We'll implement a headless mode, letting you run the browser without a visible user interface, which is great for background tasks and server environments.
+- **`feature "headless"`**: This feature will run the browser in headless mode, which is great for background tasks and server environments.
 
 ## Management
 
@@ -51,5 +54,6 @@ This section outlines the planned commands and features for BAMM.
 
 - Adding an option for users to **copy the path of the compiled script directory** to their clipboard.
 - Alternatively, users will be able to **open a new explorer/finder window** to that directory, provided there's at least 100MB of RAM available.
+- Finally, if the user wishes to simply execute the compiled script directly from BAMM, this feature will be added in a future update.
 
 ---

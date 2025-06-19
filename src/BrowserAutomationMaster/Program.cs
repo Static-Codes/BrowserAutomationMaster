@@ -4,6 +4,7 @@ using BrowserAutomationMaster.AppManager.OS;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 
+
 bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { Windows.VerifyRootDrive(pArgs); }
