@@ -174,6 +174,36 @@ namespace BrowserAutomationMaster
                     break;
             }
         }
+        public static void AddRequiredFunctions()
+        {
+            Dictionary<string, bool> functionsPresent = [];
+            foreach (string actionArg in Parser.actionArgs) {
+                functionsPresent.Add(actionArg, configLines.Any(line => line.StartsWith(actionArg))); // Checks if configLines contains each arg, if so the required function is be added.
+            } // add-header is added here since its in actionArg, but its not accessed in this function.
+            int index = 4; // Accounts for the functions below.
+            //scriptBody.Insert(0, BrowserFunctions.addHeaderFunction("User-Agent", requestUserAgent));
+            scriptBody.Insert(0, BrowserFunctions.checkImportFunction);
+            scriptBody.Insert(1, BrowserFunctions.getScreenBoundsFunction);
+            scriptBody.Insert(2, BrowserFunctions.installPackagesFunction);
+            scriptBody.Insert(3, BrowserFunctions.makeRequestFunction(requestUserAgent));
+
+            if (functionsPresent.TryGetValue("click", out bool isNeeded) && isNeeded){ scriptBody.Insert(index, BrowserFunctions.clickElementFunction); index++; }
+            if (functionsPresent.TryGetValue("click-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.clickElementExperimentalFunction); index++; }
+            if (functionsPresent.TryGetValue("click-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.clickElementExperimentalFunction); index++; }
+            if (functionsPresent.TryGetValue("fill-text", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.fillTextFunction); index++; }
+            if (functionsPresent.TryGetValue("get-text", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.getTextFunction); index++; }
+            if (functionsPresent.TryGetValue("save-as-html", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLFunction); index++; }
+            if (functionsPresent.TryGetValue("save-as-html-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLFunction); index++; }
+            //if (functionsPresent.TryGetValue("select-element", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.selectElementFunction); index++; }
+            if (functionsPresent.TryGetValue("select-option", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.selectOptionByIndexFunction); index++; }
+            if (functionsPresent.TryGetValue("take-screenshot", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.takeScreenshotFunction); index++; }
+
+            if (scriptBody.Count != index) { scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode); }
+            else { scriptBody.Insert(index, BrowserFunctions.browserQuitCode); }
+
+
+
+        }
         public static void CheckConfigLines()
         {
             int numberOfLines = configLines.Count;
@@ -277,8 +307,10 @@ namespace BrowserAutomationMaster
             int lineNumber = 1;
             bool hasComment = false;
             bool firstVisitFinished = false; // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
+            bool isCU = false; // This prevents issues caused by set-custom-user-agent having unique formatting (Many spaces).
             bool isCE = false; // This prevents issues caused by click-exp having unique formatting.
             bool isFT = false; // This prevents issues caused by fill-text if the third argument has spaces in it.
+           
             bool isJSBlock = false; // This prevents issues caused by embedding javascript code into python code.
             bool isJSLine = false;  // Also prevents issued caused by embedding javascript code into python code.
             string jsBlockContent = "";  
@@ -292,14 +324,16 @@ namespace BrowserAutomationMaster
 
                 if (line.StartsWith("click-exp ")) { isCE = true; }
                 else if (line.StartsWith("fill-text")) { isFT = true; }
+                else if (line.StartsWith("set-custom-useragent")) { isCU = true; }
                 else if (line.StartsWith("start-javascript")) { isJSBlock = true; continue; }
                 else if (line.StartsWith("end-javascript")) { isJSBlock = false; }
 
-                if (isFT) { splitLine = line.Split(" \""); } // This handles fill-text
-                else if (!isCE) { splitLine = line.Split(" "); } // This handles all but click-exp and fill-text
+                if (isFT || isCU) { splitLine = line.Split(" \""); } // This handles fill-text or set-custom-useragent
+                else if (!isCE) { splitLine = line.Split(" "); } // This handles all but click-exp, fill-text, and set-custom-user-agent
                 else { splitLine = line.Split(" '"); } // This handles click-exp
                 if (isJSBlock) { isJSLine = true;} // Prevents the length check below from returning an error for javascript code blocks.
-                    
+
+
                 int[] validLengths = [2, 3];
                 if (!validLengths.Contains(splitLine.Length) && !isJSLine) {
                     Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "Invalid feature command syntax."), 1);
@@ -341,9 +375,13 @@ namespace BrowserAutomationMaster
                 else { sanitizedArg2 = splitLine[1].Replace('\'', ' ').Replace('"', ' ').Trim(); }
                 string sanitizedArg3 = string.Empty;
                 if (splitLine.Length >= 3) { sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); } // The parser ensures no invalid lines can be provided to the compiler :)
-
+                
                 switch (firstArg)
                 {
+                        case "add-header":
+                            scriptBody.Add(BrowserFunctions.addHeaderFunction(sanitizedArg2, sanitizedArg3));
+                            break;
+
                         case "click":
                             string clickSelector = splitLine[1].Replace('"', ' ').Trim();
                             ParsedSelector parsedClickSelector = SelectorParser.Parse(clickSelector);
@@ -654,7 +692,8 @@ namespace BrowserAutomationMaster
                             // Parser already ensures this line is valid so a second null check is not required; assuming set-custom-useragent is not modified without testing.
                             string customUserAgent = splitLine[1].Replace('"', ' ').Trim();
                             requestUserAgent = customUserAgent;
-                            Success.WriteSuccessMessage($"Successfully set custom user agent on line {lineNumber}.");
+                            Success.WriteSuccessMessage($"\nSuccessfully set custom user agent on line {lineNumber}.");
+                            isCU = false;
                             break;
 
                         case "take-screenshot":
@@ -803,7 +842,7 @@ namespace BrowserAutomationMaster
                                 Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument '{splitLine[1]}'"), 1);
                             }
                             break;
-                    }
+                }
                 lineNumber++;
             }
             importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
@@ -821,22 +860,24 @@ namespace BrowserAutomationMaster
                 Errors.WriteErrorAndExit("BAMM is somehow running an unsupported platform, if this is intentional, and you're contributing to the project, simply remove this check.", 1);
             }
 
-            scriptBody.Insert(0, BrowserFunctions.addHeadersFunction("User-Agent", requestUserAgent));
-            scriptBody.Insert(1, BrowserFunctions.checkImportFunction);
-            scriptBody.Insert(2, BrowserFunctions.clickElementFunction);
-            scriptBody.Insert(3, BrowserFunctions.clickElementExperimentalFunction);
-            scriptBody.Insert(4, BrowserFunctions.getScreenBoundsFunction);
-            scriptBody.Insert(5, BrowserFunctions.fillTextFunction);
-            scriptBody.Insert(6, BrowserFunctions.getTextFunction);
-            scriptBody.Insert(7, BrowserFunctions.installPackagesFunction);
-            scriptBody.Insert(8, BrowserFunctions.makeRequestFunction(requestUserAgent));
-            scriptBody.Insert(9, BrowserFunctions.saveAsHTMLFunction);
-            scriptBody.Insert(10, BrowserFunctions.saveAsHTMLExperimentalFunction);
-            scriptBody.Insert(11, BrowserFunctions.selectElementFunction);
-            scriptBody.Insert(12, BrowserFunctions.selectOptionByIndexFunction);
-            scriptBody.Insert(13, BrowserFunctions.takeScreenshotFunction);
 
-            scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
+            //scriptBody.Insert(0, BrowserFunctions.addHeaderFunction("User-Agent", requestUserAgent));
+            //scriptBody.Insert(1, BrowserFunctions.checkImportFunction);
+            //scriptBody.Insert(2, BrowserFunctions.clickElementFunction);
+            //scriptBody.Insert(3, BrowserFunctions.clickElementExperimentalFunction);
+            //scriptBody.Insert(4, BrowserFunctions.getScreenBoundsFunction);
+            //scriptBody.Insert(5, BrowserFunctions.fillTextFunction);
+            //scriptBody.Insert(6, BrowserFunctions.getTextFunction);
+            //scriptBody.Insert(7, BrowserFunctions.installPackagesFunction);
+            //scriptBody.Insert(8, BrowserFunctions.makeRequestFunction(requestUserAgent));
+            //scriptBody.Insert(9, BrowserFunctions.saveAsHTMLFunction);
+            //scriptBody.Insert(10, BrowserFunctions.saveAsHTMLExperimentalFunction);
+            //scriptBody.Insert(11, BrowserFunctions.selectElementFunction);
+            //scriptBody.Insert(12, BrowserFunctions.selectOptionByIndexFunction);
+            //scriptBody.Insert(13, BrowserFunctions.takeScreenshotFunction);
+
+            //scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
+            AddRequiredFunctions();
         }
         public static void HandlePythonVersionSelection(Installations installations)
         {
@@ -972,28 +1013,21 @@ namespace BrowserAutomationMaster
                 string customUserAgent = userAgentArgs[0];
                 Match match = CustomUserAgentRegex.Match(customUserAgent);
 
-                if (match.Success)
-                {
+                if (match.Success) {
                     string newUserAgent = match.Groups[1].Value.Replace("%20", ""); // Fixes formatting issues caused by passing a string as an argument via cli.
                     if (Parser.IsValidUserAgentFormat(newUserAgent)) {
                         requestUserAgent = newUserAgent;
                         Success.WriteSuccessMessage($"\nOverrode default UserAgent with:");
                         Warning.Write($"{newUserAgent}");
+                        return;
                     }
-                    else
-                    {
-                        // This shouldn't be executed due to the strict regex.
-                        Errors.WriteErrorAndExit("BAM Manager (BAMM) encountered a fatal error: Could not parse user agent string from the '--set-custom-useragent' argument.\n", 1);
-                    }
+                    Errors.WriteErrorAndExit("BAM Manager (BAMM) encountered a fatal error: Could not parse user agent string from the '--set-custom-useragent' argument.\nValid syntax:\n--set-custom-useragent==\"Mozilla/5.0 (Linux; Android 5.1.1; SAMSUNG SM-G920M Build/LMY47X) AppleWebKit/535.22 (KHTML, like Gecko)%20 Chrome/51.0.1871.243 Mobile Safari/535.7\"", 1);
+                    
                 }
-                else
-                {
-                    // Case for when the argument starts with --set-custom-useragent== but doesn't match the expected format (For example '--set-custom-useragent==X')
-                    Errors.WriteErrorAndExit(
+                Errors.WriteErrorAndExit(
                         $"BAM Manager encountered an error: Invalid format for '--set-custom-useragent' argument.\n\n" +
                         $"Expected Format: '--set-custom-useragent==\"UserAgentString\"",
                         1);
-                }
             }
         }
 

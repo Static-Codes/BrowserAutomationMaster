@@ -35,6 +35,7 @@ There are three versions for Windows. You most likely need the **x64** version.
 ### General Changes:
 
 - Added all examples in repo to the user's userScript directory.
+- Added functionality to trim the size of the generated `.py` file, by ONLY including functions that are required by the `.bamc` file being compiled.
 - Fixed bugs caused by adding comments to the script.
 - Removed `src\MacCompilationScripts`
 - Removed `src\Unused`
@@ -44,7 +45,9 @@ There are three versions for Windows. You most likely need the **x64** version.
 - `bamm clear compiled` - Deletes the compiled directory and all it's contents
 - `bamm clear userScripts` - Deletes the userScript directory and all it's contents (this will be rewritten)
 - `bamm uninstall` - Uninstalls bamm and all associated data
-- `set-custom-useragent "user-agent"` - Sets a custom user agent for the selenium session, see examples below.
+- `bamm --set-custom-useragent "user-agent"` - This is an extension of the command below for CLI usage, see "CLI Examples" for more information.
+- `set-custom-useragent "user-agent"` - Sets a custom user agent for the selenium session, see "BAMC Examples" below.
+- `add-header "header-name" "header-value"` - Adds a header for the current request.
 
 ## BAMC Examples:
 
