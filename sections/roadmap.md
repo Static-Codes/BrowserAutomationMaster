@@ -40,7 +40,7 @@ This section outlines the planned commands and features for later BAMM releases.
   ```
 
 ## User Experience Enhancements
-- Trim the size of the generated `.py` file, by ONLY including functions that are required by the `.bamc` file being compiled. 
+- Allow multiple visit commands in a single .BAMC script without jeopardizing current functionality.
 - Adding an option for users to **copy the path of the compiled script directory** to their clipboard.
 - Alternatively, users will be able to **open a new explorer/finder window** to that directory, provided there's at least 100MB of RAM available.
 - Finally, if the user wishes to simply execute the compiled script directly from BAMM, this feature will be added in a future update.
