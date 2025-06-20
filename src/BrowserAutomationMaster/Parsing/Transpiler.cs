@@ -5,6 +5,7 @@ using BrowserAutomationMaster.Managers;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace BrowserAutomationMaster
 {
@@ -317,10 +318,27 @@ namespace BrowserAutomationMaster
             foreach (string originalLine in configLines)
             {
                 string line = originalLine; // Since iterators can't be overwritten, storing it as a local variable is current solution.
-                string[] splitLine;
                 if (string.IsNullOrEmpty(line)) { continue; } // Skip blank lines.
-                if (line.Contains(" // ") && !isJSBlock) { hasComment = true; }
-                if (hasComment) { if (line.StartsWith(" // ")) { Console.WriteLine(line); } line = Parser.DeleteCommentIfPresent(line); }
+
+                if (line.Contains(" // ") && !isJSBlock) { hasComment = true; } // Indicates a comment is present (ignores comments within JS blocks)
+                if (hasComment) { if (line.StartsWith(" // ")) { Console.WriteLine(line); } line = Parser.DeleteCommentIfPresent(line); } // Deletes said comment so it's not compiled.
+                
+                // Handling 'add-headers' before 'visit' is processed would be an issue if it weren't for Parser
+                // Parser ensures 'browser' first (or defaults to firefox) then features and finally any other logic.
+                Match match = Parser.PrecompiledHeaderRegex().Match(line);
+                if (match.Success) {
+                    string requestLine = scriptBody.Where(line => line.Equals("make_request(url)")).First() ?? string.Empty;
+
+                    if (string.IsNullOrEmpty(requestLine)) { Errors.WriteErrorAndExit("Unable to locate request logic in partially compiled script, please attempt recompilation.", 1); }
+                    int index = scriptBody.IndexOf(requestLine);
+                    if (index == -1) { Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to locate request logic in partially compiled script, please attempt recompilation.", 1); }
+                    else {  // Value is assumed to be correct, but will very much cause an issue if the regex is found to not be fully reliable.
+                        scriptBody.Insert(index - 1, BrowserFunctions.addHeadersFunction(JsonSerializer.Deserialize<Dictionary<string, string>>(match.Groups["json"].Value)!));
+                    } 
+                   
+                    continue; // Go to next line
+                }
+
 
                 if (line.StartsWith("click-exp ")) { isCE = true; }
                 else if (line.StartsWith("fill-text")) { isFT = true; }
@@ -328,6 +346,8 @@ namespace BrowserAutomationMaster
                 else if (line.StartsWith("start-javascript")) { isJSBlock = true; continue; }
                 else if (line.StartsWith("end-javascript")) { isJSBlock = false; }
 
+
+                string[] splitLine;
                 if (isFT || isCU) { splitLine = line.Split(" \""); } // This handles fill-text or set-custom-useragent
                 else if (!isCE) { splitLine = line.Split(" "); } // This handles all but click-exp, fill-text, and set-custom-user-agent
                 else { splitLine = line.Split(" '"); } // This handles click-exp

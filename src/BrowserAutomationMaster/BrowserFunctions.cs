@@ -1,4 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers;
+using System.Reflection.PortableExecutable;
 using System.Text.Json;
 
 namespace BrowserAutomationMaster
@@ -16,9 +17,9 @@ namespace BrowserAutomationMaster
         public static string addHeaderFunction(string headerName, string headerValue) {
             Dictionary<string, string> header = new(){{headerName, headerValue}};
 
-            return @$"new_header = {JsonSerializer.Serialize(header, options)}
-driver.request_interceptor = lambda request: \
-request.headers.update(new_header)" + string.Concat(Enumerable.Repeat('\n', 1));
+            return @$"driver.request_interceptor = lambda request: setattr(request, 'headers', {{
+    **request.headers, " + @$"{{{JsonSerializer.Serialize(header, options)}}}".Replace("\"", "'").Replace("{", " ").Replace("}", " ").Trim() + "})"
+    + string.Concat(Enumerable.Repeat('\n', 1));
         }
 
         
@@ -27,15 +28,13 @@ request.headers.update(new_header)" + string.Concat(Enumerable.Repeat('\n', 1));
         {
 # pragma warning enable
 
-            return @$"new_headers = {JsonSerializer.Serialize(headers, options)}
-driver.request_interceptor = lambda request: \
-request.headers.update(new_headers)" + string.Concat(Enumerable.Repeat('\n', 1));
+            return @$"driver.request_interceptor = lambda request: setattr(request, 'headers', {{
+    **request.headers, " + @$"{{{JsonSerializer.Serialize(headers, options)}}}".Replace("\"", "'").Replace("{", " ").Replace("}", " ").Trim() + "})" 
+    + string.Concat(Enumerable.Repeat('\n', 1));
         }
 
-        public static string AddUserAgentFunction(string userAgent)
-        {
-            return @"driver.request_interceptor = lambda request: \
-request.headers.update({'User-Agent': '" + userAgent + "'})" + string.Concat(Enumerable.Repeat('\n', 1));
+        public static string AddUserAgentFunction(string userAgent) {
+            return addHeaderFunction("User-Agent", userAgent);
         }
 
         public static string browserQuitCode = "print('Quitting driver...')\ndriver.quit()";

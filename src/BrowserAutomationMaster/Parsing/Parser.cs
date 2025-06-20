@@ -20,8 +20,8 @@ namespace BrowserAutomationMaster
 
 
         public readonly static string[] actionArgs = [
-            "add-header", "click", "click-exp", "end-javascript", "fill-text", "get-text", "save-as-html", "save-as-html-exp", "select-element", 
-            "select-option", "set-custom-useragent", "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
+            "add-header", "add-headers", "click", "click-exp", "end-javascript", "fill-text", "get-text", "save-as-html", "save-as-html-exp", 
+            "select-element", "select-option", "set-custom-useragent", "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "no-ssl"];
@@ -40,6 +40,7 @@ namespace BrowserAutomationMaster
         readonly static string userScriptsDirectory = UserScriptManager.GetUserScriptDirectory();
 
         static string noFilesFoundMessage = "";
+        const string HeaderFormatPattern = @"^add-headers\s*(?<json>\{\s*(?:""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*""(?:\s*,\s*""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*"")*)?\s*\})$";
         const string LinkFormatPattern = @"(?i)\b(https?://(?:(?:(?:[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?\.)*(?:[a-z\u00a1-\uffff]{2,}|[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)\.?)|(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|\[(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[a-zA-Z0-9._~%-]+|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d))\]))(?::\d{2,5})?(?:[/?#][^\s<>""']*)?\b";
 
         const string ProxyFormatPattern = @"^([^:]+):([^@]+)@([^:]+):(\d+)$";
@@ -50,18 +51,20 @@ namespace BrowserAutomationMaster
         // Researched from: https://blog.nimblepros.com/blogs/using-generated-regex-attribute/
         // Source generation is used here at build time to create an optimized regex code block, which is then converted into MSIL prior to runtime; reducing overhead and improving efficiency.
 
-        [GeneratedRegex(ProxyFormatPattern)]
-        private static partial Regex PrecompiledProxyRegex();
+        [GeneratedRegex(HeaderFormatPattern)]
+        public static partial Regex PrecompiledHeaderRegex(); // Public declaration required for usage in Transpiler.HandleCompilation
 
         [GeneratedRegex(LinkFormatPattern)]
         private static partial Regex PrecompiledLinkRegex();
-
+        
         [GeneratedRegex(NumberFormatPattern)]
         private static partial Regex PrecompiledNumberRegex();
-        
+
+        [GeneratedRegex(ProxyFormatPattern)]
+        private static partial Regex PrecompiledProxyRegex();
+
         [GeneratedRegex(UserAgentFormatPattern)]
         private static partial Regex PrecompiledUserAgentRegex();
-
 
         public static bool CreateUserScriptsDirectory() // Write more detailed error handling.
         {
@@ -193,6 +196,10 @@ namespace BrowserAutomationMaster
         {
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
         }
+        public static bool IsValidHeaderFormat(string headerString) {
+            if (string.IsNullOrEmpty(headerString)) { return false; }
+            return PrecompiledHeaderRegex().IsMatch(headerString);
+        }
         public static bool IsValidNumberFormat(string numberString) {
             if (string.IsNullOrEmpty(numberString)) { return false; }
             return PrecompiledNumberRegex().IsMatch(numberString);
@@ -239,17 +246,28 @@ namespace BrowserAutomationMaster
         }
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
-            if (line.Trim().StartsWith(" //") || line.Trim().StartsWith("//")) { return true; } // This is assumed as a comment
-            string[] lineArgs;
+            string selectorString = "selector"; // Defaults to "selector" for selector based actions
+            string trimmedLine = line.Trim();
+            if (trimmedLine.StartsWith(" //") || trimmedLine.StartsWith("//")) { return true; } // This is assumed as a comment
 
+            if (trimmedLine.StartsWith("add-headers")) {
+                selectorString = $"{{\"header-name\": \"header-value\", \"header-name2\": \"header-value2\"}}";
+                if (!IsValidHeaderFormat(trimmedLine)) {
+                    return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid header format on line {lineNumber}\nLine: {line}\\nValid Syntax: add-headers {selectorString}\n", false);
+                }
+                return true;
+            }
+
+            string[] lineArgs;
             string[] lineArgSpecialCases = ["add-header",  "fill-text", "set-custom-useragent"];
+
             if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg))) { 
-                lineArgs = line.Trim().Split(" \""); 
-            } // Special case to handle fill-text
-            else { lineArgs = line.Trim().Split(" "); } // Handle all others
+                lineArgs = trimmedLine.Split(" \"");
+            } // Special case to handle lineArgSpecialCases
+
+            else { lineArgs = trimmedLine.Split(" "); } // Handle all others
 
             string firstArg = lineArgs[0];
-            string selectorString = "selector"; // Defaults to "selector" for selector based actions
             switch (firstArg)
             {
                 case "click" or "get-text" or "save-as-html" or "save-as-html-exp" or "select-element" or "take-screenshot" or "visit":
