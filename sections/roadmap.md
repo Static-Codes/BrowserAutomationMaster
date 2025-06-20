@@ -14,8 +14,6 @@ This section outlines the planned commands and features for later BAMM releases.
 
 - **`add-cookie "name" "value"`**: This command will let you add a single cookie to the browser session.
 - **`add-cookies {"name": "value", "name2": "value2"}`**: For more complex scenarios, you'll be able to add multiple cookies using a JSON object.
-- **`add-header "name" "value"`**: Add a single HTTP header to your requests.
-- **`add-headers {"name": "value", "name2": "value2"}`**: Add multiple HTTP headers using a JSON object.
 - **`set-element-property "selector" "property" "value"`**: This powerful command will allow you to dynamically change properties of HTML elements.
 
   **EXAMPLE:**
