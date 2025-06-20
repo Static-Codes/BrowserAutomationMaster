@@ -20,8 +20,8 @@ namespace BrowserAutomationMaster
 
 
         public readonly static string[] actionArgs = [
-            "click", "click-exp", "end-javascript", "fill-text", "get-text", "save-as-html", "save-as-html-exp", "select-element", "select-option",
-            "set-custom-useragent", "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
+            "add-header", "click", "click-exp", "end-javascript", "fill-text", "get-text", "save-as-html", "save-as-html-exp", "select-element", 
+            "select-option", "set-custom-useragent", "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "no-ssl"];
@@ -241,8 +241,13 @@ namespace BrowserAutomationMaster
         {
             if (line.Trim().StartsWith(" //") || line.Trim().StartsWith("//")) { return true; } // This is assumed as a comment
             string[] lineArgs;
-            if (line.StartsWith("fill-text")) { lineArgs = line.Trim().Split(" \""); } // Special case to handle fill-text
+
+            string[] lineArgSpecialCases = ["add-header",  "fill-text", "set-custom-useragent"];
+            if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg))) { 
+                lineArgs = line.Trim().Split(" \""); 
+            } // Special case to handle fill-text
             else { lineArgs = line.Trim().Split(" "); } // Handle all others
+
             string firstArg = lineArgs[0];
             string selectorString = "selector"; // Defaults to "selector" for selector based actions
             switch (firstArg)
@@ -257,6 +262,14 @@ namespace BrowserAutomationMaster
                     }
                     if (lineArgs[0].Equals("visit") && !IsValidLinkFormat(lineArgs[1].Replace('"', ' ').Trim())) {
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid url format on line {lineNumber}\nLine: {line}\n", false);
+                    }
+                    return true;
+
+
+                case "add-header":
+                    selectorString = "\"header-name\" \"header-value\"";
+                    if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].EndsWith('"')) {
+                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} {selectorString}\n", false);
                     }
                     return true;
 
@@ -284,7 +297,7 @@ namespace BrowserAutomationMaster
 
                 case "set-custom-useragent":
                     selectorString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
-                    if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].Trim().EndsWith('"')) {
+                    if (lineArgs.Length != 2 || !lineArgs[1].Trim().EndsWith('"')) {
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} \"{selectorString}\"\n", false);
                     }
                     else if (!IsValidUserAgentFormat(lineArgs[1].Trim())) {

@@ -5,6 +5,15 @@ using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 
 
+//Dictionary<string, string> headers = new() {
+//    { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0" },
+//    { "Accept", "all" }
+//};
+
+//Console.WriteLine(BrowserFunctions.addHeadersFunction(headers));
+//Environment.Exit(0);
+
+
 bool isRunning = true;
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { Windows.VerifyRootDrive(pArgs); }

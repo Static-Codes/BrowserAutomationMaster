@@ -1,12 +1,41 @@
-﻿namespace BrowserAutomationMaster
+﻿using BrowserAutomationMaster.Managers;
+using System.Text.Json;
+
+namespace BrowserAutomationMaster
 {
     internal static class BrowserFunctions
     {
 
-        public static string addHeadersFunction(string headerName, string headerValue) {
-            return @$"def interceptor(request):
-    request.headers['{headerName}'] = '{headerValue}'
-";
+        public static JsonSerializerOptions options = new()
+        {
+            AllowTrailingCommas = true,
+            WriteIndented = true,
+        };
+
+#pragma warning disable // Disable warnings about these 2 functions starting with a lowercase letter
+        public static string addHeaderFunction(string headerName, string headerValue) {
+            Dictionary<string, string> header = new(){{headerName, headerValue}};
+
+            return @$"new_header = {JsonSerializer.Serialize(header, options)}
+driver.request_interceptor = lambda request: \
+request.headers.update(new_header)" + string.Concat(Enumerable.Repeat('\n', 1));
+        }
+
+        
+
+        public static string addHeadersFunction(Dictionary<string, string> headers)
+        {
+# pragma warning enable
+
+            return @$"new_headers = {JsonSerializer.Serialize(headers, options)}
+driver.request_interceptor = lambda request: \
+request.headers.update(new_headers)" + string.Concat(Enumerable.Repeat('\n', 1));
+        }
+
+        public static string AddUserAgentFunction(string userAgent)
+        {
+            return @"driver.request_interceptor = lambda request: \
+request.headers.update({'User-Agent': '" + userAgent + "'})" + string.Concat(Enumerable.Repeat('\n', 1));
         }
 
         public static string browserQuitCode = "print('Quitting driver...')\ndriver.quit()";
@@ -141,9 +170,9 @@
 " +
 @"    try:
         print(f'Navigating to: {url}')
-        driver.request_interceptor = interceptor
 "+
-@"        driver.get(url)
+@$"        {BrowserFunctions.AddUserAgentFunction(pythonSafeUserAgent)}"+
+            @"        driver.get(url)
         final_url = driver.current_url
         print(f'Navigation complete. Final URL: {final_url}')
         target_request = None
