@@ -20,8 +20,8 @@ namespace BrowserAutomationMaster
 
 
         public readonly static string[] actionArgs = [
-            "add-header", "add-headers", "click", "click-exp", "end-javascript", "fill-text", "get-text", "save-as-html", "save-as-html-exp", 
-            "select-element", "select-option", "set-custom-useragent", "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
+            "add-header", "add-headers", "click", "click-exp", "end-javascript", "fill-text", "fill-text-exp", "get-text", "save-as-html", 
+            "save-as-html-exp", "select-element", "select-option", "set-custom-useragent", "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "no-ssl"];
@@ -259,7 +259,7 @@ namespace BrowserAutomationMaster
             }
 
             string[] lineArgs;
-            string[] lineArgSpecialCases = ["add-header",  "fill-text", "set-custom-useragent"];
+            string[] lineArgSpecialCases = ["add-header",  "fill-text", "fill-text-exp", "set-custom-useragent"];
 
             if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg))) { 
                 lineArgs = trimmedLine.Split(" \"");
@@ -301,6 +301,15 @@ namespace BrowserAutomationMaster
                     return true;
 
                 case "fill-text":
+                    selectorString = "\"selector\" \"Desired value to input\"";
+                    if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].Trim().EndsWith('"'))
+                    {
+                        return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} \"{selectorString}\" \"value\"\n", false);
+                    }
+                    return true;
+
+                case "fill-text-exp":
+                    selectorString = "\"selector\" \"Desired value to input\"";
                     if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].Trim().EndsWith('"'))
                     {
                         return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\nInvalid syntax on line {lineNumber}\nLine: {line}\nValid Syntax: {firstArg} \"{selectorString}\" \"value\"\n", false);

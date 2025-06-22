@@ -190,8 +190,8 @@ namespace BrowserAutomationMaster
 
             if (functionsPresent.TryGetValue("click", out bool isNeeded) && isNeeded){ scriptBody.Insert(index, BrowserFunctions.clickElementFunction); index++; }
             if (functionsPresent.TryGetValue("click-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.clickElementExperimentalFunction); index++; }
-            if (functionsPresent.TryGetValue("click-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.clickElementExperimentalFunction); index++; }
             if (functionsPresent.TryGetValue("fill-text", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.fillTextFunction); index++; }
+            if (functionsPresent.TryGetValue("fill-text-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.fillTextExperimentalFunction); index++; }
             if (functionsPresent.TryGetValue("get-text", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.getTextFunction); index++; }
             if (functionsPresent.TryGetValue("save-as-html", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLFunction); index++; }
             if (functionsPresent.TryGetValue("save-as-html-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLFunction); index++; }
@@ -310,7 +310,7 @@ namespace BrowserAutomationMaster
             bool firstVisitFinished = false; // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
             bool isCU = false; // This prevents issues caused by set-custom-user-agent having unique formatting (Many spaces).
             bool isCE = false; // This prevents issues caused by click-exp having unique formatting.
-            bool isFT = false; // This prevents issues caused by fill-text if the third argument has spaces in it.
+            bool isFT = false; // This prevents issues caused by fill-text and fill-text-exp if the arguments have spaces in them.
            
             bool isJSBlock = false; // This prevents issues caused by embedding javascript code into python code.
             bool isJSLine = false;  // Also prevents issued caused by embedding javascript code into python code.
@@ -341,7 +341,7 @@ namespace BrowserAutomationMaster
 
 
                 if (line.StartsWith("click-exp ")) { isCE = true; }
-                else if (line.StartsWith("fill-text")) { isFT = true; }
+                else if (line.StartsWith("fill-text")) { isFT = true; } // Also handles fill-text-exp
                 else if (line.StartsWith("set-custom-useragent")) { isCU = true; }
                 else if (line.StartsWith("start-javascript")) { isJSBlock = true; continue; }
                 else if (line.StartsWith("end-javascript")) { isJSBlock = false; }
@@ -463,13 +463,13 @@ namespace BrowserAutomationMaster
                                         SelectorCategory.PseudoClass or
                                         SelectorCategory.PseudoElement or
                                         SelectorCategory.TagName:
-                                            scriptBody.Add($"click_element_experimental('css', {parsedCESelector.rawInput}, {actionTimeout})");
+                                            scriptBody.Add($"click_element_experimental(\"{parsedCESelector.rawInput}\", {actionTimeout})");
                                             break;
                                         case SelectorCategory.XPath:
-                                            scriptBody.Add($"click_element_experimental('xpath', '{parsedCESelector.rawInput}', {actionTimeout})");
+                                            scriptBody.Add($"click_element_experimental('{parsedCESelector.rawInput}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"click_element('css', \"{sanitizedArg2}\", {actionTimeout})");
+                                            scriptBody.Add($"click_element(\"{sanitizedArg2}\", {actionTimeout})");
                                             break;
                                     }
                                     break;
@@ -565,6 +565,61 @@ namespace BrowserAutomationMaster
                                         SelectorCategory.PseudoElement or
                                         SelectorCategory.InvalidOrUnknown:
                                             scriptBody.Add($"isFilled = fill_text(By.CSS_SELECTOR, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                            break;
+                                    }
+                                    scriptBody.Add($"if isFilled:\n{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
+                                    scriptBody.Add($"else:\n{Indent(1)}print(\"Could not fill the element: {sanitizedArg2}\")\n{Indent(1)}exit()\n");
+                                    break;
+                            }
+                            break;
+
+                        case "fill-text-exp":
+                            isFT = false; // Once since the case its safe to set this flag to false
+                            sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); // Parser will throw an error before this is reached, if an exception is triggered. 
+                            string fillElementExpSelector = splitLine[1].Replace('"', ' ').Trim();
+                            ParsedSelector parsedFillExpSelector = SelectorParser.Parse(fillElementExpSelector);
+                            switch (browserPackage)
+                            {
+                                case BrowserPackage.aiohttp:
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'fill-text', please remove this line and recompile."), 1);
+                                    break;
+
+                                case BrowserPackage.tls_client:
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'fill-text'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    break;
+
+                                case BrowserPackage.selenium:
+                                    importStatements.AddRange([
+                                        "from selenium.webdriver.remote.webelement import WebElement",
+                                        "from selenium.common.exceptions import StaleElementReferenceException, TimeoutException"
+                                    ]);
+                                    switch (parsedFillExpSelector.Category)
+                                    {
+                                        case SelectorCategory.Id:
+                                            scriptBody.Add($"isFilled = fill_text_exp(By.ID, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
+                                            break;
+
+                                        case SelectorCategory.ClassName:
+                                            scriptBody.Add($"isFilled = fill_text_exp(By.CLASS_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
+                                            break;
+
+                                        case SelectorCategory.NameAttribute:
+                                            scriptBody.Add($"isFilled = fill_text_exp(By.NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
+                                            break;
+
+                                        case SelectorCategory.TagName:
+                                            scriptBody.Add($"isFilled = fill_text_exp(By.TAG_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
+                                            break;
+
+                                        case SelectorCategory.XPath: // Special case to handle xpath's (keep the escaped double quotes)
+                                            scriptBody.Add($"isFilled = fill_text_exp(By.XPATH, \"{parsedFillExpSelector.Value}\", '{sanitizedArg3}')\n");
+                                            break;
+
+                                        case SelectorCategory.Attribute or
+                                        SelectorCategory.PseudoClass or
+                                        SelectorCategory.PseudoElement or
+                                        SelectorCategory.InvalidOrUnknown:
+                                            scriptBody.Add($"isFilled = fill_text_exp(By.CSS_SELECTOR, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
                                             break;
                                     }
                                     scriptBody.Add($"if isFilled:\n{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
@@ -832,7 +887,8 @@ namespace BrowserAutomationMaster
                                                 "else:",
                                                 $"{Indent(1)}height = 1920",
                                                 $"{Indent(1)}width = 1080\n\n",
-                                                "driver.set_window_position(width, 0) # Sets the browser off the right of the primary display",
+                                                //"driver.set_window_position(width, 0) # Sets the browser off the right of the primary display",
+                                                "driver.set_window_position(-4000, 0) # Sets the browser off the right of the primary display",
                                                 "print('Driver initialized.')\n\n"
                                             ]);
                                         scriptBody.Add("make_request(url)");
@@ -867,7 +923,7 @@ namespace BrowserAutomationMaster
             }
             importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
             importStatements.Insert(0, "from os import path, system");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // Fix this to use installPackagesFunction (requires args [requirements.txt, "path/to/python/Scripts
             {
                 importStatements.Insert(1, "system('pip install -r requirements.txt')\n");
             }
@@ -879,24 +935,6 @@ namespace BrowserAutomationMaster
             {
                 Errors.WriteErrorAndExit("BAMM is somehow running an unsupported platform, if this is intentional, and you're contributing to the project, simply remove this check.", 1);
             }
-
-
-            //scriptBody.Insert(0, BrowserFunctions.addHeaderFunction("User-Agent", requestUserAgent));
-            //scriptBody.Insert(1, BrowserFunctions.checkImportFunction);
-            //scriptBody.Insert(2, BrowserFunctions.clickElementFunction);
-            //scriptBody.Insert(3, BrowserFunctions.clickElementExperimentalFunction);
-            //scriptBody.Insert(4, BrowserFunctions.getScreenBoundsFunction);
-            //scriptBody.Insert(5, BrowserFunctions.fillTextFunction);
-            //scriptBody.Insert(6, BrowserFunctions.getTextFunction);
-            //scriptBody.Insert(7, BrowserFunctions.installPackagesFunction);
-            //scriptBody.Insert(8, BrowserFunctions.makeRequestFunction(requestUserAgent));
-            //scriptBody.Insert(9, BrowserFunctions.saveAsHTMLFunction);
-            //scriptBody.Insert(10, BrowserFunctions.saveAsHTMLExperimentalFunction);
-            //scriptBody.Insert(11, BrowserFunctions.selectElementFunction);
-            //scriptBody.Insert(12, BrowserFunctions.selectOptionByIndexFunction);
-            //scriptBody.Insert(13, BrowserFunctions.takeScreenshotFunction);
-
-            //scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode);
             AddRequiredFunctions();
         }
         public static void HandlePythonVersionSelection(Installations installations)
@@ -1050,7 +1088,6 @@ namespace BrowserAutomationMaster
                         1);
             }
         }
-
         public static void SetDesiredSaveDirectory()
         {
             desiredSaveDirectory = DirectoryManager.GetDesiredSaveDirectory();

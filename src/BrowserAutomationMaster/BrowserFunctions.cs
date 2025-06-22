@@ -1,6 +1,7 @@
 ﻿using BrowserAutomationMaster.Managers;
 using System.Reflection.PortableExecutable;
 using System.Text.Json;
+using System.Threading;
 
 namespace BrowserAutomationMaster
 {
@@ -21,17 +22,16 @@ namespace BrowserAutomationMaster
     **request.headers, " + @$"{{{JsonSerializer.Serialize(header, options)}}}".Replace("\"", "'").Replace("{", " ").Replace("}", " ").Trim() + "})"
     + string.Concat(Enumerable.Repeat('\n', 1));
         }
-
         
-
         public static string addHeadersFunction(Dictionary<string, string> headers)
         {
-# pragma warning enable
 
             return @$"driver.request_interceptor = lambda request: setattr(request, 'headers', {{
     **request.headers, " + @$"{{{JsonSerializer.Serialize(headers, options)}}}".Replace("\"", "'").Replace("{", " ").Replace("}", " ").Trim() + "})" 
     + string.Concat(Enumerable.Repeat('\n', 1));
         }
+
+#pragma warning enable
 
         public static string AddUserAgentFunction(string userAgent) {
             return addHeaderFunction("User-Agent", userAgent);
@@ -62,16 +62,17 @@ namespace BrowserAutomationMaster
         print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)
         exit()" + string.Concat(Enumerable.Repeat('\n', 1));
 
-        public static string clickElementExperimentalFunction = $@"def click_element_experimental(selectorType: str, selector: str):
-    byType = By.CSS_SELECTOR if selectorType == 'css' else By.XPATH
-    try:
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((byType, selector))).click()
-    except NoSuchElementException:
-        print(f'Unable to find element:', selector)
-        exit()
-    except Exception as e:
-        print('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)
-        exit()" + string.Concat(Enumerable.Repeat('\n', 1));
+        public static string clickElementExperimentalFunction = $@"def click_element_experimental(selector: str, timeout: int = 10):
+    driver.execute_script(f""""""let selector = '{{selector}}';
+let element = document.querySelector(selector);
+if (element) {{{{
+  element.click();
+}}}}
+setTimeout(() => {{timeout*1000}});
+""""""
+)
+    sleep(timeout)
+";
 
         public static string getScreenBoundsFunction = @"def get_screen_bounds():
     try:
@@ -121,6 +122,192 @@ namespace BrowserAutomationMaster
             e,
         )
         exit()" + string.Concat(Enumerable.Repeat('\n', 1));
+
+        public static string fillTextExperimentalFunction = @"def fill_text_exp(byType: By, selector: str, new_value: str, timeout: int = 10) -> bool:
+    element: WebElement = None
+
+    try:
+        wait = WebDriverWait(driver, timeout)
+        element = wait.until(EC.visibility_of_element_located((byType, selector)))
+    except TimeoutException:
+        print(f""Timed out while attempting to locate element: \n{selector}"")
+        return False
+    except Exception as e:
+        print(f""Error finding element:\n{selector}\nError: {e}"")
+        return False
+
+    # Inline function for simplicity
+    def verify_text_status(el: WebElement, expected_value: str) -> bool:
+        try:
+            # For <input> and <textarea> elements, the 'value' attribute is used.
+            current_value = el.get_attribute(""value"")
+            if current_value == expected_value:
+                return True
+            # For other elements, both 'innerText' and '.text' are tried.
+            current_text = el.text
+            if current_text == expected_value:
+                return True
+            else:
+                current_text = el.get_attribute(""innerText"")
+                if current_text == expected_value:
+                    return True
+                else:
+                    current_text = el.get_attribute(""textContent"")
+                    if current_text == expected_value:
+                        return True
+            print(
+                f""Verification failed: Expected '{expected_value}', got value={current_value}, text={current_text}'""
+            )
+            return False
+        except StaleElementReferenceException:
+            print(f""Unable to update stale element: {el.tag_name}."")
+            return False
+        except Exception as err:
+            print(
+                f""Unable to validate update status for element:\n{selector}\nError:{err}""
+            )
+            return False
+
+    # ---> Method 1: element.clear() + element.send_keys() <---
+    try:
+        element.clear()
+        element.send_keys(new_value)
+        if verify_text_status(element, new_value):
+            print(f""Successfully filled text for element: {selector}."")
+            return True
+        print(f""Unable to fill text for element: {selector}\nAttempting Method 2.."")
+    except Exception as e:
+        print(
+            f""Unable to fill text for element: {selector}\nError: {e}\n\nAttempting Method 2...""
+        )
+    
+    # ---> Method 2: JavaScript arguments[0].textContent <---
+    try:
+        # Refetching isn't necessary but its a good idea because an element can become stale.
+        element = driver.find_element(byType, selector)
+    except Exception as err:
+        print(
+            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 3...""
+        )
+        return False
+    
+    try:
+        driver.execute_script(""arguments[0].textContent = arguments[1];"", element, new_value)
+        #driver.execute_script(
+        #    'arguments[0].dispatchEvent(new Event(""input"", { bubbles: true }));',
+        #    element,
+        #)
+        #driver.execute_script(
+        #    'arguments[0].dispatchEvent(new Event(""change"", { bubbles: true }));',
+        #    element,
+        #)
+        if verify_text_status(element, new_value):
+            print(f""Successfully filled text for element: {selector}"")
+            return True
+        print(f""Unable to fill text for element: {selector}\nAttempting Method 3.."")
+    except Exception as e:
+        print(
+            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 3...""
+        )
+
+    try:
+        driver.execute_script(""arguments[0].value = arguments[1];"", element, new_value)
+        #driver.execute_script(
+        #    'arguments[0].dispatchEvent(new Event(""input"", { bubbles: true }));',
+        #    element,
+        #)
+        #driver.execute_script(
+        #    'arguments[0].dispatchEvent(new Event(""change"", { bubbles: true }));',
+        #    element,
+        #)
+        if verify_text_status(element, new_value):
+            print(f""Successfully filled text for element: {selector}"")
+            return True
+        print(f""Unable to fill text for element: {selector}\nAttempting Method 4.."")
+    except Exception as e:
+        print(
+            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...""
+        )
+    
+    # ---> Method 3: JavaScript arguments[0].value <---
+    try:
+        # Refetching isn't necessary but its a good idea because an element can become stale.
+        element = driver.find_element(byType, selector)
+    except Exception as err:
+        print(
+            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 4...""
+        )
+        return False
+    
+    try:
+        driver.execute_script(""arguments[0].value = arguments[1];"", element, new_value)
+        #driver.execute_script(
+        #    'arguments[0].dispatchEvent(new Event(""input"", { bubbles: true }));',
+        #    element,
+        #)
+        #driver.execute_script(
+        #    'arguments[0].dispatchEvent(new Event(""change"", { bubbles: true }));',
+        #    element,
+        #)
+        if verify_text_status(element, new_value):
+            print(f""Successfully filled text for element: {selector}"")
+            return True
+        print(f""Unable to fill text for element: {selector}\nAttempting Method 4.."")
+    except Exception as e:
+        print(
+            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...""
+        )
+
+    try:
+        driver.execute_script(""arguments[0].value = arguments[1];"", element, new_value)
+        #driver.execute_script(
+        #    'arguments[0].dispatchEvent(new Event(""input"", { bubbles: true }));',
+        #    element,
+        #)
+        #driver.execute_script(
+        #    'arguments[0].dispatchEvent(new Event(""change"", { bubbles: true }));',
+        #    element,
+        #)
+        if verify_text_status(element, new_value):
+            print(f""Successfully filled text for element: {selector}"")
+            return True
+        print(f""Unable to fill text for element: {selector}\nAttempting Method 4.."")
+    except Exception as e:
+        print(
+            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...""
+        )
+
+    # --- Method 4: JavaScript arguments[0].innerText ---
+    try:
+        # Refetching isn't necessary but its a good idea because an element can become stale.
+        element = driver.find_element(byType, selector)
+    except Exception as err:
+        print(
+            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 3...""
+        )
+        return False
+
+    try:
+        driver.execute_script(
+            ""arguments[0].innerText = arguments[1];"", element, new_value
+        )
+
+        driver.execute_script(
+            'arguments[0].dispatchEvent(new Event(""input"", { bubbles: true }));',
+            element,
+        )
+        driver.execute_script(
+            'arguments[0].dispatchEvent(new Event(""change"", { bubbles: true }));',
+            element,
+        )
+        if verify_text_status(element, new_value):
+            print(f""Successfully filled text for element: {selector}"")
+            return True
+        print(f""Unable to fill text for element: {selector}"")
+        return False
+    except Exception as e:
+        print(f""An error occurred while attempting to fill:\n{selector}\nError:\n{e}"")
+        return False" + string.Concat(Enumerable.Repeat("\n", 1));
 
         public static string installPackagesFunction = @"def install_packages(requirements_file: str, script_dir: str):
     if not path.exists(script_dir):
