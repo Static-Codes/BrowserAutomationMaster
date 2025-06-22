@@ -69,10 +69,18 @@ A Domain Specific Language (DSL) that compiles into valid Python code!
   # If there are dependency issues, fix them with:
   sudo apt-get install -f
   ```
+  
 - **MacOS**
-  The compiled application will be in `bin/Release/netX.Y/osx-arm64/publish/`.
-  Place it on your Desktop for easy access!
-  use `sudo chmod +x Desktop/bamm` to make it an executable!
+  - For Intel users
+    - Download the latest release for Intel Macs from https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest
+    - Place it on your Desktop for easy access!
+    - Use `sudo chmod +x Desktop/bamm` to make it an executable!
+  - For Silicon users
+    - Download the latest release for Silicon Macs from https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest
+    - Place it on your Desktop for easy access!
+    - Rename it from `bamm-silicon` to `bamm`
+    - Use `sudo chmod +x Desktop/bamm` to make it an executable!
+
 - **Windows**
   Simply double click the installer in `BrowserAutomationMaster\src\Published Builds\{Your architecture}\`
 
