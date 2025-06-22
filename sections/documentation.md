@@ -89,16 +89,10 @@ The following actions can be used in your BAMC scripts:
 These arguments can be used when running BAMC from the command line:
 
 - `add`: Adds a `.bamc` file to the `userScripts` directory.
-<<<<<<< Updated upstream
   - **Syntax:**
     - `bamm add 'path/to/filename.bamc'`
 
 - `clear`: Clears the specified directory.
-=======
-  - **Syntax:** `bamm add 'path/to/filename.bamc'`
-- `clear`: Clears the specified directory.
-
->>>>>>> Stashed changes
   - **Syntax**
   - `bamm clear compiled` -> This clears all scripts from the 'compiled' directory.
   - `bamm clear userScripts` -> This clears all scripts from the 'userScripts' directory.
@@ -113,26 +107,15 @@ These arguments can be used when running BAMC from the command line:
   - **Syntax:**
     - `bamm help --all` -> This displays information for all available commands.
     - `bamm help wait-for-seconds` -> This displays information about the selected command
-<<<<<<< Updated upstream
 
 - `uninstall`: Uninstalls the program on windows and gives instructions for Unix based systems (MacOS/Linux)
-=======
-- `uninstall`: Uninstalls the program on windows and gives instructions for Unix based systems (MacOS/Linux)
-
->>>>>>> Stashed changes
   - **Syntax:**
     - `bamm uninstall --all` -> This displays information for all available commands.
 
 - `--set-custom-useragent`: Sets a custom user agent for the current compilation session, this gets reset back to default after the first compilation.
-<<<<<<< Updated upstream
   - **Syntax:**
     - `bamm --set-custom-useragent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Safari/605.1.15"` -> Sets the user agent to Safari on MacOS via CLI
 
-=======
-
-  - **Syntax:**
-    - `bamm --set-custom-useragent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Safari/605.1.15"` -> Sets the user agent to Safari on MacOS
->>>>>>> Stashed changes
 
 - `--set-timeout`: Sets the default timeout in seconds for all Selenium-based browser actions.
   - **Syntax:**
