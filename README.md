@@ -21,13 +21,12 @@ A Domain Specific Language (DSL) that compiles into valid Python code!
 ### Supported Operating Systems
 
 - Linux **(x64)**
-- MacOS 11.0+ **(x64)**
-- Windows 10 **(ARM64, x64, x86)**
-- Windows 11 **(ARM64, x64, x86)**
+- MacOS 11.0+ **(ARM64, x64)**
+- Windows 10 **(ARM64, x64)**
+- Windows 11 **(ARM64, x64)**
 
 ### Supported Platforms
 
-- **x86**
 - **x64**
 - **ARM64**
 
