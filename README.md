@@ -83,6 +83,7 @@ Selenium automation in Python can involve a lot of repetitive code and detailed 
           - Use `sudo chmod +x Desktop/bamm` to make it an executable\!
 
   - **Windows**
+    - Visit https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest
     - Download the installer for your CPUs architecture, most users will be okay downloading the x64 windows build.
 
 ## Opening BAMM 🚀
