@@ -78,7 +78,7 @@ This will create a self-contained application for macOS 11.0+ (Both Intel and Ap
 
     The compiled application will be in `bin/Release/netX.Y/osx-x64/publish/`.
 
-2.  **(Optional) Publish for macOS ARM64 (Apple Silicon):**
+2.  **Publish for macOS ARM64 (Apple Silicon):**
     This is for Apple Silicon users **ONLY**:
     ```bash
     dotnet publish -c Release -r osx-arm64 --self-contained true
