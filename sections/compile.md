@@ -51,11 +51,18 @@ This will create a `.deb` package for easy installation.
     ```
 
 2.  **Compile and Package:**
-    ```bash
-    dotnet deb --runtime linux-x64 --configuration Release
-    ```
-    The resulting `.deb` package will typically be found in the project's root directory or a sub-directory like `bin/Release/`. Check the command output for the exact location.
+    - For x64 CPUs
+        ```bash
+        dotnet deb --runtime linux-x64 --configuration Release
+        ```
+        The resulting `.deb` package will typically be found in the project's root directory or a sub-directory like `bin/Release/`. Check the command output for the exact location.
 
+    - For ARM64 CPUs
+        ```bash
+        dotnet deb --runtime linux-arm64 --configuration Release
+        ```
+        The resulting `.deb` package will typically be found in the project's root directory or a sub-directory like `bin/Release/`. Check the command output for the exact location.
+    
 #### Generic Linux Publish (Self-Contained Application)
 
 If you don't want a `.deb` package or are on a non-Debian-based Linux distribution, you can create a self-contained application.
@@ -105,18 +112,10 @@ This will create self-contained applications for different Windows architectures
 
     The compiled application will be in `bin\Release\netX.Y\win-arm64\publish\`.
 
-3.  **Publish for Windows x86 (32-bit):**
-
-    ```bash
-    dotnet publish -c Release -r win-x86 --self-contained true
-    ```
-
-    The compiled application will be in `bin\Release\netX.Y\win-x86\publish\`.
-
-4.  **Download [Inno Setup v6.4.3](https://jrsoftware.org/download.php/is.exe?site=1)**
+3.  **Download [Inno Setup v6.4.3](https://jrsoftware.org/download.php/is.exe?site=1)**
     Ensure "Associate Inno Setup with the .iss file extension" is checked during setup.
 
-5.  **Create an installer**
+4.  **Create an installer**
     Navigate to `BrowserAutomationMaster\src\Installer Files\Windows`
     Right click on the .iss file corresponding to your published build (ARM64, x64, x86)
     Click compile
