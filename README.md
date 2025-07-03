@@ -30,7 +30,7 @@ Selenium automation in Python can involve a lot of repetitive code and detailed 
 
 ### System Requirements (Minimum Tested) ✨
 
-  - 2+ Core CPU
+  - 2 Core CPU
   - 4GB DDR3 RAM (The application itself uses under 200MB of RAM)
   - Any Supported Browser
   - Any Supported Python Version
