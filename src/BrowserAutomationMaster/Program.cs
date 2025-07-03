@@ -18,8 +18,11 @@ Console.Title = $"BrowserAutomationMaster Manager (BAMM!) {UpdateManager.Current
 bool isRunning = true;
 bool isCLI = false;
 
-if (!pArgs.Any(arg => nonUserScriptArgs.Contains(arg))) { RuntimeManager.DoRuntimeCheck(); } // Set expectations regarding automation performance given the user's specs.
-UpdateManager.CheckForUpdate(); // New releases are fun - Ghandi probably.
+if (!pArgs.Any(arg => nonUserScriptArgs.Contains(arg))) {
+    RuntimeManager.DoRuntimeCheck();  // Set expectations regarding automation performance given the user's specs.
+    UpdateManager.CheckForUpdate(); // New releases are fun - Ghandi probably.
+}
+
 
 if (pArgs.Length == 2 && !nonUserScriptArgs.Contains(pArgs[0].ToLower())) { isCLI = true; } // Set CLI True if a validCLIArg is passed.
 

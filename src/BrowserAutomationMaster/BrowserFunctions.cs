@@ -34,7 +34,7 @@ namespace BrowserAutomationMaster
             return addHeaderFunction("User-Agent", userAgent);
         }
 
-        public static string browserQuitCode = "stdout.write('Quitting driver...')\ndriver.quit()";
+        public static string browserQuitCode = "stdout.write('Quitting driver...')\ndriver.quit()\n";
 
         public static string checkImportFunction = @"def check_import(name: str):
     module_name = name.split('==')[0].split('>=')[0].split('<=')[0].split('!=')[0].split('<')[0].split('>')[0].split('[')[0].strip()
@@ -46,17 +46,17 @@ namespace BrowserAutomationMaster
         import_module(module_name)
         return True
     except:
-        stderr.write(error_msg)
+        stderr.write(error_msg + '\n')
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string clickElementFunction = @"def click_element(byType: By, selector: str, actionTimeout: int):
     try:
         WebDriverWait(driver, actionTimeout).until(EC.element_to_be_clickable((byType, selector))).click()
     except NoSuchElementException:
-        stderr.write(f'Unable to find element:', selector)
+        stderr.write(f'Unable to find element: ' + selector + '\n')
         exit(1)
     except Exception as e:
-        stderr.write('An error occured while trying to click element with the selector:', selector, '\n\nError:\n',e)
+        stderr.write('An error occured while trying to click element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
         exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string clickElementExperimentalFunction = $@"def click_element_experimental(selector: str, timeout: int = 10):
@@ -77,7 +77,7 @@ setTimeout(() => {{timeout*1000}});
         if ""width"" not in result.keys() or ""height"" not in result.keys():
             stderr.write(
                 'Unable to determine screen boundaries of the current monitor.  '
-                'you may see a portion of the browser while it executes.'
+                'you may see a portion of the browser while it executes.\n'
             )
             return None
         
@@ -87,7 +87,7 @@ setTimeout(() => {{timeout*1000}});
     except:
         stderr.write(
             'Unable to determine screen boundaries of the current monitor.  '
-            'You may see a portion of the browser while it executes.'
+            'You may see a portion of the browser while it executes.\n'
         )
         return None" + string.Concat(Enumerable.Repeat('\n', 1));
 
@@ -97,10 +97,10 @@ setTimeout(() => {{timeout*1000}});
         text = driver.find_element(byType, selector).get_property(propertyName)
         return text
     except NoSuchElementException:
-        stderr.write(f'Unable to find element:', selector)
+        stderr.write(f'Unable to find element: ' + selector + '\n')
         exit(1)
     except Exception as e:
-        stderr.write('An error occured while trying to get text from element with the selector:', selector, '\n\nError:\n',e)
+        stderr.write('An error occured while trying to get text from element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
         exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string fillTextFunction = @"def fill_text(byType: By, selector: str, value: str):
@@ -109,15 +109,10 @@ setTimeout(() => {{timeout*1000}});
         element.send_keys(value)
         return True
     except NoSuchElementException:
-        stderr.write(f'Unable to find element:', selector)
+        stderr.write(f'Unable to find element: ' + selector + '\n')
         exit(1)
     except Exception as e:
-        stderr.write(
-            'An error occured while trying to fill text on element with the selector:',
-            selector,
-            '\n\nError:\n',
-            e,
-        )
+        stderr.write('An error occured while trying to fill text on element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
         exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string fillTextExperimentalFunction = @"def fill_text_exp(byType: By, selector: str, new_value: str, timeout: int = 10) -> bool:
@@ -127,10 +122,10 @@ setTimeout(() => {{timeout*1000}});
         wait = WebDriverWait(driver, timeout)
         element = wait.until(EC.visibility_of_element_located((byType, selector)))
     except TimeoutException:
-        stderr.write(f""Timed out while attempting to locate element: \n{selector}"")
+        stderr.write(f""Timed out while attempting to locate element: \n{selector}\n"")
         return False
     except Exception as e:
-        stderr.write(f""Error finding element:\n{selector}\nError: {e}"")
+        stderr.write(f""Error finding element:\n{selector}\nError: {e}\n"")
         return False
 
     # Inline function for simplicity
@@ -153,15 +148,15 @@ setTimeout(() => {{timeout*1000}});
                     if current_text == expected_value:
                         return True
             stderr.write(
-                f""Verification failed: Expected '{expected_value}', got value={current_value}, text={current_text}'""
+                f""Verification failed: Expected '{expected_value}', got value={current_value}, text={current_text}'\n""
             )
             return False
         except StaleElementReferenceException:
-            stderr.write(f""Unable to update stale element: {el.tag_name}."")
+            stderr.write(f""Unable to update stale element: {el.tag_name}.\n"")
             return False
         except Exception as err:
             stderr.write(
-                f""Unable to validate update status for element:\n{selector}\nError:{err}""
+                f""Unable to validate update status for element:\n{selector}\nError:{err}\n""
             )
             return False
 
@@ -170,12 +165,12 @@ setTimeout(() => {{timeout*1000}});
         element.clear()
         element.send_keys(new_value)
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}."")
+            stdout.write(f""Successfully filled text for element: {selector}.\n"")
             return True
-        stdout.write(f""Unable to fill text for element: {selector}\nAttempting Method 2.."")
+        stdout.write(f""Unable to fill text for element: {selector}\nAttempting Method 2..\n"")
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element: {selector}\nError: {e}\n\nAttempting Method 2...""
+            f""Unable to fill text for element: {selector}\nError: {e}\n\nAttempting Method 2...\n""
         )
     
     # ---> Method 2: JavaScript arguments[0].textContent <---
@@ -184,7 +179,7 @@ setTimeout(() => {{timeout*1000}});
         element = driver.find_element(byType, selector)
     except Exception as err:
         stderr.write(
-            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 3...""
+            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 3...\n""
         )
         return False
     
@@ -199,12 +194,12 @@ setTimeout(() => {{timeout*1000}});
         #    element,
         #)
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}"")
+            stdout.write(f""Successfully filled text for element: {selector}\n"")
             return True
-        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 3.."")
+        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 3..\n"")
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 3...""
+            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 3...\n""
         )
 
     try:
@@ -218,12 +213,12 @@ setTimeout(() => {{timeout*1000}});
         #    element,
         #)
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}"")
+            stdout.write(f""Successfully filled text for element: {selector}\n"")
             return True
-        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 4.."")
+        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 4..\n"")
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...""
+            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...\n""
         )
     
     # ---> Method 3: JavaScript arguments[0].value <---
@@ -232,7 +227,7 @@ setTimeout(() => {{timeout*1000}});
         element = driver.find_element(byType, selector)
     except Exception as err:
         stderr.write(
-            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 4...""
+            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 4...\n""
         )
         return False
     
@@ -247,12 +242,12 @@ setTimeout(() => {{timeout*1000}});
         #    element,
         #)
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}"")
+            stdout.write(f""Successfully filled text for element: {selector}\n"")
             return True
-        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 4.."")
+        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 4..\n"")
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...""
+            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...\n""
         )
 
     try:
@@ -266,12 +261,12 @@ setTimeout(() => {{timeout*1000}});
         #    element,
         #)
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}"")
+            stdout.write(f""Successfully filled text for element: {selector}\n"")
             return True
-        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 4.."")
+        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 4..\n"")
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...""
+            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...\n""
         )
 
     # --- Method 4: JavaScript arguments[0].innerText ---
@@ -280,7 +275,7 @@ setTimeout(() => {{timeout*1000}});
         element = driver.find_element(byType, selector)
     except Exception as err:
         stderr.write(
-            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 3...""
+            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 3...\n""
         )
         return False
 
@@ -298,12 +293,12 @@ setTimeout(() => {{timeout*1000}});
             element,
         )
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}"")
+            stdout.write(f""Successfully filled text for element: {selector}\n"")
             return True
-        stderr.write(f""Unable to fill text for element: {selector}"")
+        stderr.write(f""Unable to fill text for element: {selector}\n"")
         return False
     except Exception as e:
-        stderr.write(f""An error occurred while attempting to fill:\n{selector}\nError:\n{e}"")
+        stderr.write(f""An error occurred while attempting to fill:\n{selector}\nError:\n{e}\n"")
         return False" + string.Concat(Enumerable.Repeat("\n", 1));
 
         public static string installPackagesFunction = @"def install_packages():
@@ -318,14 +313,14 @@ setTimeout(() => {{timeout*1000}});
             pip_executable = str(current_file_directory / ""venv"" / ""bin"" / ""pip"")
         requirements_filepath = str(current_file_directory / ""requirements.txt"")
     except:
-        stderr.write(f'Unable to determine required values for package installation')
+        stderr.write(f'Unable to determine required values for package installation\n')
         exit(1)
     raw_package_names = []
     try:
         with open(requirements_filepath, 'r') as file:
             raw_package_names = file.read().splitlines()
     except:
-        stderr.write(f'Unable to parse requirements.txt file, please ensure the following file is not actively being used:\n{requirements_filepath}')
+        stderr.write(f'Unable to parse requirements.txt file, please ensure the following file is not actively being used:\n{requirements_filepath}\n')
         exit(1)
     
     package_names = [name.strip() for name in raw_package_names if name.strip() and not name.strip().startswith('#')]
@@ -341,24 +336,23 @@ setTimeout(() => {{timeout*1000}});
     ]
 
 
-    #command = ['pip', 'install', '-r', requirements_file]
     try:
         process = run(command, cwd=current_file_directory, capture_output=False, text=True, check=False)
         if process.returncode == 0:
-            stdout.write('Required packages installed successfully.')
+            stdout.write('Required packages installed successfully.\n')
             if process.stderr:
-                stderr.write(f'pip response:\n{process.stderr}')
+                stderr.write(f'pip response:\n{process.stderr}\n')
             return True
         else:
-            stderr.write(f'Error installing packages.')
+            stderr.write(f'Error installing packages.\n')
             if process.stderr:
-                stderr.write('Error:\n', process.stderr)
+                stderr.write('Error:\n' + process.stderr)
             return False
     except FileNotFoundError: # This exception occurs if 'pip' itself is not found
-        stderr.write('pip command not found, Please make sure Python and pip are installed and in your system PATH.')
+        stderr.write('pip command not found, Please make sure Python and pip are installed and in your system PATH.\n')
         return False
     except Exception as e:
-        stderr.write(f'An unexpected error occurred while trying to run pip:\n{e}')
+        stderr.write(f'An unexpected error occurred while trying to run pip:\n{e}\n')
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
         public static string makeRequestFunction(string userAgent)
         {
@@ -369,12 +363,12 @@ setTimeout(() => {{timeout*1000}});
     final_url = None
 " +
 @"    try:
-        stdout.write(f'Navigating to: {url}')
+        stdout.write(f'Navigating to: {url}\n')
 " +
 @$"        {BrowserFunctions.AddUserAgentFunction(pythonSafeUserAgent)}"+
             @"        driver.get(url)
         final_url = driver.current_url
-        stdout.write(f'Navigation complete. Final URL: {final_url}')
+        stdout.write(f'Navigation complete. Final URL: {final_url}\n')
         target_request = None
         for request in reversed(driver.requests or []):
             if request.response and (request.url == final_url or request.url == url):
@@ -386,55 +380,55 @@ setTimeout(() => {{timeout*1000}});
         if target_request:
             status_code = target_request.response.status_code
             request_url = target_request.url
-            stdout.write(f'Found status code {status_code} for request URL: {request_url}')
+            stdout.write(f'Found status code {status_code} for request URL: {request_url}\n')
         else:
-            stderr.write(f'WARNING: Could not find specific request for {final_url or url} in logs.')
+            stderr.write(f'WARNING: Could not find specific request for {final_url or url} in logs.\n')
             if driver.last_request and driver.last_request.response:
-                stderr.write('Falling back to last request.')
+                stderr.write('Falling back to last request.\n')
                 status_code = driver.last_request.response.status_code
                 request_url = driver.last_request.url
             else:
-                 stderr.write('No suitable request found.')
+                 stderr.write('No suitable request found.\n')
     except Exception as e:
-        stderr.write(f'\n--- An error occurred ---')
-        stderr.write(f'{type(e).__name__}: {e}')
-        stderr.write(e)
+        stderr.write(f'\n--- An error occurred ---\n')
+        stderr.write(f'{type(e).__name__}: {e}\n')
+        stderr.write(str(e) + '\n')
         stderr.write('-------------------------\n')
     finally:
         if driver:
             if hasattr(driver, 'requests'):
                  del driver.requests
-    stdout.write('\n--- Result  ---')
-    stdout.write(f'Requested URL: {url}')
+    stdout.write('\n--- Result  ---\n')
+    stdout.write(f'Requested URL: {url}\n')
     if final_url and final_url != url:
-        stdout.write(f'Final URL:     {final_url}')
+        stdout.write(f'Final URL:     {final_url}\n')
     if status_code is not None:
-        stdout.write(f'Request URL used for status: {request_url}')
-        stdout.write(f'Detected Status Code: {status_code}')
+        stdout.write(f'Request URL used for status: {request_url}\n')
+        stdout.write(f'Detected Status Code: {status_code}\n')
         if status_code >= 400:
-            stderr.write(f'Status {status_code} indicates an error has occured.')
+            stderr.write(f'Status {status_code} indicates an error has occured.\n')
         else:
-            stdout.write(f'Status {status_code} indicates success/redirect.')
+            stdout.write(f'Status {status_code} indicates success/redirect.\n')
     else:
-         stderr.write(f'Could not determine status code using selenium-wire.')" + string.Concat(Enumerable.Repeat('\n', 1));
+         stderr.write(f'Could not determine status code using selenium-wire.\n')" + string.Concat(Enumerable.Repeat('\n', 1));
         }
 
         public static string saveAsHTMLFunction = @"def save_as_html(filename: str):
     if not filename.endswith('.html'):
         filename = 'pagesource.html'
     try:
-        stdout.write('Saving page source as html, please wait...')
+        stdout.write('Saving page source as html, please wait...\n')
         html = driver.page_source
         if '<html' not in html:
             response = input('HTML tag not found in response, ignore and continue? [y/n]: ')
             if response.lower() != 'y':
-                stderr.write(f'Unable to write page response to {filename}, please try again.')
+                stderr.write(f'Unable to write page response to {filename}, please try again.\n')
                 return False
         with open(filename, 'w', encoding='utf-8') as file:
             file.write(html)
         return True
     except Exception as e:
-        stderr.write(f'Unable to save page source, please check the error below:\n\n{e}')
+        stderr.write(f'Unable to save page source, please check the error below:\n\n{e}\n')
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string saveAsHTMLExperimentalFunction = @"def save_as_html_experimental(filename: str, timeout: int):
@@ -444,7 +438,7 @@ setTimeout(() => {{timeout*1000}});
         element_present = EC.presence_of_element_located((By.TAG_NAME, 'html'))
         WebDriverWait(driver, timeout).until(element_present)
     except Exception:
-        stderr.write('Timed out waiting for page to load, please try increasing timeout.')
+        stderr.write('Timed out waiting for page to load, please try increasing timeout.\n')
         return False
 
     try:
@@ -452,13 +446,13 @@ setTimeout(() => {{timeout*1000}});
         if '<html' not in html:
             response = input('HTML tag not found in response, ignore and continue? [y/n]: ')
             if response.lower() != 'y':
-                stderr.write(f'Unable to write page response to {filename}, please try again.')
+                stderr.write(f'Unable to write page response to {filename}, please try again.\n')
                 return False
         with open(filename, 'w', encoding='utf-8') as file:
             file.write(html)
         return True
     except Exception as e:
-        stderr.write(f'Unable to write html to: {filename}, please check the error below:\n\n{e}')
+        stderr.write(f'Unable to write html to: {filename}, please check the error below:\n\n{e}\n')
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string selectElementFunction = @"def select_element(byType: By, selector: str, timeout: int):
@@ -466,10 +460,10 @@ setTimeout(() => {{timeout*1000}});
         element = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((byType, selector)))
         return element
     except NoSuchElementException:
-        stderr.write(f'Unable to find element:', selector)
+        stderr.write(f'Unable to find element: ' + selector +  '\n')
         exit(1)
     except Exception as e:
-        stderr.write(""An error occured while trying to get text from element with the selector:"", selector, ""\n\nError:\n"", e)
+        stderr.write(""An error occured while trying to get text from element with the selector: "" + selector + ""\n\nError:\n"" + str(e) + ""\n"");
         exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string selectOptionByIndexFunction = @"def select_option_by_index(
@@ -480,34 +474,34 @@ setTimeout(() => {{timeout*1000}});
 ) -> bool:
     select_tag_element = select_element(byType, selector, timeout)
     if not select_tag_element:
-        stderr.write(f""Standard <select> element not found using selector:\n{selector}"")
+        stderr.write(f""Standard <select> element not found using selector:\n{selector}\n"")
         return False
 
     if select_tag_element.tag_name.lower() != 'select':
-        stderr.write(f""Element {selector} is not a <select> tag, found a <{select_tag_element.tag_name}> tag."")
+        stderr.write(f""Element {selector} is not a <select> tag, found a <{select_tag_element.tag_name}> tag.\n"")
         return False
 
     try:
         select_obj = Select(select_tag_element)
         select_obj.select_by_index(index)
-        stdout.write(f""Selected option #{index+1} from {selector}."")
+        stdout.write(f""Selected option #{index+1} from {selector}.\n"")
         return True
     except NoSuchElementException:
-        stderr.write(f'Unable to find element:', selector)
+        stderr.write(f'Unable to find element: ', selector)
         return False
     except Exception as e:
-        stderr.write(f""Error selecting option #{index+1} (Index: {index}) from <select> tag with selector:\n'{selector}'\nError: {e}"")
+        stderr.write(f""Error selecting option #{index+1} (Index: {index}) from <select> tag with selector:\n'{selector}'\nError: {e}\n"")
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string takeScreenshotFunction = @"def take_screenshot(filename: str):
     if not filename.endswith('.png'):
         filename = 'screenshot.png'
     try:
-        stdout.write('Taking screenshot, please wait...')
+        stdout.write('Taking screenshot, please wait...\n')
         with open(f'{filename}', 'wb') as file:
             file.write(driver.get_screenshot_as_png())
     except Exception as e:
-        stderr.write(f'Unable to take screenshot, please check the error below:\n\n{e}')" + string.Concat(Enumerable.Repeat('\n', 1));
+        stderr.write(f'Unable to take screenshot, please check the error below:\n\n{e}\n')" + string.Concat(Enumerable.Repeat('\n', 1));
 
     }
 }

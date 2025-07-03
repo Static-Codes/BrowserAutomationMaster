@@ -49,6 +49,7 @@ namespace BrowserAutomationMaster
         static bool bypassCloudflare = false; // Instructs the parser to use tls-client with a client identifier of safari_ios_16.
         static bool disablePycache = false;  // Disables Visual Studio Code from writing __pycache__ directory.
         static bool disableSSL = false; // Disables SSL certificate authorization session wide.
+        static bool runHeadless = false; // Runs the browser in headless mode if specified.
         static bool noBrowsersFound = false; // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
 
         static int actionTimeout = 10; // This is the timeout applied to all WebDriverWait calls.
@@ -211,6 +212,7 @@ namespace BrowserAutomationMaster
             featurePresent = featureLines.Count > 0; // Roslyn recommend Any() over Count() > 0
             if (featurePresent && featureLines.Any(line => line.Contains(" \"disable-pycache\""))) { disablePycache = true; }
             if (featurePresent && featureLines.Any(line => line.Contains(" \"no-ssl\""))) { disableSSL = true; }
+            if (featurePresent && featureLines.Any(line => line.Contains(" \"run-headless\""))) { runHeadless = true; }
             otherPresent = CheckOtherPresent();
             if (!otherPresent) { Warning.Write("BAM Manager (BAMM) was unable to find any requests logic, if this is intentional, you can safely ignore this warning."); }
             if (disablePycache) { importStatements.AddRange(["import sys", "sys.dont_write_byte_code"]); }
@@ -838,9 +840,7 @@ namespace BrowserAutomationMaster
                                                 Warning.Write("Unable to add proxy to script, if you reading this, there is a huge bug in the use-proxyType-proxy feature.");
                                             }
                                         }  
-                                        else {
-                                            scriptBody.Add("sw_options = { 'enable_har': True }\n");
-                                        }
+                                        else { scriptBody.Add("sw_options = { 'enable_har': True }\n"); }
                                         switch (selectedBrowser)
                                         {
                                             //case "brave":
@@ -868,7 +868,7 @@ namespace BrowserAutomationMaster
                                                 break;
 
                                             case "firefox" or "safari":
-                                                if (disableSSL) {
+                                                if (disableSSL) { // Disables SSL
                                                     scriptBody.Add("options = Options()");
                                                     scriptBody.Add("options.accept_insecure_certs = True");
                                                     scriptBody.Add("try:");
@@ -878,8 +878,7 @@ namespace BrowserAutomationMaster
                                                     scriptBody.Add($"{Indent(2)}stderr.write('Please install firefox and try running again.')");
                                                     scriptBody.Add($"{Indent(2)}exit(1)");
                                                 }
-                                                else {
-
+                                                else { // Uses SSL
                                                     scriptBody.Add("try:");
                                                     scriptBody.Add($"{Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)");
                                                     scriptBody.Add("except Exception as e:");
@@ -890,21 +889,16 @@ namespace BrowserAutomationMaster
                                                 break;
                                         }
                                         scriptBody.Add("driver.maximize_window()");
-                                        scriptBody.AddRange(
-                                            [
-                                                "bounds = get_screen_bounds()\n",
-                                                "if bounds is not None and len(bounds) == 2:",
-                                                $"{Indent(1)}height = bounds[1]",
-                                                $"{Indent(1)}width = bounds[0]",
-                                                "else:",
-                                                $"{Indent(1)}height = 1920",
-                                                $"{Indent(1)}width = 1080\n\n",
-                                                //"driver.set_window_position(width, 0) # Sets the browser off the right of the primary display",
-                                                "driver.set_window_position(-4000, 0) # Sets the browser off the right of the primary display",
-                                                "print('Driver initialized.')\n\n"
-                                            ]);
-                                        scriptBody.Add("make_request(url)");
-
+                                        if (runHeadless) { // Runs browser in headless mode
+                                            scriptBody.AddRange(
+                                                [
+                                                    //"driver.set_window_position(width, 0) # Sets the browser off the right of the primary display",
+                                                    "driver.set_window_position(-5000, 0) # Sets the browser off the left of the primary display",
+                                                    "print('Driver initialized.')\n\n"
+                                                ]);
+                                            scriptBody.Add("make_request(url)");
+                                        }
+                                        else { scriptBody.Add("make_request(url)"); }
                                     }
                                     else
                                     {
@@ -1079,7 +1073,7 @@ namespace BrowserAutomationMaster
             actionTimeout = 10;
             //projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
             importStatements.Clear(); // Since its read only clearing it and reassigning the default values is the ideal solution.
-            importStatements.AddRange(["from importlib import import_module", "from subprocess import run", "from sys import modules"]);
+            importStatements.AddRange(["from importlib import import_module", "from subprocess import run", "from sys import modules, stderr, stdout"]);
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
         public static void SetCustomUserAgent(string[] args)

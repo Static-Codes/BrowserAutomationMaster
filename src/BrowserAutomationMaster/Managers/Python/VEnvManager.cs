@@ -51,8 +51,7 @@ namespace BrowserAutomationMaster.Managers.Python
         {
             CreateVEnv();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { return RunScriptOnWindows(); }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) { return RunScriptOnMacOS(); }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { return RunScriptOnLinux(); }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { return RunScriptOnUnix(); }
             else { throw new PlatformNotSupportedException("Invalid OS."); }
         }
 
@@ -92,13 +91,13 @@ namespace BrowserAutomationMaster.Managers.Python
                     // Declaring required event handlers
                     startVEnvProcess.OutputDataReceived += (sender, args) => { if (args.Data != null) { 
                             outputLines.Add(args.Data);  
-                            Success.WriteSuccessMessage(args.Data);
+                            Success.WriteSuccessMessage(args.Data + '\n');
                         }
                     };
                     startVEnvProcess.ErrorDataReceived += (sender, args) => { if (args.Data != null)
                         {
                             errorLines.Add(args.Data);
-                            //Errors.WriteErrorAndContinue(args.Data);
+                            //Errors.WriteErrorAndContinue(args.Data + '\n');
                         }
                     };
 
@@ -123,8 +122,8 @@ namespace BrowserAutomationMaster.Managers.Python
                     }
                 }
 
-                string output = string.Join("\n", outputLines);
-                Success.WriteSuccessMessage($"Script Output:\n\n{output}");
+                //string output = string.Join("\n", outputLines);
+                //Success.WriteSuccessMessage($"Script Output:\n\n{output}");
             }
             catch (Exception e)
             {
@@ -133,12 +132,7 @@ namespace BrowserAutomationMaster.Managers.Python
             return true;
         }
 
-        public bool RunScriptOnLinux()
-        {
-            return true;
-        }
-
-        public bool RunScriptOnMacOS()
+        public bool RunScriptOnUnix()
         {
             string executablePath = Path.Combine(VEnvPath, "bin", InterpreterPath);
             string scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
