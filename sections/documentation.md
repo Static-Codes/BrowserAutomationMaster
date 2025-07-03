@@ -107,7 +107,9 @@ These arguments can be used when running BAMC from the command line:
   - **Syntax:**
     - `bamm help --all` -> This displays information for all available commands.
     - `bamm help wait-for-seconds` -> This displays information about the selected command
-
+- `run`: Runs any python file however it is strongly recommended to ONLY use this command for scripts compiled using BAMM, specifically ones located in the compiled directory. There is no guarantee this will work with external python scripts.
+  - **Syntax:**
+    - `bamm run "path/to/python/file.py"` -> Runs the specified python file, also available by selecting option 3 from the main menu.   
 - `uninstall`: Uninstalls the program on windows and gives instructions for Unix based systems (MacOS/Linux)
   - **Syntax:**
     - `bamm uninstall --all` -> This displays information for all available commands.
