@@ -2,7 +2,6 @@
 using BrowserAutomationMaster.Checks;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Managers;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Json;
@@ -28,7 +27,7 @@ namespace BrowserAutomationMaster
         readonly static string defaultScriptFileName = "untitled-script";  // This will be used in GenerateBackupName(); in the case of failure.
         
         static string desiredSaveDirectory = "";
-        readonly static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
+        static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
         readonly static string requirementsFileName = "requirements.txt"; // This is the filename where the package requirements will be written to.
         static string projectDirectory = "";
         
@@ -56,7 +55,7 @@ namespace BrowserAutomationMaster
         readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
         static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
         static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
-        readonly static List<string> importStatements = ["from importlib import import_module", "from subprocess import run", "from sys import modules"];
+        readonly static List<string> importStatements = ["from importlib import import_module", "from subprocess import run", "from sys import modules, stderr, stdout"];
         readonly static List<string> scriptBody = [];
         readonly static List<string> requirements = [];
 
@@ -79,7 +78,7 @@ namespace BrowserAutomationMaster
             SetFileLines(filePath);
             GetDesiredUrls();
 
-            Installations installations = new(InstalledApps.GetInstalledApps());
+            Installations ___ = new(InstalledApps.GetInstalledApps()); // was originally named installations
             AddBrowserImportsAndRequirements();
             //HandlePythonVersionSelection(installations); // This isn't needed currently 
 
@@ -94,16 +93,13 @@ namespace BrowserAutomationMaster
         public static void AddBrowserImportsAndRequirements() 
         {
             HandleBrowserCmd();
-            requirements.Add("setuptools");
+            requirements.Add("setuptools==80.9.0");
 
             // This function will exit if a null value is reached so no worries about a null check here
             string version = PackageManager.New(browserPackage.ToString(), pythonVersion);
             requirements.Add($"{browserPackage}=={version}");
-            
 
             string noUrlsFound = "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\nPlease ensure the selected file has atleast one 'visit' command.";
-
-
 
             if (desiredUrls.Count == 0) { Errors.WriteErrorAndExit(noUrlsFound, 1); return; }
             switch (browserPackage)
@@ -181,12 +177,12 @@ namespace BrowserAutomationMaster
             foreach (string actionArg in Parser.actionArgs) {
                 functionsPresent.Add(actionArg, configLines.Any(line => line.StartsWith(actionArg))); // Checks if configLines contains each arg, if so the required function is be added.
             } // add-header is added here since its in actionArg, but its not accessed in this function.
-            int index = 4; // Accounts for the functions below.
-            //scriptBody.Insert(0, BrowserFunctions.addHeaderFunction("User-Agent", requestUserAgent));
-            scriptBody.Insert(0, BrowserFunctions.checkImportFunction);
-            scriptBody.Insert(1, BrowserFunctions.getScreenBoundsFunction);
-            scriptBody.Insert(2, BrowserFunctions.installPackagesFunction);
-            scriptBody.Insert(3, BrowserFunctions.makeRequestFunction(requestUserAgent));
+            int index = 2; // Accounts for the functions below in the scriptBody.
+            importStatements.Insert(3, BrowserFunctions.checkImportFunction); // Starts at line 4 (index 3) to account for imports required by check_imports
+            importStatements.Insert(4, BrowserFunctions.installPackagesFunction);
+            importStatements.Insert(5, "install_packages()");
+            scriptBody.Insert(0, BrowserFunctions.getScreenBoundsFunction);
+            scriptBody.Insert(1, BrowserFunctions.makeRequestFunction(requestUserAgent));
 
             if (functionsPresent.TryGetValue("click", out bool isNeeded) && isNeeded){ scriptBody.Insert(index, BrowserFunctions.clickElementFunction); index++; }
             if (functionsPresent.TryGetValue("click-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.clickElementExperimentalFunction); index++; }
@@ -201,15 +197,11 @@ namespace BrowserAutomationMaster
 
             if (scriptBody.Count != index) { scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode); }
             else { scriptBody.Insert(index, BrowserFunctions.browserQuitCode); }
-
-
-
         }
         public static void CheckConfigLines()
         {
             int numberOfLines = configLines.Count;
-            if (numberOfLines == 0)
-            {
+            if (numberOfLines == 0) {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Errors.WriteErrorAndExit("BAM Manager (BAMM) encountered a fatal error, the selected file has no lines.\n\nPress any key to exit...", 1);
             }
@@ -517,7 +509,7 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"text = get_text(By.CSS_SELECTOR, '{parsedTextSelector.Value}')");
                                             break;
                                     }
-                                    scriptBody.Add($"if text == None:\n{Indent(1)}print('The element: {parsedTextSelector.Value} did not return any text.')\n");
+                                    scriptBody.Add($"if text == None:\n{Indent(1)}stderr.write('The element: {parsedTextSelector.Value} did not return any text.')\n");
                                     break;
                             }
                             break;
@@ -568,7 +560,7 @@ namespace BrowserAutomationMaster
                                             break;
                                     }
                                     scriptBody.Add($"if isFilled:\n{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
-                                    scriptBody.Add($"else:\n{Indent(1)}print(\"Could not fill the element: {sanitizedArg2}\")\n{Indent(1)}exit()\n");
+                                    scriptBody.Add($"else:\n{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n{Indent(1)}exit(1)\n");
                                     break;
                             }
                             break;
@@ -623,7 +615,7 @@ namespace BrowserAutomationMaster
                                             break;
                                     }
                                     scriptBody.Add($"if isFilled:\n{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
-                                    scriptBody.Add($"else:\n{Indent(1)}print(\"Could not fill the element: {sanitizedArg2}\")\n{Indent(1)}exit()\n");
+                                    scriptBody.Add($"else:\n{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n{Indent(1)}exit(1)\n");
                                     break;
                             }
                             break;
@@ -709,7 +701,7 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"element = select_element(By.CSS_SELECTOR, '{parsedSelectSelector.Value}', {actionTimeout})\n");
                                             break;
                                     }
-                                    scriptBody.Add($"if not element:\n{Indent(1)}print('The element: {parsedSelectSelector.Value} could not be selected, please try again or use a different selector.')\n{Indent(1)}exit()\n");
+                                    scriptBody.Add($"if not element:\n{Indent(1)}stderr.write('The element: {parsedSelectSelector.Value} could not be selected, please try again or use a different selector.')\n{Indent(1)}exit(1)\n");
                                     break;
                             }
                             break;
@@ -758,8 +750,8 @@ namespace BrowserAutomationMaster
                                             break;
 
                                     }
-                                    scriptBody.Add($"if not isSelected:\n{Indent(1)}print('Could not select the element: {sanitizedArg2}')\n{Indent(1)}exit()\n");
-                                    break;
+                                    scriptBody.Add($"if not isSelected:\n{Indent(1)}stderr.write('Could not select the element: {sanitizedArg2}')\n{Indent(1)}exit(1)\n");
+                                    break;  
                             }
                             break;
 
@@ -859,21 +851,41 @@ namespace BrowserAutomationMaster
                                                 if (disableSSL) {
                                                     scriptBody.Add("options = Options()");
                                                     scriptBody.Add("options.add_argument('--ignore-certificate-errors')");
-                                                    scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options, seleniumwire_options=sw_options)");
+                                                    scriptBody.Add("try:");
+                                                    scriptBody.Add($"{Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options, seleniumwire_options=sw_options)");
+                                                    scriptBody.Add("except Exception as e:");
+                                                    scriptBody.Add($"{Indent(1)}if 'cannot find Chrome binary' in str(e):");
+                                                    scriptBody.Add($"{Indent(2)}stderr.write('Please install chrome and try compiling again.')");
+                                                    scriptBody.Add($"{Indent(2)}exit(1)\n");
+                                                    break;
                                                 }
-                                                else {
-                                                    scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)");
-                                                }
+                                                scriptBody.Add("try:");
+                                                scriptBody.Add($"{Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)");
+                                                scriptBody.Add("except Exception as e:");
+                                                scriptBody.Add($"{Indent(1)}if 'cannot find Chrome binary' in str(e):");
+                                                scriptBody.Add($"{Indent(2)}stderr.write('Please install chrome and try compiling again.')");
+                                                scriptBody.Add($"{Indent(2)}exit(1)\n");
                                                 break;
 
                                             case "firefox" or "safari":
                                                 if (disableSSL) {
                                                     scriptBody.Add("options = Options()");
                                                     scriptBody.Add("options.accept_insecure_certs = True");
-                                                    scriptBody.Add("driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options, seleniumwire_options=sw_options)");
+                                                    scriptBody.Add("try:");
+                                                    scriptBody.Add($"{Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options, seleniumwire_options=sw_options)");
+                                                    scriptBody.Add("except Exception as e:");
+                                                    scriptBody.Add($"{Indent(1)}if 'cannot find Firefox binary' in str(e):\n");
+                                                    scriptBody.Add($"{Indent(2)}stderr.write('Please install firefox and try running again.')");
+                                                    scriptBody.Add($"{Indent(2)}exit(1)");
                                                 }
                                                 else {
-                                                    scriptBody.Add("driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)");
+
+                                                    scriptBody.Add("try:");
+                                                    scriptBody.Add($"{Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)");
+                                                    scriptBody.Add("except Exception as e:");
+                                                    scriptBody.Add($"{Indent(1)}if 'cannot find Firefox binary' in str(e):\n");
+                                                    scriptBody.Add($"{Indent(2)}stderr.write('Please install firefox and try running again.')");
+                                                    scriptBody.Add($"{Indent(2)}exit(1)");
                                                 }
                                                 break;
                                         }
@@ -921,21 +933,38 @@ namespace BrowserAutomationMaster
                 }
                 lineNumber++;
             }
-            importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
-            importStatements.Insert(0, "from os import path, system");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // Fix this to use installPackagesFunction (requires args [requirements.txt, "path/to/python/Scripts
-            {
-                importStatements.Insert(1, "system('pip install -r requirements.txt')\n");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                importStatements.Insert(1, "system('python3 -m pip install -r requirements.txt')\n");
-            }
-            else
-            {
-                Errors.WriteErrorAndExit("BAMM is somehow running an unsupported platform, if this is intentional, and you're contributing to the project, simply remove this check.", 1);
-            }
+            //importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
+            //importStatements.Insert(0, "from os import path, system");
+
+            // Weird solution but we live for weirdness, we EMBRACE weirdness - steve jobs (probably)
+            // This inserts logic in reverse order so the end of the logic is inserted first, this results in the expected output without requiring a loop.
+            //importStatements.Insert(0, "\n\n"); // Add 2 trailing newlines for readablility ---- LETS GO UNICODE ISSUES
+            //importStatements.Insert(0, $"{Indent(1)}print(f'Requirements installation failed with exit code: {{exit_code}}')\n");
+            //importStatements.Insert(0, "else:");
+            //importStatements.Insert(0, $"{Indent(1)}print('Requirements installed successfully.')");
+            //importStatements.Insert(0, "if exit_code == 0:");
+            //importStatements.Insert(0, "\nexit_code = system(command_string)");
+            //importStatements.Insert(0, "command_string = f'\"{pip_executable}\" install -r \"{requirements_filepath}\"'");
+            //importStatements.Insert(0, "requirements_filepath = path.join(current_file_directory, 'requirements.txt')");
+            //importStatements.Insert(0, "pip_executable = str(current_file_directory / 'venv' / 'bin' / 'pip')");
+            //importStatements.Insert(0, "current_file_directory = Path(__file__).parent.resolve()");
+            //importStatements.Insert(0, "from pathlib import Path");
+            //importStatements.Insert(0, "﻿\nfrom os import path, system");
+            //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            //{
+            //    importStatements.Insert(1, "system('pip install -r requirements.txt')\n");
+            //}
+            //else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            //{
+            //    importStatements.Insert(1, "system('python3 -m pip install -r requirements.txt')\n");
+            //}
+            //else
+            //{
+            //    Errors.WriteErrorAndExit("BAMM is somehow running an unsupported platform, if this is intentional, and you're contributing to the project, simply remove this check.", 1);
+            //}
+
             AddRequiredFunctions();
+            SuppressUnneededWarnings();
         }
         public static void HandlePythonVersionSelection(Installations installations)
         {
@@ -1047,7 +1076,8 @@ namespace BrowserAutomationMaster
             bypassCloudflare = false;
             disablePycache = false;
             noBrowsersFound = false;
-            actionTimeout = 5;
+            actionTimeout = 10;
+            //projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
             importStatements.Clear(); // Since its read only clearing it and reassigning the default values is the ideal solution.
             importStatements.AddRange(["from importlib import import_module", "from subprocess import run", "from sys import modules"]);
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
@@ -1184,30 +1214,45 @@ namespace BrowserAutomationMaster
                 }
             }
         }
+        public static void SuppressUnneededWarnings()
+        {
+            // This function inserts the required code in reverse order so the output is consistent with whats desired.
+            importStatements.Insert(0, "filterwarnings('ignore', message='.*pkg_resources is deprecated.*')");
+            importStatements.Insert(0, "from warnings import filterwarnings");
+            importStatements.Insert(0, "# Disables known warnings that aren't needed.");
+            
+        }
         public static void WriteRequirementsFile()
         {
-            string filePath = Path.Combine(desiredSaveDirectory, projectDirectoryName, requirementsFileName);
-            using StreamWriter writer = new(filePath, false, Encoding.UTF8);
-            foreach (string requirement in requirements) { 
-                writer.WriteLine(requirement); 
+            try {
+                string filePath = Path.Combine(desiredSaveDirectory, projectDirectoryName, requirementsFileName);
+                using StreamWriter writer = new(filePath, false, new UTF8Encoding(false));
+                foreach (string requirement in requirements) { writer.WriteLine(requirement); }
+            }
+            catch (Exception e)
+            {
+                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable write requirements.txt for '{pythonScriptFileName}'.\n\nIf this continues, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\nUnhandled exception, if you're reading this, please make a bug report, clearly there's a huge issue.\n\nInterpreter Response:\n{e.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
             }
         }
         public static void WritePythonFile()
         {
-            string filePath = Path.Combine(desiredSaveDirectory, projectDirectoryName, pythonScriptFileName);
-            using StreamWriter writer = new(filePath, false, Encoding.UTF8);
-            foreach (string importStatement in importStatements){
-                writer.WriteLine(importStatement);
-            }
+            try {
+                var sanitizedImportStatements = importStatements.Select(line => line.TrimStart('\uFEFF')); // Removing Byte Order Mark (BOM)
+                var sanitizedScriptBody = scriptBody.Select(line => line.TrimStart('\uFEFF')); // Removing Byte Order Mark (BOM)
 
-            if (importStatements.Count > 0 && scriptBody.Count > 0){
-                writer.WriteLine();
-            }
+                string filePath = Path.Combine(desiredSaveDirectory, projectDirectoryName, pythonScriptFileName);
+                using StreamWriter writer = new(filePath, false, new UTF8Encoding(false));
 
-            foreach (string scriptLine in scriptBody){
-                writer.WriteLine(scriptLine);
+                foreach (string importStatement in sanitizedImportStatements) { writer.WriteLine(importStatement); }
+                if (importStatements.Count > 0 && scriptBody.Count > 0) { writer.WriteLine(); }
+                foreach (string scriptLine in scriptBody) { writer.WriteLine(scriptLine); }
+            }
+            catch (Exception e)
+            {
+                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable write '{pythonScriptFileName}' for the desired script.\n\nIf this continues, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\nUnhandled exception, if you're reading this, please make a bug report, clearly there's a huge issue.\n\nInterpreter Response:\n{e.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
             }
         }
+
 
     }
 }

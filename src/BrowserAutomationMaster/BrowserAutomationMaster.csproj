@@ -9,7 +9,7 @@
 		<AssemblyName>bamm</AssemblyName>
 
 		<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
-		<RuntimeIdentifiers>win-arm64;win-x64;win-x86;linux-x64;osx-x64</RuntimeIdentifiers>
+		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 
 		<!-- Global Publish Settings  -->
 		<PublishSingleFile>true</PublishSingleFile>
@@ -28,6 +28,7 @@
 		<!-- Windows & OSX License -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<ApplicationIcon>bamm.ico</ApplicationIcon>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<!-- MacOS Specific Build Logic To Run App By Double Clicking App Icon -->
@@ -48,7 +49,7 @@
 		<DebianDesktopFile>$(PackageId).desktop</DebianDesktopFile>
 		<DebianDesktopCategories>Utility;Console;</DebianDesktopCategories>
 		<DebianDesktopTerminal>true</DebianDesktopTerminal>
-		<DebianDesktopName>BAM Manager 1.0.0A1</DebianDesktopName>
+		<DebianDesktopName>BAM Manager 1.0.0A2</DebianDesktopName>
 	</PropertyGroup>
 	<ItemGroup>
 	  <Content Include="bamm.ico" />

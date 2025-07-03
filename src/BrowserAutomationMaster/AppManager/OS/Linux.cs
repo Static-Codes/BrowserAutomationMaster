@@ -96,10 +96,10 @@ namespace BrowserAutomationMaster.AppManager.OS
                 }
                 return apps;
             }
-            catch { Errors.WriteErrorAndContinue("Houston we have a problem"); return []; } // Silently catches the error, no output is currently required.
+            catch { Errors.WriteErrorAndContinue("DPKG not found, checking another method."); return []; }
         }
 
-        // Parses app installed via RPM (Red Hat Package Manager) (only for CentOS, Fedora, Oracle Linux, etc.)
+        // Parses apps installed via RPM (Red Hat Package Manager) (only for CentOS, Fedora, Oracle Linux, etc.)
         static List<AppInfo> ParseRpmList()
         {
             var apps = new List<AppInfo>();
@@ -114,7 +114,7 @@ namespace BrowserAutomationMaster.AppManager.OS
             return apps;
         }
 
-        // Parses app installed via Flatpak
+        // Parses apps installed via Flatpak
         static List<AppInfo> ParseFlatpakList()
         {
             var apps = new List<AppInfo>();
@@ -134,32 +134,26 @@ namespace BrowserAutomationMaster.AppManager.OS
         {
             try
             {
-                var procStartInfo = new ProcessStartInfo
+                ProcessStartInfo procStartInfo = new()
                 {
-                    FileName = cmd,
+                    FileName = cmd, 
                     Arguments = args,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
-
                 using var proc = Process.Start(procStartInfo);
                 if (proc == null) { return string.Empty; }
-
                 string output = proc.StandardOutput.ReadToEnd();
-
                 proc.WaitForExit();
                 if (proc.ExitCode == 0) { return output; }
-                else { return string.Empty; }
+                return string.Empty;
             }
             catch (Exception ex){
-                Console.WriteLine (ex);
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to query installed apps using cmd: {cmd}", 1);
-
-                return string.Empty; 
+                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to query installed apps, if this issue persists, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\nError log:\n Unable to execute\n{cmd}\nException:\n{ex.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                return string.Empty;
             }
         }
-
     }
 }

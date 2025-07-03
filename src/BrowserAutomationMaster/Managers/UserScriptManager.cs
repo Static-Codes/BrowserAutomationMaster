@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Managers
@@ -68,6 +69,10 @@ namespace BrowserAutomationMaster.Managers
                     break;
                 case "delete":
                     DeleteScript();
+                    break;
+                case "run":
+                    RuntimeManager runtimeManager = new(scriptPath);
+                    runtimeManager.RunScript();
                     break;
 
                 default:
@@ -210,10 +215,7 @@ namespace BrowserAutomationMaster.Managers
                 EnsureDirectoryExists(userScriptsPath);
                 return userScriptsPath;
             }
-            else
-            {
-                throw new PlatformNotSupportedException($"Unsupported OS ({RuntimeInformation.OSDescription}) or developmental flaw in UserScriptManager.GetUserScriptDirectory();");
-            }
+            else { throw new PlatformNotSupportedException($"Unsupported OS"); }
         }
         static void EnsureDirectoryExists(string path) {
             if (!Directory.Exists(path)) {

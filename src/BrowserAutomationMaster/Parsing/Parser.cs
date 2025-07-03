@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster
@@ -13,6 +11,7 @@ namespace BrowserAutomationMaster
         {
             Add,
             Compile,
+            Run,
             Help,
             Exit,
             Invalid
@@ -24,7 +23,7 @@ namespace BrowserAutomationMaster
             "save-as-html-exp", "select-element", "select-option", "set-custom-useragent", "start-javascript", "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
-        readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "no-ssl"];
+        readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "run-headless", "no-ssl"];
         //readonly static string[] browserArgs = ["brave", "chrome", "firefox", "safari", ];
         readonly static string[] browserArgs = ["chrome", "firefox", "safari", ];
 
@@ -542,23 +541,25 @@ namespace BrowserAutomationMaster
             {
                 { 1, MenuOption.Add },
                 { 2, MenuOption.Compile },
-                { 3, MenuOption.Help },
-                { 4, MenuOption.Exit },
+                { 3, MenuOption.Run },
+                { 4, MenuOption.Help },
+                { 5, MenuOption.Exit },
             };
             string menuText = """
             
-            Welcome To The BAM Manager (BAMM)!
+            Welcome to the BAM Manager (BAMM)!
 
             Please select the number correlating to your desired action from the menu options below:
 
             1. Add local .BAMC File to userScripts Directory
             2. Compile .BAMC File from userScripts Directory
-            3. Help
-            4. Exit
+            3. Run .py script compiled by BAMM
+            4. Help
+            5. Exit
 
 
             """;
-            string invalidChoiceText = "Invalid option please enter a number between 1 and 4.\n\n" + menuText;
+            string invalidChoiceText = "Invalid option please enter a number between 1 and 5.\n\n" + menuText;
 
             Console.WriteLine(menuText);
             while (true)
@@ -598,7 +599,12 @@ namespace BrowserAutomationMaster
                     selectedFile = BAMCFiles[index];
                     //return KeyValuePair.Create(MenuOption.Compile, Path.Combine(UserScriptManager.GetUserScriptDirectory(), selectedFile));
                     return KeyValuePair.Create(MenuOption.Compile, Path.Combine(AppContext.BaseDirectory, "userScripts", selectedFile));
-                
+
+                case MenuOption.Run:
+                    selectedFile = RuntimeManager.HandleUserScriptChoice();
+                    return KeyValuePair.Create(MenuOption.Run, selectedFile);
+
+
                 case MenuOption.Help:
                     HandleHelpSelection();
                     return KeyValuePair.Create(MenuOption.Help, ""); // This just needs to passthrough, action will be taken back in program.cs 
