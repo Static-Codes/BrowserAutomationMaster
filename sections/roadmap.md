@@ -6,10 +6,6 @@ This section outlines the planned commands and features for later BAMM releases.
 - To return to the previous page, [click here](..)
 ---
 
-## Features
-
-- **`feature "headless"`**: This feature will run the browser in headless mode, which is great for background tasks and server environments.
-
 ## Browser Commands
 
 - **`new-tab "url"`** - Opens a new tab with the specified url, if not supplied or invalid the browser's homepage will be loaded.
@@ -27,5 +23,8 @@ This section outlines the planned commands and features for later BAMM releases.
 - Adding an option for users to copy the path of the compiled script directory to their clipboard.
 - Alternatively, allow users the ability to open a new explorer/finder window to that directory, provided there's at least 100MB of RAM available.
 - Finally, if the user wishes to simply execute the compiled script directly from BAMM, this feature will be added in a future update.
+
+## LSP (Language Server Protocol)
+- This will allow you to create bamm scripts with syntax highlighting and other features similar to pylance.
 
 ---
