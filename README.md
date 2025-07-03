@@ -35,18 +35,6 @@ Selenium automation in Python can involve a lot of repetitive code and detailed 
   - Any Supported Browser
   - Any Supported Python Version
 
-### Tested On ✅
-
-  - AMD Athlon Gold 3150U
-  - AMD Ryzen 7 2700X
-  - AMD EPYC 7282
-  - AMD Ryzen 9 5950X
-  - Intel I5 4260U (Mac Mini 2014)
-  - Intel I3 6100
-  - Intel I5 6500
-  - Intel I7 7700
-  - Intel I5 8500
-
 -----
 
 ## Table of Contents 📖
@@ -66,8 +54,7 @@ Selenium automation in Python can involve a lot of repetitive code and detailed 
 
     ```bash
     sudo dpkg -i <package_name>.deb
-    # If there are dependency issues, fix them with:
-    sudo apt-get install -f
+    sudo apt-get install -f # If there are dependency issues, this fixes them:
     ```
 
   - **MacOS**
