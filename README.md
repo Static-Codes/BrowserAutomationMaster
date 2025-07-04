@@ -1,43 +1,43 @@
------
-
+---
 # Browser Automation Master 🤖
 
 A custom scripting language that compiles into Python 3.9+ code.
 
 Selenium automation in Python can involve a lot of repetitive code and detailed setup. BAM simplifies that process by allowing you to write automation scripts in a more concise, readable, and English-like language. This script is then passed to the compiler, which generates a Python file, effectively reducing the amount of boilerplate you need to manage.
-
------
+---
 
 ### Supported Browsers 🌐
 
-  - **Chrome**
-  - **Firefox**
+- **Chrome**
+- **Firefox**
 
 ### Supported Python Versions 🐍
 
-  - **3.9.x**
-  - **3.10.x**
-  - **3.11.x**
-  - **3.12.x**
-  - **3.13.x**
-  - **3.14.x**
+- **3.9.x**
+- **3.10.x**
+- **3.11.x**
+- **3.12.x**
+- **3.13.x**
+- **3.14.x**
 
 ### Supported Operating Systems 💻
 
-  - Linux **(x64)**
-  - MacOS 11.0+ **(ARM64, x64)**
-  - Windows 10/11 **(ARM64, x64)**
+- Linux **(x64)**
+- MacOS 11.0+ **(ARM64, x64)**
+- Windows 10/11 **(ARM64, x64)**
 
 ### System Requirements (Minimum Tested) ✨
 
-  - 2 Core CPU
-  - 4GB DDR3 RAM (The application itself uses under 200MB of RAM)
-  - Any Supported Browser
-  - Any Supported Python Version
+- 2 Core CPU
+- 4GB DDR3 RAM (The application itself uses under 200MB of RAM)
+- Any Supported Browser
+- Any Supported Python Version
 
------
+---
 
 ## Table of Contents 📖
+
+### [Installation] (sections/installation.md)
 
 ### [BAMC Documentation (Actions, Arguments, Features, Selectors)](sections/documentation.md)
 
@@ -45,38 +45,4 @@ Selenium automation in Python can involve a lot of repetitive code and detailed 
 
 ### [Roadmap](sections/roadmap.md)
 
------
-
-## Installation ⬇️
-
-  - **Linux `.deb` package**
-    You can install the package by double clicking the .deb file, or by using:
-
-    ```bash
-    sudo dpkg -i <package_name>.deb
-    sudo apt-get install -f # If there are dependency issues, this fixes them:
-    ```
-
-  - **MacOS**
-
-      - For Intel users
-          - Download the latest release for Intel Macs from [https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest](https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest)
-          - Place it on your Desktop for easy access\!
-          - Use `sudo chmod +x Desktop/bamm` to make it an executable\!
-      - For Silicon users
-          - Download the latest release for Silicon Macs from [https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest](https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest)
-          - Place it on your Desktop for easy access\!
-          - Rename it from `bamm-silicon` to `bamm`
-          - Use `sudo chmod +x Desktop/bamm` to make it an executable\!
-
-  - **Windows**
-    - Visit https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest
-    - Download the installer for your CPUs architecture, most users will be okay downloading the x64 windows build.
-
-## Opening BAMM 🚀
-
-  - **MacOS:** `Desktop/bamm`
-
-  - **Linux/Windows:** `bamm`
-
------
+---
