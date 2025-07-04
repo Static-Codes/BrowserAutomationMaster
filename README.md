@@ -21,7 +21,7 @@ Selenium automation in Python can involve a lot of repetitive code and detailed 
 
 ### Supported Operating Systems 💻
 
-- Linux **(x64)**
+- Linux **(ARM64, x64)**
 - MacOS 11.0+ **(ARM64, x64)**
 - Windows 10/11 **(ARM64, x64)**
 
