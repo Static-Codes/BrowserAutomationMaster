@@ -96,7 +96,7 @@ namespace BrowserAutomationMaster.Managers
                         Process.Start("xdg-open", url);
                     }
                     else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64) {
-                        url = $"https://github.com/Static-Codes/BrowserAutomationMaster/releases/download/bamm.{LatestVersion}.linux-ARM64.deb";
+                        url = $"https://github.com/Static-Codes/BrowserAutomationMaster/releases/download/bamm.{LatestVersion}.linux-arm64.deb";
                         Process.Start("xdg-open", url);
                     }
                 }
