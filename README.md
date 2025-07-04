@@ -38,7 +38,7 @@ Selenium automation in Python can involve a lot of repetitive code and detailed 
 
 ### [Installation](sections/installation.md)
 
-### [BAMC Documentation (Actions, Arguments, Features, Selectors)](sections/documentation.md)
+### [BAMC Documentation + Examples (Actions, Arguments, Features, Selectors)](sections/documentation.md)
 
 ### [Compile BrowserAutomationMaster from Source](sections/compile.md)
 
