@@ -437,7 +437,17 @@ namespace BrowserAutomationMaster
                     string trimmedLine = DeleteCommentIfPresent(line);
 
                     if (!jsBlockFinished) {
-                        if (trimmedLine.StartsWith("end-javascript")) { jsBlockFinished = true; }
+
+                        // At this point the following are true:
+                        // There are atleast 3 lines in the file (visit, start-javascript, and end-javascript)
+                        // Its also possible browser is defined at the top of the file.
+                        if (trimmedLine.StartsWith("end-javascript")) {
+                            if (!JavaScript.IsValidSyntax(currentJSBlockContent, out string? jsError)) {
+                                string surroundingLines = $"Line {i-2} -> {lines[i - 2]}\nLine {i - 1} -> {lines[i - 1]}\nLine {i} -> {line} <-- This is the line that's causing the issue.\n";
+                                return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error on line {i} of \"{fileName}\".\n\nError log:\n{surroundingLines}\nCompiler error:\nIn the current block, on {jsError}\n\nPlease correct this and recompile.", false);
+                            }
+                            jsBlockFinished = true; 
+                        }
                         else if (trimmedLine.StartsWith("start-javascript")) {
                             lineCurrentJSBlockStarts = i + 1;
                             return Errors.WriteErrorAndReturnBool($"BAM Manager (BAMM) ran into a BAMC validation error:\n\nFile: \"{fileName}\"\n\nError: Attempted to create a second JavaScript block on line {lineCurrentJSBlockStarts} while the previous block has not been closed.\n\nPlease ensure end-javascript is placed at or before line {i}.", false);

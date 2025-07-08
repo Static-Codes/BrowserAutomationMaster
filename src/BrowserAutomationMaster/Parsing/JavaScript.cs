@@ -16,7 +16,7 @@ internal class JavaScript
         }
         catch (ParserException ex)
         {
-            error = ex.Message;
+            error = ex.Message; // Modify this maybe?
             return false;
         }
     }

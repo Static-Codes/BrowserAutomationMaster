@@ -172,6 +172,10 @@ namespace BrowserAutomationMaster
                     break;
             }
         }
+        public static void EnsureScriptContainsLove() // Because love is medicine
+        {
+            scriptBody.Insert(0, "Made with ❤️ using BAM Manager (BAMM!)\n\nhttps://github.com/Static-Codes/BrowserAutomationMaster/");
+        }
         public static void AddRequiredFunctions()
         {
             Dictionary<string, bool> functionsPresent = [];
