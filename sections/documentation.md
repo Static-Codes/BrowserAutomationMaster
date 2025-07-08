@@ -137,16 +137,16 @@ These features can be enabled or configured in your BAMC scripts:
   - **Syntax:** `feature "disable-pycache"`
 
 - `use-http-proxy`: Uses the entered HTTP proxy for the session.
-  - **Syntax:** `feature "use-http-proxy" "USER:PASS@IP:PORT"` -> Use `NULL:NULL@IP:PORT" if no user:pass authentication is required.
+  - **Syntax:** `feature "use-http-proxy" "USER:PASS@IP:PORT"` -> Use "NULL:NULL@IP:PORT" if no user:pass authentication is required.
 
 - `use-https-proxy`: Uses the entered HTTPS proxy for the session.
-  - **Syntax:** `feature "use-https-proxy" "USER:PASS@IP:PORT"` -> Use `NULL:NULL@IP:PORT" if no user:pass authentication is required.
+  - **Syntax:** `feature "use-https-proxy" "USER:PASS@IP:PORT"` -> Use "NULL:NULL@IP:PORT" if no user:pass authentication is required.
 
 - `use-socks4-proxy`: Uses the entered SOCKS4 proxy for the session.
-  - **Syntax:** `feature "use-socks4-proxy" "USER:PASS@IP:PORT"` -> Use `NULL:NULL@IP:PORT" if no user:pass authentication is required.
+  - **Syntax:** `feature "use-socks4-proxy" "USER:PASS@IP:PORT"` -> Use `feature "use-socks4-proxy" "NULL:NULL@IP:PORT"` if no user:pass authentication is required.
 
 - `use-socks5-proxy`: Uses the entered SOCKS5 proxy for the session.
-  - **Syntax:** `feature "use-socks5-proxy" "USER:PASS@IP:PORT"` -> Use `NULL:NULL@IP:PORT" if no user:pass authentication is required.
+  - **Syntax:** `feature "use-socks5-proxy" "USER:PASS@IP:PORT"` -> Use `feature "use-socks5-proxy" "NULL:NULL@IP:PORT"` if no user:pass authentication is required.
 
 ---
 
