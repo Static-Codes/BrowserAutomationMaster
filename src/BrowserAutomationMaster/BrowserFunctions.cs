@@ -71,6 +71,13 @@ setTimeout(() => {{timeout*1000}});
     sleep(timeout)
 ";
 
+        public static string closeCurrentTabFunction = $@"def close_current_tab():
+    try:
+        current_url = driver.current_url
+        driver.close()
+    except Exception as e:
+        stderr.write(f'Unable to close the current tab.\nTab URL: {{current_url}}\nException Type: {{type(e)}}\nError:\n{{str(e)}}')" + string.Concat(Enumerable.Repeat('\n', 1));
+        
         public static string getScreenBoundsFunction = @"def get_screen_bounds():
     try:
         result = driver.get_window_size()
@@ -413,6 +420,19 @@ setTimeout(() => {{timeout*1000}});
          stderr.write(f'Could not determine status code using selenium-wire.\n')" + string.Concat(Enumerable.Repeat('\n', 1));
         }
 
+        public static string openNewTabFunction(string url, int timeout)
+        {
+            return @$"def open_new_tab(url, timeout):
+    try:
+        original_window = driver.current_window_handle
+        driver.switch_to.new_window('tab')
+        WebDriverWait(driver, .3).until(EC.number_of_windows_to_be(2))
+        new_window = driver.current_window_handle
+        driver.get({url})
+        return new_window, original_window
+    except Exception as e:
+        stderr.write(f'Unable to open a new tab.\nException Type: {{type(e)}}\nError:\n{{str(e)}}')";
+        }
         public static string saveAsHTMLFunction = @"def save_as_html(filename: str):
     if not filename.endswith('.html'):
         filename = 'pagesource.html'
