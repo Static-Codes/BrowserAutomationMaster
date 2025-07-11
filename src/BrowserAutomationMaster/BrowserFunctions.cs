@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace BrowserAutomationMaster
 {
@@ -48,7 +49,36 @@ namespace BrowserAutomationMaster
     except:
         stderr.write(error_msg + '\n')
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
-
+        
+        // Forked from https://pypi.org/project/a-selenium-click-on-coords/ under the MIT License.
+        public static string clickAtPositionFunction = @$"def click_at_coordinates(x: int, y: int, script_timeout=10):
+    isClicked = False
+    try:
+        old_timeout = driver.__dict__[""caps""][""timeouts""][""script""]
+        driver.set_script_timeout(script_timeout)
+        isClicked = driver.execute_script(
+            rf""""""var simulateMouseEvent = function(element, eventName, coordX, coordY) {{{{
+          element.dispatchEvent(new MouseEvent(eventName, {{{{
+            view: window,
+            bubbles: true,
+            cancelable: true,
+            clientX: coordX,
+            clientY: coordY,
+            button: 0
+          }}}}));
+        }}}};
+        var theElement = document.elementFromPoint({{x}}, {{y}});
+        coordX = {{x}},
+        coordY = {{y}};
+        simulateMouseEvent (theElement, ""mousedown"", coordX, coordY);
+        simulateMouseEvent (theElement, ""mouseup"", coordX, coordY);
+        simulateMouseEvent (theElement, ""click"", coordX, coordY);
+        return theElement;""""""
+        )
+    finally:
+        driver.set_script_timeout(old_timeout)
+    return isClicked" + string.Concat(Enumerable.Repeat('\n', 1));
+        
         public static string clickElementFunction = @"def click_element(byType: By, selector: str, actionTimeout: int):
     try:
         WebDriverWait(driver, actionTimeout).until(EC.element_to_be_clickable((byType, selector))).click()
@@ -419,20 +449,18 @@ setTimeout(() => {{timeout*1000}});
     else:
          stderr.write(f'Could not determine status code using selenium-wire.\n')" + string.Concat(Enumerable.Repeat('\n', 1));
         }
-
-        public static string openNewTabFunction(string url, int timeout)
-        {
-            return @$"def open_new_tab(url, timeout):
+        
+        public static string openNewTabFunction = @$"def open_new_tab(url: str, timeout: int):
     try:
         original_window = driver.current_window_handle
         driver.switch_to.new_window('tab')
         WebDriverWait(driver, .3).until(EC.number_of_windows_to_be(2))
         new_window = driver.current_window_handle
-        driver.get({url})
+        driver.get(url)
         return new_window, original_window
     except Exception as e:
-        stderr.write(f'Unable to open a new tab.\nException Type: {{type(e)}}\nError:\n{{str(e)}}')";
-        }
+        stderr.write(f'Unable to open a new tab.\nException Type: {{type(e)}}\nError:\n{{str(e)}}')" + string.Concat(Enumerable.Repeat('\n', 1));
+
         public static string saveAsHTMLFunction = @"def save_as_html(filename: str):
     if not filename.endswith('.html'):
         filename = 'pagesource.html'
@@ -522,6 +550,6 @@ setTimeout(() => {{timeout*1000}});
             file.write(driver.get_screenshot_as_png())
     except Exception as e:
         stderr.write(f'Unable to take screenshot, please check the error below:\n\n{e}\n')" + string.Concat(Enumerable.Repeat('\n', 1));
-
+        
     }
 }

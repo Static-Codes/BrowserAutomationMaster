@@ -45,7 +45,12 @@ namespace BrowserAutomationMaster.Managers
 
             // memStatus is passed as a reference type and is modified by the call to GlobalMemoryStatusEx
             if (!GlobalMemoryStatusEx(ref memStatus)) {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this continues, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\nGlobalMemoryStatusEx invoke inside MemoryInfoManager.CheckForWindows() returned false.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
+                             $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                             $"Error log:\nGlobalMemoryStatusEx invoke inside MemoryInfoManager.CheckForWindows() returned false", 
+                    status: 1
+                );
                 return [];
             }
 
@@ -116,7 +121,11 @@ namespace BrowserAutomationMaster.Managers
                 chmodProcess.WaitForExit();
 
                 if (chmodProcess.ExitCode != 0) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to give memcheck.sh executable permissions, please make sure you are on an admin account.\n\nIf this continues, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\nchmod failed with exit code {chmodProcess.ExitCode}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                    Errors.WriteErrorAndExit(
+                        message: $"BAM Manager (BAMM) was unable to give memcheck.sh executable permissions.\n\n" +
+                                 $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                                 $"Error log:\nchmod failed with exit code {chmodProcess.ExitCode}",
+                        status: 1);
                 }
 
                 ProcessStartInfo sedProcessInfo = new()
@@ -133,7 +142,12 @@ namespace BrowserAutomationMaster.Managers
                 sedProcess.WaitForExit();
 
                 if (sedProcess.ExitCode != 0) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to give memcheck.sh executable permissions, please make sure you are on an admin account.\n\nIf this continues, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\nsed failed with exit code {sedProcess.ExitCode}.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                    Errors.WriteErrorAndExit(
+                        message: $"BAM Manager (BAMM) was unable to give memcheck.sh executable permissions.\n\n" +
+                                 $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                                 $"Error log:\nsed failed with exit code {sedProcess.ExitCode}", 
+                        status: 1
+                    );
                 }
 
 
@@ -149,7 +163,13 @@ namespace BrowserAutomationMaster.Managers
                 Process? process = Process.Start(scriptRunInfo);
 
                 if (process == null) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this continues, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\nProcess associated with memcheck.sh returned null, but it successfully received +x privileges.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                    Errors.WriteErrorAndExit(
+                        message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
+                                 $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                                 $"Error log:\n" +
+                                 $"Process associated with memcheck.sh returned null, but it successfully received +x privileges.",
+                        status: 1
+                    ); 
                 }
 
                 string output = process!.StandardOutput.ReadToEnd(); // Null check above thus the null forgiveness operator.
@@ -158,14 +178,25 @@ namespace BrowserAutomationMaster.Managers
                 process.WaitForExit();
 
                 if (process.ExitCode != 0) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this continues, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\nMemcheck.sh returned the following error:\n{errorOutput}\nExit Code: {process.ExitCode}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                    Errors.WriteErrorAndExit(
+                        message: 
+                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
+                            $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\n" +
+                            $"Memcheck.sh returned the following error:\n{errorOutput}\nExit Code: {process.ExitCode}",
+                        status: 1
+                    );
                 }
 
                 var lines = output.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries); // Handles the cross system issues caused by pasting a unix script on a windows machine
                 //foreach (string line in lines) { Console.WriteLine(line); } // Used for debug only do not forget to comment this out.
 
                 if (lines.Length < 3) { return []; }
-                if (double.TryParse(lines[0], out double total) && double.TryParse(lines[1], out double used) && double.TryParse(lines[2], out double free)) {
+
+                if (double.TryParse(lines[0], out double total) && 
+                    double.TryParse(lines[1], out double used) && 
+                    double.TryParse(lines[2], out double free)
+                ) 
+                {
                     var usedPercent = Math.Round(used / total * 100.0, 2); // 100 is required to go from a double to a decimal to prevent this error
                     var freePercent = Math.Round(100.0 - usedPercent, 2);  // The call is ambiguous between the following methods or properties: 'System.Math.Round(double, int)' and 'System.Math.Round(decimal, int)
 
@@ -177,12 +208,21 @@ namespace BrowserAutomationMaster.Managers
                         { "freePercent", freePercent }
                     };
                 }
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this continues, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\nMemcheck.sh returned the following error:\n{errorOutput}\nExit Code: {process.ExitCode}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
+                    $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                    $"Error log:\nMemcheck.sh returned the following error:\n{errorOutput}\nExit Code: {process.ExitCode}",
+                    status: 1
+                );
                 return [];
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this continues, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\n{ex.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
+                             $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                             $"Error log:\n{ex.Message}",
+                    status: 1);
                 return [];
             }
         }
@@ -203,28 +243,58 @@ namespace BrowserAutomationMaster.Managers
             { 
                 Process? process = Process.Start(info);
                 using (process) {
-                    if (process == null) { Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this issue persists please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\nfree -m command process returned null.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1); }
+                    if (process == null) { 
+                        Errors.WriteErrorAndExit(
+                            message: 
+                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
+                            $"If this issue persists please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\nfree -m command process returned null.",
+                            status: 1
+                    ); }
                     output = process!.StandardOutput.ReadToEnd(); // Null check above prevents process from being null at this point thus the !.
                 }
 
                 var lines = output.Split("\n");
                 if (lines.Length == 0) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory as the linux 'free' command returned nothing, please try again.\n\nIf this issue persists please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}, and no valid output was received.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                    Errors.WriteErrorAndExit(
+                        message: 
+                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
+                            $"as the linux 'free' command returned nothing, please try again.\n\n" +
+                            $"If this issue persists please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}, " +
+                            $"and no valid output was received.",
+                        status: 1
+                    );
                 }
 
                 var memory = lines[1].Split(" ", StringSplitOptions.RemoveEmptyEntries);
                 if (memory.Length == 0) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory as the linux 'free' command returned unexpected output, please try again.\n\nIf this issue persists please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}, and no valid output was received.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
+                            $"as the linux 'free' command returned nothing, please try again.\n\n" +
+                            $"If this issue persists please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}, " +
+                            $"and no valid output was received.",
+                        status: 1
+                    );
                 }
 
-                if (!double.TryParse(memory[1], out double total)) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory as the linux 'free' command returned unexpected output for 'total', please try again.\n\nIf this issue persists please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}, and no valid output was received.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
-                }
-                if (!double.TryParse(memory[2], out double used)) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory as the linux 'free' command returned unexpected output for 'used', please try again.\n\nIf this issue persists please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}, and no valid output was received.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
-                }
-                if (!double.TryParse(memory[3], out double free)) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory as the linux 'free' command returned unexpected output for 'free', please try again.\n\nIf this issue persists please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}, and no valid output was received.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                bool invalidTotal = !double.TryParse(memory[1], out double total);
+                bool invalidUsed = !double.TryParse(memory[2], out double used);
+                bool invalidFree = !double.TryParse(memory[3], out double free);
+
+                if (invalidTotal || invalidUsed || invalidFree)
+                {
+                    Errors.WriteErrorAndExit(
+                        message: 
+                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory as the linux 'free' command returned " +
+                            $"unexpected output for 'total', please try again.\n\n" +
+                            $"If this issue persists please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}," +
+                            $" and no valid output was received.", 
+                        status: 1
+                    );
                 }
 
                 var usedPercent = Math.Round(used / total * 100, 2);
@@ -240,7 +310,13 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again, if this issue persists, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n\nRuntimeManager.GetMemoryInfo for linux exited with stack trace of:\n\n{e}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: 
+                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again, " +
+                        $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\n\nRuntimeManager.GetMemoryInfo for linux exited with stack trace of:\n\n{e}",
+                    status: 1
+                );
                 return [];
             }
         }

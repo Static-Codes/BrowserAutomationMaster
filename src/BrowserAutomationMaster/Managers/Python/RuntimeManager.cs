@@ -1,5 +1,5 @@
 ﻿using System.Runtime.InteropServices;
-using BrowserAutomationMaster.AppManager.OS;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Managers.Python
@@ -14,9 +14,19 @@ namespace BrowserAutomationMaster.Managers.Python
         private static OSPlatform GetPlatform()
         {
             if (!Environment.Is64BitOperatingSystem) {
-                Errors.WriteErrorAndExit("Due to a variety of factors, BAM Manager (BAMM) is unable to run on x86 (32bit) CPUs.  Ensure your CPU supports 64 bit operating systems, and try again.", 1);
+                Errors.WriteErrorAndExit(
+                    message: "Due to a variety of factors, BAM Manager (BAMM) is unable to run on x86 (32bit) CPUs.  Ensure your CPU supports 64 bit operating systems, and try again.", 
+                    status: 1
+                );
             }
-            if (RuntimeInformation.OSArchitecture == Architecture.Arm64) { Warning.Write("BAM Manager (BAMM) supports ARM64 architecture, but performance for browser automation can vary widely depending on your specific ARM processor. Some lower-power ARM systems may experience degraded performance."); }
+            if (RuntimeInformation.OSArchitecture == Architecture.Arm64) { 
+                Warning.Write(
+                    message:
+                        "BAM Manager (BAMM) supports ARM64 architecture, " +
+                        "but performance for browser automation can vary widely depending on your specific ARM processor. " +
+                        "Some lower-power ARM systems may experience degraded performance."
+                ); 
+            }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { return OSPlatform.Windows; }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) { return OSPlatform.OSX; }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { return OSPlatform.Linux; }
@@ -40,7 +50,8 @@ namespace BrowserAutomationMaster.Managers.Python
             Dictionary<string, double> memoryInfo = MemoryInfoManager.RunCheck();
             if (memoryInfo.Count != 5)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this continues, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\nMemoryInfoManager.CheckForWindows() returned an invalid dictionary.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\nMemoryInfoManager.CheckForWindows() returned an invalid dictionary.", 1);
             }
             memoryInfo.TryGetValue("totalMemoryMB", out double totalMemoryMB);
             memoryInfo.TryGetValue("usedMemoryMB", out double usedMemoryMB);
@@ -84,18 +95,39 @@ namespace BrowserAutomationMaster.Managers.Python
             HasEnoughMemory();
             CPUInfoManager cpuInfoManager = new();
             if (!cpuInfoManager.HasEnoughCores()) {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) requires atleast a 2 core cpu, unfortunately your CPU is not powerful enough for modern browser automation, if you believe this is an error, please submit a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\nBAM Manager (BAMM) detected {cpuInfoManager.Cores} physical CPU cores.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: 
+                        $"BAM Manager (BAMM) requires atleast a 2 core cpu, " +
+                        $"unfortunately your CPU is not powerful enough for modern browser automation, " +
+                        $"if you believe this is an error, please submit a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nBAM Manager (BAMM) detected {cpuInfoManager.Cores} physical CPU cores.",
+                    status: 1
+                );
             }
 
         }
         private void ValidateScript()
         {
             SanitizedScriptPath = scriptFilePath.EndsWith(".py") ? scriptFilePath : string.Empty;
-            if (string.IsNullOrEmpty(SanitizedScriptPath)) { Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to run the file provided as it isn't a python file.\nIf you believe this is an error, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n: Raw script file path provided for 'bamm run' was: '{scriptFilePath}'\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1); }
+            if (string.IsNullOrEmpty(SanitizedScriptPath)) { 
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"BAM Manager (BAMM) was unable to run the file provided as it isn't a python file.\n" +
+                        $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\n: Raw script file path provided for 'bamm run' was: '{scriptFilePath}'\n\n", 
+                    status: 1
+                ); 
+            }
             PythonValidationResult result = ScriptValidationManager.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
             Console.WriteLine(result.Output);
             if (!result.IsValid) {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable run the specified file as it contains syntax errors.\nIf you believe this is a bug, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n{result.Errors}'\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: 
+                        $"BAM Manager (BAMM) was unable run the specified file as it contains syntax errors.\n" +
+                        $"If you believe this is a bug, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\n{result.Errors}'", 
+                    status: 1
+                );
             }
         }
 
@@ -106,8 +138,19 @@ namespace BrowserAutomationMaster.Managers.Python
             string[] pythonFilePaths = [];
             string usersChoice = string.Empty;
             try {
-                compiledScriptDirectories.AddRange(Directory.GetDirectories(saveDirectory).Where(directory => !directory.EndsWith("venv", StringComparison.CurrentCultureIgnoreCase)));
-                if (compiledScriptDirectories.Count == 0) { Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to find any compiled scripts, please ensure you have atleast one compiled script before selecting this option.\n\nIf you believe this is an error, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n: No compiled scripts found in {saveDirectory}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1); }
+                compiledScriptDirectories.AddRange(
+                    Directory.GetDirectories(saveDirectory).Where(
+                        directory => !directory.EndsWith("venv", StringComparison.CurrentCultureIgnoreCase)
+                    )
+                );
+                if (compiledScriptDirectories.Count == 0) { 
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
+                            $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
+                            $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\n: No compiled scripts found in {saveDirectory}", 
+                        status: 1); }
                 string menu = string.Empty;
                 int index = 0;
                 foreach (string scriptDirectory in compiledScriptDirectories) {
@@ -124,12 +167,23 @@ namespace BrowserAutomationMaster.Managers.Python
                         }
                     }
                 }
-                if (index == 0) { Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to find any compiled scripts, please ensure you have atleast one compiled script before selecting this option.\n\nIf you believe this is an error, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n: No compiled scripts found in {saveDirectory}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1); }
+                if (index == 0) { 
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
+                            $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
+                            $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\n: No compiled scripts found in {saveDirectory}", 
+                        status: 1
+                    ); 
+                }
                 
                 Success.WriteSuccessMessage($"BAM Manager (BAMM) successfully detected {index} scripts.\n");
                 while (true)
                 {
-                    string choice = Input.WriteTextAndReturnRawInput($"Please choose the number corresponding to your desired script from the list below:\n\n{menu}") ?? string.Empty;
+                    string choice = Input.WriteTextAndReturnRawInput(
+                        $"Please choose the number corresponding to your desired script from the list below:\n\n{menu}"
+                    ) ?? string.Empty;
                     if (string.IsNullOrEmpty(choice) || !int.TryParse(choice, out int result)) {
                         Errors.WriteErrorAndContinue($"Invalid option, please choose a number between 1 and {index}\n");
                         continue;
@@ -139,7 +193,14 @@ namespace BrowserAutomationMaster.Managers.Python
                 }
             }
             catch (Exception e) {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to find any compiled scripts, please ensure you have atleast one compiled script before selecting this option.\n\nIf you believe this is an error, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\n {e.Message}", 1);
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
+                        $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
+                        $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\n {e.Message}", 
+                    status: 1
+                );
             }
             return usersChoice;
         }

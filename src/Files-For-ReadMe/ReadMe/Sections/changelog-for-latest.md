@@ -1,4 +1,4 @@
-# BAMM v1.0.0-Alpha3
+# BAMM v1.0.0-Alpha4
 
 ## **Notes**
 
@@ -11,21 +11,16 @@
 
 ### General Changes:
 
-- Added CPU detection logic for all supported platforms.
-- Added CPU instruction parsing for x64 CPUs.
-- Added Detection logic allowing multiple versions of Python 3.X to be used by BAMM.
-- Added support for Linux on ARM64 CPUs, now Mac users running Linux will be able to use BAMM!
-- Added Runtime support for scripts compiled using BAMM!
-- Added UpdateManager.cs to handle cross platform updating.
-- Removed support for Windows 10 32 Bit, as it is not feasible to continue supporting deprecated hardware. Pure x86 CPUs have not been produced since 2023, and the 4GiB RAM limit imposed by Windows 10, combined with the inferior hardware, will lead to a perpetually degrading experience.
+- Added 3 new commands
+- Cleaned up the Parser class
+- Increased BAMC JavaScript validation accuracy
+- Increased BAMC JavaScript validation accuracy
 
-### New CLI Command:
+### New Commands:
 
-- `bamm run "path/to/python/file.py"` - Runs any python file however it is strongly recommended to ONLY use this command for scripts compiled using BAMM, specifically ones located in the compiled directory. There is no guarantee this will work with external python scripts.
-
-### New Feature Command:
-
-- `feature "run-headless"` - Instructs the compiler to allow headless execution for the duration of the current script.
+`close-current-tab` - Closes the currrent tab and will close the browser if there's only one open tab.
+`open-new-tab "https://google.com" "3"` - A new browser tab is opened, the system will then pause for the number of seconds specified, then visits the requested url.
+`click-at-position "600" "600"` - Clicks at a specific point on screen
 
 ---
 

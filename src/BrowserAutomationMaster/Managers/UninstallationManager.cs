@@ -10,10 +10,15 @@ namespace BrowserAutomationMaster.Managers
         private bool ActionConfirmed { get; set; } = false;
         public void Uninstall()
         {
-            ActionConfirmed = (Input.WriteTextAndReturnRawInput("Are you sure you want to uninstall BAM Manager (BAMM)? [y/n]: ") ?? "n").ToLower().Trim().Equals("y");
+            string response = Input.WriteTextAndReturnRawInput("Are you sure you want to uninstall BAM Manager (BAMM)? [y/n]: ") ?? "n";
+            ActionConfirmed = response.ToLower().Trim().Equals("y");
             if (!ActionConfirmed) { Environment.Exit(0); }
 
-            ActionConfirmed = (Input.WriteTextAndReturnRawInput("This will delete all program files and associated data, please backup before accepting this.  Would you like to continue with the uninstallation process? [y/n]: ") ?? "n").ToLower().Trim().Equals("y");
+            string message = "This will delete all program files and associated data, please backup before accepting this.  " +
+                "Would you like to continue with the uninstallation process? [y/n]: ";
+
+            response = Input.WriteTextAndReturnRawInput(message) ?? "n";
+            ActionConfirmed = response.ToLower().Trim().Equals("y");
             if (!ActionConfirmed) { Environment.Exit(0); }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { DoWindowsUninstall(); }
@@ -23,26 +28,35 @@ namespace BrowserAutomationMaster.Managers
         }
         private static void DoWindowsUninstall() 
         {
+            string failureMessage = "BAM Manager (BAMM) was unable to determine the current directory, " +
+                    "please uninstall this application by searching " +
+                    "'Add or remove programs' in your Windows Searchbar.";
             string InstallationDirectory = AppContext.BaseDirectory;
-            if (!Path.Exists(InstallationDirectory)) { Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to determine the current directory, please uninstall this application by searching 'Add or remove programs' in your Windows Searchbar.", 1); }
+
+            if (!Path.Exists(InstallationDirectory)) { 
+                Errors.WriteErrorAndExit(message: failureMessage, status: 1); 
+            }
             string UninstallerPath = Path.Combine(InstallationDirectory, "unins000.exe");
             try {
                 if (File.Exists(UninstallerPath)) {
                     Process.Start(UninstallerPath);
-                    Success.WriteSuccessMessageAndExit("Started uninstaller, BAM Manager (BAMM) will now exit...", 0);
+                    Success.WriteSuccessMessageAndExit(
+                        message: "Started uninstaller, BAM Manager (BAMM) will now exit...",
+                        exitCode: 0
+                    );
                 }
             }
             catch (FileNotFoundException notFound) {
-                Errors.WriteErrorAndExit(notFound.Message, 1);
+                Errors.WriteErrorAndExit(message: notFound.Message, status: 1);
             }
             catch (Win32Exception w32e) {
-                Errors.WriteErrorAndExit(w32e.Message, 1);
+                Errors.WriteErrorAndExit(message: w32e.Message, status: 1);
             }
             catch (ObjectDisposedException notDisposed) {
-                Errors.WriteErrorAndExit(notDisposed.Message, 1);
+                Errors.WriteErrorAndExit(message: notDisposed.Message, status: 1);
             }
             catch (Exception ex) {
-                Errors.WriteErrorAndExit($"{ex.Message}", 1);
+                Errors.WriteErrorAndExit(message: $"{ex.Message}", status: 1);
             }
         }
         private static void DoMacUninstall() 

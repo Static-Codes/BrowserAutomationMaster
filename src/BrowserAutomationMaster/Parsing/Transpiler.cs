@@ -1,10 +1,11 @@
-﻿using BrowserAutomationMaster.AppManager;
-using BrowserAutomationMaster.Checks;
+﻿using BrowserAutomationMaster.Checks;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Managers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Net.NetworkInformation;
+using BrowserAutomationMaster.Managers.AppManager;
 
 namespace BrowserAutomationMaster
 {
@@ -172,7 +173,7 @@ namespace BrowserAutomationMaster
                     break;
             }
         }
-        public static void EnsureScriptContainsLove() // Because love is medicine
+        public static void AddLoveToScript() // Because love is medicine
         {
             scriptBody.Insert(0, "Made with ❤️ using BAM Manager (BAMM!)\n\nhttps://github.com/Static-Codes/BrowserAutomationMaster/");
         }
@@ -182,24 +183,34 @@ namespace BrowserAutomationMaster
             foreach (string actionArg in Parser.actionArgs) {
                 functionsPresent.Add(actionArg, configLines.Any(line => line.StartsWith(actionArg))); // Checks if configLines contains each arg, if so the required function is be added.
             } // add-header is added here since its in actionArg, but its not accessed in this function.
-            int index = 2; // Accounts for the functions below in the scriptBody.
+            
+            int index = 1; // Accounts for the functions below in the scriptBody.
+            scriptBody.Insert(0, BrowserFunctions.makeRequestFunction(requestUserAgent));
+            
             importStatements.Insert(3, BrowserFunctions.checkImportFunction); // Starts at line 4 (index 3) to account for imports required by check_imports
             importStatements.Insert(4, BrowserFunctions.installPackagesFunction);
             importStatements.Insert(5, "install_packages()");
-            scriptBody.Insert(0, BrowserFunctions.getScreenBoundsFunction);
-            scriptBody.Insert(1, BrowserFunctions.makeRequestFunction(requestUserAgent));
-
-            if (functionsPresent.TryGetValue("click", out bool isNeeded) && isNeeded){ scriptBody.Insert(index, BrowserFunctions.clickElementFunction); index++; }
-            if (functionsPresent.TryGetValue("click-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.clickElementExperimentalFunction); index++; }
-            if (functionsPresent.TryGetValue("fill-text", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.fillTextFunction); index++; }
-            if (functionsPresent.TryGetValue("fill-text-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.fillTextExperimentalFunction); index++; }
-            if (functionsPresent.TryGetValue("get-text", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.getTextFunction); index++; }
-            if (functionsPresent.TryGetValue("save-as-html", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLFunction); index++; }
-            if (functionsPresent.TryGetValue("save-as-html-exp", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLFunction); index++; }
-            //if (functionsPresent.TryGetValue("select-element", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.selectElementFunction); index++; }
-            if (functionsPresent.TryGetValue("select-option", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.selectOptionByIndexFunction); index++; }
-            if (functionsPresent.TryGetValue("take-screenshot", out isNeeded) && isNeeded) { scriptBody.Insert(index, BrowserFunctions.takeScreenshotFunction); index++; }
-
+            
+            // Simplified from previous implementation
+            Dictionary<string, Action> functionsAndActions = new() {
+                { "click",                () => { scriptBody.Insert(index, BrowserFunctions.clickElementFunction); index++; } },
+                { "click-at-position",    () => { scriptBody.Insert(index, BrowserFunctions.clickAtPositionFunction); index++; } },
+                { "click-exp",            () => { scriptBody.Insert(index, BrowserFunctions.clickElementExperimentalFunction); index++; } },
+                { "close-current-tab",    () => { scriptBody.Insert(index, BrowserFunctions.closeCurrentTabFunction); index++; } },
+                { "fill-text",            () => { scriptBody.Insert(index, BrowserFunctions.fillTextFunction); index++; } },
+                { "fill-text-exp",        () => { scriptBody.Insert(index, BrowserFunctions.fillTextExperimentalFunction); index++; } },
+                { "get-text",             () => { scriptBody.Insert(index, BrowserFunctions.getTextFunction); index++; } },
+                { "open-new-tab",         () => { scriptBody.Insert(index, BrowserFunctions.openNewTabFunction); index++; }  },
+                { "save-as-html",         () => { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLFunction); index++; } },
+                { "save-as-html-exp",     () => { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLExperimentalFunction); index++; } },
+                { "select-option",        () => { scriptBody.Insert(index, BrowserFunctions.selectOptionByIndexFunction); index++; } },
+                { "take-screenshot",      () => { scriptBody.Insert(index, BrowserFunctions.takeScreenshotFunction); index++; } }
+            };
+            foreach (var functionPair in functionsAndActions) {
+                if (functionsPresent.TryGetValue(functionPair.Key, out bool isNeeded) && isNeeded) { // Presence check
+                    if (functionsAndActions.TryGetValue(functionPair.Key, out Action? actionToPerform) && actionToPerform != null) { actionToPerform(); } // Null check + execution
+                }
+            }
             if (scriptBody.Count != index) { scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode); }
             else { scriptBody.Insert(index, BrowserFunctions.browserQuitCode); }
         }
@@ -319,7 +330,7 @@ namespace BrowserAutomationMaster
                 if (string.IsNullOrEmpty(line)) { continue; } // Skip blank lines.
 
                 if (line.Contains(" // ") && !isJSBlock) { hasComment = true; } // Indicates a comment is present (ignores comments within JS blocks)
-                if (hasComment) { if (line.StartsWith(" // ")) { Console.WriteLine(line); } line = Parser.DeleteCommentIfPresent(line); } // Deletes said comment so it's not compiled.
+                if (hasComment) { line = Parser.DeleteCommentIfPresent(line); } // Deletes said comment so it's not compiled.
                 
                 // Handling 'add-headers' before 'visit' is processed would be an issue if it weren't for Parser
                 // Parser ensures 'browser' first (or defaults to firefox) then features and finally any other logic.
@@ -334,7 +345,7 @@ namespace BrowserAutomationMaster
                         scriptBody.Insert(index - 1, BrowserFunctions.addHeadersFunction(JsonSerializer.Deserialize<Dictionary<string, string>>(match.Groups["json"].Value)!));
                     } 
                    
-                    continue; // Go to next line
+                    continue;
                 }
 
 
@@ -353,9 +364,17 @@ namespace BrowserAutomationMaster
 
 
                 int[] validLengths = [2, 3];
-                if (!validLengths.Contains(splitLine.Length) && !isJSLine) {
-                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "Invalid feature command syntax."), 1);
-                } // Doesn't include 'start-javascript' and 'end-javascript'
+                string[] specialCommands = ["close-current-tab"]; // These are special because they require no parsing; excludes start-javascript + end-javascript theyre handled below.
+
+                bool normalLengthBypass = !validLengths.Contains(splitLine.Length) && !isJSLine;
+                bool specialLengthBypass = specialCommands.Any(cmd => line.Replace('"', ' ').Trim().StartsWith(cmd));
+                
+                if (normalLengthBypass) {
+                    if (specialLengthBypass) {
+                        continue;
+                    }
+                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "Invalid command syntax."), 1);
+                }
 
                 // Handle case where user attempts to create another jsBlock before closing the previous one.
                 if (isJSBlock && line.StartsWith("start-javascript")) {
@@ -437,6 +456,16 @@ namespace BrowserAutomationMaster
                             }
                             break;
 
+                        case "click-at-position":
+                            if (!int.TryParse(sanitizedArg2, out int xPos)) {
+                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument {splitLine[1]}"), 1);
+                            }
+                            if (!int.TryParse(sanitizedArg2, out int yPos)) {
+                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument {splitLine[2]}"), 1);
+                            }
+                            scriptBody.Add($"click_at_position({xPos}, {yPos}, {actionTimeout})");
+                            break;
+
                         case "click-exp":
                             isCE = false; // Once since the case its safe to set this flag to false
                             string ceSelector = splitLine[1].Replace('\'', ' ').Trim();
@@ -472,6 +501,10 @@ namespace BrowserAutomationMaster
                                     }
                                     break;
                             }
+                            break;
+
+                        case "close-current-tab":
+                            scriptBody.Add("close_current_tab()");
                             break;
 
                         case "get-text":
@@ -623,6 +656,19 @@ namespace BrowserAutomationMaster
                                     scriptBody.Add($"if isFilled:\n{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
                                     scriptBody.Add($"else:\n{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n{Indent(1)}exit(1)\n");
                                     break;
+                            }
+                            break;
+
+                        case "open-new-tab":
+                            try {
+                                using Ping pinger = new();
+                                foreach (var protocol in Parser.validProtocols.Take(2)) { sanitizedArg2 = sanitizedArg2.Replace(protocol, ""); }
+                                if (sanitizedArg2.EndsWith('/')) { sanitizedArg2 = sanitizedArg2[..^1]; }
+                                if (!IsResolvableLink(sanitizedArg2)) { Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to compile the requested script due to the errors above.", 1); }
+                                scriptBody.Add($"open_new_tab('{sanitizedArg2}', {sanitizedArg3})");
+                            }
+                            catch (Exception e) {
+                                Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to resolve the url: '{sanitizedArg2}'\nError log:\n\n{e.Message}\n\n{Debug.GetPlatformInfoForErrorLog()}");
                             }
                             break;
 
@@ -923,46 +969,17 @@ namespace BrowserAutomationMaster
                                 scriptBody.Add($"sleep({waitTime})");
                                 waitTimeValidated = true;
                             }
-                            if (!waitTimeValidated)
-                            {
+                            if (!waitTimeValidated) {
                                 Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument '{splitLine[1]}'"), 1);
                             }
                             break;
                 }
                 lineNumber++;
             }
-            //importStatements.Add("\n\n"); // Add 2 trailing newlines for readablility
-            //importStatements.Insert(0, "from os import path, system");
-
-            // Weird solution but we live for weirdness, we EMBRACE weirdness - steve jobs (probably)
-            // This inserts logic in reverse order so the end of the logic is inserted first, this results in the expected output without requiring a loop.
-            //importStatements.Insert(0, "\n\n"); // Add 2 trailing newlines for readablility ---- LETS GO UNICODE ISSUES
-            //importStatements.Insert(0, $"{Indent(1)}print(f'Requirements installation failed with exit code: {{exit_code}}')\n");
-            //importStatements.Insert(0, "else:");
-            //importStatements.Insert(0, $"{Indent(1)}print('Requirements installed successfully.')");
-            //importStatements.Insert(0, "if exit_code == 0:");
-            //importStatements.Insert(0, "\nexit_code = system(command_string)");
-            //importStatements.Insert(0, "command_string = f'\"{pip_executable}\" install -r \"{requirements_filepath}\"'");
-            //importStatements.Insert(0, "requirements_filepath = path.join(current_file_directory, 'requirements.txt')");
-            //importStatements.Insert(0, "pip_executable = str(current_file_directory / 'venv' / 'bin' / 'pip')");
-            //importStatements.Insert(0, "current_file_directory = Path(__file__).parent.resolve()");
-            //importStatements.Insert(0, "from pathlib import Path");
-            //importStatements.Insert(0, "﻿\nfrom os import path, system");
-            //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            //{
-            //    importStatements.Insert(1, "system('pip install -r requirements.txt')\n");
-            //}
-            //else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            //{
-            //    importStatements.Insert(1, "system('python3 -m pip install -r requirements.txt')\n");
-            //}
-            //else
-            //{
-            //    Errors.WriteErrorAndExit("BAMM is somehow running an unsupported platform, if this is intentional, and you're contributing to the project, simply remove this check.", 1);
-            //}
 
             AddRequiredFunctions();
             SuppressUnneededWarnings();
+            AddLoveToScript(); // Single comment watermark, completely nonintrusive and easily removable
         }
         public static void HandlePythonVersionSelection(Installations installations)
         {
@@ -1050,6 +1067,38 @@ namespace BrowserAutomationMaster
             if (!int.TryParse(parts[0], out int major) || !int.TryParse(parts[1], out int minor)) { return false; }
             return major == 3 && minor >= 9 && minor <= 13;
         }
+        public static bool IsResolvableLink(string link)
+        {
+            try
+            {
+                if (!Uri.TryCreate(link, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { return false; }
+                RequestManager requestManager = new(uriResult, timeout: 10);
+
+                HttpClient client = requestManager.Client;
+                Uri uriToRequest = requestManager.Uri;
+                TimeSpan requestTimeout = requestManager.Timeout;
+
+                using var cts = new CancellationTokenSource(requestTimeout); // cts.Token passed to GetASync
+                
+                // HttpCompletionOption.ResponseHeadersRead requires only the response headers to be read, no content is loaded.
+                Task<HttpResponseMessage> responseTask = client.GetAsync(uriToRequest, HttpCompletionOption.ResponseHeadersRead, cts.Token); 
+                
+                responseTask.Wait();
+                HttpResponseMessage response = responseTask.Result;
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to resolve the url: '{link}'");
+                string exceptionMessage = ex.InnerException?.Message ?? "";
+                if (ex.GetType() == typeof(PingException) && exceptionMessage.StartsWith("No such host is known")) {
+                    Warning.Write($"It is possible the website you are requesting is unable or incorrectly entered.\n\nException:\n\n{ex.InnerException}");
+                }
+                bool isContinuing = (Input.WriteTextAndReturnRawInput("Would you like to continue compilation? [y/n]: ") ?? "n").ToLower().Trim().Equals("y");
+                if (!isContinuing) { Errors.WriteErrorAndExit("", 0); }
+            }
+            return true;
+        }
         public static void PreprocessJSCodeBlock(string jsCodeBlock)
         {
             int lineNumber = 0;
@@ -1074,8 +1123,9 @@ namespace BrowserAutomationMaster
             bypassCloudflare = false;
             disablePycache = false;
             noBrowsersFound = false;
+            runHeadless = false;
             actionTimeout = 10;
-            //projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
+            projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
             importStatements.Clear(); // Since its read only clearing it and reassigning the default values is the ideal solution.
             importStatements.AddRange(["from importlib import import_module", "from subprocess import run", "from sys import modules, stderr, stdout"]);
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
