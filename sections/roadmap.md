@@ -22,7 +22,8 @@ This section outlines the planned commands and features for later BAMM releases.
 - Allow multiple visit commands in a single .BAMC script without jeopardizing current functionality.
 - Adding an option for users to copy the path of the compiled script directory to their clipboard.
 - Adding back a config.ini which allows the user to more tightly control the compiler's actions.
-- Alternatively, allow users the ability to open a new explorer/finder window to that directory, provided there's at least 100MB of RAM available.
+- Allow users the ability to open a new explorer/finder window to that directory, provided there's at least 100MB of RAM available.
+- Clean up error messages to be under 100 characters per line.
 
 ## LSP (Language Server Protocol)
 - This will allow you to create bamm scripts with syntax highlighting and other features similar to pylance.
