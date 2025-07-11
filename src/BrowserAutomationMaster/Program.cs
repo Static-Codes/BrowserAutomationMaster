@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using BrowserAutomationMaster;
-using BrowserAutomationMaster.AppManager.OS;
 using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 

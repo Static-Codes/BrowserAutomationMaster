@@ -5,7 +5,7 @@ using BrowserAutomationMaster.Messaging;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
 
-namespace BrowserAutomationMaster.AppManager.OS
+namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     [SupportedOSPlatform("windows")]
     public static partial class Windows

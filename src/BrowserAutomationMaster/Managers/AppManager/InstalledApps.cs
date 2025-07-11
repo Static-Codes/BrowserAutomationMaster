@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace BrowserAutomationMaster.AppManager
+namespace BrowserAutomationMaster.Managers.AppManager
 {
     public static class InstalledApps
     {

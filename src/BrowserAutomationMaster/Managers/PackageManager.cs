@@ -5,8 +5,6 @@ using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Managers
 {
-    
-
     public partial class PackageManager
     {
         // Researched from: https://blog.nimblepros.com/blogs/using-generated-regex-attribute/
@@ -26,17 +24,27 @@ namespace BrowserAutomationMaster.Managers
         public static string New(string packageName, string pythonVersion)
         {
             if (packageName == null || !PrecompiledPackageRegex().IsMatch(packageName)) {
-                Errors.WriteErrorAndExit("Invalid packageName provided to PackageManager(), please check your spelling and try again.", 1);
+                Errors.WriteErrorAndExit(
+                    message: "Invalid packageName provided to PackageManager(), please check your spelling and try again.",
+                    status: 1
+                );
             }
             //string jsonString;
             //try { jsonString = File.ReadAllText(PackagesFilePath); }
             //catch { jsonString = PackageJson.jsonString; }
             if (string.IsNullOrEmpty(PackageJson.jsonString)) {
-                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to parse the required package versions, please try again and if this error persists it is likely a developmental flaw.", 1);
+                Errors.WriteErrorAndExit(
+                    message: "BAM Manager (BAMM) was unable to parse the required package versions, please try again and if this error persists it is likely a developmental flaw.",
+                    status: 1
+                );
             }
-            try { packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(PackageJson.jsonString)!; }
+            try { 
+                packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(PackageJson.jsonString)!; 
+            }
             catch { Errors.WriteErrorAndExit(malformedJSONMessage, 1); }
-            string packageVersion = GetSupportedPackageVersion(packageName!, pythonVersion) ?? "Not Found"; // C# requires notice that the value is for certain not nullable, thus the !
+
+            // C# requires notice that the value is for certain not nullable, thus the !
+            string packageVersion = GetSupportedPackageVersion(packageName!, pythonVersion) ?? "Not Found";
             return packageVersion; // "Not Found" should never be returned its purely to appease the compiler.
         }
 
@@ -44,8 +52,8 @@ namespace BrowserAutomationMaster.Managers
 
         public static bool IsDeprecated(string packageName, string packageVersion)
         {
-            HttpClient client = new();
-            string attemptedURL = $"{baseURL}/{packageName}/{packageVersion}";
+
+            string url = $"{baseURL}/{packageName}/{packageVersion}";
             
 
             string unvalidatedMessage = $"""
@@ -58,13 +66,14 @@ namespace BrowserAutomationMaster.Managers
                 Please contact the developer to push a fix.
             """;
 
-            string validMessage = "BAM Manager (BAMM) validated package: {packageName}=={packageVersion}\n";
+            string validMessage = $"BAM Manager (BAMM) validated package: {packageName}=={packageVersion}\n";
 
             try
             {
-                HttpRequestMessage request = new(HttpMethod.Get, attemptedURL);
-                request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0");
-                HttpResponseMessage response = client.SendAsync(request).Result; // Catch Aggregate Exception
+                if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { return false; }
+                RequestManager requestManager = RequestManager.Create(uriResult);
+                HttpResponseMessage response = requestManager.GetAsync().GetAwaiter().GetResult();
+                response.EnsureSuccessStatusCode();
 
                 HttpStatusCode statusCode = response.StatusCode;
                 if (statusCode != HttpStatusCode.OK) {  
@@ -108,12 +117,20 @@ namespace BrowserAutomationMaster.Managers
 
             if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? selectedPackageData))
             {
-                Errors.WriteErrorAndExit("Invalid packageName provided, please check your spelling and try again.", 1);
-                return []; // C# compiler is dumb, the function i wrote above will exit once done, but it doesnt know that since its static!
+                Errors.WriteErrorAndExit(
+                    message: "Invalid packageName provided, please check your spelling and try again.", 
+                    status: 1
+                );
             }
-            if (selectedPackageData == null || !selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || supportedPyVersions.Count == 0)
+
+            if (selectedPackageData == null || 
+                !selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || 
+                supportedPyVersions.Count == 0)
             {
-                Errors.WriteErrorAndExit($"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.",
+                    status: 1
+                );
                 return [];
             }
             return supportedPyVersions;
@@ -123,7 +140,10 @@ namespace BrowserAutomationMaster.Managers
         {
             if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
             {
-                Errors.WriteErrorAndExit($"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
+                    status: 1
+                );
                 return null;
             }
 
@@ -133,7 +153,10 @@ namespace BrowserAutomationMaster.Managers
 
             if (supportedPackageVersions.Count == 0)
             {
-                Console.WriteLine($"No versions of package '{packageName}' found that support Python {pythonVersion}.");
+                Errors.WriteErrorAndExit(
+                    message: $"No versions of package '{packageName}' found that support Python {pythonVersion}.",
+                    status: 1
+                );
                 return null;
             }
             return supportedPackageVersions.First();

@@ -15,41 +15,30 @@ namespace BrowserAutomationMaster.Managers
 
         private static void LoadUserAgents()
         {
-            if (userAgentsData == null)
+            lock (_lock)
             {
-                lock (_lock)
+                try
                 {
-                    if (userAgentsData == null)
+                    userAgentsData = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(UserAgents.jsonString);
+
+                    if (userAgentsData == null || userAgentsData.Count == 0)
                     {
-                        try
-                        {
-                            // No longer needed as all json data is embedded into the source for to standardize the cross platform compilation process.
-                            //if (!File.Exists(UserAgentsFilePath))
-                            //{
-                            //    Errors.WriteErrorAndExit($"Error: User agent file not found at {UserAgentsFilePath}", 1);
-                            //}
-
-                            userAgentsData = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(UserAgents.jsonString);
-
-                            if (userAgentsData == null || userAgentsData.Count == 0)
-                            {
-                                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was failed to load embedded user agent data, please try again, if this error persists, it is likely a developmental flaw not an issue with your machine.", 1);
-                                //Errors.WriteErrorAndExit($"Warning: User agent data loaded from {UserAgentsFilePath} is null or empty.", 1);
-                            }
-                        }
-                        catch (JsonException)
-                        {
-                            Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to deserialize embedded user agent data, please try again, if this error persists, it is likely a developmental flaw not an issue with your machine.", 1);
-                            //Errors.WriteErrorAndExit($"Error deserializing JSON from {UserAgentsFilePath}: {ex.Message}", 1);
-                        }
-                        catch (Exception)
-                        {
-                            //Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to load embedded user agent data, please try again, if this error persists, it is likely a developmental flaw not an issue with your machine.", 1);
-                            Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to load embedded user agent data, please try again, if this error persists, it is likely a developmental flaw not an issue with your machine.", 1);
+                        Errors.WriteErrorAndExit(
+                            $"BAM Manager (BAMM) was failed to load embedded user agent data, please try again, if this error persists, it is likely a developmental flaw not an issue with your machine.", 1);
                         }
                     }
+                    catch (JsonException)
+                    {
+                        Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to deserialize embedded user agent data, please try again, if this error persists, it is likely a developmental flaw not an issue with your machine.", 1);
+                        //Errors.WriteErrorAndExit($"Error deserializing JSON from {UserAgentsFilePath}: {ex.Message}", 1);
+                    }
+                    catch (Exception)
+                    {
+                        //Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to load embedded user agent data, please try again, if this error persists, it is likely a developmental flaw not an issue with your machine.", 1);
+                        Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to load embedded user agent data, please try again, if this error persists, it is likely a developmental flaw not an issue with your machine.", 1);
+                    }
+                    
                 }
-            }
 
         }
         public static string? GetUserAgent(string browserName)

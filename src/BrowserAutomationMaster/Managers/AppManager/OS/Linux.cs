@@ -2,7 +2,7 @@ using BrowserAutomationMaster.Messaging;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 
-namespace BrowserAutomationMaster.AppManager.OS
+namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     public static class Linux
     {

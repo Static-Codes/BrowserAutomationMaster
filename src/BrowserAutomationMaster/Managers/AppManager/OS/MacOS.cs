@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using BrowserAutomationMaster.Messaging;
 
-namespace BrowserAutomationMaster.AppManager.OS
+namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     public static class MacOS
     {

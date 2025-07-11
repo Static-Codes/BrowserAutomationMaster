@@ -15,26 +15,39 @@ namespace BrowserAutomationMaster.Managers
             // Performs path validation 1/6 (Ensures userScriptDirectory's value is not null or empty)
             userScriptDirectory = GetUserScriptDirectory();
             if (string.IsNullOrEmpty(userScriptDirectory)) {
-                Errors.WriteErrorAndExit("Path to userScripts directory could not be determined, if this continues please reinstall the application.", 1);
+                Errors.WriteErrorAndExit(
+                    message: "Path to userScripts directory could not be determined, " +
+                    "if this continues please reinstall the application.", 
+                    status: 1
+                );
             }
 
             // Performs path validation 2/6 (Ensures the userScript directory exists)
             if (!Directory.Exists(userScriptDirectory)) {
                 try {
                     Directory.CreateDirectory(userScriptDirectory);
-                    Success.WriteSuccessMessage($"Successfully created userScripts directory.\nLocation: {userScriptDirectory}");
+                    Success.WriteSuccessMessage(
+                        $"Successfully created userScripts directory.\n" +
+                        $"Location: {userScriptDirectory}"
+                    );
                 }
                 catch (Exception ex) {
-                    Errors.WriteErrorAndExit($"Failed to create userScripts directory.\n'{userScriptDirectory}'\nError: {ex.Message}", 1);
+                    Errors.WriteErrorAndExit(
+                        message: "Failed to create userScripts directory.\n'" + $"{userScriptDirectory}'\nError: {ex.Message}", 
+                        status: 1
+                    );
                 }
             }
 
             // Performs path validation 3/6 (Ensures filePath's value is not null or empty)
             if (string.IsNullOrWhiteSpace(filePath)) {
-                Errors.WriteErrorAndExit("BAM Manager (BAMM): File path cannot be empty.", 1);
+                Errors.WriteErrorAndExit(
+                    message: "BAM Manager (BAMM): File path cannot be empty.", 
+                    status: 1
+                );
             }
 
-            // Performs path validation 4/6 ()
+            // Performs path validation 4/6
             string fileName;
             try {
                 fileName = Path.GetFileName(filePath);
@@ -47,36 +60,50 @@ namespace BrowserAutomationMaster.Managers
 
             // Performs path validation 5/6 (Validates file extension)
             if (!scriptPath.ToLower().Trim().EndsWith(".bamc")) { 
-                Errors.WriteErrorAndExit("BAM Manager (BAMM) only works with .BAMC files.\n\nPlease note: this file extension is not case sensitive, meaning '.bamc', '.BAMC', '.baMC', etc. will work!", 1);
+                Errors.WriteErrorAndExit(
+                    message: "BAM Manager (BAMM) only works with .BAMC files.\n\n" +
+                    "Please note: this file extension is not case sensitive, " +
+                    "meaning '.bamc', '.BAMC', '.baMC', etc. will work!", 
+                    status: 1
+                );
             }
 
             // Performs path validation 6/6 (Locates the file within the userScript directory)
             if (!File.Exists(filePath)) {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to locate the source file: {filePath}, please check for typos.", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"BAM Manager (BAMM) was unable to locate the source file: {filePath}, please check for typos.", 
+                    status: 1
+                );
             }
 
             // Handles CLI args
             switch (method.ToLower().Trim())
             {
                 case "add":
-                    AddScript(filePath, fileName);
+                    AddScript(sourceFilePath: filePath, fileName: fileName);
                     break;
                 case "compile": // Only compiles from .bamc files within the userScripts directory, this creates standardized behavior. 
                     if (!File.Exists(scriptPath)) {
-                        Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to compile: {filePath}\nPlease ensure you've added this script to the userScript directory and try again.", 1);
+                        Errors.WriteErrorAndExit(
+                            message: $"BAM Manager (BAMM) was unable to compile: {filePath}\n" +
+                            $"Please ensure you've added this script to the userScript directory and try again.", 
+                            status: 1);
                     }
-                    Transpiler.New(scriptPath, []); 
+                    Transpiler.New(filePath: scriptPath, args: []); 
                     break;
                 case "delete":
                     DeleteScript();
                     break;
                 case "run":
-                    RuntimeManager runtimeManager = new(scriptPath);
+                    RuntimeManager runtimeManager = new(scriptFilePath: scriptPath);
                     runtimeManager.RunScript();
                     break;
 
                 default:
-                    Errors.WriteErrorAndExit($"Unknown method: {method}. Please type:\nbamm help\n\nFor further instructions.", 1);
+                    Errors.WriteErrorAndExit(
+                        message: $"Unknown method: {method}. Please type:\nbamm help\n\nFor further instructions.",
+                        status: 1
+                    );
                     break;
             }
         }
@@ -87,7 +114,10 @@ namespace BrowserAutomationMaster.Managers
             bool overwrite = false;
 
             if (File.Exists(scriptPath)) {
-                string response = Input.WriteTextAndReturnRawInput($"\nThe file '{fileName}' already exists in the userScript directory. Overwrite? [y/n]:\n") ?? "n";
+                string response = Input.WriteTextAndReturnRawInput(
+                    $"\nThe file '{fileName}' already exists in the userScript directory. Overwrite? [y/n]:\n"
+                ) ?? "n";
+
                 if (!response.ToLower().Trim().Equals("y")) {
                     Errors.WriteErrorAndExit("Operation canceled by user, exiting...", 0);
                     return;
@@ -97,23 +127,39 @@ namespace BrowserAutomationMaster.Managers
 
             try {
                 File.Copy(sourceFilePath, scriptPath, overwrite);
-                Success.WriteSuccessMessage($"\nSuccessfully {(overwrite ? "overwritten" : "added")} '{fileName}' to the userScript directory.\n");
+                Success.WriteSuccessMessage(
+                    $"\nSuccessfully {(overwrite ? "overwritten" : "added")} '{fileName}' to the userScript directory.\n"
+                );
             }
             catch (UnauthorizedAccessException ex) {
-                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to continue, permission denied.\nSource: {sourceFilePath}\nDestination: {scriptPath}\nError: {ex.Message}", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"\nBAM Manager (BAMM) was unable to continue, permission denied.\n" +
+                    $"Source: {sourceFilePath}\nDestination: {scriptPath}\nError: {ex.Message}",
+                    status: 1
+                );
             }
             catch (IOException ex) {
-                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\nSource: {sourceFilePath}\nDestination: {scriptPath}\nError: {ex.Message}", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\nSource: {sourceFilePath}\n" +
+                    $"Destination: {scriptPath}\nError: {ex.Message}",
+                    status: 1
+                );
             }
             catch (Exception ex) {
-                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to {(overwrite ? "overwrite" : "add")} '{fileName}'.\nError: {ex.Message}", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"\nBAM Manager (BAMM) was unable to {(overwrite ? "overwrite" : "add")} '{fileName}'.\nError: {ex.Message}",
+                    status: 1
+                );
             }
         }
         public void DeleteScript()
         {
             if (string.IsNullOrWhiteSpace(scriptPath)) { return; }
             if (!File.Exists(scriptPath)) {
-                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to locate:\n{scriptPath}\nPlease ensure this directory exists.", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"\nBAM Manager (BAMM) was unable to locate:\n{scriptPath}\nPlease ensure this directory exists.",
+                    status: 1
+                );
             }
             try
             {
@@ -121,19 +167,33 @@ namespace BrowserAutomationMaster.Managers
                 Success.WriteSuccessMessage($"BAM Manager (BAMM) successfully deleted file: {scriptPath}\n");
             }
             catch (IOException) {
-                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\nFile: {scriptPath}\n", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\nFile: {scriptPath}\n",
+                    status: 1
+                );
             }
             catch (UnauthorizedAccessException) {
-                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n",
+                    status: 1);
             }
             catch (System.Security.SecurityException) {
-                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n", 
+                    status: 1
+                );
             }
             catch (ArgumentException) {
-                Errors.WriteErrorAndExit($"Invalid argument for file path: '{scriptPath}'\n", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"Invalid argument for file path: '{scriptPath}'\n",
+                    status: 1
+                );
             }
             catch (Exception ex) {
-                Errors.WriteErrorAndExit($"An unexpected error of type: '{ex.GetType().Name}' occurred while trying to delete file: '{scriptPath}'\n", 1);
+                Errors.WriteErrorAndExit(
+                    message: $"An unexpected error of type: '{ex.GetType().Name}' occurred while trying to delete file: '{scriptPath}'\n", 
+                    status: 1
+                );
             }
         }
 
@@ -157,26 +217,33 @@ namespace BrowserAutomationMaster.Managers
 
                 if (string.IsNullOrEmpty(homeDirectory))
                 {
-                    Errors.WriteErrorAndContinue($"BAM Manager (BAMM) could not automatically determine the user's home directory (UserProfile was empty).");
+                    Errors.WriteErrorAndContinue(
+                        message: $"BAM Manager (BAMM) could not automatically determine the user's home directory (UserProfile was empty)."
+                    );
                     string? username = Environment.UserName; // Try Environment.UserName as a fallback
                     if (string.IsNullOrEmpty(username))
                     {
-                        Errors.WriteErrorAndContinue("BAM Manager (BAMM) was also unable to determine the active user's username automatically.");
-                        bool manuallyEntering = (Input.WriteTextAndReturnRawInput("Would you like to manually enter the username? [y/n]: ") ?? "n").ToLower().Equals("y");
+                        Errors.WriteErrorAndContinue(
+                            message: "BAM Manager (BAMM) was also unable to determine the active user's username automatically."
+                        );
+                        string response = Input.WriteTextAndReturnRawInput("Would you like to manually enter the username? [y/n]: ") ?? "n";
+                        bool manuallyEntering = response.ToLower().Equals("y");
 
                         if (manuallyEntering)
                         {
-                            username = Input.WriteTextAndReturnRawInput("Please enter the exact username of the current active user: ") ?? string.Empty;
-                            if (string.IsNullOrEmpty(username))
-                            {
-                                Errors.WriteErrorAndExit("Invalid username provided. BAM Manager (BAMM) will now exit. Press any key to exit...", 1);
-                                return ""; // Should not be reached due to exit
+                            username = Input.WriteTextAndReturnRawInput(
+                                "Please enter the exact username of the current active user: "
+                            ) ?? string.Empty;
+
+                            if (string.IsNullOrEmpty(username)) {
+                                Errors.WriteErrorAndExit(
+                                    message: "Invalid username provided. BAM Manager (BAMM) will now exit. Press any key to exit...",
+                                    status: 1
+                                );
                             }
                         }
-                        else
-                        {
+                        else {
                             Errors.WriteErrorAndExit("Username not provided. Press any key to exit...", 1);
-                            return ""; // Should not be reached due to exit
                         }
                     }
                     // Assuming username is a non null value, created using /Users/{username} structure
@@ -199,10 +266,14 @@ namespace BrowserAutomationMaster.Managers
                 if (string.IsNullOrEmpty(homeDirectory)) { 
                     homeDirectory = Environment.GetEnvironmentVariable("HOME"); 
                 }
-
+                
+                // Fallback for second check
                 if (string.IsNullOrEmpty(homeDirectory)) {
-                    Errors.WriteErrorAndExit("BAM Manager (BAMM) could not determine home directory on Linux.\nPress any key to exit...", 1);
-                    return ""; // Should not be reached
+                    Errors.WriteErrorAndExit(
+                        message: "BAM Manager (BAMM) could not determine home directory on Linux.\nPress any key to exit...",
+                        status: 1
+                    );
+                    return "";
                 }
 
                 // Ensures compliance with XDG specs using $XDG_CONFIG_HOME or $HOME/.config
@@ -220,52 +291,13 @@ namespace BrowserAutomationMaster.Managers
         static void EnsureDirectoryExists(string path) {
             if (!Directory.Exists(path)) {
                 try { Directory.CreateDirectory(path); }
-                catch (Exception) { Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"); }
+                catch (Exception) { 
+                    Errors.WriteErrorAndContinue(
+                        message: $"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"
+                    );
+                }
             }
         }
-
-
-        //public static string GetUserScriptDirectory()
-        //{
-        //    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-        //        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster", "userScripts");
-        //    }
-
-        //    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-        //        string username = Environment.UserName;
-        //        if (username == null)
-        //        {
-        //            Errors.WriteErrorAndContinue("BAM Manager (BAMM) was unable to determine the active user's username.");
-        //            bool manuallyEntering = (Input.WriteTextAndReturnRawInput("Would you like to manually enter this? [y/n]: ") ?? "n").ToLower().Equals("y");
-
-        //            if (manuallyEntering) {
-        //                username = Input.WriteTextAndReturnRawInput("Please enter the exact username of the current active user: ") ?? string.Empty;
-        //                if (string.IsNullOrEmpty(username)) { Errors.WriteErrorAndExit("Invalid username provided, BAM Manager (BAMM) will now exit, press any key to exit...", 1); }
-        //            }
-
-        //            else { Errors.WriteErrorAndExit("Press any key to exit...", 1); return ""; }
-        //            string directory = $"/Users/{username}/Library/Application Support/BrowserAutomationMaster/userScripts";
-        //            if (!Directory.Exists(directory)) {
-        //                Errors.WriteErrorAndContinue("BAM Manager (BAMM) was unable to determine the path to the userScripts directory, if this issue persists, its likely not a system fault but instead a developmental flaw.");
-        //            }
-        //            return directory;
-        //        }
-        //    }
-
-        //    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        //    {
-        //        string? userName = Environment.GetEnvironmentVariable("USER");
-        //        if (!string.IsNullOrEmpty(userName)) { return userName; }
-        //        userName = Environment.GetEnvironmentVariable("LOGNAME");
-        //        if (!string.IsNullOrEmpty(userName)) { return userName; }
-        //        return Environment.UserName;
-        //    }
-        //    else
-        //    {
-        //        throw new PlatformNotSupportedException("Unsupported OS or developmental flaw in UserScriptManager.GetUserScriptDirectory();");
-        //    }
-
-        //}
     }
 
     public static class UserScriptExamples
