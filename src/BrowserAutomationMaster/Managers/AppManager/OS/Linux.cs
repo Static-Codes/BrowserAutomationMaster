@@ -20,8 +20,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 rpmApps.AddRange(ParseRpmList());
 
             if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0) {
-                Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to detect any of the following commands:\n\ndpkg\nflatpak\nrpm\n", 1);
-                return []; // This wont actually be returned but its here to appease the compiler's static nature.
+                Errors.WriteErrorAndExit(
+                    message:
+                        "BAM Manager (BAMM) was unable to detect any of the following commands:\n\n" +
+                        "dpkg\nflatpak\nrpm\n",
+                    status: 1
+                );
             }
             
             var appSources = new List<(string Name, List<AppInfo> Apps)>
@@ -151,7 +155,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return string.Empty;
             }
             catch (Exception ex){
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to query installed apps, if this issue persists, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\nError log:\n Unable to execute\n{cmd}\nException:\n{ex.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"BAM Manager (BAMM) was unable to query installed apps, if this issue persists, " +
+                        $"please make a bug report at {ConstantManager.ISSUES_LINK}\nError log:\nUnable to execute\n" +
+                        $"{cmd}\nException:\n{ex.Message}",
+                    status: 1
+                );
                 return string.Empty;
             }
         }

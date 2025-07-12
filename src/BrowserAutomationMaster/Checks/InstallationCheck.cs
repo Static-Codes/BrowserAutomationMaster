@@ -1,4 +1,5 @@
-﻿using BrowserAutomationMaster.Messaging;
+﻿using BrowserAutomationMaster.Managers.AppManager;
+using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Checks
 {
@@ -65,13 +66,13 @@ Supported versions include:
                 //    }
                 //}
 
-                else if (app.Name.ToLower().Contains("chrome")) {
+                else if (app.Name.Contains("chrome", StringComparison.CurrentCultureIgnoreCase)) {
                     if (!AppNames.Contains(ApplicationNames.Chrome)) {
                         AppNames.Add(ApplicationNames.Chrome);
                     }
                 }
 
-                else if (app.Name.ToLower().Contains("firefox")) {
+                else if (app.Name.Contains("firefox", StringComparison.CurrentCultureIgnoreCase)) {
                     if (!AppNames.Contains(ApplicationNames.Firefox)) {
                         AppNames.Add(ApplicationNames.Firefox);
                     }

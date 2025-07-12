@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.Versioning;
 using BrowserAutomationMaster.Managers;
 
 namespace BrowserAutomationMaster.Messaging
@@ -21,6 +22,8 @@ namespace BrowserAutomationMaster.Messaging
             Console.WriteLine(message);
             Console.ForegroundColor = ConsoleColor.White;
         }
+
+        [SupportedOSPlatform("windows")]
         public static void DisplayNumberOfCodeLinesInProject()
         {
             string cmd = @"(Get-ChildItem -Path ""C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src"" -Include *.cs -Recurse | Where-Object { $_.FullName -notmatch '\\(bin|obj|Properties|My Project|Designer\.cs|g\.cs|AssemblyInfo\.cs|TemporaryGeneratedFile_.*\.cs|Resources\.Designer\.cs|Settings\.Designer\.cs)\\' } | Get-Content | Measure-Object -Line | Select-Object -ExpandProperty Lines)";
@@ -36,8 +39,18 @@ namespace BrowserAutomationMaster.Messaging
             process.Start();
             process.WaitForExit();
             string output = process.StandardOutput.ReadToEnd();
-            if (string.IsNullOrEmpty(output)) { Errors.WriteErrorAndExit("Unable to query the total number of non whitespace code lines in the current project.", 1); }
-            Success.WriteSuccessMessageAndExit($"Found {output.Replace("\n", " ").Trim()} lines of valid c# code in the current project.", 0);
+            if (string.IsNullOrEmpty(output)) { 
+                Errors.WriteErrorAndExit(
+                    message:
+                        "Unable to query the total number of non whitespace code lines in the current project.", 
+                    status: 1
+                );
+            }
+            Success.WriteSuccessMessageAndExit(
+                message:
+                    $"Found {output.Replace("\n", " ").Trim()} lines of valid c# code in the current project.",
+                exitCode: 0
+            );
 
         }
         

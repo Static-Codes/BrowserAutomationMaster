@@ -54,10 +54,10 @@ namespace BrowserAutomationMaster.Managers.Python
                     $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\nMemoryInfoManager.CheckForWindows() returned an invalid dictionary.", 1);
             }
             memoryInfo.TryGetValue("totalMemoryMB", out double totalMemoryMB);
-            memoryInfo.TryGetValue("usedMemoryMB", out double usedMemoryMB);
+            //memoryInfo.TryGetValue("usedMemoryMB", out double usedMemoryMB); // Will be used in a later update to display various info.
             memoryInfo.TryGetValue("freeMemoryMB", out double freeMemoryMB);
-            memoryInfo.TryGetValue("usedPercent", out double usedPercent);
-            memoryInfo.TryGetValue("freePercent", out double freePercent);
+            //memoryInfo.TryGetValue("usedPercent", out double usedPercent);
+            //memoryInfo.TryGetValue("freePercent", out double freePercent);
 
             // Less than 2GiB Total
             if (totalMemoryMB < 2048)
