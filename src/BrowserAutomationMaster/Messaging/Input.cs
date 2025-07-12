@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BrowserAutomationMaster.Messaging
+﻿namespace BrowserAutomationMaster.Messaging
 {
     public class Input
     {
@@ -18,7 +12,12 @@ namespace BrowserAutomationMaster.Messaging
             string? rawInputString;
             if (desiredType == null)
             {
-                Errors.WriteErrorAndExit($"Invalid type provided to WriteTextAndReturnInputType(.., .., {desiredType}).\nIf you are seeing this there is invalid code written and it should be addressed immediately ", 1);
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"Invalid type provided to WriteTextAndReturnInputType(.., .., {desiredType}).\n" +
+                        $"If you are seeing this there is invalid code written and it should be addressed immediately ",
+                    status: 1
+                );
             }
 
             while (true)
@@ -30,29 +29,20 @@ namespace BrowserAutomationMaster.Messaging
                     if (desiredType == typeof(int))
                     {
                         try { return Convert.ToInt32(rawInputString); }
-                        catch
-                        {
-                            if (!repeatUntilValid)
-                            {
-                                return null;
-                            }
+                        catch {
+                            if (!repeatUntilValid) { return null; }
                         }
                     }
                     else if (desiredType == typeof(string))
                     {
                         try { return rawInputString; }
-                        catch
-                        {
-                            if (!repeatUntilValid)
-                            {
-                                return null;
-                            }
+                        catch {
+                            if (!repeatUntilValid) { return null; }
                         }
                     }
 
                 }
-                if (!repeatUntilValid)
-                {
+                if (!repeatUntilValid) {
                     return null;
                 }
                 inputMessage = panicMessage; // Starts writing the panic message instead of the initial input message.

@@ -12,7 +12,11 @@ namespace BrowserAutomationMaster.Messaging
     {
         public static string GenerateErrorMessage(string fileName, string line, int lineNumber, string issueText)
         {
-            return $"BAM Manager (BAMM) was unable to compile the selected .BAMC script.\nFile: {fileName}\nLine Number: {lineNumber}\nLine: {line}\nIssue: {issueText}\n\n{Debug.GetPlatformInfoForErrorLog()}";
+            return "BAM Manager (BAMM) was unable to compile the selected .BAMC script.\n" +
+                $"File: {fileName}\n" +
+                $"Line Number: {lineNumber}\n" +
+                $"Line: {line}\n" +
+                $"Issue: {issueText}";
         }
 
         public static void WriteErrorAndContinue(string message)
@@ -25,7 +29,9 @@ namespace BrowserAutomationMaster.Messaging
         public static void WriteErrorAndExit(string message, int status)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(message);
+            Console.WriteLine(
+                message + $"\n\n{Debug.GetPlatformInfoForErrorLog()}"
+            );
             Console.ForegroundColor = ConsoleColor.White;
             Console.ReadKey();
             Environment.Exit(status);

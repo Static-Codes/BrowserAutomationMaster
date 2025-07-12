@@ -1,7 +1,5 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Esprima.Ast;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -131,9 +129,12 @@ namespace BrowserAutomationMaster.Messaging
             Dictionary<string, string> CommandExamples = new() {
                 { "click", "click \"#id-selector\"\r\nclick \".class_name_selector\"\r\nclick \"//xpath//supported//aswell\"\r\nclick \"tag-name\"\n" },
                 { "click-exp", "click-exp 'css-selectors-supported.with-click-exp'\n" },
+                { "close-current-tab", "close-current-tab"},
+                { "click-at-position", "click-at-position \"600\" \"600\"" },
                 { "get-text", "get-text \"#id-selector\"\r\nget-text \".class_name_selector\"\r\nget-text \"//xpath//supported//aswell\"\r\nget-text \"tag-name\"\n" },
-                { "end-javascript", "" },
+                { "end-javascript", "end-javascript" },
                 { "fill-text", "fill-text \"textbox-selector\" \"value\"\n" },
+                { "open-new-tab", "open-new-tab \"https://google.com\" \"3\""},
                 { "save-as-html", "save-as-html \"filename.html\"\n" },
                 { "save-as-html-exp", "save-as-html-exp \"filename2.html\"\n" },
                 { "select-option", "select-option \"dropdown-selector\" 2\n\nThe number at the end of this command (in this case 2), correlates to the option number.\nFor example:\nYou are given 4 options\nA.\nB.\nC.\nD.\n\nIf you enter 2 as the option number, it will select B.\n" },
@@ -146,7 +147,6 @@ namespace BrowserAutomationMaster.Messaging
                 { "--set-timeout", "bamm --set-timeout 5\n\nThis sets the timeout for all actions to 5 seconds.\n" },
                 { "async", "feature \"async\"\n" },
                 { "browser", "browser \"chrome\"\nbrowser \"firefox\"\n" },
-                //{ "browser", "browser \"brave\"\nbrowser \"chrome\"\nbrowser \"firefox\"\n" },
                 { "bypass-cloudflare", "feature \"bypass-cloudflare\"\n" },
                 { "disable-pycache", "feature \"disable-pycache\"\n" },
                 { "use-http-proxy", "feature \"use-http-proxy\"\n" },
@@ -156,7 +156,9 @@ namespace BrowserAutomationMaster.Messaging
             };
             if (!CommandExamples.TryGetValue(command, out string? example)) { example = "Not Found"; }
             if (example.Equals("Not Found")) {
-                Errors.WriteErrorAndContinue("Invalid command provided, for more information on valid commands, please type:\n\nbamm help --all");
+                Errors.WriteErrorAndContinue(
+                    "Invalid command provided, for more information on valid commands, please type:\n\nbamm help --all"
+                );
             }
             return example;
         }
@@ -166,7 +168,10 @@ namespace BrowserAutomationMaster.Messaging
             else {
                 // Ensures no invalid command will be passed to show
                 while (string.IsNullOrEmpty(command) || !AllCommands.TryGetValue(command, out string? _)) {
-                    Errors.WriteErrorAndContinue("Invalid command provided, for more information on valid commands, please type:\n\nbamm help --all");
+                    Errors.WriteErrorAndContinue(
+                        "Invalid command provided, for more information on valid commands, please type:\n\nbamm help --all"
+                        );
+
                     command = Input.WriteTextAndReturnRawInput("Please provide a valid command for more information.\n") ?? "";
                 }
                 Success.WriteSuccessMessage($"\nCommand:\n{command}\n\nDescription:\n{GetDescriptionOfCommand(command)}");

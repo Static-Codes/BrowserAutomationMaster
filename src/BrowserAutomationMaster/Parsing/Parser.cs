@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
@@ -20,9 +19,10 @@ namespace BrowserAutomationMaster
 
 
         public readonly static string[] actionArgs = [
-            "add-header", "add-headers", "click", "click-at-position", "click-exp", "close-current-tab", "end-javascript", "fill-text", "fill-text-exp", "get-text", 
-            "open-new-tab", "save-as-html", "save-as-html-exp", "select-element", "select-option", "set-custom-useragent", "start-javascript", "take-screenshot", 
-            "wait-for-seconds", "visit"
+            "add-header", "add-headers", "click", "click-at-position", "click-exp", "close-current-tab", 
+            "end-javascript", "fill-text", "fill-text-exp", "get-text", "open-new-tab", "save-as-html", 
+            "save-as-html-exp", "select-element", "select-option", "set-custom-useragent", "start-javascript", 
+            "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "run-headless", "no-ssl"];

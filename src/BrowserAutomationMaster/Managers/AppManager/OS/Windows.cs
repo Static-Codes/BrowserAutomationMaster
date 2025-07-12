@@ -19,7 +19,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 apps.AddRange(QueryRegistryForApps(RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"));
                 apps.AddRange(QueryRegistryForApps(RegistryHive.CurrentUser, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"));
             }
-            catch { Errors.WriteErrorAndExit("BAM Manager was unable to query Windows Registry, please try again; if this issue persists, it's likely a bug.", 1); }
+            catch { 
+                Errors.WriteErrorAndExit(
+                    message: "BAM Manager was unable to query Windows Registry, please try again; if this issue persists, it's likely a bug.",
+                    status: 1
+                );
+            }
             return apps;
         }
 
@@ -62,7 +67,14 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 if (rootDrive == null || !rootDrive.StartsWith("C:"))
                 {
-                    Errors.WriteErrorAndExit("BAM Manager (BAMM) was developed to be ran on the C: drive.\n\nRunning this application on a different drive caused too many unforseeable bugs, so i've decided to prevent it from happening all together.\n\nIf you are contributing to development, you can bypass this restriction by passing the argument '--ignore-drive-root'.", 1);
+                    Errors.WriteErrorAndExit(
+                        message: 
+                            "BAM Manager (BAMM) was developed to be ran on the C: drive.\n\n" +
+                            "Running this application on a different drive caused too many unforseeable bugs.\n\n" +
+                            "If you are contributing to development, you can bypass this restriction by passing the argument" +
+                            "'--ignore-drive-root'.", 
+                        status: 1
+                    );
                 }
             }
             catch (Exception e)
@@ -84,20 +96,25 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 List<string> discoveredPython3Paths = [];
                 List<string> discoveredPython2Paths = [];
 
-                (int pyExitCode, string pyOutput, string pyError) pyLauncherResult = RunCommand("py", "--list-paths"); // Runs py(.exe) --list-paths
+                (int pyExitCode, string pyOutput, string pyError) = RunCommand("py", "--list-paths"); // Runs py(.exe) --list-paths
 
-                if (pyLauncherResult.pyExitCode == 0 && !string.IsNullOrWhiteSpace(pyLauncherResult.pyOutput))
+                if (pyExitCode == 0 && !string.IsNullOrWhiteSpace(pyOutput))
                 {
-                    MatchCollection matches = PrecompiledPythonPathRegex().Matches(pyLauncherResult.pyOutput);
+                    MatchCollection matches = PrecompiledPythonPathRegex().Matches(pyOutput);
 
                     foreach (Match match in matches)
                     {
                         string potentialPath = match.Value.Trim();
 
-                        if (potentialPath.Contains(@"\Microsoft\WindowsApps\python.exe")) { continue; } // Excludes WindowsApp PyLauncher
+                        // Excludes WindowsApp PyLauncher
+                        if (potentialPath.Contains(@"\Microsoft\WindowsApps\python.exe")) { continue; } 
                         string versionOutput = GetIntepreterVersion(potentialPath, "--version");
-                        if (versionOutput.StartsWith("Python 3.", StringComparison.OrdinalIgnoreCase)) { discoveredPython3Paths.Add(potentialPath); }
-                        else if (versionOutput.StartsWith("Python 2.", StringComparison.OrdinalIgnoreCase)) { discoveredPython2Paths.Add(potentialPath); }
+                        if (versionOutput.StartsWith("Python 3.", StringComparison.OrdinalIgnoreCase)) { 
+                            discoveredPython3Paths.Add(potentialPath); 
+                        }
+                        else if (versionOutput.StartsWith("Python 2.", StringComparison.OrdinalIgnoreCase)) { 
+                            discoveredPython2Paths.Add(potentialPath); 
+                        }
                     }
                 }
 
@@ -107,20 +124,36 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 // Warn about potential instability when both python 2.X and 3.X are present.
                 if (discoveredPython2Paths.Count > 0) {
-                    Warning.Write("While BAM Manager (BAMM) can run with both Python 2.X and 3.X installed, it may cause instability.\nIf possible please uninstall python 2.X, or use a virtual machine.");
+                    Warning.Write(
+                        message:
+                            "While BAM Manager (BAMM) can run with both Python 2.X and 3.X installed, " +
+                            "it may cause instability.\nIf possible please uninstall python 2.X, or use a virtual machine."
+                    );
                 }
 
                 // Handle Python 3 paths found
                 if (discoveredPython3Paths.Count == 0) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\nIf this issue persists, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\nNo valid Python 3 interpreter found in system PATH after checking with 'py.exe'.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
-                    return string.Empty; // Should not be reached
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
+                            $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\nNo valid Python 3 interpreter found in system PATH after checking with 'py.exe'.", 
+                        status: 1
+                    );
                 }
 
                 return SelectPythonPath([.. discoveredPython3Paths]);
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\nIf this issue persists, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\nNo valid Python 3 interpreter found in system PATH after checking with 'py.exe'.\nException returned: {e.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: 
+                        $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
+                        $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nNo valid Python 3 interpreter found in system PATH after checking with 'py.exe'." +
+                        $"\nException returned: {e.Message}", 
+                    status: 1
+                );
                 return string.Empty;
             }
         }
@@ -128,7 +161,14 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             if (python3Paths.Length == 0)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\nIf this issue persists, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\nAppManager.OS.Windows.SelectPythonPath was passed an empty array.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    
+                    message: 
+                        $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
+                        $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nAppManager.OS.Windows.SelectPythonPath was passed an empty array.", 
+                    status: 1
+                );
                 return string.Empty;
             }
 
@@ -137,12 +177,16 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             string choicesMessage = "Multiple Python 3 interpreters found.\n";
             for (int i = 0; i < python3Paths.Length; i++) { choicesMessage += $"{i + 1}. {python3Paths[i]}\n"; }
 
-            string promptMessage = choicesMessage + $"Please select the number correlating to your desired intepreter version.\nBetween [1-{python3Paths.Length}]:\n";
+            string promptMessage = choicesMessage + 
+                $"Please select the number correlating to your desired intepreter version.\n" +
+                $"Between [1-{python3Paths.Length}]:\n";
 
             while (true)
             {
                 string rawChoice = Input.WriteTextAndReturnRawInput(promptMessage) ?? "";
-                if (int.TryParse(rawChoice, out int choice) && choice >= 1 && choice <= python3Paths.Length) { return python3Paths[choice - 1]; }
+                if (int.TryParse(rawChoice, out int choice) && choice >= 1 && choice <= python3Paths.Length) { 
+                    return python3Paths[choice - 1]; 
+                }
                 Warning.Write($"Invalid input. Please enter a number between 1 and {python3Paths.Length}.");
             }
         }
@@ -169,7 +213,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 return (process.ExitCode, output, error);
             }
-            catch (Exception ex) { return (-1, string.Empty, $"Exception running 'cmd.exe /c {command} {arguments}': {ex.Message}"); }
+            catch (Exception ex) { 
+                return (
+                    exitCode: -1, 
+                    output: string.Empty, 
+                    error: $"Exception running 'cmd.exe /c {command} {arguments}': {ex.Message}"
+                ); 
+            }
         }
 
         private static string GetIntepreterVersion(string fileName, string arguments)
@@ -195,7 +245,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\nIf this issue persists, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster/issues\n\nError log:\nAppManager.OS.Windows.GetIntepreterVersion returned the following exception:\n{e.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: 
+                        $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
+                        $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nAppManager.OS.Windows.GetIntepreterVersion returned the following exception:\n{e.Message}", 
+                    status: 1
+                );
                 return string.Empty;
             }
         }
@@ -220,31 +276,59 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             [FieldOffset(4)] public uint Size; // Total structure size with variable length data included.  Will be used to keep track of the position in the current buffer.
         }
 
-        [DllImport("kernel32.dll", SetLastError = true)] // SetLastError will be overwritten as each new error is added to the stack, if the error if fatal, it will be displayed and the application will exit.
-        [return: MarshalAs(UnmanagedType.Bool)] // Ensure b4b compatibility between c bytes (4 byte bool) and c# bytes (1 byte bool)
+        // SetLastError will be overwritten as each new error is added to the stack.
+        // If the error if fatal, it will be displayed and the application will exit.
+        [LibraryImport("kernel32.dll", SetLastError = true)]
+        // Ensure b4b compatibility between c bytes (4 byte bool) and c# bytes (1 byte bool)
+        [return: MarshalAs(UnmanagedType.Bool)] 
 
         // c# implemenation of https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformationex
-        private static extern bool GetLogicalProcessorInformationEx(LOGICAL_PROCESSOR_RELATIONSHIP RelationshipType, [In, Out] byte[] Buffer, ref uint ReturnedLength);
+        private static partial bool GetLogicalProcessorInformationEx(
+            LOGICAL_PROCESSOR_RELATIONSHIP RelationshipType, 
+            [In, Out] byte[] Buffer, 
+            ref uint ReturnedLength
+        );
 
         public static int GetPhysicalCoreCount()
         {
             uint bufferSize = 0;
             // Uses the bufferSize as a reference value, returns false if an InvalidOperation is reached.
-            bool success = GetLogicalProcessorInformationEx(LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore, null!, ref bufferSize);
+            bool success = GetLogicalProcessorInformationEx(
+                LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore, 
+                null!, 
+                ref bufferSize
+            );
 
+            // 122 is the err code for ERROR_INSUFFICIENT_BUFFER
             if (!success && Marshal.GetLastWin32Error() != 122)
-            {  // 122 is the err code for ERROR_INSUFFICIENT_BUFFER
-                Errors.WriteErrorAndExit($"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, if this issue persists, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster\n\nError log:\n\nAppManager.OS.Windows.GetPhysicalCoreCount() Failed to get logical processor information buffer size, the last Win32 Error was:\n{Marshal.GetLastWin32Error()}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+            { 
+                Errors.WriteErrorAndExit(
+                    message: 
+                        $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
+                        $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\n\n" +
+                        $"AppManager.OS.Windows.GetPhysicalCoreCount() Failed to get logical processor information buffer size," +
+                        $" the last Win32 Error was:\n{Marshal.GetLastWin32Error()}",
+                    status: 1
+                );
             }
 
             if (bufferSize == 0) {
-                Errors.WriteErrorAndExit($"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, if this issue persists, please make a bug report at https://github.com/static-codes/BrowserAutomationMaster\n\nError log:\nAppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: 
+                        $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
+                        $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nAppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0.",
+                    status: 1
+                );
             }
 
             byte[] buffer = new byte[bufferSize];
+            Console.WriteLine(buffer.Length);
             success = GetLogicalProcessorInformationEx(LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore, buffer, ref bufferSize);
 
-            if (!success) { throw new Exception($"Failed to get logical processor information. Win32 Error: {Marshal.GetLastWin32Error()}"); }
+            if (!success) { 
+                throw new Exception($"Failed to get logical processor information. Win32 Error: {Marshal.GetLastWin32Error()}"); 
+            }
             int physicalCoreCount = 0;
 
             IntPtr currentPtr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0); // Get pointer to start of buffer
@@ -257,15 +341,22 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             while (currentPtr.ToInt64() < bufferEndPtr.ToInt64())
             {
                 // The Relationship is used to count the number of physical cores, and the size of the current entry is used to properly pointer to the next structure in the buffer
-                SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX currentInfoExHeader = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)Marshal.PtrToStructure(currentPtr, typeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX))!;
+                var currentInfoExHeader = 
+                    (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) Marshal.PtrToStructure(
+                        currentPtr, 
+                        typeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)
+                    )!;
 
                 // Debug values
                 // Console.WriteLine($"\n  Entry at offset {currentPtr.ToInt64() - Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0).ToInt64()}:");
                 // Console.WriteLine($"    Relationship: {currentInfoExHeader.Relationship}");
                 // Console.WriteLine($"    Entry Size: {currentInfoExHeader.Size}");
 
-                if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore) { physicalCoreCount++; }
-                currentPtr = IntPtr.Add(currentPtr, (int)currentInfoExHeader.Size); // Move to the next structure in the buffer
+                if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore) { 
+                    physicalCoreCount++; 
+                }
+                // Move to the next structure in the buffer
+                currentPtr = IntPtr.Add(currentPtr, (int)currentInfoExHeader.Size); 
             }
 
             return physicalCoreCount;
