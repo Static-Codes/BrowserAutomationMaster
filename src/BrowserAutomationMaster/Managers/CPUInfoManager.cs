@@ -130,19 +130,20 @@ namespace BrowserAutomationMaster.Managers
         }
     }
 
-    internal class CPUCoreManager() // This doesn't need to be
+    internal class CPUCoreManager() // This doesn't need to be public
     {
         public static int GetCoreCount()
         {
-            // script pulled from: https://stackoverflow.com/a/23378780
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { return GetPhysicalCoreCountWindows(); }
+            if (OperatingSystem.IsWindowsVersionAtLeast(6, 1, 7601)) { 
+                return GetPhysicalCoreCountWindows(); 
+            }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) { return GetPhysicalCoreCountMacOS(); }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { return GetPhysicalCoreCountLinux(); }
             throw new PlatformNotSupportedException("Unsupported OS.");
         }
 
         private static int GetPhysicalCoreCountWindows() {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { return Windows.GetPhysicalCoreCount(); }
+            if (OperatingSystem.IsWindowsVersionAtLeast(6, 1, 7601)) { return Win.GetPhysicalCoreCount(); }
             return 0;
         }
 

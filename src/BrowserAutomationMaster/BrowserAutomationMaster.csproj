@@ -30,14 +30,6 @@
 		<ApplicationIcon>bamm.ico</ApplicationIcon>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
-
-	<!-- MacOS Specific Build Logic To Run App By Double Clicking App Icon -->
-	<PropertyGroup Condition="'$(OS)' == 'Darwin' AND $(RuntimeIdentifier.StartsWith('osx-'))">
-		<PostBuildEvent>
-			if [ -f "$(PublishDir)launcher.sh" ]; then chmod +x "$(PublishDir)launcher.sh"; fi
-			if [ -f "$(PublishDir)$(AssemblyName)" ]; then chmod +x "$(PublishDir)$(AssemblyName)"; fi
-		</PostBuildEvent>
-	</PropertyGroup>
 	
 	<!-- Debian Packaging Properties -->
 	<PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
@@ -55,36 +47,19 @@
 	  <Content Include="bamm.ico" />
 	</ItemGroup>
 
-	<!-- This will be removed from the source eventually -->
 	
 	<!-- Esprima (JS Validation) + Packaging.Targets (Cross Platform Publishing) -->
 	<ItemGroup>
 		<PackageReference Include="Esprima" Version="3.0.5" />
+		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
+		  <PrivateAssets>all</PrivateAssets>
+		</PackageReference>
 		<PackageReference Include="Packaging.Targets" Version="0.1.232">
 			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="System.Memory" Version="4.6.3" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
 	</ItemGroup>
-	
-	<!--  MacOS Specific Launcher-->
-	<!-- <ItemGroup>
-		<Content Include="BuildTools\MacOS\launcher.sh" Condition="$(RuntimeIdentifier.StartsWith('osx-x64'))">
-			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-			<Link>launcher.sh</Link>
-			<PublishTargetPath>'$(PublishDir)launcher.sh'</PublishTargetPath>
-		</Content>
-	</ItemGroup> -->
-	
-	<!-- Makes the launcher executable so its not just a text file.-->
-	<!-- <Target Name="ChmodMacOsLauncher" AfterTargets="Publish"
-          Condition="$(RuntimeIdentifier.StartsWith('osx-x64'))">
-		<Message Text="Attempting to set execute permissions for launcher.sh on macOS in $(PublishDir)..." Importance="high" />
-		<Exec Command="chmod +x '$(PublishDir)launcher.sh'"
-			  Condition="Exists('$(PublishDir)launcher.sh')"
-			  ContinueOnError="WarnAndContinue" />
-		<Message Text="Execute permission set for $(PublishDir)launcher.sh (if it existed)." Importance="high" Condition="Exists('$(PublishDir)launcher.sh')"/>
-		<Warning Text="launcher.sh not found in $(PublishDir) to set execute permissions." Condition="!Exists('$(PublishDir)launcher.sh')" />
-	</Target> -->
 
 
 </Project>

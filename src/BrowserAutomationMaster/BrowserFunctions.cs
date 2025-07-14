@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace BrowserAutomationMaster
 {
-    internal static class BrowserFunctions
+    internal class BrowserFunctions
     {
 
         public static JsonSerializerOptions options = new()

@@ -140,14 +140,20 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (IOException ex) {
                 Errors.WriteErrorAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\nSource: {sourceFilePath}\n" +
-                    $"Destination: {scriptPath}\nError: {ex.Message}",
+                    message: 
+                        $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
+                        $"Source: {sourceFilePath}\n" +
+                        $"Destination: {scriptPath}\n" +
+                        $"Error: {ex.Message}",
                     status: 1
                 );
             }
             catch (Exception ex) {
                 Errors.WriteErrorAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to {(overwrite ? "overwrite" : "add")} '{fileName}'.\nError: {ex.Message}",
+                    message: 
+                        $"\nBAM Manager (BAMM) was unable to " +
+                        $"{(overwrite ? "overwrite" : "add")} " +
+                        $"'{fileName}'.\nError: {ex.Message}",
                     status: 1
                 );
             }
@@ -157,29 +163,39 @@ namespace BrowserAutomationMaster.Managers
             if (string.IsNullOrWhiteSpace(scriptPath)) { return; }
             if (!File.Exists(scriptPath)) {
                 Errors.WriteErrorAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to locate:\n{scriptPath}\nPlease ensure this directory exists.",
+                    message: 
+                        $"\nBAM Manager (BAMM) was unable to locate:\n" +
+                        $"{scriptPath}\n" +
+                        $"Please ensure this directory exists.",
                     status: 1
                 );
             }
             try
             {
                 File.Delete(scriptPath);
-                Success.WriteSuccessMessage($"BAM Manager (BAMM) successfully deleted file: {scriptPath}\n");
+                Success.WriteSuccessMessage(
+                    message: $"BAM Manager (BAMM) successfully deleted file: {scriptPath}\n"
+                );
             }
             catch (IOException) {
                 Errors.WriteErrorAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\nFile: {scriptPath}\n",
+                    message: 
+                        $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
+                        $"File: {scriptPath}\n",
                     status: 1
                 );
             }
             catch (UnauthorizedAccessException) {
                 Errors.WriteErrorAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n",
-                    status: 1);
+                    message: 
+                        $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n",
+                    status: 1
+                );
             }
             catch (System.Security.SecurityException) {
                 Errors.WriteErrorAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n", 
+                    message: 
+                        $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n", 
                     status: 1
                 );
             }
@@ -191,7 +207,9 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception ex) {
                 Errors.WriteErrorAndExit(
-                    message: $"An unexpected error of type: '{ex.GetType().Name}' occurred while trying to delete file: '{scriptPath}'\n", 
+                    message: 
+                        $"An unexpected error of type: '{ex.GetType().Name}' " +
+                        $"occurred while trying to delete file: '{scriptPath}'\n", 
                     status: 1
                 );
             }
@@ -218,15 +236,21 @@ namespace BrowserAutomationMaster.Managers
                 if (string.IsNullOrEmpty(homeDirectory))
                 {
                     Errors.WriteErrorAndContinue(
-                        message: $"BAM Manager (BAMM) could not automatically determine the user's home directory (UserProfile was empty)."
+                        message: 
+                            $"BAM Manager (BAMM) could not automatically determine the user's home directory\n" +
+                            $"(UserProfile was empty)."
                     );
-                    string? username = Environment.UserName; // Try Environment.UserName as a fallback
+                    string? username = Environment.UserName;
                     if (string.IsNullOrEmpty(username))
                     {
                         Errors.WriteErrorAndContinue(
                             message: "BAM Manager (BAMM) was also unable to determine the active user's username automatically."
                         );
-                        string response = Input.WriteTextAndReturnRawInput("Would you like to manually enter the username? [y/n]: ") ?? "n";
+
+                        string response = Input.WriteTextAndReturnRawInput(
+                            "Would you like to manually enter the username? [y/n]: "
+                        ) ?? "n";
+
                         bool manuallyEntering = response.ToLower().Equals("y");
 
                         if (manuallyEntering)
@@ -237,23 +261,40 @@ namespace BrowserAutomationMaster.Managers
 
                             if (string.IsNullOrEmpty(username)) {
                                 Errors.WriteErrorAndExit(
-                                    message: "Invalid username provided. BAM Manager (BAMM) will now exit. Press any key to exit...",
+                                    message: 
+                                        "Invalid username provided. " +
+                                        "BAM Manager (BAMM) will now exit. " +
+                                        "Press any key to exit...",
                                     status: 1
                                 );
                             }
                         }
                         else {
-                            Errors.WriteErrorAndExit("Username not provided. Press any key to exit...", 1);
+                            Errors.WriteErrorAndExit(
+                                message:
+                                    "Username not provided. Press any key to exit...", 
+                                status: 1
+                            );
                         }
                     }
                     // Assuming username is a non null value, created using /Users/{username} structure
-                    homeDirectory = $"/Users/{username}"; // Use this as the base for the Application Support path
-                    userScriptsPath = Path.Combine(homeDirectory, "Library", "Application Support", appName, userScriptsFolderName);
+                    homeDirectory = $"/Users/{username}";
+                    userScriptsPath = Path.Combine(
+                        homeDirectory, 
+                        "Library", 
+                        "Application Support", 
+                        appName, 
+                        userScriptsFolderName
+                    );
                 }
-                else
-                {
-                    // Fallback if user profile is available
-                    userScriptsPath = Path.Combine(homeDirectory, "Library", "Application Support", appName, userScriptsFolderName);
+                else {
+                    userScriptsPath = Path.Combine(
+                        homeDirectory,
+                        "Library",
+                        "Application Support",
+                        appName, 
+                        userScriptsFolderName
+                    );
                 }
 
                 EnsureDirectoryExists(userScriptsPath);
@@ -270,7 +311,9 @@ namespace BrowserAutomationMaster.Managers
                 // Fallback for second check
                 if (string.IsNullOrEmpty(homeDirectory)) {
                     Errors.WriteErrorAndExit(
-                        message: "BAM Manager (BAMM) could not determine home directory on Linux.\nPress any key to exit...",
+                        message: 
+                            "BAM Manager (BAMM) could not determine home directory on Linux.\n" +
+                            "Press any key to exit...",
                         status: 1
                     );
                     return "";

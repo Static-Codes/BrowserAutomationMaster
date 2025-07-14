@@ -38,7 +38,7 @@ namespace BrowserAutomationMaster.Managers.Python
             {
 #pragma warning disable IDE0079
 #pragma warning disable CA1416 // Since RuntimeInformation.IsOSPlatform() is executed when a RuntimeManager instance is created, an eception is created, see below
-                return Windows.GetInterpreterPath();
+                return AppManager.OS.Win.GetInterpreterPath();
 #pragma warning restore CA1416 // This call site is reachable on all platforms. 'Windows.GetInterpreterPath()' is only supported on: 'windows'. 
 #pragma warning restore IDE0079
             }
