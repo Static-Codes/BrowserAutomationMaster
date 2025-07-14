@@ -9,6 +9,7 @@ namespace BrowserAutomationMaster.Managers
 {
     public class ConstantManager
     {
+        public const string BASE_REPO_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/";
         public const string ISSUES_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/issues";
         public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
         public const string RELEASES_DOWNLOAD_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/download";
@@ -17,7 +18,8 @@ namespace BrowserAutomationMaster.Managers
     public class UpdateManager()
     {
         public const string CurrentVersion = "v1.0.0A4";
-        public static string LatestVersion { get; set; } = CurrentVersion; // Assuming current is latest until further checks are done.
+        // Assuming current is latest until further checks are done.
+        public static string LatestVersion { get; set; } = CurrentVersion; 
         public static void CheckForUpdate()
         {
             if (UpdateAvailable())
@@ -49,28 +51,56 @@ namespace BrowserAutomationMaster.Managers
             HttpResponseMessage response = new();
             try
             {
-                if (!Uri.TryCreate("https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest", UriKind.Absolute, out Uri? uriResult) || uriResult == null) 
-                { 
-                    return string.Empty; 
-                }
+                bool uriCreated = Uri.TryCreate(
+                    $"{ConstantManager.LATEST_VERSION_LINK}", 
+                    UriKind.Absolute, 
+                    out Uri? uriResult
+                );
+                if (!uriCreated || uriResult == null) { return string.Empty; }
 
                 RequestManager requestManager = RequestManager.Create(uriResult);
                 Task<HttpResponseMessage> responseTask = requestManager.GetAsync(followRedirects: false);
                 response = responseTask.GetAwaiter().GetResult();
                 if (response.StatusCode != HttpStatusCode.Redirect)
                 {
-                    Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to check github for the latest version, if this issue persists, and you are positive your network connection is stable, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\nError log:\n\nThe response for the version request didn't contain a redirect status code (302), contains: {response.StatusCode}.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}");
+                    Errors.WriteErrorAndContinue(
+                        message:
+                            $"BAM Manager (BAMM) was unable to check github for the latest version, " +
+                            $"if this issue persists, and you are positive your network connection is stable, " +
+                            $"please make a bug report at {ConstantManager.ISSUES_LINK}\n" +
+                            $"Error log:\n\n" +
+                            $"The response for the version request didn't contain a redirect status code (302), " +
+                            $"contains: {response.StatusCode}."
+                    );
                 }
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to check github for the latest version, if this issue persists, and you are positive your network connection is stable, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\nError log:\n{e.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}");
+                Errors.WriteErrorAndContinue(
+                    message:
+                    $"BAM Manager (BAMM) was unable to check github for the latest version, " +
+                    $"if this issue persists, and you are positive your network connection is stable, " +
+                    $"please make a bug report at {ConstantManager.ISSUES_LINK}\n" +
+                    $"Error log:\n{e.Message}");
             }
-            string url = response.Headers.Location != null ? response.Headers.Location.AbsoluteUri : string.Empty;
+            string url = 
+                response.Headers.Location != null ? response.Headers.Location.AbsoluteUri : string.Empty;
+
             int versionIndex = url.LastIndexOf('/');
 
-            if (versionIndex == -1) { Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to check github for the latest version, if this issue persists, and you are positive your network connection is stable, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\nError log:\n\nUnable to parse version from latest release response.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}"); }
-            else if (versionIndex < url.Length - 1) { return url[(versionIndex + 1)..]; }
+            if (versionIndex == -1) { 
+                Errors.WriteErrorAndContinue(
+                    message: 
+                    $"BAM Manager (BAMM) was unable to check github for the latest version, " +
+                    $"if this issue persists, and you are positive your network connection is stable, " +
+                    $"please make a bug report at {ConstantManager.ISSUES_LINK}\n" +
+                    $"Error log:\n\n" +
+                    $"Unable to parse version from latest release response."
+                ); 
+            }
+            else if (versionIndex < url.Length - 1) { 
+                return url[(versionIndex + 1)..]; // returns vX.X.X
+            }
             return string.Empty;
 
         }
@@ -88,8 +118,14 @@ namespace BrowserAutomationMaster.Managers
         {
             try
             {
-                string currentReleasePath = Path.Combine(ConstantManager.RELEASES_DOWNLOAD_LINK, LatestVersion);
+                string currentReleasePath = 
+                    Path.Combine(
+                        ConstantManager.RELEASES_DOWNLOAD_LINK, 
+                        LatestVersion
+                    );
+
                 string url = string.Empty;
+
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                     if (RuntimeInformation.ProcessArchitecture == Architecture.X64) {
                         url = Path.Combine(currentReleasePath, $"BAMM-{LatestVersion}-x64-Setup.exe");
@@ -122,12 +158,14 @@ namespace BrowserAutomationMaster.Managers
                 }
             }
             catch (Exception e) { Errors.WriteErrorAndContinue(
-                $"BAM Manager (BAMM) was unable to check github for the latest version.\n" + 
-                "If this issue persists, and you are positive your network connection is stable, " + 
-                $"please make a bug report at:\n{ConstantManager.ISSUES_LINK}\n" + 
-                $"Error log:\n\n" +
-                $"Unable to download latest release using the user's default browser.\n{e.Message}:" +
-                "\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}"); }
+                message:
+                    $"BAM Manager (BAMM) was unable to check github for the latest version.\n" + 
+                    "If this issue persists, and you are positive your network connection is stable, " + 
+                    $"please make a bug report at:\n{ConstantManager.ISSUES_LINK}\n" + 
+                    $"Error log:\n\n" +
+                    $"Unable to download latest release using the user's default browser.\n{e.Message}:" +
+                ""); 
+            }
 
         }
 
@@ -135,22 +173,32 @@ namespace BrowserAutomationMaster.Managers
         {
             if (!HasNetworkConnection()) {
                 Errors.WriteErrorAndContinue(
-                    "BAM Manager (BAMM) was unable to check for an update, " +
-                    "this likely means your system doesn't currently have an internet connection."
+                    message:
+                        "BAM Manager (BAMM) was unable to check for an update, " +
+                        "this likely means your system doesn't currently have an internet connection."
                 );
-                string response = Input.WriteTextAndReturnRawInput("\nWould you like to continue? [y/n]:\n") ?? "n";
+
+                string response = Input.WriteTextAndReturnRawInput(
+                    "\nWould you like to continue? [y/n]:\n"
+                ) ?? "n";
+
                 if (response.ToLower().Equals("y")) { Environment.Exit(1); }
                 return false;
             }
             LatestVersion = GetLatestVersion();
             if (string.IsNullOrEmpty(LatestVersion) || !LatestVersion.StartsWith('v')) {
                 Errors.WriteErrorAndReturnBool(
-                    "BAM Manager (BAMM) was unable to determine the latest release version, please check:" +
-                    ConstantManager.LATEST_VERSION_LINK,
-                    false
+                    message:
+                        "BAM Manager (BAMM) was unable to determine the latest release version, please check:" +
+                        ConstantManager.LATEST_VERSION_LINK,
+                    returnBool: false
                 ); 
             }
-            return !string.Equals(CurrentVersion, LatestVersion, StringComparison.CurrentCultureIgnoreCase);
+            return !string.Equals(
+                CurrentVersion, 
+                LatestVersion, 
+                StringComparison.CurrentCultureIgnoreCase
+            );
         }
 
     }

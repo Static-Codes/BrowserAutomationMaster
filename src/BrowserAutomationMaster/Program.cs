@@ -1,12 +1,13 @@
 ﻿using System.Runtime.InteropServices;
 using BrowserAutomationMaster;
 using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
-if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { Windows.VerifyRootDrive(pArgs); } // Verify the user is running on their C: drive (assuming they're on windows)
+if (OperatingSystem.IsWindowsVersionAtLeast(6, 1, 7601)) { 
+    BrowserAutomationMaster.Managers.AppManager.OS.Win.VerifyRootDrive(pArgs); 
+} // Verify the user is running on their C: drive (assuming they're on windows)
 
 
 List<string> validCLIArgs = ["add", "clear", "compile", "delete", "help", "run"];

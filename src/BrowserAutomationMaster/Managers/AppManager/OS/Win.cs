@@ -3,12 +3,14 @@ using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Messaging;
 using Microsoft.Win32;
+using Windows.Win32;
 using System.Runtime.InteropServices;
+using Windows.Win32.System.SystemInformation;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
-    [SupportedOSPlatform("windows")]
-    public static partial class Windows
+    [SupportedOSPlatform("windows6.1.7601")] // >= 6.1.7601
+    public static partial class Win
     {
         public static List<AppInfo> GetApps()
         {
@@ -166,7 +168,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
                         $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                        $"Error log:\nAppManager.OS.Windows.SelectPythonPath was passed an empty array.", 
+                        $"Error log:\nAppManager.OS.Win.SelectPythonPath was passed an empty array.", 
                     status: 1
                 );
                 return string.Empty;
@@ -249,7 +251,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
                         $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                        $"Error log:\nAppManager.OS.Windows.GetIntepreterVersion returned the following exception:\n{e.Message}", 
+                        $"Error log:\nAppManager.OS.Win.GetIntepreterVersion returned the following exception:\n{e.Message}", 
                     status: 1
                 );
                 return string.Empty;
@@ -259,107 +261,104 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         #endregion
 
         #region P/Invoke GetLogicalProcessorInformationEx -> GetPhysicalCoreCount()
-        private enum LOGICAL_PROCESSOR_RELATIONSHIP
+
+        // Unsafe accessor required for casting null to SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX
+        public unsafe static int GetPhysicalCoreCount()
         {
-            RelationProcessorCore, // Only processor core is actually required this is a dirty workaround to use less overhead.
-            //RelationNumaNode,
-            //RelationCache,
-            //RelationProcessorPackage,
-            //RelationGroup,
-            //RelationAll = 0xffff
-        }
-
-        [StructLayout(LayoutKind.Explicit)] // LayoutKind.Explicit is required to use FieldOffsetAttribute(s)
-        private struct SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX
-        {
-            [FieldOffset(0)] public LOGICAL_PROCESSOR_RELATIONSHIP Relationship; // In this nuanced case, only RelationProcessCore is needed but the fields in the struct remain the same, regardless of this change.
-            [FieldOffset(4)] public uint Size; // Total structure size with variable length data included.  Will be used to keep track of the position in the current buffer.
-        }
-
-        // SetLastError will be overwritten as each new error is added to the stack.
-        // If the error if fatal, it will be displayed and the application will exit.
-        [LibraryImport("kernel32.dll", SetLastError = true)]
-        // Ensure b4b compatibility between c bytes (4 byte bool) and c# bytes (1 byte bool)
-        [return: MarshalAs(UnmanagedType.Bool)] 
-
-        // c# implemenation of https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformationex
-        private static partial bool GetLogicalProcessorInformationEx(
-            LOGICAL_PROCESSOR_RELATIONSHIP RelationshipType, 
-            [In, Out] byte[] Buffer, 
-            ref uint ReturnedLength
-        );
-
-        public static int GetPhysicalCoreCount()
-        {
-            uint bufferSize = 0;
-            // Uses the bufferSize as a reference value, returns false if an InvalidOperation is reached.
-            bool success = GetLogicalProcessorInformationEx(
-                LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore, 
-                null!, 
-                ref bufferSize
-            );
-
-            // 122 is the err code for ERROR_INSUFFICIENT_BUFFER
-            if (!success && Marshal.GetLastWin32Error() != 122)
-            { 
-                Errors.WriteErrorAndExit(
-                    message: 
-                        $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                        $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\n\n" +
-                        $"AppManager.OS.Windows.GetPhysicalCoreCount() Failed to get logical processor information buffer size," +
-                        $" the last Win32 Error was:\n{Marshal.GetLastWin32Error()}",
-                    status: 1
-                );
-            }
-
-            if (bufferSize == 0) {
-                Errors.WriteErrorAndExit(
-                    message: 
-                        $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                        $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                        $"Error log:\nAppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0.",
-                    status: 1
-                );
-            }
-
-            byte[] buffer = new byte[bufferSize];
-            Console.WriteLine(buffer.Length);
-            success = GetLogicalProcessorInformationEx(LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore, buffer, ref bufferSize);
-
-            if (!success) { 
-                throw new Exception($"Failed to get logical processor information. Win32 Error: {Marshal.GetLastWin32Error()}"); 
-            }
-            int physicalCoreCount = 0;
-
-            IntPtr currentPtr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0); // Get pointer to start of buffer
-            IntPtr bufferEndPtr = IntPtr.Add(currentPtr, (int)bufferSize);
-
-            // Debug values
-            // Console.WriteLine("\n--- Debugging GetLogicalProcessorInformationEx Entries ---");
-            // Console.WriteLine($"Total buffer size: {bufferSize} bytes");
-
-            while (currentPtr.ToInt64() < bufferEndPtr.ToInt64())
+            try
             {
-                // The Relationship is used to count the number of physical cores, and the size of the current entry is used to properly pointer to the next structure in the buffer
-                var currentInfoExHeader = 
-                    (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) Marshal.PtrToStructure(
-                        currentPtr, 
-                        typeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)
-                    )!;
+                uint bufferSize = 0;
+
+                // This is expected to fail, it requires a 2 pass system
+                // firstResult: returns the bufferSize of the given CPU topology
+                // secondResult: uses the bufferSize as a ref object and iterates over the structs, counts RelationProcessCore(s)number
+                bool firstResult = PInvoke.GetLogicalProcessorInformationEx(
+                    LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore,
+                    (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)null,
+                    ref bufferSize
+                );
+
+
+                // 122 is the err code for ERROR_INSUFFICIENT_BUFFER (it wont import for some reason)
+                if (!firstResult && Marshal.GetLastWin32Error() != 122)
+                {
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
+                            $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\n\n" +
+                            $"AppManager.OS.Windows.GetPhysicalCoreCount() Failed to get logical processor information buffer size," +
+                            $" the last Win32 Error was:\n{Marshal.GetLastWin32Error()}",
+                        status: 1
+                    );
+                }
+
+                // If the buffer is empty, a fatal error has occured.
+                if (bufferSize == 0)
+                {
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
+                            $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\nAppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0.",
+                        status: 1
+                    );
+                }
+
+                var buffer = Marshal.AllocHGlobal((int)bufferSize); // Allocates N bytes from bufferSize
+
+                bool secondResult = PInvoke.GetLogicalProcessorInformationEx(
+                    LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore,
+                    (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)buffer,
+                    ref bufferSize
+                );
+
+                if (!secondResult)
+                {
+                    throw new Exception($"Failed to get logical processor information. Win32 Error: {Marshal.GetLastWin32Error()}");
+                }
+
+                int physicalCoreCount = 0;
+                uint bytesParsed = 0;
+
+                nint currentPtr = buffer;
 
                 // Debug values
-                // Console.WriteLine($"\n  Entry at offset {currentPtr.ToInt64() - Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0).ToInt64()}:");
-                // Console.WriteLine($"    Relationship: {currentInfoExHeader.Relationship}");
-                // Console.WriteLine($"    Entry Size: {currentInfoExHeader.Size}");
+                // Console.WriteLine("\n--- Debugging GetLogicalProcessorInformationEx Entries ---");
+                // Console.WriteLine($"Total buffer size: {bufferSize} bytes");
+                // Console.WriteLine(bufferSize);
+                while (bytesParsed < bufferSize)
+                {
+                    // Deserializes the raw bytes of the currentPtr to the SYSTEM_PROCESSOR_INFORMATION_EX struct
+                    var currentInfoExHeader = Marshal.PtrToStructure<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>(currentPtr);
 
-                if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore) { 
-                    physicalCoreCount++; 
+                    // Debug values
+                    // Console.WriteLine($"Bytes parsed: {bytesParsed}");
+                    // Console.WriteLine($"\n  Entry at offset {currentPtr.ToInt64() - Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0).ToInt64()}:");
+                    // Console.WriteLine($"    Relationship: {currentInfoExHeader.Relationship}");
+                    // Console.WriteLine($"    Entry Size: {currentInfoExHeader.Size}");
+
+                    if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore)
+                    {
+                        physicalCoreCount++;
+                    }
+
+                    // Move to the next structure in the buffer
+                    currentPtr += (nint)currentInfoExHeader.Size; // I SPENT 10 minutes before I realized wasn't being incremented.
+                    bytesParsed += currentInfoExHeader.Size;
                 }
-                // Move to the next structure in the buffer
-                currentPtr = IntPtr.Add(currentPtr, (int)currentInfoExHeader.Size); 
-            }
 
-            return physicalCoreCount;
+                return physicalCoreCount;
+            }
+            catch (Exception ex) {
+                string errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                Errors.WriteErrorAndExit(
+                    message:
+                        "BAM Manager (BAMM) was unable to determine the number of physical CPU cores present, if this issue persists, " +
+                        $"please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\n{errorMessage}.",
+                    status: 1
+                );
+            }
+            return 0; // Wont be reached.
         }
 
         #endregion

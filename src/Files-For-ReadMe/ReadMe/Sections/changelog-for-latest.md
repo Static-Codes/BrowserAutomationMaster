@@ -14,7 +14,9 @@
 - Added 3 new commands
 - Cleaned up the Parser class
 - Increased BAMC JavaScript validation accuracy
-- Increased BAMC JavaScript validation accuracy
+- Increased BAMC URL validation accuracy
+- Refactored Managers.AppManager.OS.Win.GetPhysicalCoreCount to use CSWin32 for increased stability.
+- Renamed internal class Managers.AppManager.OS.Windows -> Managers.AppManager.OS.Win
 
 ### New Commands:
 

@@ -6,8 +6,8 @@ namespace BrowserAutomationMaster.Managers.AppManager
     {
         public static List<AppInfo> GetInstalledApps()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return OS.Windows.GetApps();
+            if (OperatingSystem.IsWindowsVersionAtLeast(6, 1, 7601)) // >= Windows 6.1.7601
+                return OS.Win.GetApps();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return OS.MacOS.GetApps();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

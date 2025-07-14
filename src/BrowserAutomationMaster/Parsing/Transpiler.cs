@@ -25,39 +25,63 @@ namespace BrowserAutomationMaster
 
     internal partial class Transpiler
     {
-        readonly static string defaultScriptFileName = "untitled-script";  // This will be used in GenerateBackupName(); in the case of failure.
+        // This will be used in GenerateBackupName(); in the case of failure.
+        readonly static string defaultScriptFileName = "untitled-script";  
         
         static string desiredSaveDirectory = "";
         static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
-        readonly static string requirementsFileName = "requirements.txt"; // This is the filename where the package requirements will be written to.
+        readonly static string requirementsFileName = "requirements.txt"; 
         static string projectDirectory = "";
         
         readonly static string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
 
-        static BrowserPackage browserPackage = BrowserPackage.selenium; // By default selenium is chosen, however aiohttp and tls-client as also possible options.
+        // By default selenium is chosen, however aiohttp and tls-client as also possible options
+        static BrowserPackage browserPackage = BrowserPackage.selenium;
 
         static string pythonScriptFileName = "";  // Modified by SetScriptName();
-        static string pythonVersion = "3.10";  
-        private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0"; // Default value if inhouse function fails.
+        static string pythonVersion = "3.10";
+
+        // Default value if inhouse function fails.
+        private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0"; 
         
-        static string selectedBrowser = "firefox"; // Defaults to firefox.  Brave, Chrome, Firefox
+        static string selectedBrowser = "firefox"; // Defaults to firefox.  Accepts 'chrome' and 'firefox'
 
-        static bool browserPresent = false; // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
-        static bool featurePresent = false; // 
-        static bool otherPresent = false; // This might not be needed.
+        static string[] browserlessActions = ["save-as-html", "wait-for-seconds"];
 
-        static bool asyncEnabled = false; // Parser ensures both async and bypassCloudflare cannot both be true in a valid file.
-        static bool bypassCloudflare = false; // Instructs the parser to use tls-client with a client identifier of safari_ios_16.
-        static bool disablePycache = false;  // Disables Visual Studio Code from writing __pycache__ directory.
-        static bool disableSSL = false; // Disables SSL certificate authorization session wide.
-        static bool runHeadless = false; // Runs the browser in headless mode if specified.
-        static bool noBrowsersFound = false; // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
+        // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
+        static bool browserPresent = false;
+        static bool featurePresent = false;
+        static bool otherPresent = false;
 
-        static int actionTimeout = 10; // This is the timeout applied to all WebDriverWait calls.
+        // Parser ensures both async and bypassCloudflare cannot both be true in a valid file.
+        static bool asyncEnabled = false;
+
+        // Instructs the parser to use tls-client with a client identifier of safari_ios_16.
+        static bool bypassCloudflare = false;
+
+        // Disables Visual Studio Code from writing __pycache__ directory.
+        static bool disablePycache = false;
+
+        // Disables SSL certificate authorization session wide.
+        static bool disableSSL = false;
+
+        // Runs the browser in headless mode if specified.
+        static bool runHeadless = false;
+
+        // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
+        static bool noBrowsersFound = false;
+
+        // This is the timeout applied to all WebDriverWait calls.
+        static int actionTimeout = 10;
+
         readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
         static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
         static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
-        readonly static List<string> importStatements = ["from importlib import import_module", "from subprocess import run", "from sys import modules, stderr, stdout"];
+        readonly static List<string> importStatements = [
+            "from importlib import import_module", 
+            "from subprocess import run", 
+            "from sys import modules, stderr, stdout"
+        ];
         readonly static List<string> scriptBody = [];
         readonly static List<string> requirements = [];
 
@@ -101,9 +125,15 @@ namespace BrowserAutomationMaster
             string version = PackageManager.New(browserPackage.ToString(), pythonVersion);
             requirements.Add($"{browserPackage}=={version}");
 
-            string noUrlsFound = "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\nPlease ensure the selected file has atleast one 'visit' command.";
+            string noUrlsFound = 
+                "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\n" +
+                "Please ensure the selected file has atleast one 'visit' command.";
 
-            if (desiredUrls.Count == 0) { Errors.WriteErrorAndExit(noUrlsFound, 1); return; }
+            if (desiredUrls.Count == 0) { 
+                Errors.WriteErrorAndExit(noUrlsFound, 1); 
+                return; 
+            }
+
             switch (browserPackage)
             {
                 case BrowserPackage.aiohttp:
@@ -118,14 +148,24 @@ namespace BrowserAutomationMaster
                     //scriptBody.Add($"{Indent(2)}async with session.get(ClientSession(url='{desiredUrls.ElementAt(0)}') as response:");
                     //scriptBody.Add($"{Indent(3)}html = await response.text()");
                     //scriptBody.Add($"{Indent(3)}return html");
-                    Errors.WriteErrorAndExit("BAM Manager (BAMM) currently lacks support for the 'async' feature, this message will be modified, when this status changes.", 1);
+                    Errors.WriteErrorAndExit(
+                        message:
+                            "BAM Manager (BAMM) currently lacks support for the 'async' feature, " +
+                            "this message will be modified, when this status changes.", 
+                        status: 1
+                    );
                     break;
 
                 case BrowserPackage.tls_client:
                     //importStatements.Add("from tls_client import Session");
                     //scriptBody.Add("session = Session(client_identifier='safari_ios_16_0'");
                     //scriptBody.Add($"session.get('{desiredUrls.ElementAt(0)}')");
-                    Errors.WriteErrorAndExit("BAM Manager (BAMM) currently lacks support for the 'bypass-cloudflare' feature, this message will be modified, when this status changes.", 1);
+                    Errors.WriteErrorAndExit(
+                        message:
+                            "BAM Manager (BAMM) currently lacks support for the 'bypass-cloudflare' feature, " +
+                            "this message will be modified, when this status changes.", 
+                        status: 1
+                    );
                     break;
 
                 case BrowserPackage.selenium:
@@ -133,7 +173,9 @@ namespace BrowserAutomationMaster
                     string wmVersion = PackageManager.New("webdriver_manager", pythonVersion);
                     requirements.Add($"selenium-wire=={swVersion}");
                     requirements.Add($"webdriver_manager=={wmVersion}");
-                    requirements.Add($"blinker==1.4"); // This fixes the mess that selenium-wire causes by installing blinker >=1.9
+
+                    // This fixes the mess that selenium-wire causes by installing blinker >=1.9
+                    requirements.Add($"blinker==1.4");
 
                     importStatements.AddRange([
                         "from selenium.common.exceptions import NoSuchElementException",
@@ -175,66 +217,128 @@ namespace BrowserAutomationMaster
         }
         public static void AddLoveToScript() // Because love is medicine
         {
-            scriptBody.Insert(0, "Made with ❤️ using BAM Manager (BAMM!)\n\nhttps://github.com/Static-Codes/BrowserAutomationMaster/");
+            scriptBody.Insert(0, 
+                "Made with ❤️ using BAM Manager (BAMM!)\n\n" +
+                $"{ConstantManager.BASE_REPO_LINK}");
         }
         public static void AddRequiredFunctions()
         {
             Dictionary<string, bool> functionsPresent = [];
+
+            // Checks if configLines contains each arg, if so the required function is be added.
+            // add-header is added here since its in actionArg, but its not accessed in this function.
             foreach (string actionArg in Parser.actionArgs) {
-                functionsPresent.Add(actionArg, configLines.Any(line => line.StartsWith(actionArg))); // Checks if configLines contains each arg, if so the required function is be added.
-            } // add-header is added here since its in actionArg, but its not accessed in this function.
+                functionsPresent.Add(actionArg, configLines.Any(line => line.StartsWith(actionArg))); 
+            }
             
             int index = 1; // Accounts for the functions below in the scriptBody.
             scriptBody.Insert(0, BrowserFunctions.makeRequestFunction(requestUserAgent));
-            
-            importStatements.Insert(3, BrowserFunctions.checkImportFunction); // Starts at line 4 (index 3) to account for imports required by check_imports
+
+            // Starts at line 4 (index 3) to account for imports required by check_imports
+            importStatements.Insert(3, BrowserFunctions.checkImportFunction);
             importStatements.Insert(4, BrowserFunctions.installPackagesFunction);
             importStatements.Insert(5, "install_packages()");
-            
-            // Simplified from previous implementation
+
+            Action Add(string func) => () => scriptBody.Insert(index, func);
             Dictionary<string, Action> functionsAndActions = new() {
-                { "click",                () => { scriptBody.Insert(index, BrowserFunctions.clickElementFunction); index++; } },
-                { "click-at-position",    () => { scriptBody.Insert(index, BrowserFunctions.clickAtPositionFunction); index++; } },
-                { "click-exp",            () => { scriptBody.Insert(index, BrowserFunctions.clickElementExperimentalFunction); index++; } },
-                { "close-current-tab",    () => { scriptBody.Insert(index, BrowserFunctions.closeCurrentTabFunction); index++; } },
-                { "fill-text",            () => { scriptBody.Insert(index, BrowserFunctions.fillTextFunction); index++; } },
-                { "fill-text-exp",        () => { scriptBody.Insert(index, BrowserFunctions.fillTextExperimentalFunction); index++; } },
-                { "get-text",             () => { scriptBody.Insert(index, BrowserFunctions.getTextFunction); index++; } },
-                { "open-new-tab",         () => { scriptBody.Insert(index, BrowserFunctions.openNewTabFunction); index++; }  },
-                { "save-as-html",         () => { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLFunction); index++; } },
-                { "save-as-html-exp",     () => { scriptBody.Insert(index, BrowserFunctions.saveAsHTMLExperimentalFunction); index++; } },
-                { "select-option",        () => { scriptBody.Insert(index, BrowserFunctions.selectOptionByIndexFunction); index++; } },
-                { "take-screenshot",      () => { scriptBody.Insert(index, BrowserFunctions.takeScreenshotFunction); index++; } }
+                { "click", Add(BrowserFunctions.clickElementFunction)                              },
+                { "click-at-position", Add(BrowserFunctions.clickAtPositionFunction)               },
+                { "click-exp", () => Add(BrowserFunctions.clickElementExperimentalFunction)        },
+                { "close-current-tab", Add(BrowserFunctions.closeCurrentTabFunction)               },
+                { "fill-text", Add(BrowserFunctions.fillTextFunction)                              },
+                { "fill-text-exp", Add(BrowserFunctions.fillTextExperimentalFunction)              },
+                { "get-text", Add(BrowserFunctions.getTextFunction)                                },
+                { "open-new-tab", Add(BrowserFunctions.openNewTabFunction)                         },
+                { "save-as-html", Add(BrowserFunctions.saveAsHTMLFunction)                         },
+                { "save-as-html-exp", Add(BrowserFunctions.saveAsHTMLExperimentalFunction)         },
+                { "select-option", Add(BrowserFunctions.selectOptionByIndexFunction)               },
+                { "take-screenshot", Add(BrowserFunctions.takeScreenshotFunction)                  }
             };
+
             foreach (var functionPair in functionsAndActions) {
-                if (functionsPresent.TryGetValue(functionPair.Key, out bool isNeeded) && isNeeded) { // Presence check
-                    if (functionsAndActions.TryGetValue(functionPair.Key, out Action? actionToPerform) && actionToPerform != null) { actionToPerform(); } // Null check + execution
+                // Presence check
+                if (functionsPresent.TryGetValue(functionPair.Key, out bool isNeeded) && isNeeded) {
+
+                    bool wasFound =  functionsAndActions.TryGetValue(
+                        functionPair.Key, 
+                        out Action? actionToPerform
+                    );
+
+                    if (wasFound && actionToPerform != null) { 
+                        actionToPerform(); 
+                        index++; 
+                    }
                 }
             }
-            if (scriptBody.Count != index) { scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode); }
-            else { scriptBody.Insert(index, BrowserFunctions.browserQuitCode); }
+            if (scriptBody.Count != index) { 
+                scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode); 
+            }
+            else { 
+                Add(BrowserFunctions.browserQuitCode); 
+            }
         }
         public static void CheckConfigLines()
         {
             int numberOfLines = configLines.Count;
             if (numberOfLines == 0) {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Errors.WriteErrorAndExit("BAM Manager (BAMM) encountered a fatal error, the selected file has no lines.\n\nPress any key to exit...", 1);
+                Errors.WriteErrorAndExit(
+                    message:
+                        "BAM Manager (BAMM) encountered a fatal error, the selected file has no lines.\n\n" +
+                        "Press any key to exit...", 
+                    status: 1
+                );
             }
-            if (numberOfLines >= 1 && configLines[0].StartsWith("browser") && configLines[0].Contains(' ') && configLines[0].Split(' ').Length == 2) { browserPresent = true; }
-            if (browserPresent) { selectedBrowser = configLines[0].Split(' ')[1].Replace('"', ' ').Trim(); }
-            featureLines = [.. configLines.Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line) && line.StartsWith("feature"))];
-            featurePresent = featureLines.Count > 0; // Roslyn recommend Any() over Count() > 0
-            if (featurePresent && featureLines.Any(line => line.Contains(" \"disable-pycache\""))) { disablePycache = true; }
-            if (featurePresent && featureLines.Any(line => line.Contains(" \"no-ssl\""))) { disableSSL = true; }
-            if (featurePresent && featureLines.Any(line => line.Contains(" \"run-headless\""))) { runHeadless = true; }
+
+            if (numberOfLines >= 1 && 
+                configLines[0].StartsWith("browser") && 
+                configLines[0].Contains(' ') && 
+                configLines[0].Split(' ').Length == 2) 
+                { 
+                    browserPresent = true; 
+                }
+
+            if (browserPresent) { 
+                selectedBrowser = configLines[0].Split(' ')[1].Replace('"', ' ').Trim(); 
+            }
+
+            featureLines = [.. 
+                configLines
+                    .Select(line => line.Trim())
+                    .Where(line => 
+                        !string.IsNullOrWhiteSpace(line) 
+                        && line.StartsWith("feature")
+                    )
+            ];
+            featurePresent = featureLines.Count > 0;
+
+            disablePycache = featurePresent && featureLines.Any(line => line.Contains(" \"disable-pycache\""));
+            disableSSL = featurePresent && featureLines.Any(line => line.Contains(" \"no-ssl\""));
+            runHeadless = featurePresent && featureLines.Any(line => line.Contains(" \"run-headless\""));
+
             otherPresent = CheckOtherPresent();
-            if (!otherPresent) { Warning.Write("BAM Manager (BAMM) was unable to find any requests logic, if this is intentional, you can safely ignore this warning."); }
-            if (disablePycache) { importStatements.AddRange(["import sys", "sys.dont_write_byte_code"]); }
-            if (disableSSL && configLines[0].Contains("\"chrome\"")) { importStatements.Add("from selenium.webdriver.chrome.options import Options"); }
-            else if (disableSSL && configLines[0].Contains("\"firefox\"")) { importStatements.Add("from selenium.webdriver.firefox.options import Options"); }
-            if (featurePresent && featureLines.Any(line => line.Contains(" \"async\""))) { asyncEnabled = true; }
-            if (featurePresent && featureLines.Any(line => line.Contains(" \"bypass-cloudflare\""))) { bypassCloudflare = true; }
+
+            if (!otherPresent) { 
+                Warning.Write(
+                    message:
+                        "BAM Manager (BAMM) was unable to find any requests logic, " +
+                        "if this is intentional, you can safely ignore this warning."
+                ); 
+            }
+
+            if (disablePycache) { 
+                importStatements.AddRange(["import sys", "sys.dont_write_byte_code"]); 
+            }
+
+            if (disableSSL && configLines[0].Contains("\"chrome\"")) { 
+                importStatements.Add("from selenium.webdriver.chrome.options import Options"); 
+            }
+
+            else if (disableSSL && configLines[0].Contains("\"firefox\"")) { 
+                importStatements.Add("from selenium.webdriver.firefox.options import Options"); 
+            }
+
+            asyncEnabled = featurePresent && featureLines.Any(line => line.Contains(" \"async\""));
+            bypassCloudflare = featurePresent && featureLines.Any(line => line.Contains(" \"bypass-cloudflare\""));
 
         }
         public static bool CheckOtherPresent()
@@ -259,7 +363,13 @@ namespace BrowserAutomationMaster
             try {
                 if (!Directory.Exists(desiredSaveDirectory)) { Directory.CreateDirectory(desiredSaveDirectory); }
             }
-            catch { Errors.WriteErrorAndExit("BAMM Manager (BAMM) was unable to create the desired project directory, please try again.", 1); }
+            catch { 
+                Errors.WriteErrorAndExit(
+                    message:
+                        "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.", 
+                    status: 1
+                ); 
+            }
             
             projectDirectory = Path.Combine(desiredSaveDirectory, projectDirectoryName);
             try {
@@ -274,7 +384,14 @@ namespace BrowserAutomationMaster
                     Directory.CreateDirectory(projectDirectory);
                 }
             }
-            catch { Errors.WriteErrorAndExit("BAMM Manager (BAMM) was unable to create the desired project directory, please try again.", 1); }
+            catch { 
+                Errors.WriteErrorAndExit(
+                    message:
+                        "BAMM Manager (BAMM) was unable to create the desired project directory, " +
+                        "please try again.", 
+                    status: 1
+                ); 
+            }
         }
         public static void GenerateBackupScriptName()
         {
@@ -309,40 +426,73 @@ namespace BrowserAutomationMaster
             if (asyncEnabled) { browserPackage = BrowserPackage.aiohttp; }
             if (bypassCloudflare) { browserPackage = BrowserPackage.tls_client; }
         }
+
         public static void HandleCompilation(string fileName, string[] args) 
         {
             SetCustomUserAgent(args);
             SetTimeout(args);
-            string[] browserlessActions = ["save-as-html", "wait-for-seconds"]; 
+            
+            
             int lineNumber = 1;
             bool hasComment = false;
-            bool firstVisitFinished = false; // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
-            bool isCU = false; // This prevents issues caused by set-custom-user-agent having unique formatting (Many spaces).
-            bool isCE = false; // This prevents issues caused by click-exp having unique formatting.
-            bool isFT = false; // This prevents issues caused by fill-text and fill-text-exp if the arguments have spaces in them.
+
+            // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
+            bool firstVisitFinished = false;
+            // Prevents issues caused by set-custom-user-agent having unique formatting (Many spaces).
+            bool isCU = false;
+            // Prevents issues caused by click-exp having unique formatting.
+            bool isCE = false;
+            // Prevents issues caused by fill-text and fill-text-exp if the arguments have spaces in them.
+            bool isFT = false;
            
-            bool isJSBlock = false; // This prevents issues caused by embedding javascript code into python code.
+            bool isJSBlock = false; // Prevents issues caused by embedding javascript code into python code.
             bool isJSLine = false;  // Also prevents issued caused by embedding javascript code into python code.
             string jsBlockContent = "";  
             foreach (string originalLine in configLines)
             {
-                string line = originalLine; // Since iterators can't be overwritten, storing it as a local variable is current solution.
+                // Since iterators can't be overwritten, storing it as a local variable is current solution.
+                string line = originalLine;
                 if (string.IsNullOrEmpty(line)) { continue; } // Skip blank lines.
 
-                if (line.Contains(" // ") && !isJSBlock) { hasComment = true; } // Indicates a comment is present (ignores comments within JS blocks)
-                if (hasComment) { line = Parser.DeleteCommentIfPresent(line); } // Deletes said comment so it's not compiled.
+                // Indicates a comment is present (ignores comments within JS blocks)
+                if (line.Contains(" // ") && !isJSBlock) { hasComment = true; }
+
+                // Deletes said comment so it's not compiled.
+                if (hasComment) { line = Parser.DeleteCommentIfPresent(line); } 
                 
                 // Handling 'add-headers' before 'visit' is processed would be an issue if it weren't for Parser
                 // Parser ensures 'browser' first (or defaults to firefox) then features and finally any other logic.
                 Match match = Parser.PrecompiledHeaderRegex().Match(line);
                 if (match.Success) {
-                    string requestLine = scriptBody.Where(line => line.Equals("make_request(url)")).First() ?? string.Empty;
 
-                    if (string.IsNullOrEmpty(requestLine)) { Errors.WriteErrorAndExit("Unable to locate request logic in partially compiled script, please attempt recompilation.", 1); }
+                    string requestLine = 
+                        scriptBody.Where(line => line.Equals("make_request(url)")
+                    ).First() ?? string.Empty;
+
+                    if (string.IsNullOrEmpty(requestLine)) { 
+                        Errors.WriteErrorAndExit(
+                            message:
+                                "Unable to locate request logic in partially compiled script, " +
+                                "please attempt recompilation.", 
+                            status: 1
+                        ); 
+                    }
                     int index = scriptBody.IndexOf(requestLine);
-                    if (index == -1) { Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to locate request logic in partially compiled script, please attempt recompilation.", 1); }
-                    else {  // Value is assumed to be correct, but will very much cause an issue if the regex is found to not be fully reliable.
-                        scriptBody.Insert(index - 1, BrowserFunctions.addHeadersFunction(JsonSerializer.Deserialize<Dictionary<string, string>>(match.Groups["json"].Value)!));
+                    if (index == -1) { Errors.WriteErrorAndExit(
+                        message:
+                            "BAM Manager (BAMM) was unable to locate request logic in partially compiled script, " +
+                            "please attempt recompilation.", 
+                        status: 1
+                    ); }
+                    // Value is assumed to be correct,
+                    // but will very much cause an issue if the regex is found to not be fully reliable.
+                    else {  
+                        scriptBody.Insert(
+                            index - 1, 
+                            BrowserFunctions.addHeadersFunction(
+                                JsonSerializer.Deserialize<Dictionary<string, string>>(match.Groups["json"].Value)!
+                            )
+                        );
                     } 
                    
                     continue;
@@ -357,28 +507,51 @@ namespace BrowserAutomationMaster
 
 
                 string[] splitLine;
-                if (isFT || isCU) { splitLine = line.Split(" \""); } // This handles fill-text or set-custom-useragent
-                else if (!isCE) { splitLine = line.Split(" "); } // This handles all but click-exp, fill-text, and set-custom-user-agent
-                else { splitLine = line.Split(" '"); } // This handles click-exp
-                if (isJSBlock) { isJSLine = true;} // Prevents the length check below from returning an error for javascript code blocks.
+                // This handles fill-text or set-custom-useragent
+                if (isFT || isCU) { splitLine = line.Split(" \""); }
+                // This handles all but click-exp, fill-text, and set-custom-user-agent
+                else if (!isCE) { splitLine = line.Split(" "); }
+                // This handles click-exp
+                else { splitLine = line.Split(" '"); }
+                // Prevents the length check below from returning an error for javascript code blocks.
+                if (isJSBlock) { isJSLine = true;} 
 
 
                 int[] validLengths = [2, 3];
-                string[] specialCommands = ["close-current-tab"]; // These are special because they require no parsing; excludes start-javascript + end-javascript theyre handled below.
+                // These are special because they require no parsing.
+                // excludes start-javascript + end-javascript theyre handled below.
+                string[] specialCommands = ["close-current-tab"]; 
 
                 bool normalLengthBypass = !validLengths.Contains(splitLine.Length) && !isJSLine;
                 bool specialLengthBypass = specialCommands.Any(cmd => line.Replace('"', ' ').Trim().StartsWith(cmd));
                 
                 if (normalLengthBypass) {
-                    if (specialLengthBypass) {
-                        continue;
-                    }
-                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "Invalid command syntax."), 1);
+                    if (specialLengthBypass) { continue; }
+                    Errors.WriteErrorAndExit(
+                        message:
+                            Errors.GenerateErrorMessage(
+                                fileName, 
+                                line, 
+                                lineNumber, 
+                                "Invalid command syntax."
+                            ), 
+                        status: 1
+                    );
                 }
 
                 // Handle case where user attempts to create another jsBlock before closing the previous one.
                 if (isJSBlock && line.StartsWith("start-javascript")) {
-                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The previous javascript code block was not closed before attempting to create another.  Please close the previous javascript code block and recompile."), 1);
+                    Errors.WriteErrorAndExit(
+                        message: 
+                            Errors.GenerateErrorMessage(
+                                fileName, 
+                                line, 
+                                lineNumber, 
+                                "The previous javascript code block was not closed before attempting to create another.  " +
+                                "Please close the previous javascript code block and recompile."
+                            ), 
+                        status: 1
+                    );
                 }
 
                 // Add prevalidated line content to the jsBlock.
@@ -389,9 +562,17 @@ namespace BrowserAutomationMaster
 
                 // Writes the actual JS Block as python code.
                 if (line.StartsWith("end-javascript") && !isJSBlock) {
-                    PreprocessJSCodeBlock(jsBlockContent); // Handles cases where Esprima might be more lenient towards invalid code.
+                    // Handles cases where Esprima might be more lenient towards invalid code.
+                    PreprocessJSCodeBlock(jsBlockContent);
                     if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error)) {
-                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber + 1, $"Invalid javascript code block:\n\nParser Error:\n\n{error}"), 1);
+                        Errors.WriteErrorAndExit(
+                            Errors.GenerateErrorMessage(
+                                fileName, 
+                                line, 
+                                lineNumber + 1, 
+                                $"Invalid javascript code block:\n\nParser Error:\n\n" +
+                                $"{error}"), 
+                            1);
                     }
                     scriptBody.Add($"driver.execute_script('''{jsBlockContent}''')\n");
                     jsBlockContent = string.Empty;
@@ -404,19 +585,35 @@ namespace BrowserAutomationMaster
                 if (!canRunBrowserless) {
                     if (noBrowsersFound) {
                         //Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox."), 1);
-                        Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install chrome or firefox."), 1);
+                        Errors.WriteErrorAndExit(
+                            message:
+                                Errors.GenerateErrorMessage(
+                                    fileName, 
+                                    line, 
+                                    lineNumber, 
+                                    "No valid browser installations found, please install chrome or firefox."
+                                ), 
+                                status: 1
+                        );
                     }
                 }
                 string sanitizedArg2;
                 if (!isCE) { sanitizedArg2 = splitLine[1].Replace('"', ' ').Trim(); }
                 else { sanitizedArg2 = splitLine[1].Replace('\'', ' ').Replace('"', ' ').Trim(); }
                 string sanitizedArg3 = string.Empty;
-                if (splitLine.Length >= 3) { sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); } // The parser ensures no invalid lines can be provided to the compiler :)
+
+                // The parser ensures no invalid lines can be provided to the compiler :)
+                if (splitLine.Length >= 3) { sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); } 
                 
                 switch (firstArg)
                 {
                         case "add-header":
-                            scriptBody.Add(BrowserFunctions.addHeaderFunction(sanitizedArg2, sanitizedArg3));
+                            scriptBody.Add(
+                                BrowserFunctions.addHeaderFunction(
+                                    sanitizedArg2, 
+                                    sanitizedArg3
+                                )
+                            );
                             break;
 
                         case "click":
@@ -425,10 +622,38 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click', please remove this line and recompile."), 1);
+                                    string asyncFailure = 
+                                        "The 'async' feature cannot be used in combination with action 'click', " +
+                                        "please remove this line and recompile.";
+
+                                    Errors.WriteErrorAndExit(
+                                        message:
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber,
+                                                asyncFailure
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    string tlsFailure = 
+                                        "The 'bypass-cloudflare' feature cannot be used in combination " +
+                                        "with action 'click'.\n\n" +
+                                        "Please remove either this line or the line containing the " +
+                                        "'bypass-cloudflare' feature and recompile.";
+
+                                    Errors.WriteErrorAndExit(
+                                        message:
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                tlsFailure
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
                                 case BrowserPackage.selenium:
                                     switch (parsedClickSelector.Category)
@@ -473,7 +698,7 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click-at-position', please remove this line and recompile."), 1);
                                     break;
                                 case BrowserPackage.tls_client:
                                     ;
@@ -1059,6 +1284,7 @@ namespace BrowserAutomationMaster
             if (numberOfIndents == 0) { return string.Empty; } // Return an empty string if no indentations are needed.
             return string.Concat(Enumerable.Repeat(pythonIndent, numberOfIndents));
         }
+        
         public static bool IsValidPyVersion(string pyVersion)
         {
             if (string.IsNullOrWhiteSpace(pyVersion)) { return false; }
