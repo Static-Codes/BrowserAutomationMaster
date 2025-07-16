@@ -2,8 +2,7 @@
 
 ## **Notes**
 
-- There are 6 releases below aswell as the raw source code.
-- `source.zip` contains a 22.9MB archive of the repo, this is with all of the bloat visual studio creates, aswell as published builds, for the pure source code (under 1MB when extracted), please download `BAMM-v1.0.0A2-Source.zip`
+- There are 6 releases below aswell as the raw source code (source.zip).
 
 ---
 
@@ -16,6 +15,7 @@
 - Increased BAMC JavaScript validation accuracy
 - Increased BAMC URL validation accuracy
 - Refactored Managers.AppManager.OS.Win.GetPhysicalCoreCount to use CSWin32 for increased stability.
+- Removed 300+ lines of bloat from Parsing.Transpiler.cs
 - Renamed internal class Managers.AppManager.OS.Windows -> Managers.AppManager.OS.Win
 
 ### New Commands:
@@ -28,7 +28,7 @@
 
 ### Windows 💻
 
-There are three versions for Windows. You most likely need the **x64** version.
+There are two versions for Windows. You most likely need the **x64** version.
 
 - `BAMM-v1.0.0A3-x64-Setup.exe`: For modern **64-bit** Windows systems. This is the most common version.
 - `BAMM-v1.0.0A3-ARM64-Setup.exe`: For Windows devices running on **ARM** processors (like newer Microsoft Surface Pro models).
