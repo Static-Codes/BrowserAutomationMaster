@@ -10,12 +10,6 @@ using BrowserAutomationMaster.Managers.AppManager;
 
 namespace BrowserAutomationMaster
 {
-    enum BrowserPackage
-    {
-        aiohttp,
-        selenium,
-        tls_client
-    }
 
     // Implement
     enum SendKeys
@@ -35,9 +29,6 @@ namespace BrowserAutomationMaster
         static string projectDirectory = "";
         
         readonly static string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
-
-        // By default selenium is chosen, however aiohttp and tls-client as also possible options
-        static BrowserPackage browserPackage = BrowserPackage.selenium;
 
         static string pythonScriptFileName = "";  // Modified by SetScriptName();
         static string pythonVersion = "3.10";
@@ -117,103 +108,65 @@ namespace BrowserAutomationMaster
             Success.WriteSuccessMessage($"Location -> {projectDirectory}\n");
             ResetTranspilerState();
         }
-        public static void AddBrowserImportsAndRequirements() 
+        public static void AddBrowserImportsAndRequirements()
         {
             HandleBrowserCmd();
             requirements.Add("setuptools==80.9.0");
 
             // This function will exit if a null value is reached so no worries about a null check here
-            string version = PackageManager.New(browserPackage.ToString(), pythonVersion);
-            requirements.Add($"{browserPackage}=={version}");
+            string version = PackageManager.New("selenium", pythonVersion);
+            requirements.Add($"selenium=={version}");
 
-            string noUrlsFound = 
+            string noUrlsFound =
                 "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\n" +
                 "Please ensure the selected file has atleast one 'visit' command.";
 
-            if (desiredUrls.Count == 0) { 
-                Errors.WriteErrorAndExit(noUrlsFound, 1); 
-                return; 
+            if (desiredUrls.Count == 0)
+            {
+                Errors.WriteErrorAndExit(noUrlsFound, 1);
+                return;
             }
 
-            switch (browserPackage)
+            string swVersion = PackageManager.New("selenium-wire", pythonVersion);
+            string wmVersion = PackageManager.New("webdriver_manager", pythonVersion);
+            requirements.Add($"selenium-wire=={swVersion}");
+            requirements.Add($"webdriver_manager=={wmVersion}");
+
+            // This fixes the mess that selenium-wire causes by installing blinker >=1.9
+            requirements.Add($"blinker==1.4");
+
+            importStatements.AddRange([
+                "from selenium.common.exceptions import NoSuchElementException",
+                "from selenium.webdriver.common.by import By",
+                "from selenium.webdriver.support.ui import Select, WebDriverWait",
+                "from selenium.webdriver.support import expected_conditions as EC",
+                "from seleniumwire import webdriver"
+                ]
+            );
+
+            if (selectedBrowser.Equals("brave", StringComparison.OrdinalIgnoreCase))
             {
-                case BrowserPackage.aiohttp:
-                    //importStatements.Add("from aiohttp import ClientSession");
+                importStatements.AddRange(["from selenium.webdriver.chrome.options import Options",
+                                           "from selenium.webdriver.chrome.service import Service as ChromeService",
+                                           "from webdriver_manager.chrome import ChromeDriverManager",
+                                           "from webdriver_manager.core.os_manager import ChromeType"]);
+            }
 
-                    //scriptBody.Add("async def main():");
-                    //scriptBody.Add($"{Indent(1)}async with ClientSession() as session:");
-
-                    //// Define url variable by adding an element at scriptBody[0] "url = urlValue" (urlValue should be the second value parsed from the "visit" command
-
-                    //// This can stay for now because async won't be available for novice users.
-                    //scriptBody.Add($"{Indent(2)}async with session.get(ClientSession(url='{desiredUrls.ElementAt(0)}') as response:");
-                    //scriptBody.Add($"{Indent(3)}html = await response.text()");
-                    //scriptBody.Add($"{Indent(3)}return html");
-                    Errors.WriteErrorAndExit(
-                        message:
-                            "BAM Manager (BAMM) currently lacks support for the 'async' feature, " +
-                            "this message will be modified, when this status changes.", 
-                        status: 1
-                    );
-                    break;
-
-                case BrowserPackage.tls_client:
-                    //importStatements.Add("from tls_client import Session");
-                    //scriptBody.Add("session = Session(client_identifier='safari_ios_16_0'");
-                    //scriptBody.Add($"session.get('{desiredUrls.ElementAt(0)}')");
-                    Errors.WriteErrorAndExit(
-                        message:
-                            "BAM Manager (BAMM) currently lacks support for the 'bypass-cloudflare' feature, " +
-                            "this message will be modified, when this status changes.", 
-                        status: 1
-                    );
-                    break;
-
-                case BrowserPackage.selenium:
-                    string swVersion = PackageManager.New("selenium-wire", pythonVersion);
-                    string wmVersion = PackageManager.New("webdriver_manager", pythonVersion);
-                    requirements.Add($"selenium-wire=={swVersion}");
-                    requirements.Add($"webdriver_manager=={wmVersion}");
-
-                    // This fixes the mess that selenium-wire causes by installing blinker >=1.9
-                    requirements.Add($"blinker==1.4");
-
-                    importStatements.AddRange([
-                        "from selenium.common.exceptions import NoSuchElementException",
-                        "from selenium.webdriver.common.by import By",
-                        "from selenium.webdriver.support.ui import Select, WebDriverWait",
-                        "from selenium.webdriver.support import expected_conditions as EC",
-                        "from seleniumwire import webdriver",
-                        ]
-                    );
-                    switch (selectedBrowser)
-                    {
-                        //case "brave":
-                        //    importStatements.AddRange([
-                        //        "from selenium.webdriver.chrome.options import Options",
-                        //        "from selenium.webdriver.chrome.service import Service as ChromeService",
-                        //        "from webdriver_manager.chrome import ChromeDriverManager",
-                        //        "from webdriver_manager.core.os_manager import ChromeType",
-                        //    ]);
-                        //    break;
-
-                        case "chrome":
-                            importStatements.AddRange([
-                                "from selenium.webdriver.chrome.options import Options",
-                                "from selenium.webdriver.chrome.service import Service as ChromeService",
-                                "from webdriver_manager.chrome import ChromeDriverManager",
-                            ]);
-                            break;
-
-                        case "firefox":
-                            importStatements.AddRange([
-                                "from selenium.webdriver.firefox.options import Options",
-                                "from selenium.webdriver.firefox.service import Service as FirefoxService",
-                                "from webdriver_manager.firefox import GeckoDriverManager",
-                            ]);
-                            break;
-                    }
-                    break;
+            else if (selectedBrowser.Equals("chrome", StringComparison.OrdinalIgnoreCase)){
+                importStatements.AddRange(["from selenium.webdriver.chrome.options import Options",
+                                           "from selenium.webdriver.chrome.service import Service as ChromeService",
+                                           "from webdriver_manager.chrome import ChromeDriverManager"]);
+            }
+            else if (selectedBrowser.Equals("firefox", StringComparison.OrdinalIgnoreCase))
+            {
+                importStatements.AddRange(["from selenium.webdriver.firefox.options import Options",
+                                           "from selenium.webdriver.firefox.service import Service as FirefoxService",
+                                           "from webdriver_manager.firefox import GeckoDriverManager"]);
+            }
+            else { 
+                throw new Exception(
+                    "Invalid browser provided to 'browser' command.\n" +
+                    "Expected: \"chrome\" or \"firefox\""); 
             }
         }
         public static void AddImportIfNotPresent(string import, bool addToReqs = false, string? reqText = null)
@@ -457,8 +410,6 @@ namespace BrowserAutomationMaster
         {
             // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of !
             if (browserPresent) { requestUserAgent = UserAgentManager.GetUserAgent(selectedBrowser)!; }
-            if (asyncEnabled) { browserPackage = BrowserPackage.aiohttp; }
-            if (bypassCloudflare) { browserPackage = BrowserPackage.tls_client; }
         }
         public static void HandleCompilation(string fileName, string[] args) 
         {
@@ -648,440 +599,260 @@ namespace BrowserAutomationMaster
                 string sanitizedArg3 = string.Empty;
 
                 // The parser ensures no invalid lines can be provided to the compiler :)
-                if (splitLine.Length >= 3) { sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); } 
-                
+                if (splitLine.Length >= 3) { sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); }
+
                 switch (firstArg)
                 {
-                        case "add-header":
-                            scriptBody.Add(
-                                BrowserFunctions.addHeaderFunction(
-                                    sanitizedArg2, 
-                                    sanitizedArg3
-                                )
+                    case "add-header":
+                        scriptBody.Add(
+                            BrowserFunctions.addHeaderFunction(
+                                sanitizedArg2,
+                                sanitizedArg3
+                            )
+                        );
+                        break;
+
+                    case "click":
+                        string clickSelector = splitLine[1].Replace('"', ' ').Trim();
+                        ParsedSelector parsedClickSelector = SelectorParser.Parse(clickSelector);
+
+                        if (parsedClickSelector.Category is SelectorCategory.Id)
+                        {
+                            scriptBody.Add($"click_element(By.ID, '{parsedClickSelector.Value}', {actionTimeout})");
+                        }
+                        else if (parsedClickSelector.Category is SelectorCategory.ClassName)
+                        {
+                            scriptBody.Add($"click_element(By.CLASS_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
+                        }
+                        else if (parsedClickSelector.Category is SelectorCategory.NameAttribute)
+                        {
+                            scriptBody.Add($"click_element(By.NAME, '{parsedClickSelector.Value}', {actionTimeout})");
+                        }
+                        else if (parsedClickSelector.Category is SelectorCategory.TagName) {
+                            scriptBody.Add($"click_element(By.TAG_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
+                        }
+                        else if (parsedClickSelector.Category is SelectorCategory.XPath)
+                        {
+                            scriptBody.Add($"click_element(By.XPATH, '{parsedClickSelector.Value}', {actionTimeout})");
+                        }
+                        else if (parsedClickSelector.Category is SelectorCategory.InvalidOrUnknown) {
+                            Errors.WriteErrorAndExit(
+                                message:
+                                    Errors.GenerateErrorMessage(
+                                        fileName,
+                                        line,
+                                        lineNumber,
+                                        $"Unable to parse selector: {splitLine[1]}\n" +
+                                        $"If this is a CSS Selector, please use:\n" +
+                                        $"click-exp '{sanitizedArg2}'"
+                                    ),
+                                status: 1
                             );
-                            break;
+                        }
+                        break;
 
-                        case "click":
-                            string clickSelector = splitLine[1].Replace('"', ' ').Trim();
-                            ParsedSelector parsedClickSelector = SelectorParser.Parse(clickSelector);
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    string asyncFailure = 
-                                        "The 'async' feature cannot be used in combination with action 'click', " +
-                                        "please remove this line and recompile.";
 
-                                    Errors.WriteErrorAndExit(
-                                        message:
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber,
-                                                asyncFailure
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-                                case BrowserPackage.tls_client:
-                                    string tlsFailure = 
-                                        "The 'bypass-cloudflare' feature cannot be used in combination " +
-                                        "with action 'click'.\n\n" +
-                                        "Please remove either this line or the line containing the " +
-                                        "'bypass-cloudflare' feature and recompile.";
+                    case "click-at-position":
+                        if (!int.TryParse(sanitizedArg2, out int xPos)) {
+                            Errors.WriteErrorAndExit(
+                                message:
+                                    Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument {splitLine[1]}"),
+                                status: 1
+                            );
+                        }
+                        if (!int.TryParse(sanitizedArg3, out int yPos)) {
+                            Errors.WriteErrorAndExit(
+                                message:
+                                    Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument {splitLine[2]}"),
+                                status: 1
+                            );
+                        }
+                        scriptBody.Add($"click_at_position({xPos}, {yPos}, {actionTimeout})");
+                        break;
 
-                                    Errors.WriteErrorAndExit(
-                                        message:
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                tlsFailure
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-                                case BrowserPackage.selenium:
-                                    switch (parsedClickSelector.Category)
-                                    {
-                                        case SelectorCategory.Id:
-                                            scriptBody.Add($"click_element(By.ID, '{parsedClickSelector.Value}', {actionTimeout})");
-                                            break;
-                                        case SelectorCategory.ClassName:
-                                            scriptBody.Add($"click_element(By.CLASS_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
-                                            break;
-                                        case SelectorCategory.NameAttribute:
-                                            scriptBody.Add($"click_element(By.NAME, '{parsedClickSelector.Value}', {actionTimeout})");
-                                            break;
-                                        case SelectorCategory.TagName:
-                                            scriptBody.Add($"click_element(By.TAG_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
-                                            break;
-                                        case SelectorCategory.XPath:
-                                            scriptBody.Add($"click_element(By.XPATH, '{parsedClickSelector.Value}', {actionTimeout})");
-                                            break;
-                                        case SelectorCategory.InvalidOrUnknown:
-                                            Errors.WriteErrorAndExit(
-                                                message:
-                                                    Errors.GenerateErrorMessage(
-                                                        fileName, 
-                                                        line, 
-                                                        lineNumber, 
-                                                        $"Unable to parse selector: {splitLine[1]}\n" +
-                                                        $"If this is a CSS Selector, please use:\n" +
-                                                        $"click-exp '{sanitizedArg2}'"
-                                                    ), 
-                                                status: 1
-                                            );
-                                            break;
-                                    }
-                                    break;
-                            }
-                            break;
+                    case "click-exp":
+                        isCE = false; // Once since the case its safe to set this flag to false
+                        string ceSelector = splitLine[1].Replace('\'', ' ').Trim();
+                        ParsedSelector parsedCESelector = SelectorParser.Parse(ceSelector);
+                        switch (parsedCESelector.Category)
+                        {
+                            case SelectorCategory.Attribute:
+                            case SelectorCategory.ClassName:
+                            case SelectorCategory.Id:
+                            case SelectorCategory.NameAttribute:
+                            case SelectorCategory.PseudoClass:
+                            case SelectorCategory.PseudoElement:
+                            case SelectorCategory.TagName:
+                                scriptBody.Add($"click_element_experimental(\"{parsedCESelector.rawInput}\", {actionTimeout})");
+                                break;
+                            case SelectorCategory.XPath:
+                                scriptBody.Add($"click_element_experimental('{parsedCESelector.rawInput}', {actionTimeout})");
+                                break;
+                            case SelectorCategory.InvalidOrUnknown:
+                                scriptBody.Add($"click_element(\"{sanitizedArg2}\", {actionTimeout})");
+                                break;
+                        }
+                        break;
 
-                        case "click-at-position":
-                            if (!int.TryParse(sanitizedArg2, out int xPos)) {
-                                Errors.WriteErrorAndExit(
-                                    message: 
-                                        Errors.GenerateErrorMessage(
-                                            fileName, 
-                                            line, 
-                                            lineNumber, 
-                                            $"Invalid argument {splitLine[1]}"
-                                        ), 
-                                    status: 1
+                    case "close-current-tab":
+                        scriptBody.Add("close_current_tab()");
+                        break;
+
+                    case "get-text":
+                        string textElementSelector = splitLine[1].Replace('"', ' ').Trim();
+                        ParsedSelector parsedTextSelector = SelectorParser.Parse(textElementSelector);
+                        switch (parsedTextSelector.Category)
+                        {
+                            case SelectorCategory.Id:
+                                scriptBody.Add($"text = get_text(By.ID, '{parsedTextSelector.Value}')");
+                                break;
+
+                            case SelectorCategory.ClassName:
+                                scriptBody.Add($"text = get_text(By.CLASS_NAME, '{parsedTextSelector.Value}')");
+                                break;
+
+                            case SelectorCategory.NameAttribute:
+                                scriptBody.Add($"text = get_text(By.NAME, '{parsedTextSelector.Value}')");
+                                break;
+
+                            case SelectorCategory.TagName:
+                                scriptBody.Add($"text = get_text(By.TAG_NAME, '{parsedTextSelector.Value}')");
+                                break;
+
+                            case SelectorCategory.XPath:
+                                scriptBody.Add($"text = get_text(By.XPATH, '{parsedTextSelector.Value}')");
+                                break;
+
+                            case SelectorCategory.Attribute:
+                            case SelectorCategory.PseudoClass:
+                            case SelectorCategory.PseudoElement:
+                            case SelectorCategory.InvalidOrUnknown:
+                                scriptBody.Add($"text = get_text(By.CSS_SELECTOR, '{parsedTextSelector.Value}')");
+                                break;
+                        }
+                        scriptBody.Add(
+                            $"if text == None:\n{Indent(1)}" +
+                            $"stderr.write('The element: {parsedTextSelector.Value} did not return any text.')\n"
+                        );
+                        break;
+
+                    case "fill-text":
+                        isFT = false; // Once since the case its safe to set this flag to false
+                        sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); // Parser will throw an error before this is reached, if an exception is triggered. 
+                        string fillElementSelector = splitLine[1].Replace('"', ' ').Trim();
+                        ParsedSelector parsedFillSelector = SelectorParser.Parse(fillElementSelector);
+                        switch (parsedFillSelector.Category)
+                        {
+                            case SelectorCategory.Id:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text(By.ID, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
                                 );
-                            }
-                            if (!int.TryParse(sanitizedArg3, out int yPos)) {
-                                Errors.WriteErrorAndExit(
-                                    message:
-                                        Errors.GenerateErrorMessage(
-                                            fileName, 
-                                            line, 
-                                            lineNumber, 
-                                            $"Invalid argument {splitLine[2]}"
-                                        ), 
-                                    status: 1
+                                break;
+
+                            case SelectorCategory.ClassName:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text(By.CLASS_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
                                 );
-                            }
-                            scriptBody.Add($"click_at_position({xPos}, {yPos}, {actionTimeout})");
-                            break;
+                                break;
 
-                        case "click-exp":
-                            isCE = false; // Once since the case its safe to set this flag to false
-                            string ceSelector = splitLine[1].Replace('\'', ' ').Trim();
-                            ParsedSelector parsedCESelector = SelectorParser.Parse(ceSelector);
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(
-                                        message:
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'async' feature cannot be used in combination with action 'click-at-position'.  " +
-                                                "Please remove this line and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(
-                                        message:
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\n" +
-                                                "Please remove either this line " +
-                                                "or the line containing the 'bypass-cloudflare' feature and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-                                case BrowserPackage.selenium:
-                                    switch (parsedCESelector.Category)
-                                    {
-                                        case SelectorCategory.Attribute:
-                                        case SelectorCategory.ClassName:
-                                        case SelectorCategory.Id:
-                                        case SelectorCategory.NameAttribute:
-                                        case SelectorCategory.PseudoClass:
-                                        case SelectorCategory.PseudoElement:
-                                        case SelectorCategory.TagName:
-                                            scriptBody.Add($"click_element_experimental(\"{parsedCESelector.rawInput}\", {actionTimeout})");
-                                            break;
-                                        case SelectorCategory.XPath:
-                                            scriptBody.Add($"click_element_experimental('{parsedCESelector.rawInput}', {actionTimeout})");
-                                            break;
-                                        case SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"click_element(\"{sanitizedArg2}\", {actionTimeout})");
-                                            break;
-                                    }
-                                    break;
-                            }
-                            break;
+                            case SelectorCategory.NameAttribute:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text(By.NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
+                                );
+                                break;
 
-                        case "close-current-tab":
-                            scriptBody.Add("close_current_tab()");
-                            break;
+                            case SelectorCategory.TagName:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text(By.TAG_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
+                                );
+                                break;
 
-                        case "get-text":
-                            string textElementSelector = splitLine[1].Replace('"', ' ').Trim();
-                            ParsedSelector parsedTextSelector = SelectorParser.Parse(textElementSelector);
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(
-                                        message: 
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'async' feature cannot be used in combination with action 'get-text', " +
-                                                "please remove this line and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(
-                                        message: 
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'get-text'." +
-                                                "\n\nPlease remove either this line or the line containing the " +
-                                                "'bypass-cloudflare' feature and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-                                case BrowserPackage.selenium:
-                                    switch (parsedTextSelector.Category)
-                                    {
-                                        case SelectorCategory.Id:
-                                            scriptBody.Add($"text = get_text(By.ID, '{parsedTextSelector.Value}')");
-                                            break;
+                            case SelectorCategory.XPath: // Special case to handle xpath's (keep the escaped double quotes)
+                                scriptBody.Add(
+                                    $"isFilled = fill_text(By.XPATH, \"{parsedFillSelector.Value}\", '{sanitizedArg3}')\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.ClassName:
-                                            scriptBody.Add($"text = get_text(By.CLASS_NAME, '{parsedTextSelector.Value}')");
-                                            break;
-                                        
-                                        case SelectorCategory.NameAttribute:
-                                            scriptBody.Add($"text = get_text(By.NAME, '{parsedTextSelector.Value}')");
-                                            break;
+                            case SelectorCategory.Attribute or
+                            SelectorCategory.PseudoClass or
+                            SelectorCategory.PseudoElement or
+                            SelectorCategory.InvalidOrUnknown:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text(By.CSS_SELECTOR, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
+                                );
+                                break;
+                        }
+                        scriptBody.Add($"if isFilled:\n" +
+                                       $"{Indent(1)}" +
+                                       $"print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
 
-                                        case SelectorCategory.TagName:
-                                            scriptBody.Add($"text = get_text(By.TAG_NAME, '{parsedTextSelector.Value}')");
-                                            break;
+                        scriptBody.Add($"else:\n" +
+                                       $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
+                                       $"{Indent(1)}exit(1)\n");
+                        break;
 
-                                        case SelectorCategory.XPath:
-                                            scriptBody.Add($"text = get_text(By.XPATH, '{parsedTextSelector.Value}')");
-                                            break;
+                    case "fill-text-exp":
+                        isFT = false; // Once inside the case its safe to set this flag to false
+                        sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); // Parser will throw an error before this is reached, if an exception is triggered. 
+                        string fillElementExpSelector = splitLine[1].Replace('"', ' ').Trim();
+                        ParsedSelector parsedFillExpSelector = SelectorParser.Parse(fillElementExpSelector);
+                        importStatements.AddRange(["from selenium.webdriver.remote.webelement import WebElement",
+                                                   "from selenium.common.exceptions import StaleElementReferenceException, TimeoutException"]);
 
-                                        case SelectorCategory.Attribute:
-                                        case SelectorCategory.PseudoClass:
-                                        case SelectorCategory.PseudoElement: 
-                                        case SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"text = get_text(By.CSS_SELECTOR, '{parsedTextSelector.Value}')");
-                                            break;
-                                    }
-                                    scriptBody.Add(
-                                        $"if text == None:\n{Indent(1)}" +
-                                        $"stderr.write('The element: {parsedTextSelector.Value} did not return any text.')\n"
-                                    );
-                                    break;
-                            }
-                            break;
+                        switch (parsedFillExpSelector.Category)
+                        {
+                            case SelectorCategory.Id:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text_exp(By.ID, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                );
+                                break;
 
-                        case "fill-text":
-                            isFT = false; // Once since the case its safe to set this flag to false
-                            sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); // Parser will throw an error before this is reached, if an exception is triggered. 
-                            string fillElementSelector = splitLine[1].Replace('"', ' ').Trim();
-                            ParsedSelector parsedFillSelector = SelectorParser.Parse(fillElementSelector);                        
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(
-                                        message:
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'async' feature cannot be used in combination with action 'fill-text', " +
-                                                "please remove this line and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
+                            case SelectorCategory.ClassName:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text_exp(By.CLASS_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                );
+                                break;
 
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(
-                                        message: 
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'fill-text'. " +
-                                                "please remove this line and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
+                            case SelectorCategory.NameAttribute:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text_exp(By.NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                );
+                                break;
 
-                                case BrowserPackage.selenium:
-                                    switch (parsedFillSelector.Category)
-                                    {
-                                        case SelectorCategory.Id:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text(By.ID, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
+                            case SelectorCategory.TagName:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text_exp(By.TAG_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.ClassName:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text(By.CLASS_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
+                            case SelectorCategory.XPath: // Special case to handle xpath's (keep the escaped double quotes)
+                                scriptBody.Add(
+                                    $"isFilled = fill_text_exp(By.XPATH, \"{parsedFillExpSelector.Value}\", '{sanitizedArg3}')\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.NameAttribute:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text(By.NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
+                            case SelectorCategory.Attribute:
+                            case SelectorCategory.PseudoClass:
+                            case SelectorCategory.PseudoElement:
+                            case SelectorCategory.InvalidOrUnknown:
+                                scriptBody.Add(
+                                    $"isFilled = fill_text_exp(By.CSS_SELECTOR, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                );
+                                break;
+                        }
+                        scriptBody.Add(
+                            $"if isFilled:\n" +
+                            $"{Indent(1)}" +
+                            $"print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")"
+                        );
+                        scriptBody.Add(
+                            $"else:\n" +
+                            $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
+                            $"{Indent(1)}exit(1)\n"
+                        );
+                        break;
 
-                                        case SelectorCategory.TagName:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text(By.TAG_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
-
-                                        case SelectorCategory.XPath: // Special case to handle xpath's (keep the escaped double quotes)
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text(By.XPATH, \"{parsedFillSelector.Value}\", '{sanitizedArg3}')\n"
-                                            );
-                                            break;
-
-                                        case SelectorCategory.Attribute or
-                                        SelectorCategory.PseudoClass or
-                                        SelectorCategory.PseudoElement or
-                                        SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text(By.CSS_SELECTOR, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
-                                    }
-                                    scriptBody.Add(
-                                        $"if isFilled:\n" +
-                                        $"{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")"
-                                    );
-                                    scriptBody.Add(
-                                        $"else:\n" +
-                                        $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
-                                        $"{Indent(1)}exit(1)\n"
-                                    );
-                                    break;
-                            }
-                            break;
-
-                        case "fill-text-exp":
-                            isFT = false; // Once inside the case its safe to set this flag to false
-                            sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); // Parser will throw an error before this is reached, if an exception is triggered. 
-                            string fillElementExpSelector = splitLine[1].Replace('"', ' ').Trim();
-                            ParsedSelector parsedFillExpSelector = SelectorParser.Parse(fillElementExpSelector);
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(
-                                        message:
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'async' feature cannot be used in combination with action 'fill-text', " +
-                                                "please remove this line and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(
-                                        message:
-                                            Errors.GenerateErrorMessage(
-                                                fileName,
-                                                line,
-                                                lineNumber,
-                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'fill-text'." +
-                                                "\n\nPlease remove either this line or the line containing the " +
-                                                "'bypass-cloudflare' feature and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-
-                                case BrowserPackage.selenium:
-                                    importStatements.AddRange([
-                                        "from selenium.webdriver.remote.webelement import WebElement",
-                                        "from selenium.common.exceptions import StaleElementReferenceException, TimeoutException"
-                                    ]);
-                                    switch (parsedFillExpSelector.Category)
-                                    {
-                                        case SelectorCategory.Id:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text_exp(By.ID, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
-
-                                        case SelectorCategory.ClassName:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text_exp(By.CLASS_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
-
-                                        case SelectorCategory.NameAttribute:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text_exp(By.NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
-
-                                        case SelectorCategory.TagName:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text_exp(By.TAG_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
-
-                                        case SelectorCategory.XPath: // Special case to handle xpath's (keep the escaped double quotes)
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text_exp(By.XPATH, \"{parsedFillExpSelector.Value}\", '{sanitizedArg3}')\n"
-                                            );
-                                            break;
-
-                                        case SelectorCategory.Attribute:
-                                        case SelectorCategory.PseudoClass:
-                                        case SelectorCategory.PseudoElement:
-                                        case SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add(
-                                                $"isFilled = fill_text_exp(By.CSS_SELECTOR, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
-                                            );
-                                            break;
-                                    }
-                                    scriptBody.Add(
-                                        $"if isFilled:\n" +
-                                        $"{Indent(1)}" +
-                                        $"print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")"
-                                    );
-                                    scriptBody.Add(
-                                        $"else:\n" +
-                                        $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
-                                        $"{Indent(1)}exit(1)\n"
-                                    );
-                                    break;
-                            }
-                            break;
-
-                        case "open-new-tab":
+                    case "open-new-tab":
                             try {
                                 using Ping pinger = new();
                                 //foreach (var protocol in Parser.validProtocols.Take(2)) { 
@@ -1108,242 +879,120 @@ namespace BrowserAutomationMaster
                             }
                             break;
 
-                        case "save-as-html":
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(
-                                        message:
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'async' feature cannot be used in combination with action 'save-as-html', " +
-                                                "please remove this line and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
+                    case "save-as-html":
+                        scriptBody.AddRange([$"isSaved = save_as_html('{sanitizedArg2}')\n",
+                                            "if isSaved:",
+                                            $"\n{Indent(1)}print('Saved page source to: {sanitizedArg2}')",
+                                            "else:\n{Indent(1)",
+                                            "print('Unable to save page source, please ensure the page was fully loaded.')\n"]);
+                        break;
 
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(
-                                        message: 
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'save-as-html', " +
-                                                "Please remove this line and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-
-                                case BrowserPackage.selenium:
-                                scriptBody.AddRange(
-                                    [
-                                        $"isSaved = save_as_html('{sanitizedArg2}')\n",
-                                        "if isSaved:",
-                                        $"\n{Indent(1)}print('Saved page source to: {sanitizedArg2}')",
-                                        "else:\n{Indent(1)",
-                                        "print('Unable to save page source, please ensure the page was fully loaded.')\n"
-                                    ]);
-                                    break;
-                            }
-                            break;
-
-                        case "save-as-html-exp":
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(
-                                        message: 
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'async' feature cannot be used in combination " +
-                                                "with action 'save-as-html-exp', " +
-                                                "please remove this line and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(
-                                        message: 
-                                            Errors.GenerateErrorMessage(
-                                                fileName, 
-                                                line, 
-                                                lineNumber, 
-                                                "The 'bypass-cloudflare' feature cannot be used in combination " +
-                                                "with action 'save-as-html-exp', " +
-                                                "please remove this line and recompile."
-                                            ), 
-                                        status: 1
-                                    );
-                                    break;
-
-                                case BrowserPackage.selenium:
-                                    scriptBody.AddRange(
-                                        [
-                                            $"isSaved = save_as_html_experimental('{sanitizedArg2}')\n",
-                                            $"else:\n{Indent(1)}",
-                                            "print('Unable to save page source, please ensure the page was fully loaded.')\n"
-                                        ]
-                                    );
-                                    break;
-                            }
-                            break;
+                    case "save-as-html-exp":
+                        scriptBody.AddRange([$"isSaved = save_as_html_experimental('{sanitizedArg2}')\n",
+                                             $"else:\n{Indent(1)}",
+                                             "print('Unable to save page source, please ensure the page was fully loaded.')\n"]);
+                        break;
                         
                         case "select-element":
                             string selectElementSelector = splitLine[1].Replace('"', ' ').Trim();
                             ParsedSelector parsedSelectSelector = SelectorParser.Parse(selectElementSelector);
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndContinue(
-                                        message:
-                                            "BAM Manager (BAMM) warning:\n" +
-                                            "'select-element' commands are currently unsupported " +
-                                            "while using feature 'async'."
-                                    );
-                                    break;
+                        switch (parsedSelectSelector.Category)
+                        {
+                            case SelectorCategory.Id:
+                                scriptBody.Add(
+                                    $"element = select_element(By.ID, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndContinue(
-                                        message:
-                                            "BAM Manager (BAMM) warning:\n'" +
-                                            "select-element' commands are currently unsupported " +
-                                            "while using feature 'bypass-cloudflare'."
-                                    );
-                                    break;
+                            case SelectorCategory.ClassName:
+                                scriptBody.Add(
+                                    $"element = select_element(By.CLASS_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                case BrowserPackage.selenium:
-                                    switch (parsedSelectSelector.Category)
-                                    {
-                                        case SelectorCategory.Id:
-                                            scriptBody.Add(
-                                                $"element = select_element(By.ID, '{parsedSelectSelector.Value}', {actionTimeout})\n"
-                                            );
-                                            break;
+                            case SelectorCategory.NameAttribute:
+                                scriptBody.Add(
+                                    $"element = select_element(By.NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.ClassName:
-                                            scriptBody.Add(
-                                                $"element = select_element(By.CLASS_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n"
-                                            );
-                                            break;
+                            case SelectorCategory.TagName:
+                                scriptBody.Add(
+                                    $"element = select_element(By.TAG_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.NameAttribute:
-                                            scriptBody.Add(
-                                                $"element = select_element(By.NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n"
-                                            );
-                                            break;
+                            case SelectorCategory.XPath:
+                                scriptBody.Add(
+                                    $"element = select_element(By.XPATH, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.TagName:
-                                            scriptBody.Add(
-                                                $"element = select_element(By.TAG_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n"
-                                            );
-                                            break;
-
-                                        case SelectorCategory.XPath:
-                                            scriptBody.Add(
-                                                $"element = select_element(By.XPATH, '{parsedSelectSelector.Value}', {actionTimeout})\n"
-                                            );
-                                            break;
-
-                                        case SelectorCategory.Attribute or
-                                        SelectorCategory.PseudoClass or
-                                        SelectorCategory.PseudoElement or
-                                        SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add(
-                                                $"element = select_element(By.CSS_SELECTOR, '{parsedSelectSelector.Value}', {actionTimeout})\n"
-                                            );
-                                            break;
-                                    }
-                                    scriptBody.Add(
-                                        $"if not element:\n{Indent(1)}" +
-                                        $"stderr.write('The element: {parsedSelectSelector.Value} could not be selected, " +
-                                        $"please try again or use a different selector.')" +
-                                        $"\n{Indent(1)}exit(1)\n"
-                                    );
-                                    break;
-                            }
-                            break;
+                            case SelectorCategory.Attribute or
+                                    SelectorCategory.PseudoClass or
+                                    SelectorCategory.PseudoElement or
+                                    SelectorCategory.InvalidOrUnknown:
+                                scriptBody.Add(
+                                    $"element = select_element(By.CSS_SELECTOR, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                );
+                                break;
+                        }
+                        scriptBody.Add($"if not element:\n{Indent(1)}" +
+                                       $"stderr.write('The element: {parsedSelectSelector.Value} could not be selected, " +
+                                       $"please try again or use a different selector.')" +
+                                       $"\n{Indent(1)}exit(1)\n");
+                        break;
 
                         case "select-option": // Add functionality for non select dropdowns
                             string optionElementSelector = splitLine[1].Replace('"', ' ').Trim();
                             ParsedSelector parsedOptionSelector = SelectorParser.Parse(optionElementSelector);
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndContinue(
-                                        message: 
-                                            "BAM Manager (BAMM) warning:\n" +
-                                            "'select-option' commands are currently unsupported while using feature 'async'."
-                                    );
-                                    break;
 
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndContinue(
-                                        message: 
-                                            "BAM Manager (BAMM) warning:\n" +
-                                            "'select-option' commands are currently unsupported while using feature 'bypass-cloudflare'."
-                                    );
-                                    break;
+                        switch (parsedOptionSelector.Category)
+                        {
+                            case SelectorCategory.Id:
+                                scriptBody.Add(
+                                    $"isSelected = select_option_by_index(By.ID, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                case BrowserPackage.selenium:
-                                    switch (parsedOptionSelector.Category)
-                                    {
-                                        case SelectorCategory.Id:
-                                            scriptBody.Add(
-                                                $"isSelected = select_option_by_index(By.ID, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
-                                            );
-                                            break;
+                            case SelectorCategory.ClassName:
+                                scriptBody.Add(
+                                    $"isSelected = select_option_by_index(By.CLASS_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.ClassName:
-                                            scriptBody.Add(
-                                                $"isSelected = select_option_by_index(By.CLASS_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
-                                            );
-                                            break;
+                            case SelectorCategory.NameAttribute:
+                                scriptBody.Add(
+                                    $"isSelected = select_option_by_index(By.NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.NameAttribute:
-                                            scriptBody.Add(
-                                                $"isSelected = select_option_by_index(By.NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
-                                            );
-                                            break;
+                            case SelectorCategory.TagName:
+                                scriptBody.Add(
+                                    $"isSelected = select_option_by_index(By.TAG_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.TagName:
-                                            scriptBody.Add(
-                                                $"isSelected = select_option_by_index(By.TAG_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
-                                            );
-                                            break;
-                                        
-                                        case SelectorCategory.XPath:
-                                            scriptBody.Add(
-                                                $"isSelected = select_option_by_index(By.XPATH, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
-                                            );
-                                            break;
+                            case SelectorCategory.XPath:
+                                scriptBody.Add(
+                                    $"isSelected = select_option_by_index(By.XPATH, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                );
+                                break;
 
-                                        case SelectorCategory.Attribute or
-                                        SelectorCategory.PseudoClass or
-                                        SelectorCategory.PseudoElement or
-                                        SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add(
-                                                $"isSelected = select_option_by_index(By.CSS_SELECTOR, '{parsedOptionSelector.Value}', '{sanitizedArg3}, {actionTimeout}')\n"
-                                            );
-                                            break;
+                            case SelectorCategory.Attribute or
+                            SelectorCategory.PseudoClass or
+                            SelectorCategory.PseudoElement or
+                            SelectorCategory.InvalidOrUnknown:
+                                scriptBody.Add(
+                                    $"isSelected = select_option_by_index(By.CSS_SELECTOR, '{parsedOptionSelector.Value}', '{sanitizedArg3}, {actionTimeout}')\n"
+                                );
+                                break;
 
-                                    }
-                                    scriptBody.Add(
-                                        $"if not isSelected:\n" +
-                                        $"{Indent(1)}stderr.write('Could not select the element: {sanitizedArg2}')" +
-                                        $"\n{Indent(1)}exit(1)\n"
-                                    );
-                                    break;  
-                            }
-                            break;
+                        }
+                        scriptBody.Add($"if not isSelected:\n" +
+                                       $"{Indent(1)}stderr.write('Could not select the element: {sanitizedArg2}')" +
+                                       $"\n{Indent(1)}exit(1)\n");
+                        break;  
 
                         case "set-custom-useragent":
                             // Parser already ensures this line is valid so a second null check is not required; assuming set-custom-useragent is not modified without testing.
@@ -1354,188 +1003,155 @@ namespace BrowserAutomationMaster
                             break;
 
                         case "take-screenshot":
-                            switch (browserPackage)
-                            {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndContinue(
-                                        message: 
-                                            "BAM Manager (BAMM) does not support 'take-screenshot' commands " +
-                                            "while using feature 'async'."
-                                    );
-                                    break;
-
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndContinue(
-                                        message: 
-                                            "BAM Manager (BAMM) does not support 'take-screenshot' commands " +
-                                            "while using feature 'bypass-cloudflare'."
-                                    );
-                                    break;
-
-                                case BrowserPackage.selenium:
-                                    scriptBody.Add($"take_screenshot('{sanitizedArg2}')");
-                                    break;
-                            }
+                            scriptBody.Add($"take_screenshot('{sanitizedArg2}')");
                             break;
 
                         case "visit":
-                            switch (browserPackage)
+                            if (!IsResolvableLink(sanitizedArg2))
                             {
-                                case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndContinue(
-                                        message: 
-                                            "BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported" +
-                                            "while using feature 'async'."
-                                    );
-                                    break;
-
-                                case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndContinue(
-                                        message: 
-                                            "BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported " +
-                                            "while using feature 'bypass-cloudflare'."
-                                    );
-                                    break;
-
-                                case BrowserPackage.selenium:
-                                    if (!IsResolvableLink(sanitizedArg2))
-                                    {
-                                        Errors.WriteErrorAndExit(
-                                            message:
-                                                "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
-                                                $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
-                                                $"If this error persists please make a bug report at {ConstantManager.ISSUES_LINK}",
-                                            status: 1
-                                        );
-                                    }
+                                Errors.WriteErrorAndExit(
+                                    message:
+                                        "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
+                                        $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
+                                        $"If this error persists please make a bug report at {ConstantManager.ISSUES_LINK}",
+                                    status: 1
+                                );
+                            }
                                     scriptBody.Add($"url = '{sanitizedArg2}'");
-                                    if (!firstVisitFinished)
-                                    {
-                                        scriptBody.AddRange(
-                                        [
-                                            "print('Initializing WebDriver...')\n",
+                        if (!firstVisitFinished)
+                        {
+                            scriptBody.AddRange(
+                            [
+                                "print('Initializing WebDriver...')\n",
                                             "driver = None",
                                             "status_code = None",
                                             "final_url = url",
                                             "request_url = None",
                                         ]);
-                                        string proxyLine = 
-                                            featureLines.Where(x => 
-                                                x.Contains("use-") && 
-                                                x.Contains("-proxy")
-                                            ).FirstOrDefault("");
+                            string proxyLine =
+                                featureLines.Where(x =>
+                                    x.Contains("use-") &&
+                                    x.Contains("-proxy")
+                                ).FirstOrDefault("");
 
-                                        if (!string.IsNullOrEmpty(proxyLine)) {
-                                            string[] splitProxyLine = [];
-                                            // Handles cases of malformed lines, although this shouldn't happen
-                                            try {
-                                                splitProxyLine = proxyLine.Trim().Split(" ");
-                                                if (splitProxyLine.Length != 3) {
-                                                    scriptBody.Add("sw_options = { 'enable_har': True }\n");
-                                                    continue;
-                                                }
-                                            }
-                                            catch { 
-                                                scriptBody.Add("sw_options = { 'enable_har': True }\n"); 
-                                                continue; 
-                                            }
+                            if (!string.IsNullOrEmpty(proxyLine))
+                            {
+                                string[] splitProxyLine = [];
+                                // Handles cases of malformed lines, although this shouldn't happen
+                                try
+                                {
+                                    splitProxyLine = proxyLine.Trim().Split(" ");
+                                    if (splitProxyLine.Length != 3)
+                                    {
+                                        scriptBody.Add("sw_options = { 'enable_har': True }\n");
+                                        continue;
+                                    }
+                                }
+                                catch
+                                {
+                                    scriptBody.Add("sw_options = { 'enable_har': True }\n");
+                                    continue;
+                                }
 
-                                            string prefix = "use-";
-                                            string suffix = "-proxy";
+                                string prefix = "use-";
+                                string suffix = "-proxy";
 
-                                            int startIndexActual = proxyLine.IndexOf(prefix) + prefix.Length;
-                                            int endIndexActual = proxyLine.IndexOf(suffix);
+                                int startIndexActual = proxyLine.IndexOf(prefix) + prefix.Length;
+                                int endIndexActual = proxyLine.IndexOf(suffix);
 
-                                            if (startIndexActual >= prefix.Length && endIndexActual > startIndexActual)
-                                            {
-                                                int length = endIndexActual - startIndexActual;
-                                                string proxyType = proxyLine.Substring(startIndexActual, length);
+                                if (startIndexActual >= prefix.Length && endIndexActual > startIndexActual)
+                                {
+                                    int length = endIndexActual - startIndexActual;
+                                    string proxyType = proxyLine.Substring(startIndexActual, length);
 
-                                                scriptBody.Add(
-                                                    $"sw_options = {{\n  'enable_har': True,\n   'proxy':{{\n    '" 
-                                                    + proxyType 
-                                                    + "': '" 
-                                                    + proxyType + 
-                                                    $"://{splitProxyLine[2].Replace("\"", " ").Trim()}'\n   }}\n}}"
-                                                );
-                                            }
-                                            else {
-                                                Warning.Write(
-                                                    message:
-                                                        "Unable to add proxy to script, if you reading this, " +
-                                                        "there is a huge bug in the use-proxyType-proxy feature.\n" +
-                                                        $"Please make a bug report at {ConstantManager.ISSUES_LINK}."
-                                                );
-                                            }
-                                        }  
-                                        else { scriptBody.Add("sw_options = { 'enable_har': True }\n"); }
-                                        switch (selectedBrowser)
-                                        {
-                                            //case "brave":
-                                            //    scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()))");
-                                            //    break;
+                                    scriptBody.Add(
+                                        $"sw_options = {{\n  'enable_har': True,\n   'proxy':{{\n    '"
+                                        + proxyType
+                                        + "': '"
+                                        + proxyType +
+                                        $"://{splitProxyLine[2].Replace("\"", " ").Trim()}'\n   }}\n}}"
+                                    );
+                                }
+                                else
+                                {
+                                    Warning.Write(
+                                        message:
+                                            "Unable to add proxy to script, if you reading this, " +
+                                            "there is a huge bug in the use-proxyType-proxy feature.\n" +
+                                            $"Please make a bug report at {ConstantManager.ISSUES_LINK}."
+                                    );
+                                }
+                            }
+                            else { scriptBody.Add("sw_options = { 'enable_har': True }\n"); }
+                            switch (selectedBrowser)
+                            {
+                                //case "brave":
+                                //    scriptBody.Add("driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()))");
+                                //    break;
 
-                                            case "chrome":
-                                                if (disableSSL) {
-                                                    scriptBody.Add("options = Options()");
-                                                    scriptBody.Add("options.add_argument('--ignore-certificate-errors')");
-                                                    scriptBody.Add("try:");
-                                                    scriptBody.Add($"{Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options, seleniumwire_options=sw_options)");
-                                                    scriptBody.Add("except Exception as e:");
-                                                    scriptBody.Add($"{Indent(1)}if 'cannot find Chrome binary' in str(e):");
-                                                    scriptBody.Add($"{Indent(2)}stderr.write('Please install chrome and try compiling again.')");
-                                                    scriptBody.Add($"{Indent(2)}exit(1)\n");
-                                                    break;
-                                                }
-                                                scriptBody.Add("try:");
-                                                scriptBody.Add($"{Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)");
-                                                scriptBody.Add("except Exception as e:");
-                                                scriptBody.Add($"{Indent(1)}if 'cannot find Chrome binary' in str(e):");
-                                                scriptBody.Add($"{Indent(2)}stderr.write('Please install chrome and try compiling again.')");
-                                                scriptBody.Add($"{Indent(2)}exit(1)\n");
-                                                break;
+                                case "chrome":
+                                    if (disableSSL)
+                                    {
+                                        scriptBody.Add("options = Options()");
+                                        scriptBody.Add("options.add_argument('--ignore-certificate-errors')");
+                                        scriptBody.Add("try:");
+                                        scriptBody.Add($"{Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options, seleniumwire_options=sw_options)");
+                                        scriptBody.Add("except Exception as e:");
+                                        scriptBody.Add($"{Indent(1)}if 'cannot find Chrome binary' in str(e):");
+                                        scriptBody.Add($"{Indent(2)}stderr.write('Please install chrome and try compiling again.')");
+                                        scriptBody.Add($"{Indent(2)}exit(1)\n");
+                                        break;
+                                    }
+                                    scriptBody.Add("try:");
+                                    scriptBody.Add($"{Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)");
+                                    scriptBody.Add("except Exception as e:");
+                                    scriptBody.Add($"{Indent(1)}if 'cannot find Chrome binary' in str(e):");
+                                    scriptBody.Add($"{Indent(2)}stderr.write('Please install chrome and try compiling again.')");
+                                    scriptBody.Add($"{Indent(2)}exit(1)\n");
+                                    break;
 
-                                            case "firefox" or "safari":
-                                                if (disableSSL) { // Disables SSL
-                                                    scriptBody.Add("options = Options()");
-                                                    scriptBody.Add("options.accept_insecure_certs = True");
-                                                    scriptBody.Add("try:");
-                                                    scriptBody.Add($"{Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options, seleniumwire_options=sw_options)");
-                                                    scriptBody.Add("except Exception as e:");
-                                                    scriptBody.Add($"{Indent(1)}if 'cannot find Firefox binary' in str(e):\n");
-                                                    scriptBody.Add($"{Indent(2)}stderr.write('Please install firefox and try running again.')");
-                                                    scriptBody.Add($"{Indent(2)}exit(1)");
-                                                }
-                                                else { // Uses SSL
-                                                    scriptBody.Add("try:");
-                                                    scriptBody.Add($"{Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)");
-                                                    scriptBody.Add("except Exception as e:");
-                                                    scriptBody.Add($"{Indent(1)}if 'cannot find Firefox binary' in str(e):\n");
-                                                    scriptBody.Add($"{Indent(2)}stderr.write('Please install firefox and try running again.')");
-                                                    scriptBody.Add($"{Indent(2)}exit(1)");
-                                                }
-                                                break;
-                                        }
-                                        scriptBody.Add("driver.maximize_window()");
-                                        if (runHeadless) { // Runs browser in headless mode
-                                            scriptBody.AddRange(
-                                                [
-                                                    //"driver.set_window_position(width, 0) # Sets the browser off the right of the primary display",
-                                                    "driver.set_window_position(-5000, 0) # Sets the browser off the left of the primary display",
-                                                    "print('Driver initialized.')\n\n"
-                                                ]);
-                                            scriptBody.Add("make_request(url)");
-                                        }
-                                        else { scriptBody.Add("make_request(url)"); }
+                                case "firefox" or "safari":
+                                    if (disableSSL)
+                                    { // Disables SSL
+                                        scriptBody.Add("options = Options()");
+                                        scriptBody.Add("options.accept_insecure_certs = True");
+                                        scriptBody.Add("try:");
+                                        scriptBody.Add($"{Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options, seleniumwire_options=sw_options)");
+                                        scriptBody.Add("except Exception as e:");
+                                        scriptBody.Add($"{Indent(1)}if 'cannot find Firefox binary' in str(e):\n");
+                                        scriptBody.Add($"{Indent(2)}stderr.write('Please install firefox and try running again.')");
+                                        scriptBody.Add($"{Indent(2)}exit(1)");
                                     }
                                     else
-                                    {
-                                        scriptBody.Add("make_request(url)");
+                                    { // Uses SSL
+                                        scriptBody.Add("try:");
+                                        scriptBody.Add($"{Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)");
+                                        scriptBody.Add("except Exception as e:");
+                                        scriptBody.Add($"{Indent(1)}if 'cannot find Firefox binary' in str(e):\n");
+                                        scriptBody.Add($"{Indent(2)}stderr.write('Please install firefox and try running again.')");
+                                        scriptBody.Add($"{Indent(2)}exit(1)");
                                     }
-                                    firstVisitFinished = true;
                                     break;
                             }
-                            break;
+                            scriptBody.Add("driver.maximize_window()");
+                            if (runHeadless)
+                            { // Runs browser in headless mode
+                                scriptBody.AddRange(
+                                    [
+                                        //"driver.set_window_position(width, 0) # Sets the browser off the right of the primary display",
+                                        "driver.set_window_position(-5000, 0) # Sets the browser off the left of the primary display",
+                                                    "print('Driver initialized.')\n\n"
+                                    ]);
+                                scriptBody.Add("make_request(url)");
+                            }
+                            else { scriptBody.Add("make_request(url)"); }
+                        }
+                        else
+                        {
+                            scriptBody.Add("make_request(url)");
+                        }
+                        firstVisitFinished = true;
+                        break;
 
                         case "wait-for-seconds":
                             bool waitTimeValidated = false;
