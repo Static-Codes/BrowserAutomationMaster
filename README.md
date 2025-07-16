@@ -7,7 +7,7 @@ Selenium automation in Python can involve a lot of repetitive code and detailed 
 
 
 ## Quick Start Guide 🚀
-- To get started with BrowserAutomasterMaster, please follow the [Quick Start Guide](https://static-codes.github.io/BrowserAutomationMaster/)
+- To get started with BrowserAutomationMaster, please follow the [Quick Start Guide](https://static-codes.github.io/BrowserAutomationMaster/)
 
 
 ## Table of Contents 📖
