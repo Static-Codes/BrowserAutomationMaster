@@ -51,7 +51,7 @@ namespace BrowserAutomationMaster
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
         
         // Forked from https://pypi.org/project/a-selenium-click-on-coords/ under the MIT License.
-        public static string clickAtPositionFunction = @$"def click_at_coordinates(x: int, y: int, script_timeout=10):
+        public static string clickAtPositionFunction = @$"def click_at_position(x: int, y: int, script_timeout=10):
     isClicked = False
     try:
         old_timeout = driver.__dict__[""caps""][""timeouts""][""script""]
@@ -102,11 +102,69 @@ setTimeout(() => {{timeout*1000}});
 ";
 
         public static string closeCurrentTabFunction = $@"def close_current_tab():
+    current_url = None
     try:
         current_url = driver.current_url
-        driver.close()
+
+        initial_window_handles = driver.window_handles
+
+        # The index of the current window will be used below.
+        current_window_handle = driver.current_window_handle
+        current_window_index = initial_window_handles.index(current_window_handle)
+
+        stdout.write(
+            f""\nClosing tab with URL: {{current_url}}\n""
+            f""Current window handle: {{current_window_handle}} (Index: {{current_window_index}})\n\n""
+        )
+
+        # Close the current tab (current_window_handle)
+        if len(initial_window_handles) == 1:
+            driver.quit()  # driver.close will cause memory leaks with only 1 tab
+            return
+        else:
+            driver.close()
+
+        updated_window_handles = driver.window_handles
+
+        # Case 1: Any tab except the first tab was closed.
+        if current_window_index > 0:
+            previous_tab_handle = initial_window_handles[current_window_index - 1]
+
+            # Ensure the previous handle is still alive
+            if previous_tab_handle not in updated_window_handles:
+                # If the previous handle has gone stale, switching back to the first available.
+                driver.switch_to.window(updated_window_handles[0])
+                stdout.write(
+                    ""Warning: Previous handle not found. ""
+                    f""Switched to first available tab: {{updated_window_handles[0]}}, ""
+                    f""URL: {{driver.current_url}}\n\n""
+                )
+                return  # Func killed here
+
+            # Switch to previous handle since its still alive
+            driver.switch_to.window(previous_tab_handle)
+            stdout.write(
+                f""Switched back to tab with handle: {{previous_tab_handle}}\n""
+                f""URL: {{driver.current_url}}\n\n""
+            )
+
+        # Case 2: We closed the first tab (index 0) and others exist
+        elif len(updated_window_handles) > 0:
+            driver.switch_to.window(updated_window_handles[0])
+            stdout.write(
+                ""Closed first tab.""
+                f""Switched to new first tab: {{updated_window_handles[0]}}, ""
+                f""URL: {{driver.current_url}}\n""
+            )
+
+
     except Exception as e:
-        stderr.write(f'Unable to close the current tab.\nTab URL: {{current_url}}\nException Type: {{type(e)}}\nError:\n{{str(e)}}')" + string.Concat(Enumerable.Repeat('\n', 1));
+        stderr.write(
+            f""Unable to close the current tab.\n""
+            f""Tab URL (before error): {{current_url}}\n""
+            f""Exception Type: {{type(e).__name__}}\n""  # More readable type name
+            f""Error:\n{{str(e)}}\n""
+        )" + string.Concat(Enumerable.Repeat('\n', 1));
         
         public static string getScreenBoundsFunction = @"def get_screen_bounds():
     try:
@@ -139,6 +197,25 @@ setTimeout(() => {{timeout*1000}});
     except Exception as e:
         stderr.write('An error occured while trying to get text from element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
         exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
+
+       //    public static string ensureUTF8Function = @"def ensure_utf8():
+    //if platform.system() == ""Windows"":
+    //    try:
+    //        process = run('$env:PYTHONIOENCODING=""utf-8""', shell=True, capture_output=False, check=False)
+    //        if process.returncode == 0:
+    //            stdout.write('Changed console code page to UTF-8.\n')
+    //            if process.stderr:
+    //                stderr.write(f'Failed while attempting to change code page to UTF-8:\nException:\n{process.stderr}\n')
+    //            return True
+    //        else:
+    //            stderr.write(f'Failed while attempting to change code page to UTF-8:\n')
+    //            if process.stderr:
+    //                stderr.write('Error:\n' + process.stderr)
+    //            return False
+    //    except Exception as e:
+    //        stderr.write(f'An unexpected error occurred while trying to change code page to UTF-8:\n{e}\n')
+    //        return False
+    //return True" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string fillTextFunction = @"def fill_text(byType: By, selector: str, value: str):
     try:
@@ -452,12 +529,19 @@ setTimeout(() => {{timeout*1000}});
         
         public static string openNewTabFunction = @$"def open_new_tab(url: str, timeout: int):
     try:
-        original_window = driver.current_window_handle
-        driver.switch_to.new_window('tab')
-        WebDriverWait(driver, .3).until(EC.number_of_windows_to_be(2))
+        driver.set_page_load_timeout = timeout
+        initial_window_handles = driver.window_handles
+
+        original_window_handle = driver.current_window_handle
+        desired_window_index = len(initial_window_handles) + 1
+
+        driver.switch_to.new_window(""tab"")
+        WebDriverWait(driver, 0.3).until(
+            EC.number_of_windows_to_be(desired_window_index)
+        )
         new_window = driver.current_window_handle
         driver.get(url)
-        return new_window, original_window
+        return new_window, original_window_handle
     except Exception as e:
         stderr.write(f'Unable to open a new tab.\nException Type: {{type(e)}}\nError:\n{{str(e)}}')" + string.Concat(Enumerable.Repeat('\n', 1));
 

@@ -4,6 +4,7 @@ using BrowserAutomationMaster.Managers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Net;
 using System.Net.NetworkInformation;
 using BrowserAutomationMaster.Managers.AppManager;
 
@@ -46,7 +47,7 @@ namespace BrowserAutomationMaster
         
         static string selectedBrowser = "firefox"; // Defaults to firefox.  Accepts 'chrome' and 'firefox'
 
-        static string[] browserlessActions = ["save-as-html", "wait-for-seconds"];
+        private readonly static string[] browserlessActions = ["save-as-html", "wait-for-seconds"];
 
         // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
         static bool browserPresent = false;
@@ -80,7 +81,7 @@ namespace BrowserAutomationMaster
         readonly static List<string> importStatements = [
             "from importlib import import_module", 
             "from subprocess import run", 
-            "from sys import modules, stderr, stdout"
+            "from sys import modules, stderr, stdout\n",
         ];
         readonly static List<string> scriptBody = [];
         readonly static List<string> requirements = [];
@@ -215,11 +216,44 @@ namespace BrowserAutomationMaster
                     break;
             }
         }
-        public static void AddLoveToScript() // Because love is medicine
+        public static void AddImportIfNotPresent(string import, bool addToReqs = false, string? reqText = null)
         {
-            scriptBody.Insert(0, 
-                "Made with ❤️ using BAM Manager (BAMM!)\n\n" +
-                $"{ConstantManager.BASE_REPO_LINK}");
+            bool validStatement = import.StartsWith("from") || import.StartsWith("import");
+            
+            if (!validStatement) {
+                Errors.WriteErrorAndExit(
+                    message: $"Invalid import statement: {import}.",
+                    status: 1
+                );
+            }
+
+            //bool validRequirement = addToReqs && !string.IsNullOrEmpty(reqText);
+
+
+            if (addToReqs && !string.IsNullOrEmpty(reqText)) {
+                Errors.WriteErrorAndExit(
+                    message: $"Invalid requirement statement: {reqText}.",
+                    status: 1
+                );
+            }
+
+            if (!importStatements.Contains(import)) {
+                importStatements.Add(import);
+            }
+            if (addToReqs) {
+                requirements.Add(reqText!);
+            }
+
+        }
+        public static void AddWatermark()
+        {
+            AddImportIfNotPresent(import: "from time import sleep", addToReqs: false, reqText: null);
+
+            scriptBody.Insert(0,
+                "stdout.write('''Made using BAM Manager (BAMM!)\n" +
+                $"{ConstantManager.BASE_REPO_LINK}\n''')\n" +
+                $"sleep(3)\n\n"
+            );
         }
         public static void AddRequiredFunctions()
         {
@@ -426,7 +460,6 @@ namespace BrowserAutomationMaster
             if (asyncEnabled) { browserPackage = BrowserPackage.aiohttp; }
             if (bypassCloudflare) { browserPackage = BrowserPackage.tls_client; }
         }
-
         public static void HandleCompilation(string fileName, string[] args) 
         {
             SetCustomUserAgent(args);
@@ -566,13 +599,15 @@ namespace BrowserAutomationMaster
                     PreprocessJSCodeBlock(jsBlockContent);
                     if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error)) {
                         Errors.WriteErrorAndExit(
-                            Errors.GenerateErrorMessage(
-                                fileName, 
-                                line, 
-                                lineNumber + 1, 
-                                $"Invalid javascript code block:\n\nParser Error:\n\n" +
-                                $"{error}"), 
-                            1);
+                            message:
+                                Errors.GenerateErrorMessage(
+                                    fileName, 
+                                    line, 
+                                    lineNumber + 1, 
+                                    $"Invalid javascript code block:\n\nParser Error:\n\n" +
+                                    $"{error}"), 
+                            status: 1
+                        );
                     }
                     scriptBody.Add($"driver.execute_script('''{jsBlockContent}''')\n");
                     jsBlockContent = string.Empty;
@@ -584,7 +619,17 @@ namespace BrowserAutomationMaster
                 bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
                 if (!canRunBrowserless) {
                     if (noBrowsersFound) {
-                        //Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install brave, chrome, or firefox."), 1);
+                        //Errors.WriteErrorAndExit(
+                            //Errors.GenerateErrorMessage(
+                                //fileName,
+                                //line,
+                                //lineNumber,
+                                //"No valid browser installations found,
+                                //please install brave, chrome, or firefox."
+                            // ),
+                            // status: 1
+                        //);
+
                         Errors.WriteErrorAndExit(
                             message:
                                 Errors.GenerateErrorMessage(
@@ -674,7 +719,18 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"click_element(By.XPATH, '{parsedClickSelector.Value}', {actionTimeout})");
                                             break;
                                         case SelectorCategory.InvalidOrUnknown:
-                                            Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Unable to parse selector: {splitLine[1]}\nIf this is a CSS Selector, please use:\nclick-exp '{sanitizedArg2}'"), 1);
+                                            Errors.WriteErrorAndExit(
+                                                message:
+                                                    Errors.GenerateErrorMessage(
+                                                        fileName, 
+                                                        line, 
+                                                        lineNumber, 
+                                                        $"Unable to parse selector: {splitLine[1]}\n" +
+                                                        $"If this is a CSS Selector, please use:\n" +
+                                                        $"click-exp '{sanitizedArg2}'"
+                                                    ), 
+                                                status: 1
+                                            );
                                             break;
                                     }
                                     break;
@@ -683,10 +739,28 @@ namespace BrowserAutomationMaster
 
                         case "click-at-position":
                             if (!int.TryParse(sanitizedArg2, out int xPos)) {
-                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument {splitLine[1]}"), 1);
+                                Errors.WriteErrorAndExit(
+                                    message: 
+                                        Errors.GenerateErrorMessage(
+                                            fileName, 
+                                            line, 
+                                            lineNumber, 
+                                            $"Invalid argument {splitLine[1]}"
+                                        ), 
+                                    status: 1
+                                );
                             }
-                            if (!int.TryParse(sanitizedArg2, out int yPos)) {
-                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument {splitLine[2]}"), 1);
+                            if (!int.TryParse(sanitizedArg3, out int yPos)) {
+                                Errors.WriteErrorAndExit(
+                                    message:
+                                        Errors.GenerateErrorMessage(
+                                            fileName, 
+                                            line, 
+                                            lineNumber, 
+                                            $"Invalid argument {splitLine[2]}"
+                                        ), 
+                                    status: 1
+                                );
                             }
                             scriptBody.Add($"click_at_position({xPos}, {yPos}, {actionTimeout})");
                             break;
@@ -698,23 +772,42 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'click-at-position', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message:
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'async' feature cannot be used in combination with action 'click-at-position'.  " +
+                                                "Please remove this line and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
                                 case BrowserPackage.tls_client:
-                                    ;
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message:
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'click'.\n\n" +
+                                                "Please remove either this line " +
+                                                "or the line containing the 'bypass-cloudflare' feature and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
                                 case BrowserPackage.selenium:
                                     switch (parsedCESelector.Category)
                                     {
-                                        case
-                                        SelectorCategory.Attribute or
-                                        SelectorCategory.ClassName or
-                                        SelectorCategory.Id or
-                                        SelectorCategory.NameAttribute or
-                                        SelectorCategory.PseudoClass or
-                                        SelectorCategory.PseudoElement or
-                                        SelectorCategory.TagName:
+                                        case SelectorCategory.Attribute:
+                                        case SelectorCategory.ClassName:
+                                        case SelectorCategory.Id:
+                                        case SelectorCategory.NameAttribute:
+                                        case SelectorCategory.PseudoClass:
+                                        case SelectorCategory.PseudoElement:
+                                        case SelectorCategory.TagName:
                                             scriptBody.Add($"click_element_experimental(\"{parsedCESelector.rawInput}\", {actionTimeout})");
                                             break;
                                         case SelectorCategory.XPath:
@@ -738,10 +831,31 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'get-text', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message: 
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'async' feature cannot be used in combination with action 'get-text', " +
+                                                "please remove this line and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'get-text'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message: 
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'get-text'." +
+                                                "\n\nPlease remove either this line or the line containing the " +
+                                                "'bypass-cloudflare' feature and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
                                 case BrowserPackage.selenium:
                                     switch (parsedTextSelector.Category)
@@ -766,14 +880,17 @@ namespace BrowserAutomationMaster
                                             scriptBody.Add($"text = get_text(By.XPATH, '{parsedTextSelector.Value}')");
                                             break;
 
-                                        case SelectorCategory.Attribute or
-                                        SelectorCategory.PseudoClass or
-                                        SelectorCategory.PseudoElement or 
-                                        SelectorCategory.InvalidOrUnknown:
+                                        case SelectorCategory.Attribute:
+                                        case SelectorCategory.PseudoClass:
+                                        case SelectorCategory.PseudoElement: 
+                                        case SelectorCategory.InvalidOrUnknown:
                                             scriptBody.Add($"text = get_text(By.CSS_SELECTOR, '{parsedTextSelector.Value}')");
                                             break;
                                     }
-                                    scriptBody.Add($"if text == None:\n{Indent(1)}stderr.write('The element: {parsedTextSelector.Value} did not return any text.')\n");
+                                    scriptBody.Add(
+                                        $"if text == None:\n{Indent(1)}" +
+                                        $"stderr.write('The element: {parsedTextSelector.Value} did not return any text.')\n"
+                                    );
                                     break;
                             }
                             break;
@@ -786,62 +903,122 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'fill-text', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message:
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'async' feature cannot be used in combination with action 'fill-text', " +
+                                                "please remove this line and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'fill-text'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message: 
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'fill-text'. " +
+                                                "please remove this line and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
 
                                 case BrowserPackage.selenium:
                                     switch (parsedFillSelector.Category)
                                     {
                                         case SelectorCategory.Id:
-                                            scriptBody.Add($"isFilled = fill_text(By.ID, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text(By.ID, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.ClassName:
-                                            scriptBody.Add($"isFilled = fill_text(By.CLASS_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text(By.CLASS_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.NameAttribute:
-                                            scriptBody.Add($"isFilled = fill_text(By.NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text(By.NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.TagName:
-                                            scriptBody.Add($"isFilled = fill_text(By.TAG_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text(By.TAG_NAME, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.XPath: // Special case to handle xpath's (keep the escaped double quotes)
-                                            scriptBody.Add($"isFilled = fill_text(By.XPATH, \"{parsedFillSelector.Value}\", '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text(By.XPATH, \"{parsedFillSelector.Value}\", '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.Attribute or
                                         SelectorCategory.PseudoClass or
                                         SelectorCategory.PseudoElement or
                                         SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"isFilled = fill_text(By.CSS_SELECTOR, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text(By.CSS_SELECTOR, '{parsedFillSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
                                     }
-                                    scriptBody.Add($"if isFilled:\n{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
-                                    scriptBody.Add($"else:\n{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n{Indent(1)}exit(1)\n");
+                                    scriptBody.Add(
+                                        $"if isFilled:\n" +
+                                        $"{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")"
+                                    );
+                                    scriptBody.Add(
+                                        $"else:\n" +
+                                        $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
+                                        $"{Indent(1)}exit(1)\n"
+                                    );
                                     break;
                             }
                             break;
 
                         case "fill-text-exp":
-                            isFT = false; // Once since the case its safe to set this flag to false
+                            isFT = false; // Once inside the case its safe to set this flag to false
                             sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); // Parser will throw an error before this is reached, if an exception is triggered. 
                             string fillElementExpSelector = splitLine[1].Replace('"', ' ').Trim();
                             ParsedSelector parsedFillExpSelector = SelectorParser.Parse(fillElementExpSelector);
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'fill-text', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message:
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'async' feature cannot be used in combination with action 'fill-text', " +
+                                                "please remove this line and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'fill-text'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message:
+                                            Errors.GenerateErrorMessage(
+                                                fileName,
+                                                line,
+                                                lineNumber,
+                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'fill-text'." +
+                                                "\n\nPlease remove either this line or the line containing the " +
+                                                "'bypass-cloudflare' feature and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
 
                                 case BrowserPackage.selenium:
@@ -852,34 +1029,54 @@ namespace BrowserAutomationMaster
                                     switch (parsedFillExpSelector.Category)
                                     {
                                         case SelectorCategory.Id:
-                                            scriptBody.Add($"isFilled = fill_text_exp(By.ID, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text_exp(By.ID, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.ClassName:
-                                            scriptBody.Add($"isFilled = fill_text_exp(By.CLASS_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text_exp(By.CLASS_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.NameAttribute:
-                                            scriptBody.Add($"isFilled = fill_text_exp(By.NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text_exp(By.NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.TagName:
-                                            scriptBody.Add($"isFilled = fill_text_exp(By.TAG_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text_exp(By.TAG_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.XPath: // Special case to handle xpath's (keep the escaped double quotes)
-                                            scriptBody.Add($"isFilled = fill_text_exp(By.XPATH, \"{parsedFillExpSelector.Value}\", '{sanitizedArg3}')\n");
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text_exp(By.XPATH, \"{parsedFillExpSelector.Value}\", '{sanitizedArg3}')\n"
+                                            );
                                             break;
 
-                                        case SelectorCategory.Attribute or
-                                        SelectorCategory.PseudoClass or
-                                        SelectorCategory.PseudoElement or
-                                        SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"isFilled = fill_text_exp(By.CSS_SELECTOR, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n");
+                                        case SelectorCategory.Attribute:
+                                        case SelectorCategory.PseudoClass:
+                                        case SelectorCategory.PseudoElement:
+                                        case SelectorCategory.InvalidOrUnknown:
+                                            scriptBody.Add(
+                                                $"isFilled = fill_text_exp(By.CSS_SELECTOR, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                                            );
                                             break;
                                     }
-                                    scriptBody.Add($"if isFilled:\n{Indent(1)}print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
-                                    scriptBody.Add($"else:\n{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n{Indent(1)}exit(1)\n");
+                                    scriptBody.Add(
+                                        $"if isFilled:\n" +
+                                        $"{Indent(1)}" +
+                                        $"print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")"
+                                    );
+                                    scriptBody.Add(
+                                        $"else:\n" +
+                                        $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
+                                        $"{Indent(1)}exit(1)\n"
+                                    );
                                     break;
                             }
                             break;
@@ -887,13 +1084,27 @@ namespace BrowserAutomationMaster
                         case "open-new-tab":
                             try {
                                 using Ping pinger = new();
-                                foreach (var protocol in Parser.validProtocols.Take(2)) { sanitizedArg2 = sanitizedArg2.Replace(protocol, ""); }
+                                //foreach (var protocol in Parser.validProtocols.Take(2)) { 
+                                //    sanitizedArg2 = sanitizedArg2.Replace(protocol, "");
+                                //}
                                 if (sanitizedArg2.EndsWith('/')) { sanitizedArg2 = sanitizedArg2[..^1]; }
-                                if (!IsResolvableLink(sanitizedArg2)) { Errors.WriteErrorAndExit("BAM Manager (BAMM) was unable to compile the requested script due to the errors above.", 1); }
+                                if (!IsResolvableLink(sanitizedArg2)) { 
+                                    Errors.WriteErrorAndExit(
+                                        message:
+                                            "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" + 
+                                            $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
+                                            $"If this error persists please make a bug report at {ConstantManager.ISSUES_LINK}", 
+                                        status: 1
+                                    ); 
+                                }
                                 scriptBody.Add($"open_new_tab('{sanitizedArg2}', {sanitizedArg3})");
                             }
                             catch (Exception e) {
-                                Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to resolve the url: '{sanitizedArg2}'\nError log:\n\n{e.Message}\n\n{Debug.GetPlatformInfoForErrorLog()}");
+                                Errors.WriteErrorAndContinue(
+                                    message: 
+                                        $"BAM Manager (BAMM) was unable to resolve the url: '{sanitizedArg2}'\n" +
+                                        $"Error log:\n\n{e.Message}"
+                                );
                             }
                             break;
 
@@ -901,17 +1112,42 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'save-as-html', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message:
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'async' feature cannot be used in combination with action 'save-as-html', " +
+                                                "please remove this line and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'save-as-html'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message: 
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'bypass-cloudflare' feature cannot be used in combination with action 'save-as-html', " +
+                                                "Please remove this line and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
 
                                 case BrowserPackage.selenium:
-                                    scriptBody.Add($"isSaved = save_as_html('{sanitizedArg2}')\n");
-                                    scriptBody.Add($"if isSaved:\n{Indent(1)}print('Saved page source to: {sanitizedArg2}')");
-                                    scriptBody.Add($"else:\n{Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n");
+                                scriptBody.AddRange(
+                                    [
+                                        $"isSaved = save_as_html('{sanitizedArg2}')\n",
+                                        "if isSaved:",
+                                        $"\n{Indent(1)}print('Saved page source to: {sanitizedArg2}')",
+                                        "else:\n{Indent(1)",
+                                        "print('Unable to save page source, please ensure the page was fully loaded.')\n"
+                                    ]);
                                     break;
                             }
                             break;
@@ -920,17 +1156,43 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'async' feature cannot be used in combination with action 'save-as-html-exp', please remove this line and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message: 
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'async' feature cannot be used in combination " +
+                                                "with action 'save-as-html-exp', " +
+                                                "please remove this line and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, "The 'bypass-cloudflare' feature cannot be used in combination with action 'save-as-html-exp'.\n\nPlease remove either this line or the line containing the 'bypass-cloudflare' feature and recompile."), 1);
+                                    Errors.WriteErrorAndExit(
+                                        message: 
+                                            Errors.GenerateErrorMessage(
+                                                fileName, 
+                                                line, 
+                                                lineNumber, 
+                                                "The 'bypass-cloudflare' feature cannot be used in combination " +
+                                                "with action 'save-as-html-exp', " +
+                                                "please remove this line and recompile."
+                                            ), 
+                                        status: 1
+                                    );
                                     break;
 
                                 case BrowserPackage.selenium:
-                                    scriptBody.Add($"isSaved = save_as_html_experimental('{sanitizedArg2}')\n");
-                                    scriptBody.Add($"if isSaved:\n{Indent(1)}print('Saved page source to: {sanitizedArg2}')");
-                                    scriptBody.Add($"else:\n{Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n");
+                                    scriptBody.AddRange(
+                                        [
+                                            $"isSaved = save_as_html_experimental('{sanitizedArg2}')\n",
+                                            $"else:\n{Indent(1)}",
+                                            "print('Unable to save page source, please ensure the page was fully loaded.')\n"
+                                        ]
+                                    );
                                     break;
                             }
                             break;
@@ -941,44 +1203,71 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'select-element' commands are currently unsupported while using feature 'async'.");
+                                    Errors.WriteErrorAndContinue(
+                                        message:
+                                            "BAM Manager (BAMM) warning:\n" +
+                                            "'select-element' commands are currently unsupported " +
+                                            "while using feature 'async'."
+                                    );
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'select-element' commands are currently unsupported while using feature 'bypass-cloudflare'.");
+                                    Errors.WriteErrorAndContinue(
+                                        message:
+                                            "BAM Manager (BAMM) warning:\n'" +
+                                            "select-element' commands are currently unsupported " +
+                                            "while using feature 'bypass-cloudflare'."
+                                    );
                                     break;
 
                                 case BrowserPackage.selenium:
                                     switch (parsedSelectSelector.Category)
                                     {
                                         case SelectorCategory.Id:
-                                            scriptBody.Add($"element = select_element(By.ID, '{parsedSelectSelector.Value}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"element = select_element(By.ID, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.ClassName:
-                                            scriptBody.Add($"element = select_element(By.CLASS_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"element = select_element(By.CLASS_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.NameAttribute:
-                                            scriptBody.Add($"element = select_element(By.NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"element = select_element(By.NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.TagName:
-                                            scriptBody.Add($"element = select_element(By.TAG_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"element = select_element(By.TAG_NAME, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.XPath:
-                                            scriptBody.Add($"element = select_element(By.XPATH, '{parsedSelectSelector.Value}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"element = select_element(By.XPATH, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.Attribute or
                                         SelectorCategory.PseudoClass or
                                         SelectorCategory.PseudoElement or
                                         SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"element = select_element(By.CSS_SELECTOR, '{parsedSelectSelector.Value}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"element = select_element(By.CSS_SELECTOR, '{parsedSelectSelector.Value}', {actionTimeout})\n"
+                                            );
                                             break;
                                     }
-                                    scriptBody.Add($"if not element:\n{Indent(1)}stderr.write('The element: {parsedSelectSelector.Value} could not be selected, please try again or use a different selector.')\n{Indent(1)}exit(1)\n");
+                                    scriptBody.Add(
+                                        $"if not element:\n{Indent(1)}" +
+                                        $"stderr.write('The element: {parsedSelectSelector.Value} could not be selected, " +
+                                        $"please try again or use a different selector.')" +
+                                        $"\n{Indent(1)}exit(1)\n"
+                                    );
                                     break;
                             }
                             break;
@@ -989,45 +1278,69 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'select-option' commands are currently unsupported while using feature 'async'.");
+                                    Errors.WriteErrorAndContinue(
+                                        message: 
+                                            "BAM Manager (BAMM) warning:\n" +
+                                            "'select-option' commands are currently unsupported while using feature 'async'."
+                                    );
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'select-option' commands are currently unsupported while using feature 'bypass-cloudflare'.");
+                                    Errors.WriteErrorAndContinue(
+                                        message: 
+                                            "BAM Manager (BAMM) warning:\n" +
+                                            "'select-option' commands are currently unsupported while using feature 'bypass-cloudflare'."
+                                    );
                                     break;
 
                                 case BrowserPackage.selenium:
                                     switch (parsedOptionSelector.Category)
                                     {
                                         case SelectorCategory.Id:
-                                            scriptBody.Add($"isSelected = select_option_by_index(By.ID, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"isSelected = select_option_by_index(By.ID, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.ClassName:
-                                            scriptBody.Add($"isSelected = select_option_by_index(By.CLASS_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"isSelected = select_option_by_index(By.CLASS_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.NameAttribute:
-                                            scriptBody.Add($"isSelected = select_option_by_index(By.NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"isSelected = select_option_by_index(By.NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.TagName:
-                                            scriptBody.Add($"isSelected = select_option_by_index(By.TAG_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"isSelected = select_option_by_index(By.TAG_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                            );
                                             break;
                                         
                                         case SelectorCategory.XPath:
-                                            scriptBody.Add($"isSelected = select_option_by_index(By.XPATH, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n");
+                                            scriptBody.Add(
+                                                $"isSelected = select_option_by_index(By.XPATH, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                                            );
                                             break;
 
                                         case SelectorCategory.Attribute or
                                         SelectorCategory.PseudoClass or
                                         SelectorCategory.PseudoElement or
                                         SelectorCategory.InvalidOrUnknown:
-                                            scriptBody.Add($"isSelected = select_option_by_index(By.CSS_SELECTOR, '{parsedOptionSelector.Value}', '{sanitizedArg3}, {actionTimeout}')\n");
+                                            scriptBody.Add(
+                                                $"isSelected = select_option_by_index(By.CSS_SELECTOR, '{parsedOptionSelector.Value}', '{sanitizedArg3}, {actionTimeout}')\n"
+                                            );
                                             break;
 
                                     }
-                                    scriptBody.Add($"if not isSelected:\n{Indent(1)}stderr.write('Could not select the element: {sanitizedArg2}')\n{Indent(1)}exit(1)\n");
+                                    scriptBody.Add(
+                                        $"if not isSelected:\n" +
+                                        $"{Indent(1)}stderr.write('Could not select the element: {sanitizedArg2}')" +
+                                        $"\n{Indent(1)}exit(1)\n"
+                                    );
                                     break;  
                             }
                             break;
@@ -1044,11 +1357,19 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) does not support 'take-screenshot' commands while using feature 'async'.");
+                                    Errors.WriteErrorAndContinue(
+                                        message: 
+                                            "BAM Manager (BAMM) does not support 'take-screenshot' commands " +
+                                            "while using feature 'async'."
+                                    );
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) does not support 'take-screenshot' commands while using feature 'bypass-cloudflare'.");
+                                    Errors.WriteErrorAndContinue(
+                                        message: 
+                                            "BAM Manager (BAMM) does not support 'take-screenshot' commands " +
+                                            "while using feature 'bypass-cloudflare'."
+                                    );
                                     break;
 
                                 case BrowserPackage.selenium:
@@ -1061,14 +1382,32 @@ namespace BrowserAutomationMaster
                             switch (browserPackage)
                             {
                                 case BrowserPackage.aiohttp:
-                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported while using feature 'async'.");
+                                    Errors.WriteErrorAndContinue(
+                                        message: 
+                                            "BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported" +
+                                            "while using feature 'async'."
+                                    );
                                     break;
 
                                 case BrowserPackage.tls_client:
-                                    Errors.WriteErrorAndContinue("BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported while using feature 'bypass-cloudflare'.");
+                                    Errors.WriteErrorAndContinue(
+                                        message: 
+                                            "BAM Manager (BAMM) warning:\n'visit' commands are currently unsupported " +
+                                            "while using feature 'bypass-cloudflare'."
+                                    );
                                     break;
 
                                 case BrowserPackage.selenium:
+                                    if (!IsResolvableLink(sanitizedArg2))
+                                    {
+                                        Errors.WriteErrorAndExit(
+                                            message:
+                                                "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
+                                                $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
+                                                $"If this error persists please make a bug report at {ConstantManager.ISSUES_LINK}",
+                                            status: 1
+                                        );
+                                    }
                                     scriptBody.Add($"url = '{sanitizedArg2}'");
                                     if (!firstVisitFinished)
                                     {
@@ -1080,7 +1419,12 @@ namespace BrowserAutomationMaster
                                             "final_url = url",
                                             "request_url = None",
                                         ]);
-                                        string proxyLine = featureLines.Where(x => x.Contains("use-") && x.Contains("-proxy")).FirstOrDefault() ?? "";
+                                        string proxyLine = 
+                                            featureLines.Where(x => 
+                                                x.Contains("use-") && 
+                                                x.Contains("-proxy")
+                                            ).FirstOrDefault("");
+
                                         if (!string.IsNullOrEmpty(proxyLine)) {
                                             string[] splitProxyLine = [];
                                             // Handles cases of malformed lines, although this shouldn't happen
@@ -1091,7 +1435,11 @@ namespace BrowserAutomationMaster
                                                     continue;
                                                 }
                                             }
-                                            catch { scriptBody.Add("sw_options = { 'enable_har': True }\n"); continue; }
+                                            catch { 
+                                                scriptBody.Add("sw_options = { 'enable_har': True }\n"); 
+                                                continue; 
+                                            }
+
                                             string prefix = "use-";
                                             string suffix = "-proxy";
 
@@ -1112,7 +1460,12 @@ namespace BrowserAutomationMaster
                                                 );
                                             }
                                             else {
-                                                Warning.Write("Unable to add proxy to script, if you reading this, there is a huge bug in the use-proxyType-proxy feature.");
+                                                Warning.Write(
+                                                    message:
+                                                        "Unable to add proxy to script, if you reading this, " +
+                                                        "there is a huge bug in the use-proxyType-proxy feature.\n" +
+                                                        $"Please make a bug report at {ConstantManager.ISSUES_LINK}."
+                                                );
                                             }
                                         }  
                                         else { scriptBody.Add("sw_options = { 'enable_har': True }\n"); }
@@ -1187,15 +1540,25 @@ namespace BrowserAutomationMaster
                         case "wait-for-seconds":
                             bool waitTimeValidated = false;
                             string rawTimeArg = sanitizedArg2;
-                            if (rawTimeArg.StartsWith('.')) { rawTimeArg = $"0{rawTimeArg}"; } // Handles cases where the input value starts with a decimal
-                            if (float.TryParse(rawTimeArg, out float waitTime))
-                            {
-                                if (!importStatements.Contains("from time import sleep")) { importStatements.Add("from time import sleep"); }
+
+                            // Handles cases where the input value starts with a decimal
+                            if (rawTimeArg.StartsWith('.')) { rawTimeArg = $"0{rawTimeArg}"; } 
+                            
+                            if (float.TryParse(rawTimeArg, out float waitTime)) {
+                                AddImportIfNotPresent("from time import sleep", addToReqs: false, reqText: null);
                                 scriptBody.Add($"sleep({waitTime})");
                                 waitTimeValidated = true;
                             }
                             if (!waitTimeValidated) {
-                                Errors.WriteErrorAndExit(Errors.GenerateErrorMessage(fileName, line, lineNumber, $"Invalid argument '{splitLine[1]}'"), 1);
+                                Errors.WriteErrorAndExit(
+                                    message: 
+                                        Errors.GenerateErrorMessage(
+                                            fileName,
+                                            line,
+                                            lineNumber,
+                                            $"Invalid argument '{splitLine[1]}'"), 
+                                    status: 1
+                                );
                             }
                             break;
                 }
@@ -1204,7 +1567,7 @@ namespace BrowserAutomationMaster
 
             AddRequiredFunctions();
             SuppressUnneededWarnings();
-            AddLoveToScript(); // Single comment watermark, completely nonintrusive and easily removable
+            AddWatermark(); // Single comment watermark, completely nonintrusive and easily removable
         }
         public static void HandlePythonVersionSelection(Installations installations)
         {
@@ -1280,24 +1643,60 @@ namespace BrowserAutomationMaster
             return inSingleQuote || inDoubleQuote;
         }
         public static string Indent(int numberOfIndents) { 
-            if (numberOfIndents < 0) { Errors.WriteErrorAndExit("Invalid value provided to Indent(), value must be >= 0.", 1); }
+            if (numberOfIndents < 0) { 
+                Errors.WriteErrorAndExit(
+                    message: "Invalid value provided to Indent(), value must be >= 0.", 
+                    status: 1
+                ); 
+            }
             if (numberOfIndents == 0) { return string.Empty; } // Return an empty string if no indentations are needed.
-            return string.Concat(Enumerable.Repeat(pythonIndent, numberOfIndents));
+
+            return string.Concat(
+                Enumerable.Repeat(pythonIndent, numberOfIndents)
+            );
         }
-        
         public static bool IsValidPyVersion(string pyVersion)
         {
             if (string.IsNullOrWhiteSpace(pyVersion)) { return false; }
+            
             string[] parts = pyVersion.Split('.');
             if (parts.Length != 2) { return false; }
-            if (!int.TryParse(parts[0], out int major) || !int.TryParse(parts[1], out int minor)) { return false; }
-            return major == 3 && minor >= 9 && minor <= 13;
+
+            bool majorFound = int.TryParse(parts[0], out int major);
+            bool minorFound = int.TryParse(parts[1], out int minor);
+            
+            if (!majorFound || !minorFound) { return false; }
+
+            bool isValidVersion = 
+                major == 3 && 
+                minor >= 9 && 
+                minor <= 14;
+
+            return isValidVersion;
         }
         public static bool IsResolvableLink(string link)
         {
             try
             {
-                if (!Uri.TryCreate(link, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { return false; }
+                bool isValidUri = Uri.TryCreate(link, UriKind.Absolute, out Uri? uriResult);
+                if (!isValidUri) {
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAM Manager (BAMM) was unable to resolve: '{link}'\n\n" +
+                            $"Error log:\nUnable to create Uri object from provided link, returned a false boolean.",
+                        status: 1
+                    );
+                    return false;
+                }
+                if (uriResult == null) {
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAM Manager (BAMM) was unable to resolve: '{link}'\n\n" +
+                            $"Error log:\nUnable to create Uri object from provided link, returned a null result.",
+                        status: 1
+                    );
+                    return false; 
+                }
                 RequestManager requestManager = new(uriResult, timeout: 10);
 
                 HttpClient client = requestManager.Client;
@@ -1307,21 +1706,52 @@ namespace BrowserAutomationMaster
                 using var cts = new CancellationTokenSource(requestTimeout); // cts.Token passed to GetASync
                 
                 // HttpCompletionOption.ResponseHeadersRead requires only the response headers to be read, no content is loaded.
-                Task<HttpResponseMessage> responseTask = client.GetAsync(uriToRequest, HttpCompletionOption.ResponseHeadersRead, cts.Token); 
+                Task<HttpResponseMessage> responseTask = 
+                    client.GetAsync(
+                        uriToRequest, 
+                        HttpCompletionOption.ResponseHeadersRead, 
+                        cts.Token
+                    ); 
                 
                 responseTask.Wait();
                 HttpResponseMessage response = responseTask.Result;
+
+                // With these specific status codes
+                // The server is responding that the content IS or WAS at this location, however the content is not accessible.
+                // A warning is provided, and the issue is assumed to be lack of adequate headers.
+
+                if (response.StatusCode is HttpStatusCode.Forbidden
+                                        or HttpStatusCode.Locked
+                                        or HttpStatusCode.MovedPermanently
+                                        or HttpStatusCode.Unauthorized)
+                {
+                    return true;
+                }
+
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndContinue($"BAM Manager (BAMM) was unable to resolve the url: '{link}'");
+                Errors.WriteErrorAndContinue(
+                    message:
+                        $"BAM Manager (BAMM) was unable to resolve the url: '{link}'"
+                );
+
                 string exceptionMessage = ex.InnerException?.Message ?? "";
-                if (ex.GetType() == typeof(PingException) && exceptionMessage.StartsWith("No such host is known")) {
-                    Warning.Write($"It is possible the website you are requesting is unable or incorrectly entered.\n\nException:\n\n{ex.InnerException}");
+
+                bool isExpectedErrType = ex.GetType() == typeof(PingException);
+                bool errPresent = isExpectedErrType && exceptionMessage.StartsWith("No such host is known");
+                if (errPresent) {
+                    Warning.Write(
+                        message:
+                            $"It is possible the website you are requesting is unable or incorrectly entered.\n\n" +
+                            $"Exception:\n\n{ex.InnerException}"
+                    );
                 }
-                bool isContinuing = (Input.WriteTextAndReturnRawInput("Would you like to continue compilation? [y/n]: ") ?? "n").ToLower().Trim().Equals("y");
-                if (!isContinuing) { Errors.WriteErrorAndExit("", 0); }
+                string input = Input.WriteTextAndReturnRawInput("Would you like to continue compilation? [y/n]: ") ?? "n";
+                if (!input.Trim().Equals("y", StringComparison.OrdinalIgnoreCase)) {
+                    return false;
+                }
             }
             return true;
         }
@@ -1331,7 +1761,13 @@ namespace BrowserAutomationMaster
             foreach (string line in jsCodeBlock.Split('\n')) {
                 lineNumber++;
                 if (HasUnclosedQuotes(line)) {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\nLine {lineNumber} contains an unescape quoted, please fix this and recompile.\n\nLine:\n{line}", 1);
+                    Errors.WriteErrorAndExit(
+                        message: 
+                            $"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\n" +
+                            $"Line {lineNumber} contains an unescape quoted, please fix this and recompile.\n\n" +
+                            $"Line:\n{line}", 
+                        status: 1
+                    );
                 }
             }
         }
@@ -1353,7 +1789,11 @@ namespace BrowserAutomationMaster
             actionTimeout = 10;
             projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
             importStatements.Clear(); // Since its read only clearing it and reassigning the default values is the ideal solution.
-            importStatements.AddRange(["from importlib import import_module", "from subprocess import run", "from sys import modules, stderr, stdout"]);
+            importStatements.AddRange([
+                "from importlib import import_module", 
+                "from subprocess import run", 
+                "from sys import modules, stderr, stdout",
+            ]);
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
         public static void SetCustomUserAgent(string[] args)
@@ -1376,20 +1816,30 @@ namespace BrowserAutomationMaster
                 Match match = CustomUserAgentRegex.Match(customUserAgent);
 
                 if (match.Success) {
-                    string newUserAgent = match.Groups[1].Value.Replace("%20", ""); // Fixes formatting issues caused by passing a string as an argument via cli.
+                    // Fixes formatting issues caused by passing a string as an argument via cli.
+                    string newUserAgent = match.Groups[1].Value.Replace("%20", "");
                     if (Parser.IsValidUserAgentFormat(newUserAgent)) {
                         requestUserAgent = newUserAgent;
                         Success.WriteSuccessMessage($"\nOverrode default UserAgent with:");
                         Warning.Write($"{newUserAgent}");
                         return;
                     }
-                    Errors.WriteErrorAndExit("BAM Manager (BAMM) encountered a fatal error: Could not parse user agent string from the '--set-custom-useragent' argument.\nValid syntax:\n--set-custom-useragent==\"Mozilla/5.0 (Linux; Android 5.1.1; SAMSUNG SM-G920M Build/LMY47X) AppleWebKit/535.22 (KHTML, like Gecko)%20 Chrome/51.0.1871.243 Mobile Safari/535.7\"", 1);
+                    Errors.WriteErrorAndExit(
+                        message: 
+                            "BAM Manager (BAMM) encountered a fatal error: " +
+                            "Could not parse user agent string from the '--set-custom-useragent' argument.\n" +
+                            "Valid syntax:\n--set-custom-useragent==" +
+                            "\"Mozilla/5.0 (Linux; Android 5.1.1; SAMSUNG SM-G920M Build/LMY47X) AppleWebKit/535.22 (KHTML, like Gecko) Chrome/51.0.1871.243 Mobile Safari/535.7\"", 
+                        status: 1
+                    );
                     
                 }
                 Errors.WriteErrorAndExit(
+                    message:
                         $"BAM Manager encountered an error: Invalid format for '--set-custom-useragent' argument.\n\n" +
                         $"Expected Format: '--set-custom-useragent==\"UserAgentString\"",
-                        1);
+                    status: 1
+                );
             }
         }
         public static void SetDesiredSaveDirectory()
@@ -1398,40 +1848,67 @@ namespace BrowserAutomationMaster
         }
         public static void SetFileLines(string filePath)
         {
-            string fileNotFoundMessage = $"BAM Manager (BAMM) was unable to find the file:\n\n{filePath}, Please ensure this file exists, then rerun bamm.exe.\n\nPress any key to exit...";
-            if (!File.Exists(filePath)) { Errors.WriteErrorAndExit(fileNotFoundMessage, 1); }
-            configLines = [.. File.ReadAllLines(filePath).Select(line => line.Trim()).Where(line => !string.IsNullOrWhiteSpace(line))];
+            string fileNotFoundMessage = 
+                $"BAM Manager (BAMM) was unable to find the file:\n\n{filePath}, " +
+                $"please ensure this file exists, then restart BAMM.\n\n" +
+                $"Press any key to exit...";
+
+            if (!File.Exists(filePath)) { 
+                Errors.WriteErrorAndExit(message: fileNotFoundMessage, status: 1); 
+            }
+            configLines = [.. 
+                File.ReadAllLines(filePath)
+                    .Select(line => line.Trim())
+                    .Where(line => !string.IsNullOrWhiteSpace(line))
+            ];
             CheckConfigLines();
         }
         public static void SetScriptName(string filePath)
         {
-            string failureMessage = $"""
-            BAM Manager (BAMM) was unable to access:\n\n{filePath}\n\nPlease ensure this file was not deleted, and is not in use by any other program.\n\nPress any key to exit...
-            """;
+            string failureMessage = 
+                $"BAM Manager (BAMM) was unable to access:\n\n{filePath}\n\n" + 
+                "Please ensure this file was not deleted, and is not in use by any other program.\n\n" +
+                "Press any key to exit...";
            
             try
             {
                 string fileName = Path.GetFileName(filePath);
-                // If null the function i wrote will exit, however the static compiler is unaware of this thus the requirement for !.
-                if (fileName == null) { Errors.WriteErrorAndExit(failureMessage, 1); }
+                if (fileName == null) { 
+                    Errors.WriteErrorAndExit(
+                        message: failureMessage, 
+                        status: 1
+                    ); 
+                }
 
                 if (!File.Exists(filePath))
                 {
-                    failureMessage = $"BAM Manager (BAMM) was unable to access:\n\n{fileName}\n\nPlease ensure this file was not deleted, and is not in use by any other program.\\n\\nPress any key to exit...";
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Errors.WriteErrorAndExit(failureMessage, 1);
+                    failureMessage = 
+                        $"BAM Manager (BAMM) was unable to access:\n\n{fileName}\n\n" +
+                        $"Please ensure this file was not deleted, and is not in use by any other program.\n\n" +
+                        $"Press any key to exit...";
+
+                    Errors.WriteErrorAndExit(
+                        message: failureMessage, 
+                        status: 1
+                    );
                 }
 
                 try
                 {
-                    pythonScriptFileName = fileName!.Split(".")[0] + ".py"; // I hate c#'s static compiler i already ensured fileName cannot be null, yet i have to yell at the compiler using !
+                    // I hate c#'s static compiler I already ensured fileName cannot be null
+                    // yet I have to yell at the compiler using !
+                    pythonScriptFileName = fileName!.Split(".")[0] + ".py"; 
                 }
-                catch
-                {
+                catch {
                     GenerateBackupScriptName();
                 }
             }
-            catch (Exception) { Errors.WriteErrorAndExit(failureMessage, 1); }
+            catch (Exception) { 
+                Errors.WriteErrorAndExit(
+                    message: failureMessage, 
+                    status: 1
+                ); 
+            }
         }
         public static void SetTimeout(string[] args)
         {
@@ -1440,12 +1917,14 @@ namespace BrowserAutomationMaster
             if (timeoutArgs.Count > 1)
             {
                 Errors.WriteErrorAndExit(
-                    $"BAM Manager (BAMM) encountered a fatal error: '--set-timeout' can only be specified once.\n" +
-                    $"Found multiple instances:\n\n" +
-                    $"1.'{timeoutArgs[0]}'\n\n" +
-                    $"2.'{timeoutArgs[1]}'\n\n." +
-                    "Please remove duplicate arguments and restart.",
-                    1);
+                    message:
+                        $"BAM Manager (BAMM) encountered a fatal error: '--set-timeout' can only be specified once.\n" +
+                        $"Found multiple instances:\n\n" +
+                        $"1.'{timeoutArgs[0]}'\n\n" +
+                        $"2.'{timeoutArgs[1]}'\n\n." +
+                        "Please remove duplicate arguments and restart.",
+                    status: 1
+                );
             }
             if (timeoutArgs.Count == 0) { return; }
             else
@@ -1453,39 +1932,35 @@ namespace BrowserAutomationMaster
                 string timeoutArg = timeoutArgs[0];
                 Match match = ActionTimeoutRegex.Match(timeoutArg);
 
-                if (match.Success)
+                if (!match.Success)
                 {
-                    string valueString = match.Groups[1].Value;
-                    if (int.TryParse(valueString, out int parsedTimeout))
-                    {
-                        if (parsedTimeout >= 0)
-                        {
-                            actionTimeout = parsedTimeout;
-                            Success.WriteSuccessMessage($"Timeout set to {actionTimeout} seconds ({actionTimeout * 1000}ms)");
-                        }
-                        else
-                        {
-                            Errors.WriteErrorAndExit(
-                                $"BAM Manager (BAMM) encountered a fatal error: Invalid value provided for '--set-timeout'.\n" +
-                                $"Value must be a non-negative integer.\n\nParsed Timeout: '{parsedTimeout}'\nRaw Argument: '{timeoutArg}'",
-                                1);
-                        }
-                    }
-                    else
-                    {
-                        // This shouldn't be executed due to the strict regex.
-                        Errors.WriteErrorAndExit("BAM Manager (BAMM) encountered a a fatal error: Could not parse integer value from '--set-timeout' argument.\n", 1);
-                    }
-                }
-                else
-                {
-                    // Case for when the argument starts with --set-timeout== but doesn't match the expected format (For example '--set-timeout==X')
+                    // Case for when the argument starts with --set-timeout==
+                    // but doesn't match the expected format
+                    // (For example '--set-timeout==X')
                     Errors.WriteErrorAndExit(
-                        $"BAM Manager encountered an error: Invalid format for '--set-timeout' argument.\n\n" +
-                        $"Expected Format: '--set-timeout==integer'" +
-                        $"Received: '{timeoutArg}'",
-                        1);
+                        message:
+                            $"BAM Manager encountered an error: Invalid format for '--set-timeout' argument.\n\n" +
+                            $"Expected Format: '--set-timeout==integer'" +
+                            $"Received: '{timeoutArg}'",
+                        status: 1
+                    );
                 }
+                string valueString = match.Groups[1].Value;
+                bool valueParsed = int.TryParse(valueString, out int parsedTimeout);
+
+                if (!valueParsed || parsedTimeout <= 0) {
+                    Errors.WriteErrorAndExit(
+                        message:
+                            "BAM Manager (BAMM) encountered a a fatal error: " +
+                            "Could not parse integer value from '--set-timeout' argument.\n",    
+                        status: 1
+                    );
+                }
+                actionTimeout = parsedTimeout;
+                Success.WriteSuccessMessage(
+                    $"Timeout set to {actionTimeout} seconds ({actionTimeout * 1000}ms)"
+                );
+                
             }
         }
         public static void SuppressUnneededWarnings()
@@ -1499,34 +1974,80 @@ namespace BrowserAutomationMaster
         public static void WriteRequirementsFile()
         {
             try {
-                string filePath = Path.Combine(desiredSaveDirectory, projectDirectoryName, requirementsFileName);
-                using StreamWriter writer = new(filePath, false, new UTF8Encoding(false));
-                foreach (string requirement in requirements) { writer.WriteLine(requirement); }
+                string filePath = Path.Combine(
+                    desiredSaveDirectory, 
+                    projectDirectoryName, 
+                    requirementsFileName
+                );
+                using StreamWriter writer = new(
+                    path: filePath, 
+                    append: false, 
+                    encoding: new UTF8Encoding(false)
+                );
+
+                foreach (string requirement in requirements) { 
+                    writer.WriteLine(requirement); 
+                }
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable write requirements.txt for '{pythonScriptFileName}'.\n\nIf this continues, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\nUnhandled exception, if you're reading this, please make a bug report, clearly there's a huge issue.\n\nInterpreter Response:\n{e.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"BAM Manager (BAMM) was unable write requirements.txt for '{pythonScriptFileName}'.\n\n" +
+                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nUnhandled exception, if you're reading this, please make a bug report, " +
+                        $"clearly there's a huge issue.\n\nInterpreter Response:\n{e.Message}", 
+                    status: 1
+                );
             }
         }
         public static void WritePythonFile()
         {
             try {
-                var sanitizedImportStatements = importStatements.Select(line => line.TrimStart('\uFEFF')); // Removing Byte Order Mark (BOM)
-                var sanitizedScriptBody = scriptBody.Select(line => line.TrimStart('\uFEFF')); // Removing Byte Order Mark (BOM)
+                // Removing Byte Order Mark (BOM)
+                var sanitizedImportStatements = importStatements.Select(line => line.TrimStart('\uFEFF'));
+                
+                // Removing Byte Order Mark (BOM)
+                var sanitizedScriptBody = scriptBody.Select(line => line.TrimStart('\uFEFF'));
 
-                string filePath = Path.Combine(desiredSaveDirectory, projectDirectoryName, pythonScriptFileName);
-                using StreamWriter writer = new(filePath, false, new UTF8Encoding(false));
+                string filePath = Path.Combine(
+                    desiredSaveDirectory, 
+                    projectDirectoryName, 
+                    pythonScriptFileName
+                );
 
-                foreach (string importStatement in sanitizedImportStatements) { writer.WriteLine(importStatement); }
-                if (importStatements.Count > 0 && scriptBody.Count > 0) { writer.WriteLine(); }
-                foreach (string scriptLine in scriptBody) { writer.WriteLine(scriptLine); }
+                using StreamWriter writer = new(
+                    path: filePath, 
+                    append: false, 
+                    encoding: new UTF8Encoding(false)
+                );
+
+                foreach (string importStatement in sanitizedImportStatements) { 
+                    writer.WriteLine(importStatement);
+                }
+
+                if (importStatements.Count > 0 && scriptBody.Count > 0) { 
+                    writer.WriteLine(); 
+                }
+
+                foreach (string scriptLine in scriptBody) { 
+                    writer.WriteLine(scriptLine); 
+                }
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable write '{pythonScriptFileName}' for the desired script.\n\nIf this continues, please make a bug report at https://github.com/Static-Codes/BrowserAutomationMaster/issues\n\nError log:\nUnhandled exception, if you're reading this, please make a bug report, clearly there's a huge issue.\n\nInterpreter Response:\n{e.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message: 
+                        $"BAM Manager (BAMM) was unable write '{pythonScriptFileName}' for the desired script.\n\n" +
+                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nUnhandled exception, if you're reading this, please make a bug report, " +
+                        $"clearly there's a huge issue.\n\nInterpreter Response:\n{e.Message}", 
+                    status: 1
+                );
             }
         }
 
 
     }
 }
+

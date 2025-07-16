@@ -76,7 +76,7 @@ namespace BrowserAutomationMaster.Managers
                 browserName, out List<string>? userAgentList
             );
 
-            if (!isLoaded && userAgentList != null && userAgentList.Count > 0) {
+            if (isLoaded && userAgentList != null && userAgentList.Count > 0) {
                 return userAgentList[random.Next(userAgentList.Count)];
             }
 

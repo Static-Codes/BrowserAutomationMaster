@@ -42,32 +42,55 @@ if (isCLI) {
 // Handles cases where file is double clicked. (Functions the same as bamm add "file.bamc") The file is added to userScripts directory.
 if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pArgs[0])) {
     var __ = new UserScriptManager(pArgs[0], "add");
-    bool wantsToContinue = (Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ") ?? "n").ToLower().Trim().Equals("y");
+    string input = Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ") ?? "n";
+    bool wantsToContinue = input.Trim().Equals("y", StringComparison.OrdinalIgnoreCase);
     if (!wantsToContinue) { isRunning = false; }
 }
 
 // Handles bare 'bamm clear' command
 else if (pArgs.Length == 1 && pArgs[0].Equals("clear", StringComparison.CurrentCultureIgnoreCase)) {
-    Errors.WriteErrorAndContinue("Invalid 'clear' command.\n\nValid commands:\nbamm clear userScripts\nbamm clear compiled\n\nPress any key to continue...");
+    Errors.WriteErrorAndContinue(
+        "Invalid 'clear' command.\n\n" +
+        "Valid commands:\n" +
+        "bamm clear userScripts\n" +
+        "bamm clear compiled\n\n" +
+        "Press any key to continue..."
+    );
     Console.ReadKey();
 }
 
 // Handles 'bamm clear compiled' and 'bamm clear userScripts'
 else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentCultureIgnoreCase)) {
     if (pArgs[1].Equals("userScripts", StringComparison.CurrentCultureIgnoreCase)) {
-        if ((Input.WriteTextAndReturnRawInput("Are you sure you want to delete the 'userScripts' directory? [y/n]:") ?? "n").ToLower().Trim().Equals("y")) {
-            DirectoryManager.DeleteDirectory(UserScriptManager.GetUserScriptDirectory());
+
+        string deleteInput = Input.WriteTextAndReturnRawInput(
+            "Are you sure you want to delete the 'userScripts' directory? [y/n]:"
+        ) ?? "n";
+
+        if (deleteInput.ToLower().Trim().Equals("y")) {
+            DirectoryManager.DeleteDirectory(
+                UserScriptManager.GetUserScriptDirectory()
+            );
         }
         else { isRunning = false; }
     }
     else if (pArgs[1].Equals("compiled", StringComparison.CurrentCultureIgnoreCase)) {
-        if ((Input.WriteTextAndReturnRawInput("Are you sure you want to delete the 'compiled' directory? [y/n]:") ?? "n").ToLower().Trim().Equals("y")) {
+        string input = Input.WriteTextAndReturnRawInput(
+            "Are you sure you want to delete the 'compiled' directory? [y/n]:"
+        ) ?? "n";
+        if (input.ToLower().Trim().Equals("y")) {
             DirectoryManager.DeleteDirectory(DirectoryManager.GetDesiredSaveDirectory());
         }
         else { isRunning = false; }
     }
     else {
-        Errors.WriteErrorAndContinue("Invalid 'clear' command.\n\nValid commands:\nbamm clear userScripts\nbamm clear compiled\n\nPress any key to continue...");
+        Errors.WriteErrorAndContinue(
+            "Invalid 'clear' command.\n\n" +
+            "Valid commands:\n" +
+            "bamm clear userScripts\n" +
+            "bamm clear compiled\n\n" +
+            "Press any key to continue..."
+        );
         Console.ReadKey();
     }
 
@@ -75,25 +98,47 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
 
 // Handles cases where only bare "bamm help" command is supplied
 else if (pArgs.Length == 1 && pArgs[0].Equals("help", StringComparison.CurrentCultureIgnoreCase)) {
-    Errors.WriteErrorAndContinue("Invalid command: 'bamm help'\n\nTo see available entries for the 'help' command please type: 'bamm help --all'\n\nPress any key to continue.");
+    Errors.WriteErrorAndContinue(
+        "Invalid command: 'bamm help'\n\n" +
+        "To see available entries for the 'help' command please type: 'bamm help --all'\n\n" +
+        "Press any key to continue."
+    );
     Console.ReadKey();
 }
 
 // Handles bamm help "command-name"
-else if (pArgs.Length == 2 && pArgs[0].Equals("help", StringComparison.CurrentCultureIgnoreCase)) { Help.ShowCommandDetails(pArgs[1]); }
+else if (pArgs.Length == 2 && pArgs[0].Equals("help", StringComparison.CurrentCultureIgnoreCase)) { 
+    Help.ShowCommandDetails(pArgs[1]); 
+}
 
 // Handles cases where no filename is provided to bamm run
 else if (pArgs.Length == 1 && pArgs[0].Equals("run", StringComparison.CurrentCultureIgnoreCase)) {
-    Errors.WriteErrorAndExit("Invalid command: 'bamm run'\n\nPlease provide the path to a python script you wish to run.\n\nValid Syntax:\n'bamm run \"path/to/a/python/file.py\"", 1);
+    Errors.WriteErrorAndExit(
+        message:
+            "Invalid command: 'bamm run'\n\n" +
+            "Please provide the path to a python script you wish to run.\n\n" +
+            "Valid Syntax:\n'" +
+            "bamm run \"path/to/a/python/file.py\"", 
+        status: 1
+    );
 }
 
 // Handles bamm run "filename.py" -> ensures the file passed exists.
 else if (pArgs.Length == 2 && pArgs[0].Equals("run", StringComparison.CurrentCultureIgnoreCase) && File.Exists(pArgs[1])) {
-    Errors.WriteErrorAndExit("Invalid command: 'bamm run'\n\nPlease provide the path to a python script you wish to run.\n\nValid Syntax:\n'bamm run \"path/to/a/python/file.py\"", 1);
+    Errors.WriteErrorAndExit(
+        message:
+            "Invalid command: 'bamm run'\n\n" +
+            "Please provide the path to a python script you wish to run.\n\n" +
+            "Valid Syntax:\n" +
+            "'bamm run \"path/to/a/python/file.py\"", 
+        status: 1
+    );
 }
 
 // Handles bamm uninstall
-else if (pArgs.Length == 1 && pArgs[0].Equals("uninstall", StringComparison.CurrentCultureIgnoreCase)) { new UninstallationManager().Uninstall(); }
+else if (pArgs.Length == 1 && pArgs[0].Equals("uninstall", StringComparison.CurrentCultureIgnoreCase)) { 
+    new UninstallationManager().Uninstall(); 
+}
 
 
 
@@ -103,8 +148,11 @@ while (isRunning)
     switch (parserResult.Key)
     {
         case Parser.MenuOption.Add:
-            bool overwriteConfirmation = (Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:") ?? "n").ToLower().Trim().Equals("y");
-            if (overwriteConfirmation) { Transpiler.New(parserResult.Value, args); }
+            string compileInput = Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:") ?? "n";
+            bool overwriteConfirmation = compileInput.Trim().Equals("y", StringComparison.OrdinalIgnoreCase);
+            if (overwriteConfirmation) { 
+                Transpiler.New(parserResult.Value, args); 
+            }
             break;
         case Parser.MenuOption.Compile:
             Transpiler.New(parserResult.Value, args);
@@ -123,7 +171,8 @@ while (isRunning)
             isRunning = false;
             break;
     }
-    bool exitConfirmation = (Input.WriteTextAndReturnRawInput("\nWould you like to exit BAM Manager (BAMM)? [y/n]:") ?? "n").ToLower().Trim().Equals("y");
+    string input = Input.WriteTextAndReturnRawInput("\nWould you like to exit BAM Manager (BAMM)? [y/n]:") ?? "n";
+    bool exitConfirmation = input.Trim().Equals("y");
     if (exitConfirmation) { isRunning = false; }
 }
 
