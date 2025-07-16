@@ -180,7 +180,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 var outputLines = new List<string>();
                 var errorLines = new List<string>();
 
-                ProcessStartInfo startInfo = new ProcessStartInfo
+                ProcessStartInfo startInfo = new()
                 {
                     FileName = "/bin/bash", 
                     // The shell will receive: source "/path/to/venv/bin/activate" && "/path/to/python" "/path/to/script.py"
