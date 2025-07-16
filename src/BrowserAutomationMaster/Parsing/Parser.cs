@@ -339,10 +339,9 @@ namespace BrowserAutomationMaster
                     }
                     return true;
 
-                case "click-at-positon":
+                case "click-at-position":
                     lineArgs = line.Trim().Split(" ");
                     selectorString = "\"x-coordinate\" \"y-coordinate\"";
-                    
                     if (lineArgs.Length != 3) { 
                         return Errors.WriteErrorAndReturnBool(
                             message: 
@@ -356,8 +355,14 @@ namespace BrowserAutomationMaster
                     }
                     
                     string[] positionArgs = [lineArgs[1], lineArgs[2]];
-                    foreach (var arg in positionArgs) {
-                        if (!arg.StartsWith('"') || !arg.EndsWith('"') || !int.TryParse(arg, out int position)) {
+                    foreach (var arg in positionArgs) 
+                    {
+                        bool notQuoted = !arg.StartsWith('"') || !arg.EndsWith('"');
+                        bool notParsable = !int.TryParse(
+                            arg.Replace('"', ' ').Trim(), 
+                            out int posArg
+                        );
+                        if (notQuoted || notParsable) {
                             return Errors.WriteErrorAndReturnBool(
                                 message:
                                     $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" + 

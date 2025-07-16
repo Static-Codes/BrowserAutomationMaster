@@ -42,7 +42,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 if (createVEnvProcess.ExitCode != 0 || !VEnvExists()) { // If the process returned an error or the venv is not able to be accessed.
                     Errors.WriteErrorAndExit(
                         message:
-                            $"BAM Manager (BAMM) was unable to create a virtual environment for the interpreter:\n" +
+                            "BAM Manager (BAMM) was unable to create a virtual environment for the interpreter:\n" +
                             $"{InterpreterPath}.\n\nIf this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
                             $"Error log:\nCommand: '{InterpreterPath} -m venv {VEnvPath}' " +
                             $"failed with exit code {createVEnvProcess.ExitCode}",
@@ -80,7 +80,13 @@ namespace BrowserAutomationMaster.Managers.Python
 
                 if (!File.Exists(executablePath))
                 {
-                    Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to run '{scriptFileName}', if this issue persists.please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\nUnable to find python executable in virtual environment.\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
+                            $"if this issue persists.please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\nUnable to find python executable in virtual environment.", 
+                        status: 1
+                    );
                 }
                 var outputLines = new List<string>();
                 var errorLines = new List<string>();
@@ -118,7 +124,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     startVEnvProcess.Start();
                     startVEnvProcess.BeginOutputReadLine();
                     startVEnvProcess.BeginErrorReadLine();
-                    startVEnvProcess.WaitForExit(); // Reminder to add a timeout if scripts start hanging (startVEnvProcess.WaitForExit(60000) // 60 second timeout)
+                    startVEnvProcess.WaitForExit(); // add a timeout if scripts start hanging (startVEnvProcess.WaitForExit(60000) // 60 second timeout)
 
                     if (startVEnvProcess.ExitCode != 0)
                     {
@@ -128,9 +134,11 @@ namespace BrowserAutomationMaster.Managers.Python
                         string userFriendlyMessage = $"BAM Manager (BAMM) was unable to start the virtual environment for runtime.\n\n" +
                                                      "If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}";
 
-                        string detailedLog = $"Error log:\nCommand: '\"{executablePath}\" \"{ScriptFilePath}\"' failed with exit code {startVEnvProcess.ExitCode}\n\n" +
-                                             $"Stack Trace:\n{fullStackTrace}\n\n" +
-                                             $"{Messaging.Debug.GetPlatformInfoForErrorLog()}";
+                        string detailedLog = 
+                            $"Error log:\n" +
+                            $"Command: '\"{executablePath}\" \"{ScriptFilePath}\"' " +
+                            $"failed with exit code {startVEnvProcess.ExitCode}\n\n" +
+                            $"Stack Trace:\n{fullStackTrace}\n\n";
 
                         Errors.WriteErrorAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
                     }
@@ -141,7 +149,14 @@ namespace BrowserAutomationMaster.Managers.Python
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to execute:\n{ScriptFilePath}\n\nIf this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\nCommand: '{executablePath} {scriptFileName}' failed.\n\nInterpreter Response:\n{e.Message}\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"BAM Manager (BAMM) was unable to execute:\n{ScriptFilePath}\n\n" +
+                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nCommand: '{executablePath} {scriptFileName}' failed.\n\n" +
+                        $"Interpreter Response:\n{e.Message}",
+                    status: 1
+                );
             }
             return true;
         }
@@ -196,11 +211,12 @@ namespace BrowserAutomationMaster.Managers.Python
                         string[] last5Lines = errorLines.Count >= 5 ? [.. errorLines.TakeLast(5)] : [.. errorLines.TakeLast(errorLines.Count)];
 
                         string userFriendlyMessage = $"BAM Manager (BAMM) was unable to start the virtual environment for runtime.\n\n" +
-                                                     "If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}";
+                                                     $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}";
 
-                        string detailedLog = $"Error log:\nCommand: '\"{executablePath}\" {ScriptFilePath}\"' failed with exit code {startVEnvProcess.ExitCode}\n\n" +
-                                             $"Stack Trace:\n{fullStackTrace}\n\n" +
-                                             $"{Messaging.Debug.GetPlatformInfoForErrorLog()}";
+                        string detailedLog =
+                            $"Error log:\nCommand: '\"{executablePath}\" {ScriptFilePath}\"' " +
+                            $"failed with exit code {startVEnvProcess.ExitCode}\n\n" +
+                            $"Stack Trace:\n{fullStackTrace}\n\n";
 
                         Errors.WriteErrorAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
                     }
