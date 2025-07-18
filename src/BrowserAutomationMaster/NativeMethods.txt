@@ -1,2 +1,4 @@
 ﻿GetLogicalProcessorInformationEx
 GetSystemMetrics
+GlobalMemoryStatusEx
+MEMORYSTATUSEX

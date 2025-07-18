@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Enumeration;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -19,6 +13,16 @@ namespace BrowserAutomationMaster.Messaging
                 $"Issue: {issueText}";
         }
 
+        [DoesNotReturn]
+        public static void ThrowUnsupportedPlatformException() {
+            throw new PlatformNotSupportedException(
+                "Unsupported OS.\nBAM Manager (BAMM) currently supports:\n" +
+                "Windows 10/11\n" +
+                "Linux\n" +
+                "MacOS 11+\n"
+            );
+        }
+
         public static void WriteErrorAndContinue(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -26,6 +30,7 @@ namespace BrowserAutomationMaster.Messaging
             Console.ForegroundColor = ConsoleColor.White;
         }
 
+        [DoesNotReturn]
         public static void WriteErrorAndExit(string message, int status)
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -36,6 +41,7 @@ namespace BrowserAutomationMaster.Messaging
             Console.ReadKey();
             Environment.Exit(status);
         }
+        
         public static bool WriteErrorAndReturnBool(string message, bool returnBool)
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -43,7 +49,6 @@ namespace BrowserAutomationMaster.Messaging
             Console.ForegroundColor = ConsoleColor.White;
             return returnBool;
         }
-
         public static string WriteErrorAndReturnEmptyString(string message)
         {
             Console.WriteLine(message);

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 
@@ -11,6 +12,18 @@ namespace BrowserAutomationMaster.Managers.Python
         public static OSPlatform Platform { get; } = GetPlatform();
         public string InterpreterPath { get; } = GetInterpreterFromPath();
 
+        public static bool IsSupportedWindowsVersion()
+        {
+            return OperatingSystem.IsWindows() && 
+                   OperatingSystem.IsWindowsVersionAtLeast(
+                       10, 0, 10240
+                   );
+        }
+        public static bool IsSupportedOSXVersion()
+        {
+            return OperatingSystem.IsMacOS() && 
+                   OperatingSystem.IsMacCatalystVersionAtLeast(11);
+        }
         private static OSPlatform GetPlatform()
         {
             if (!Environment.Is64BitOperatingSystem) {
@@ -27,23 +40,42 @@ namespace BrowserAutomationMaster.Managers.Python
                         "Some lower-power ARM systems may experience degraded performance."
                 ); 
             }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { return OSPlatform.Windows; }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) { return OSPlatform.OSX; }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { return OSPlatform.Linux; }
-            else { throw new PlatformNotSupportedException("Unsupported OS."); }
+            
+            if (IsSupportedOSXVersion())
+                return OSPlatform.OSX;
+
+            if (IsSupportedWindowsVersion())
+                return OSPlatform.Windows;
+
+            if (OperatingSystem.IsLinux())
+                return OSPlatform.Linux;
+
+            else {
+                throw new PlatformNotSupportedException(
+                    "Unsupported OS.\nBAM Manager (BAMM) currently supports:\n" +
+                    "Windows 10/11\n" +
+                    "Linux\n" +
+                    "MacOS 11+\n"
+                );
+            }
         }
+        
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         private static string GetInterpreterFromPath()
         {
-            if (Platform == OSPlatform.Windows)
-            {
-#pragma warning disable IDE0079
-#pragma warning disable CA1416 // Since RuntimeInformation.IsOSPlatform() is executed when a RuntimeManager instance is created, an eception is created, see below
-                return AppManager.OS.Win.GetInterpreterPath();
-#pragma warning restore CA1416 // This call site is reachable on all platforms. 'Windows.GetInterpreterPath()' is only supported on: 'windows'. 
-#pragma warning restore IDE0079
-            }
-            if (Platform == OSPlatform.OSX || Platform == OSPlatform.Linux) { return "python3"; }
-            throw new PlatformNotSupportedException("Unsupported OS.");
+            if (IsSupportedWindowsVersion())
+                return Win.GetInterpreterPath();
+
+            if (IsSupportedOSXVersion() || OperatingSystem.IsLinux())
+                return "python3";
+
+            throw new PlatformNotSupportedException(
+                "Unsupported OS.\nBAM Manager (BAMM) currently supports:\n" +
+                "Windows 10/11\n" +
+                "Linux\n" +
+                "MacOS 11+\n"
+            );
         }
         public static bool HasEnoughMemory()
         {
@@ -205,11 +237,12 @@ namespace BrowserAutomationMaster.Managers.Python
             return usersChoice;
         }
 
-        public void RunScript()
+        public async Task<bool> RunScript()
         {
             ValidateScript();
             VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);
-            vEnvManager.RunScriptInVEnv();
+            await vEnvManager.RunScriptInVEnv();
+            return true;
         }
     }
 

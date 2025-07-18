@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Managers.Python
@@ -19,7 +20,10 @@ namespace BrowserAutomationMaster.Managers.Python
                 VEnvPath = Path.Combine(ParentDirectory, "venv");
                 return Directory.Exists(VEnvPath);
             }
-            catch (Exception e) { Errors.WriteErrorAndExit(e.Message, 1); return false; }
+            catch (Exception e) { 
+                Errors.WriteErrorAndExit(e.Message, 1); 
+                return false; 
+            }
         }
 
         public void CreateVEnv()
@@ -61,18 +65,22 @@ namespace BrowserAutomationMaster.Managers.Python
                 );
             }
         }
-        public bool RunScriptInVEnv()
+        public async Task<bool> RunScriptInVEnv()
         {
             CreateVEnv();
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { return RunScriptOnWindows(); }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { return RunScriptOnUnix(); }
-            else { throw new PlatformNotSupportedException("Invalid OS."); }
+            return await RunScript(); // By this point there have been many checks regarding the user's OS, it's safe to proceed.
         }
 
-        public bool RunScriptOnWindows() {
+        public async Task<bool> RunScript()
+        {
+            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             string executablePath;
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { executablePath = Path.Combine(VEnvPath, "bin", InterpreterPath); }
-            else { executablePath = Path.Combine(VEnvPath, "Scripts", "python.exe"); }
+            if (isWindows) {
+                executablePath = Path.Combine(VEnvPath, "Scripts", "python.exe");
+            }
+            else {
+                executablePath = Path.Combine(VEnvPath, "bin", InterpreterPath);
+            }
             string scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
             if (string.IsNullOrEmpty(scriptFileName)) { scriptFileName = ScriptFilePath; }
             try
@@ -84,155 +92,88 @@ namespace BrowserAutomationMaster.Managers.Python
                         message:
                             $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
                             $"if this issue persists.please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                            $"Error log:\nUnable to find python executable in virtual environment.", 
+                            $"Error log:\nUnable to find python executable in virtual environment.",
                         status: 1
                     );
                 }
+
                 var outputLines = new List<string>();
                 var errorLines = new List<string>();
 
                 ProcessStartInfo startVEnvStartInfo = new()
                 {
-                    FileName = $"\"{executablePath}\"",
-                    Arguments = $"\"{ScriptFilePath}\"",
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    StandardOutputEncoding = Encoding.UTF8, // Proactively preventing any encoding issues caused by crossplatform development
-                    StandardErrorEncoding = Encoding.UTF8,
                     WorkingDirectory = ParentDirectory,
                 };
 
-                using (Process startVEnvProcess = new() { StartInfo = startVEnvStartInfo })
+                if (isWindows)
                 {
-                    startVEnvProcess.EnableRaisingEvents = true; // Enabling events to be reported to the handlers below.
-
-                    // Declaring required event handlers
-                    startVEnvProcess.OutputDataReceived += (sender, args) => { if (args.Data != null) { 
-                            outputLines.Add(args.Data);  
-                            Success.WriteSuccessMessage(args.Data + '\n');
-                        }
-                    };
-                    startVEnvProcess.ErrorDataReceived += (sender, args) => { if (args.Data != null)
-                        {
-                            errorLines.Add(args.Data);
-                            //Errors.WriteErrorAndContinue(args.Data + '\n');
-                        }
-                    };
-
-                    startVEnvProcess.Start();
-                    startVEnvProcess.BeginOutputReadLine();
-                    startVEnvProcess.BeginErrorReadLine();
-                    startVEnvProcess.WaitForExit(); // add a timeout if scripts start hanging (startVEnvProcess.WaitForExit(60000) // 60 second timeout)
-
-                    if (startVEnvProcess.ExitCode != 0)
-                    {
-                        string fullStackTrace = string.Join("\n", errorLines);
-                        string[] last5Lines = errorLines.Count >= 5 ? [.. errorLines.TakeLast(5)] : [.. errorLines.TakeLast(errorLines.Count)];
-
-                        string userFriendlyMessage = $"BAM Manager (BAMM) was unable to start the virtual environment for runtime.\n\n" +
-                                                     "If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}";
-
-                        string detailedLog = 
-                            $"Error log:\n" +
-                            $"Command: '\"{executablePath}\" \"{ScriptFilePath}\"' " +
-                            $"failed with exit code {startVEnvProcess.ExitCode}\n\n" +
-                            $"Stack Trace:\n{fullStackTrace}\n\n";
-
-                        Errors.WriteErrorAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
-                    }
+                    startVEnvStartInfo.FileName = $"\"{executablePath}\"";
+                    startVEnvStartInfo.Arguments = $"\"{ScriptFilePath}\"";
+                    startVEnvStartInfo.StandardOutputEncoding = Encoding.UTF8; // Proactively preventing any encoding issues caused by crossplatform development
+                    startVEnvStartInfo.StandardErrorEncoding = Encoding.UTF8;
                 }
-
-                //string output = string.Join("\n", outputLines);
-                //Success.WriteSuccessMessage($"Script Output:\n\n{output}");
-            }
-            catch (Exception e)
-            {
-                Errors.WriteErrorAndExit(
-                    message:
-                        $"BAM Manager (BAMM) was unable to execute:\n{ScriptFilePath}\n\n" +
-                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                        $"Error log:\nCommand: '{executablePath} {scriptFileName}' failed.\n\n" +
-                        $"Interpreter Response:\n{e.Message}",
-                    status: 1
-                );
-            }
-            return true;
-        }
-
-        public bool RunScriptOnUnix()
-        {
-            string executablePath = Path.Combine(VEnvPath, "bin", InterpreterPath);
-            string scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
-            if (string.IsNullOrEmpty(scriptFileName)) { scriptFileName = ScriptFilePath; }
-            try
-            { 
-                if (!File.Exists(executablePath)) {
-                    Errors.WriteErrorAndExit(
-                        message:
-                            $"BAM Manager (BAMM) was unable to run '{scriptFileName}', if this issue persists, " +
-                            $"please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                            $"Error log:\nUnable to find python executable in virtual environment.", 
-                        status: 1
-                    );
-                }
-                var outputLines = new List<string>();
-                var errorLines = new List<string>();
-
-                ProcessStartInfo startInfo = new()
+                else
                 {
-                    FileName = "/bin/bash", 
+                    startVEnvStartInfo.FileName = "/bin/bash";
                     // The shell will receive: source "/path/to/venv/bin/activate" && "/path/to/python" "/path/to/script.py"
-                    Arguments = $"-c \"source \\\"{ParentDirectory}/venv/bin/activate\\\" && \\\"{executablePath}\\\" \\\"{ScriptFilePath}\\\"\"",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    WorkingDirectory = ParentDirectory,
-                };
-
-                using (Process startVEnvProcess = new() { StartInfo = startInfo })
-                {
-                    startVEnvProcess.EnableRaisingEvents = true; // Enabling events to be reported to the handlers below.
-
-                    // Declaring required event handlers
-                    startVEnvProcess.OutputDataReceived += (sender, args) => { if (args.Data != null) { outputLines.Add(args.Data); } };
-                    startVEnvProcess.ErrorDataReceived += (sender, args) => { if (args.Data != null) { errorLines.Add(args.Data); } };
-
-                    startVEnvProcess.Start();
-                    startVEnvProcess.BeginOutputReadLine();
-                    startVEnvProcess.BeginErrorReadLine();
-                    startVEnvProcess.WaitForExit(); // Reminder to add a timeout if scripts start hanging (startVEnvProcess.WaitForExit(60000) // 60 second timeout)
-
-                    if (startVEnvProcess.ExitCode != 0)
-                    {
-                        string fullStackTrace = string.Join("\n", errorLines);
-                        string[] last5Lines = errorLines.Count >= 5 ? [.. errorLines.TakeLast(5)] : [.. errorLines.TakeLast(errorLines.Count)];
-
-                        string userFriendlyMessage = $"BAM Manager (BAMM) was unable to start the virtual environment for runtime.\n\n" +
-                                                     $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}";
-
-                        string detailedLog =
-                            $"Error log:\nCommand: '\"{executablePath}\" {ScriptFilePath}\"' " +
-                            $"failed with exit code {startVEnvProcess.ExitCode}\n\n" +
-                            $"Stack Trace:\n{fullStackTrace}\n\n";
-
-                        Errors.WriteErrorAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
-                    }
+                    startVEnvStartInfo.Arguments = $"-c \"source \\\"{ParentDirectory}/venv/bin/activate\\\" && \\\"{executablePath}\\\" \\\"{ScriptFilePath}\\\"\"";
                 }
 
-                string output = string.Join("\n", outputLines);
-                Success.WriteSuccessMessage($"Script Output:\n\n{output}");
+                using Process startVEnvProcess = new() { StartInfo = startVEnvStartInfo };
+                startVEnvProcess.EnableRaisingEvents = true; // Enabling events to be reported to the handlers below.
+
+                // Declaring required event handlers
+                startVEnvProcess.OutputDataReceived += (sender, args) =>
+                {
+                    if (args.Data != null)
+                    {
+                        outputLines.Add(args.Data);
+                        Success.WriteSuccessMessage(args.Data + '\n');
+                    }
+                };
+                startVEnvProcess.ErrorDataReceived += (sender, args) =>
+                {
+                    if (args.Data != null)
+                    {
+                        errorLines.Add(args.Data);
+                        Errors.WriteErrorAndContinue(args.Data + '\n');
+                    }
+                };
+
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                startVEnvProcess.Start();
+                startVEnvProcess.BeginOutputReadLine();
+                startVEnvProcess.BeginErrorReadLine();
+                await startVEnvProcess.WaitForExitAsync(cts.Token);
+
+                if (startVEnvProcess.ExitCode != 0)
+                {
+                    var fullStackTrace = string.Join("\n", errorLines);
+                    // string[] last5Lines = errorLines.Count >= 5 ? [.. errorLines.TakeLast(5)] : [.. errorLines.TakeLast(errorLines.Count)];
+
+                    var userFriendlyMessage = $"BAM Manager (BAMM) was unable to start the virtual environment for runtime.\n\n" +
+                                              $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}";
+
+                    var detailedLog = $"Error log:\n" +
+                                      $"Command: '\"{executablePath}\" \"{ScriptFilePath}\"' " +
+                                      $"failed with exit code {startVEnvProcess.ExitCode}\n\n" +
+                                      $"Stack Trace:\n{fullStackTrace}\n\n";
+
+                    Errors.WriteErrorAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
+                }
             }
             catch (Exception e)
             {
                 Errors.WriteErrorAndExit(
-                    message:
-                        $"BAM Manager (BAMM) was unable to execute:\n{ScriptFilePath}\n\n" +
-                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                        $"Error log:\nCommand: '{executablePath} {scriptFileName}' failed.\n\n" +
-                        $"Interpreter Response:\n{e.Message}", 
+                    message: $"BAM Manager (BAMM) was unable to execute:\n{ScriptFilePath}\n\n" +
+                             $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                             $"Error log:\nCommand: '{executablePath} {scriptFileName}' failed.\n\n" +
+                             $"Interpreter Response:\n{e.Message}",
                     status: 1
                 );
             }

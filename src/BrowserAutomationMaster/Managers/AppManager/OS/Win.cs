@@ -9,7 +9,9 @@ using Windows.Win32.System.SystemInformation;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
-    [SupportedOSPlatform("windows6.1.7601")] // >= 6.1.7601
+    // This is the first win10 build, all versions before are not supported
+    // https://en.wikipedia.org/wiki/Windows_10_version_history
+    [SupportedOSPlatform("windows10.0.10240")] 
     public static partial class Win
     {
         public static List<AppInfo> GetApps()

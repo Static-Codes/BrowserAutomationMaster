@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Messaging;
@@ -29,19 +30,20 @@ namespace BrowserAutomationMaster.Managers
                     status: 1
                 );
             }
-            //string jsonString;
-            //try { jsonString = File.ReadAllText(PackagesFilePath); }
-            //catch { jsonString = PackageJson.jsonString; }
             if (string.IsNullOrEmpty(PackageJson.jsonString)) {
                 Errors.WriteErrorAndExit(
-                    message: "BAM Manager (BAMM) was unable to parse the required package versions, please try again and if this error persists it is likely a developmental flaw.",
+                    message: 
+                        "BAM Manager (BAMM) was unable to parse the required package versions, " +
+                        "please try again and if this error persists it is likely a developmental flaw.",
                     status: 1
                 );
             }
             try { 
                 packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(PackageJson.jsonString)!; 
             }
-            catch { Errors.WriteErrorAndExit(malformedJSONMessage, 1); }
+            catch { 
+                Errors.WriteErrorAndExit(malformedJSONMessage, 1); 
+            }
 
             // C# requires notice that the value is for certain not nullable, thus the !
             string packageVersion = GetSupportedPackageVersion(packageName!, pythonVersion) ?? "Not Found";
@@ -50,7 +52,7 @@ namespace BrowserAutomationMaster.Managers
 
         readonly static string baseURL = "https://pypi.org/project";
 
-        public static bool IsDeprecated(string packageName, string packageVersion)
+        public static async Task<bool> IsDeprecated(string packageName, string packageVersion)
         {
 
             string url = $"{baseURL}/{packageName}/{packageVersion}";
@@ -72,7 +74,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { return false; }
                 RequestManager requestManager = RequestManager.Create(uriResult);
-                HttpResponseMessage response = requestManager.GetAsync().GetAwaiter().GetResult();
+                HttpResponseMessage response = await requestManager.GetAsync(followRedirects: true);
                 response.EnsureSuccessStatusCode();
 
                 HttpStatusCode statusCode = response.StatusCode;
@@ -87,7 +89,7 @@ namespace BrowserAutomationMaster.Managers
                     return false; 
                 }
                 
-                string responseBody = content.ReadAsStringAsync().Result; // Catch Aggregate Exception
+                string responseBody = await content.ReadAsStringAsync(); // Catch Aggregate Exception
                 
                 if (string.IsNullOrEmpty(responseBody)) { 
                     Errors.WriteErrorAndContinue(unvalidatedMessage); 
@@ -123,15 +125,12 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
-            if (selectedPackageData == null || 
-                !selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || 
-                supportedPyVersions.Count == 0)
+            if (!selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || supportedPyVersions.Count == 0)
             {
                 Errors.WriteErrorAndExit(
                     message: $"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.",
                     status: 1
                 );
-                return [];
             }
             return supportedPyVersions;
         }
@@ -144,7 +143,6 @@ namespace BrowserAutomationMaster.Managers
                     message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
                     status: 1
                 );
-                return null;
             }
 
             List<string> supportedPackageVersions = [.. packageVersionMappings
