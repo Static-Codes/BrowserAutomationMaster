@@ -96,7 +96,8 @@ namespace BrowserAutomationMaster.Managers
                     break;
                 case "run":
                     RuntimeManager runtimeManager = new(scriptFilePath: scriptPath);
-                    runtimeManager.RunScript();
+                    Action RunAction(RuntimeManager runtimeManager) => async () => { await runtimeManager.RunScript(); };
+                    Task.Run(RunAction(runtimeManager));
                     break;
 
                 default:

@@ -1,50 +1,44 @@
-﻿using System;
+﻿using Windows.Win32.System.SystemInformation;
+using Windows.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using System.Runtime.Versioning;
+using System.Diagnostics.CodeAnalysis;
 
 namespace BrowserAutomationMaster.Managers
 {
     public class MemoryInfoManager
     {
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static Dictionary<string, double> RunCheck()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { return CheckForWindows(); }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) { return CheckForOSX(); }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { return CheckForLinux64(); }
-            throw new PlatformNotSupportedException("Unsupported OS.");
+            return true switch
+            {
+                _ when RuntimeManager.IsSupportedWindowsVersion() => CheckForWindows(),
+                _ when RuntimeManager.IsSupportedOSXVersion() => CheckForOSX(),
+                _ when OperatingSystem.IsLinux() => CheckForLinux64(),
+                _ => []
+            };
         }
 
         #region "P/Invoke win32 api functions
-        [StructLayout(LayoutKind.Sequential)]  // Ensures memory safety during invoke, by explicitly declaring struct members are to be placed in memory in the exact order and size they are received as.
-                                               //   (Ensures b4b compatibility (no data is loss between the translation of valid c# bytes to valid c bytes)
-        private struct MEMORYSTATUSEX // typedef struct _MEMORYSTATUSEX { 
-        {
-            public uint dwLength;                   // DWORD dwLength;             (In this case its going to be a 32 bit unsigned int since its running on win10/win11)
-            public uint dwMemoryLoad;               // DWORD dwMemoryLoad;
-            public ulong ullTotalPhys;              // DWORDLONG ullTotalPhys;     (Total available sysmem in bytes)
-            public ulong ullAvailPhys;              // DWORDLONG ullAvailPhys;     (Total free sysmem in bytes)
-            public ulong ullTotalPageFile;          // DWORDLONG ullTotalPageFile
-            public ulong ullAvailPageFile;          // DWORDLONG ullAvailPageFile;
-            public ulong ullTotalVirtual;           // DWORDLONG ullTotalVirtual;
-            public ulong ullAvailVirtual;           // DWORDLONG ullAvailVirtual;
-            public ulong ullAvailExtendedVirtual;   // DWORDLONG ullAvailExtendedVirtual;
-        }
-        [DllImport("kernel32.dll", SetLastError = true)] // SetLastError likely wont be needed but it's nice to have anyways.
-        [return: MarshalAs(UnmanagedType.Bool)] // First time working with Unmanaged Code even though its still in a Managed Environment, C returns a 4 byte bool where as C# natively supports 1 byte bool(s).
-        private static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer); // The actual function thats required
+
 
         #endregion
 
+        [SupportedOSPlatform("windows10.0.10240")]
         private static Dictionary<string, double> CheckForWindows()
         {
-            MEMORYSTATUSEX memStatus = new()
-            {
-                dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX)) // Lays out the managed memory from c# in a manner that is identical to the unmanaged memory of c++ 
+            // Lays out the managed memory from c# in a manner that is identical to the unmanaged memory of c++ 
+            MEMORYSTATUSEX memStatus = new() {
+                dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX))
             };
 
             // memStatus is passed as a reference type and is modified by the call to GlobalMemoryStatusEx
-            if (!GlobalMemoryStatusEx(ref memStatus)) {
+            if (!PInvoke.GlobalMemoryStatusEx(ref memStatus)) {
                 Errors.WriteErrorAndExit(
                     message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                              $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
@@ -187,7 +181,8 @@ namespace BrowserAutomationMaster.Managers
                     );
                 }
 
-                var lines = output.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries); // Handles the cross system issues caused by pasting a unix script on a windows machine
+                // Handles the cross system issues caused by pasting a unix script on a windows machine
+                var lines = output.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries); 
                 //foreach (string line in lines) { Console.WriteLine(line); } // Used for debug only do not forget to comment this out.
 
                 if (lines.Length < 3) { return []; }
@@ -214,7 +209,6 @@ namespace BrowserAutomationMaster.Managers
                     $"Error log:\nMemcheck.sh returned the following error:\n{errorOutput}\nExit Code: {process.ExitCode}",
                     status: 1
                 );
-                return [];
             }
             catch (Exception ex)
             {
@@ -223,8 +217,9 @@ namespace BrowserAutomationMaster.Managers
                              $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
                              $"Error log:\n{ex.Message}",
                     status: 1);
-                return [];
             }
+
+            return [];
         }
 
         private static Dictionary<string, double> CheckForLinux64() {
@@ -246,11 +241,12 @@ namespace BrowserAutomationMaster.Managers
                     if (process == null) { 
                         Errors.WriteErrorAndExit(
                             message: 
-                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
-                            $"If this issue persists please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                            $"Error log:\nfree -m command process returned null.",
+                                $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
+                                $"If this issue persists please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                                $"Error log:\nfree -m command process returned null.",
                             status: 1
-                    ); }
+                        ); 
+                    }
                     output = process!.StandardOutput.ReadToEnd(); // Null check above prevents process from being null at this point thus the !.
                 }
 
@@ -301,11 +297,11 @@ namespace BrowserAutomationMaster.Managers
                 var freePercent = Math.Round(100 - usedPercent, 2);
 
                 return new Dictionary<string, double>(){
-                        { "totalMemoryMB", total },
-                        { "usedMemoryMB",  used },
-                        { "freeMemoryMB",  free },
-                        { "usedPercent", usedPercent },
-                        { "freePercent", freePercent }
+                    { "totalMemoryMB", total },
+                    { "usedMemoryMB",  used },
+                    { "freeMemoryMB",  free },
+                    { "usedPercent", usedPercent },
+                    { "freePercent", freePercent }
                 };
             }
             catch (Exception e)

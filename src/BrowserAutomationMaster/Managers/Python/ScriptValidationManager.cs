@@ -47,13 +47,6 @@ namespace BrowserAutomationMaster.Managers.Python
                 }
             };
 
-            //Console.WriteLine($"{pythonExecutablePath} -m py_compile \"{scriptPath}\"");
-            //string outputBuilder = string.Empty;
-            //string errorBuilder = string.Empty;
-            //process.EnableRaisingEvents = true;
-            //process.OutputDataReceived += (sender, e) => { if (e.Data != null) outputBuilder += $"{e.Data}\n"; };
-            //process.ErrorDataReceived += (sender, e) => { if (e.Data != null) errorBuilder += $"{e.Data}\n"; };
-
             try
             {
                 process.Start();
@@ -61,19 +54,27 @@ namespace BrowserAutomationMaster.Managers.Python
                 bool isValid = process.ExitCode == 0;
                 
                 if (isValid) {
-                    string output = process.StandardOutput.ReadToEnd();
-                    return new PythonValidationResult(isValid, output, "No errors detected", process.ExitCode);
+                    return new PythonValidationResult(
+                      isValid,
+                      process.StandardOutput.ReadToEnd(), 
+                      "No errors detected", 
+                      process.ExitCode
+                    );
                 }
-                string errors = process.StandardError.ReadToEnd();
-                return new PythonValidationResult(false, "No output detected.", errors, process.ExitCode);
+                return new PythonValidationResult(
+                    isValid: false, 
+                    "No output detected.",
+                    process.StandardError.ReadToEnd(),
+                    process.ExitCode
+                );
             }
             catch (Exception ex)
             {
                 return new PythonValidationResult(
-                    false,
-                    "No output detected",
-                    $"Unable to validate selected file:\n{ex.Message}\nExecutable Path: {pythonExecutablePath}",
-                    -1
+                    isValid: false,
+                    output: "No output detected",
+                    errors: $"Unable to validate selected file:\n{ex.Message}\nExecutable Path: {pythonExecutablePath}",
+                    exitCode: -1
                 );
             }
         }

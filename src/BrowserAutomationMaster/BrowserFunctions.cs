@@ -198,25 +198,6 @@ setTimeout(() => {{timeout*1000}});
         stderr.write('An error occured while trying to get text from element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
         exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
 
-       //    public static string ensureUTF8Function = @"def ensure_utf8():
-    //if platform.system() == ""Windows"":
-    //    try:
-    //        process = run('$env:PYTHONIOENCODING=""utf-8""', shell=True, capture_output=False, check=False)
-    //        if process.returncode == 0:
-    //            stdout.write('Changed console code page to UTF-8.\n')
-    //            if process.stderr:
-    //                stderr.write(f'Failed while attempting to change code page to UTF-8:\nException:\n{process.stderr}\n')
-    //            return True
-    //        else:
-    //            stderr.write(f'Failed while attempting to change code page to UTF-8:\n')
-    //            if process.stderr:
-    //                stderr.write('Error:\n' + process.stderr)
-    //            return False
-    //    except Exception as e:
-    //        stderr.write(f'An unexpected error occurred while trying to change code page to UTF-8:\n{e}\n')
-    //        return False
-    //return True" + string.Concat(Enumerable.Repeat('\n', 1));
-
         public static string fillTextFunction = @"def fill_text(byType: By, selector: str, value: str):
     try:
         element = driver.find_element(byType, selector)

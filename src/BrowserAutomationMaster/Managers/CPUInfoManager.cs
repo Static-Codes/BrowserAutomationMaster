@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using BrowserAutomationMaster.Managers.AppManager.OS;
+using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Managers
@@ -132,19 +134,23 @@ namespace BrowserAutomationMaster.Managers
 
     internal class CPUCoreManager() // This doesn't need to be public
     {
+
+
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static int GetCoreCount()
         {
-            if (OperatingSystem.IsWindowsVersionAtLeast(6, 1, 7601)) { 
-                return GetPhysicalCoreCountWindows(); 
+            if (RuntimeManager.IsSupportedWindowsVersion()) {
+                return Win.GetPhysicalCoreCount();
             }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) { return GetPhysicalCoreCountMacOS(); }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { return GetPhysicalCoreCountLinux(); }
-            throw new PlatformNotSupportedException("Unsupported OS.");
-        }
-
-        private static int GetPhysicalCoreCountWindows() {
-            if (OperatingSystem.IsWindowsVersionAtLeast(6, 1, 7601)) { return Win.GetPhysicalCoreCount(); }
-            return 0;
+            if (RuntimeManager.IsSupportedWindowsVersion()) { 
+                return GetPhysicalCoreCountMacOS(); 
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { 
+                return GetPhysicalCoreCountLinux(); 
+            }
+            Errors.ThrowUnsupportedPlatformException();
+            return 0; // This wont be executed, roslyn has no idea an exception has been thrown, so this is required.
         }
 
         private static int GetPhysicalCoreCountMacOS()

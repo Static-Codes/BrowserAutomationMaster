@@ -20,9 +20,9 @@ namespace BrowserAutomationMaster.Managers
         public const string CurrentVersion = "v1.0.0A4";
         // Assuming current is latest until further checks are done.
         public static string LatestVersion { get; set; } = CurrentVersion; 
-        public static void CheckForUpdate()
+        public static async Task<bool> CheckForUpdate()
         {
-            if (UpdateAvailable())
+            if (await UpdateAvailable())
             {
                 Warning.Write(
                     $"BAM Manager (BAMM) has an available update.\n\n" +
@@ -37,16 +37,18 @@ namespace BrowserAutomationMaster.Managers
                     OpenLatestVersionInBrowser();
                     Environment.Exit(0);
                 }
+                return true;
                 
             }
             else { 
                 Success.WriteSuccessMessage(
                     $"BAM Manager (BAMM) is currently running the latest release ({LatestVersion})"
-                ); 
+                );
+                return true;
             }
         }
 
-        private static string GetLatestVersion()
+        private static async Task<string> GetLatestVersion()
         {
             HttpResponseMessage response = new();
             try
@@ -59,8 +61,7 @@ namespace BrowserAutomationMaster.Managers
                 if (!uriCreated || uriResult == null) { return string.Empty; }
 
                 RequestManager requestManager = RequestManager.Create(uriResult);
-                Task<HttpResponseMessage> responseTask = requestManager.GetAsync(followRedirects: false);
-                response = responseTask.GetAwaiter().GetResult();
+                response = await requestManager.GetAsync(followRedirects: false);
                 if (response.StatusCode != HttpStatusCode.Redirect)
                 {
                     Errors.WriteErrorAndContinue(
@@ -169,7 +170,7 @@ namespace BrowserAutomationMaster.Managers
 
         }
 
-        private static bool UpdateAvailable()
+        private static async Task<bool> UpdateAvailable()
         {
             if (!HasNetworkConnection()) {
                 Errors.WriteErrorAndContinue(
@@ -182,14 +183,17 @@ namespace BrowserAutomationMaster.Managers
                     "\nWould you like to continue? [y/n]:\n"
                 ) ?? "n";
 
-                if (response.ToLower().Equals("y")) { Environment.Exit(1); }
+                if (response.Trim().Equals("n", StringComparison.OrdinalIgnoreCase)) { 
+                    Environment.Exit(1); 
+                }
                 return false;
             }
-            LatestVersion = GetLatestVersion();
+            LatestVersion = await GetLatestVersion();
+
             if (string.IsNullOrEmpty(LatestVersion) || !LatestVersion.StartsWith('v')) {
                 Errors.WriteErrorAndReturnBool(
                     message:
-                        "BAM Manager (BAMM) was unable to determine the latest release version, please check:" +
+                        "BAM Manager (BAMM) was unable to determine the latest release version, please check:\n" +
                         ConstantManager.LATEST_VERSION_LINK,
                     returnBool: false
                 ); 

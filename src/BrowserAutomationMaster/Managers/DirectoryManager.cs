@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Managers
@@ -64,23 +65,21 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetDesiredSaveDirectory()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return true switch
             {
-                return Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
-                    "BrowserAutomationMaster", 
+                _ when RuntimeManager.IsSupportedWindowsVersion() => Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "BrowserAutomationMaster",
                     "compiled"
-                );
-            }
+                ),
 
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                string userScriptDirectory = UserScriptManager.GetUserScriptDirectory();
-                string parentDirectory = Path.GetDirectoryName(userScriptDirectory) ?? Environment.CurrentDirectory;
-                return Path.Combine(parentDirectory, "compiled");
-            }
+                _ when RuntimeManager.IsSupportedOSXVersion() || OperatingSystem.IsLinux() => Path.Combine(
+                    Path.GetDirectoryName(UserScriptManager.GetUserScriptDirectory()) ?? Environment.CurrentDirectory,
+                    "compiled"
+                ),
+                _ => string.Empty,
 
-            else { throw new PlatformNotSupportedException("Unsupported OS."); }
+            };
         }
     }
 }

@@ -1,13 +1,14 @@
-﻿using System.Runtime.InteropServices;
-using BrowserAutomationMaster;
+﻿using BrowserAutomationMaster;
 using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
-if (OperatingSystem.IsWindowsVersionAtLeast(6, 1, 7601)) { 
-    BrowserAutomationMaster.Managers.AppManager.OS.Win.VerifyRootDrive(pArgs); 
-} // Verify the user is running on their C: drive (assuming they're on windows)
+
+if (OperatingSystem.IsWindowsVersionAtLeast(10, 1, 7601)) { 
+    Win.VerifyRootDrive(pArgs); 
+} // Verify the user is running on their C: drive (assuming they're on windows 10 or 11)
 
 
 List<string> validCLIArgs = ["add", "clear", "compile", "delete", "help", "run"];
@@ -21,7 +22,7 @@ bool isCLI = false;
 
 if (!pArgs.Any(arg => nonUserScriptArgs.Contains(arg))) {
     RuntimeManager.DoRuntimeCheck();  // Set expectations regarding automation performance given the user's specs.
-    UpdateManager.CheckForUpdate(); // New releases are fun - Ghandi probably.
+    await UpdateManager.CheckForUpdate(); // New releases are fun - Ghandi probably.
 }
 
 
@@ -160,7 +161,7 @@ while (isRunning)
 
         case Parser.MenuOption.Run:
             RuntimeManager runtimeManager = new(parserResult.Value);
-            runtimeManager.RunScript();
+            await runtimeManager.RunScript();
             break;
 
         case Parser.MenuOption.Help:

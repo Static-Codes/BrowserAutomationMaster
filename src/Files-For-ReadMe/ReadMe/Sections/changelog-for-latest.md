@@ -11,11 +11,14 @@
 ### General Changes:
 
 - Added 3 new commands
-- Cleaned up the Parser class
+- Cleaned up the Parsing.Parser class
 - Increased BAMC JavaScript validation accuracy
 - Increased BAMC URL validation accuracy
 - Refactored Managers.AppManager.OS.Win.GetPhysicalCoreCount to use CSWin32 for increased stability.
-- Removed 300+ lines of bloat from Parsing.Transpiler.cs
+- Refactored Managers.Python.VEnvManager to be asynchronous
+- Refactored Managers.UpdateManager to be asynchronous.
+- Removed 300+ lines of bloat from Parsing.Transpiler
+- Removed redundant OS checks.
 - Renamed internal class Managers.AppManager.OS.Windows -> Managers.AppManager.OS.Win
 
 ### New Commands:
