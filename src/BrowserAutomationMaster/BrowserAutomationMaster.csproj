@@ -1,30 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!-- Core Properties -->
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AssemblyName>bamm</AssemblyName>
-
-		<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
-		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
-
-		<!-- Global Publish Settings  -->
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
+		<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
+		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+		<Authors>Static</Authors>
+		<Copyright>Copyright © Static</Copyright>
+		<PackageTags>console;utility;windows;linux;osx</PackageTags>
+		<Description>Domain Specific Language Compiler converting an english like language into valid Python code on Python &gt;= 3.9 </Description>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<!-- NuGet Package Metadata -->
 		<PackAsTool>false</PackAsTool>
 		<PackageId>bamm</PackageId>
-		<PackageVersion>1.0.0</PackageVersion>
-		<Authors>Static</Authors>
-		<Description>Domain Specific Language Compiler converting an english like language into valid Python code on Python &gt;= 3.X </Description>
-		<Copyright>Copyright © Static</Copyright>
-		<PackageTags>console;utility;windows;linux;osx</PackageTags>
+		<PackageVersion>1.0.0-alpha4</PackageVersion>
 		<!-- Windows & OSX License -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<ApplicationIcon>bamm.ico</ApplicationIcon>
@@ -32,17 +28,46 @@
 	</PropertyGroup>
 	
 	<!-- Debian Packaging Properties -->
-	<PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
-		<DebianPackageMaintainer>Static</DebianPackageMaintainer>
+	<PropertyGroup>
+		<CommonPackageName>$(PackageId)</CommonPackageName>
+		<CommonPackageVersion>$(PackageVersion)</CommonPackageVersion>
+		<CommonPackageSummary>Custom scripting language for Web Automation that compiles for Python</CommonPackageSummary>
+		<CommonPackageLicense>MIT</CommonPackageLicense>
+		<CommonDesktopName>BAM Manager (BAMM!)</CommonDesktopName>
+		<RepositoryUrl>https://github.com/Static-Codes/BrowserAutomationMaster/</RepositoryUrl>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(BuildDebPackage)' == 'true'">
+		<DebianPackageMaintainer>$(Authors)</DebianPackageMaintainer>
 		<DebianPackageDescription>$(Description)</DebianPackageDescription>
 		<DebianPackageSection>utils</DebianPackageSection>
 		<DebianPackagePriority>optional</DebianPackagePriority>
-		<DebianPackageRequires>libicu-dev</DebianPackageRequires>
-		<DebianDesktopFile>$(PackageId).desktop</DebianDesktopFile>
+		<DebianPackageRequires>libicu-dev, python3</DebianPackageRequires>
+		<DebianDesktopFile>$(CommonPackageName).desktop</DebianDesktopFile>
 		<DebianDesktopCategories>Utility;Console;</DebianDesktopCategories>
 		<DebianDesktopTerminal>true</DebianDesktopTerminal>
-		<DebianDesktopName>BAM Manager 1.0.0A2</DebianDesktopName>
+		<DebianDesktopName>$(CommonDesktopName)</DebianDesktopName>
 	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(BuildRpmPackage)' == 'true'">
+		<RpmPackageName>$(CommonPackageName)</RpmPackageName>
+		<RpmVersion>$(CommonPackageVersion)</RpmVersion>
+		<RpmRelease>1</RpmRelease>
+		<RpmSummary>$(CommonPackageSummary)</RpmSummary>
+		<RpmLicense>$(CommonPackageLicense)</RpmLicense>
+		<RpmUrl>$(RepositoryUrl)</RpmUrl>
+		<RpmVendor>$(Authors)</RpmVendor>
+		<RpmPackager>$(Authors)</RpmPackager>
+		<RpmGroup>Applications/Utilities</RpmGroup>
+		<RpmRequires>$(RpmRequires) libicu, python3</RpmRequires>
+		<RpmDesktopFile>$(CommonPackageName).desktop</RpmDesktopFile>
+		<RpmDesktopCategories>Utility;Console;Development;</RpmDesktopCategories>
+		<RpmDesktopTerminal>true</RpmDesktopTerminal>
+		<RpmDesktopName>$(CommonDesktopName)</RpmDesktopName>
+	</PropertyGroup>
+
+
+
 	<ItemGroup>
 	  <Content Include="bamm.ico" />
 	</ItemGroup>

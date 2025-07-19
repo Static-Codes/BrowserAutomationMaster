@@ -10,6 +10,7 @@ namespace BrowserAutomationMaster.Managers
     public class ConstantManager
     {
         public const string BASE_REPO_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/";
+        public const string DOCUMENTATION_LINK = "https://static-codes.github.io/BrowserAutomationMaster/";
         public const string ISSUES_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/issues";
         public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
         public const string RELEASES_DOWNLOAD_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/download";
