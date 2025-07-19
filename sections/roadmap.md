@@ -28,4 +28,6 @@ This section outlines the planned commands and features for later BAMM releases.
 ## LSP (Language Server Protocol)
 - This will allow you to create bamm scripts with syntax highlighting and other features similar to pylance.
 
+## Android app
+- Port BAMM to android using appium
 ---
