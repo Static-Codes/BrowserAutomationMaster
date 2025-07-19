@@ -10,24 +10,33 @@
 
 ### General Changes:
 
-- Added 3 new commands
-- Cleaned up the Parsing.Parser class
+- Added 4 new commands (3 action, 1 feature).
+- Added `feature` line validation in `Parsing.Parser.cs`
+- Added support for Fedora based Linux Distros (CentOS, Oracle Linux, Qubes, etc)
+- Cleaned up `Parsing.Parser.cs`.
+- Created `BrowserAutomationMaster.Transpiler` namespace
 - Increased BAMC JavaScript validation accuracy
 - Increased BAMC URL validation accuracy
+- Moved code from `Transpiler.cs` to `CompilationHandler.cs`
+- Moved `Transpiler.cs` and `CompilationHandler.cs` to `BrowserAutomationMaster.Transpiler`
 - Refactored Managers.AppManager.OS.Win.GetPhysicalCoreCount to use CSWin32 for increased stability.
-- Refactored Managers.Python.VEnvManager to be asynchronous
-- Refactored Managers.UpdateManager to be asynchronous.
+- Refactored `Managers.Python.VEnvManager` and `Managers.UpdateManager` to be asynchronous
 - Removed 300+ lines of bloat from Parsing.Transpiler
-- Removed redundant OS checks.
+- Removed redundant OS checks and tightened Windows checks.
+- Removed unused features `async` and `bypass-cloudflare`
 - Renamed internal class Managers.AppManager.OS.Windows -> Managers.AppManager.OS.Win
 
-### New Commands:
+### New Action Commands:
 
-`close-current-tab` - Closes the currrent tab and will close the browser if there's only one open tab.
-`open-new-tab "https://google.com" "3"` - A new browser tab is opened, the system will then pause for the number of seconds specified, then visits the requested url.
-`click-at-position "600" "600"` - Clicks at a specific point on screen
+- `click-at-position "600" "600"` - Clicks at a specific point on screen
+- `close-current-tab` - Closes the currrent tab and will close the browser if there's only one open tab.
+- `open-new-tab "https://google.com" "3"` - A new browser tab is opened, the system will then pause for the number of seconds specified, then visits the requested url.
 
 ---
+
+### New Feature Command:
+
+- `feature "disable-ssl"` - Disables SSL certificate authentication for the given session.
 
 ### Windows 💻
 

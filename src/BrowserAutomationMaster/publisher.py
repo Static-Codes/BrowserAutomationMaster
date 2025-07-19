@@ -6,13 +6,15 @@ menuOptions: dict = {
     1: "All Platforms",
     2: "Win-x64",
     3: "Win-ARM64",
-    4: "Linux-x64 (Debian PKG)",
-    5: "Linux-ARM64 (Debian PKG)",
-    6: "OSX-x64",
-    7: "OSX-ARM64",
+    4: "Linux-x64 (.deb)",
+    5: "Linux-x64 (.rpm)",
+    6: "Linux-ARM64 (.deb)",
+    7: "Linux-ARM64 (.rpm)",
+    8: "OSX-x64",
+    9: "OSX-ARM64",
 }
 
-print("Welcome to the BAMM Publisher\n")
+print("Welcome to the BAMM Publisher!\n\n")
 menuText = ""
 
 for index, optionName in menuOptions.items():
@@ -35,30 +37,38 @@ while True:
 
 commands = []
 if choiceIndex == 1:
-    commands.append("dotnet deb --runtime linux-x64 --configuration Release")
-    commands.append("dotnet deb --runtime linux-arm64 --configuration Release")
-    commands.append("dotnet publish -c Release -r osx-x64 --self-contained true")
-    commands.append("dotnet publish -c Release -r osx-arm64 --self-contained true")
-    commands.append("dotnet publish -c Release -r win-x64 --self-contained true")
-    commands.append("dotnet publish -c Release -r win-arm64 --self-contained true")
+    commands.append("dotnet deb --runtime linux-x64 --configuration Release -- -p:BuildDebPackage=true")   # Linux x64 (Deb)
+    commands.append("dotnet deb --runtime linux-arm64 --configuration Release -- -p:BuildDebPackage=true") # Linux ARM64 (Deb)
+    commands.append("dotnet rpm --runtime linux-x64 --configuration Release -- -p:BuildRpmPackage=true")   # Linux x64 (Rpm)
+    commands.append("dotnet rpm --runtime linux-arm64 --configuration Release -- -p:BuildRpmPackage=true") # Linux ARM64 (Rpm)
+    commands.append("dotnet publish -c Release -r osx-x64 --self-contained true")                       # OSX x64
+    commands.append("dotnet publish -c Release -r osx-arm64 --self-contained true")                     # OSX ARM64
+    commands.append("dotnet publish -c Release -r win-x64 --self-contained true")                       # Win x64
+    commands.append("dotnet publish -c Release -r win-arm64 --self-contained true")                     # Win ARM64
 
 elif choiceIndex == 2:
-    commands.append("dotnet publish -c Release -r win-x64 --self-contained true")
+    commands.append("dotnet publish -c Release -r win-x64 --self-contained true")                       # Win x64
 
 elif choiceIndex == 3:
-    commands.append("dotnet publish -c Release -r win-arm64 --self-contained true")
+    commands.append("dotnet publish -c Release -r win-arm64 --self-contained true")                     # Win ARM64
 
 elif choiceIndex == 4:
-    commands.append("dotnet deb --runtime linux-x64 --configuration Release")
+    commands.append("dotnet deb --runtime linux-x64 --configuration Release -- -p:BuildDebPackage=true")   # Linux x64 (Deb)
 
 elif choiceIndex == 5:
-    commands.append("dotnet deb --runtime linux-arm64 --configuration Release")
+    commands.append("dotnet rpm --runtime linux-x64 --configuration Release -- -p:BuildRpmPackage=true")   # Linux x64 (Rpm)
 
 elif choiceIndex == 6:
-    commands.append("dotnet publish -c Release -r osx-x64 --self-contained true")
+    commands.append("dotnet deb --runtime linux-arm64 --configuration Release -- -p:BuildDebPackage=true") # Linux ARM64 (Deb)
 
 elif choiceIndex == 7:
-    commands.append("dotnet publish -c Release -r osx-arm64 --self-contained true")
+    commands.append("dotnet rpm --runtime linux-arm64 --configuration Release -- -p:BuildRpmPackage=true") # Linux ARM64 (Rpm)
+
+elif choiceIndex == 8:
+    commands.append("dotnet publish -c Release -r osx-x64 --self-contained true")                       # OSX x64
+
+elif choiceIndex == 9:
+    commands.append("dotnet publish -c Release -r osx-arm64 --self-contained true")                     # OSX ARM64
 
 
 targetDirectory = input("Please enter the path containing your .csproj file:\n")

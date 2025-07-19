@@ -1,8 +1,9 @@
-﻿using BrowserAutomationMaster;
+﻿using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Parsing;
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 

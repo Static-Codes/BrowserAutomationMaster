@@ -3,7 +3,7 @@ using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 
-namespace BrowserAutomationMaster
+namespace BrowserAutomationMaster.Parsing
 {
     public partial class Parser
     {
@@ -25,7 +25,7 @@ namespace BrowserAutomationMaster
             "take-screenshot", "wait-for-seconds", "visit"
         ];
         readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
-        readonly static string[] otherFeatureArgs = ["async", "browser", "bypass-cloudflare", "disable-pycache", "run-headless", "no-ssl"];
+        readonly static string[] otherFeatureArgs = ["browser", "disable-pycache", "disable-ssl", "run-headless"];
         //readonly static string[] browserArgs = ["brave", "chrome", "firefox", "safari", ];
         readonly static string[] browserArgs = ["chrome", "firefox", "safari", ];
 
@@ -758,13 +758,25 @@ namespace BrowserAutomationMaster
                             {
                                 return Errors.WriteErrorAndReturnBool(
                                     message:
-                                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                                        "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                                         $"File: \"{fileName}\"\n" +
                                         $"Duplicate command on line {i + 1}:\n{line}\n" +
-                                        $"All 'feature' commands may only be defined once.\n", 
+                                        "All 'feature' commands may only be defined once.\n", 
                                     returnBool: false
                                 );
                             }
+                            if (!featureArgs.Any(arg => line.Contains(arg)))
+                            {
+                                return Errors.WriteErrorAndReturnBool(
+                                    message:
+                                        "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                                        $"File: \"{fileName}\"\n" +
+                                        $"Unknown feature command on line {i + 1}:\n{line}\n\n" +
+                                        $"For more information please see, {ConstantManager.DOCUMENTATION_LINK}",
+                                    returnBool: false
+                                );
+                            }
+
                             string[] proxyFeatures = [
                                 "\"use-http-proxy\"", 
                                 "\"use-https-proxy\"", 
