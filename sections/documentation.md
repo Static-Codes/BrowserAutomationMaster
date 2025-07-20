@@ -1,5 +1,6 @@
 # BAMC Documentation
 
+- This documentation is for BAMM v1.0.0A3, to view the updated docs [click here](https://static-codes.github.io/BrowserAutomationMaster/)
 - To return to the previous page, [click here](..)
 
 ### Examples
