@@ -1,55 +1,56 @@
 using BrowserAutomationMaster.Messaging;
-using System.ComponentModel.Design;
 using System.Diagnostics;
+using System.Drawing;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     public static class Linux
     {
+
+        static Color terminalBackgroundColor;
+        static Color terminalForegroundColor;
+        
         public static List<AppInfo> GetApps()
         {
-            List<AppInfo> dpkgApps = [];
-            List<AppInfo> flatpakApps = [];
-            List<AppInfo> rpmApps = [];
-
-            if (CommandExists("dpkg"))
-                dpkgApps.AddRange(ParseDpkgList());
-            if (CommandExists("flatpak"))
-                flatpakApps.AddRange(ParseFlatpakList());
-            if (CommandExists("rpm"))
-                rpmApps.AddRange(ParseRpmList());
-
-            if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0) {
-                Errors.WriteErrorAndExit(
-                    message:
-                        "BAM Manager (BAMM) was unable to detect any of the following commands:\n\n" +
-                        "dpkg\nflatpak\nrpm\n",
-                    status: 1
-                );
-            }
-            
-            var appSources = new List<(string Name, List<AppInfo> Apps)>
-            {
-                ("Debian Package Manager (dpkg)", dpkgApps),
-                ("Flatpak", flatpakApps),
-                ("RPM", rpmApps)
-            };
-
-            Console.WriteLine(); // Adding a leading newline for readablity within terminal.
-            foreach (var (Name, Apps) in appSources) {
-                if (Apps.Count == 0) { Warning.Write($"Found 0 apps from: {Name}"); }
-                else if (Apps.Count == 1) { Success.WriteSuccessMessage($"Found 1 app from: {Name}"); }
-                else { Success.WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}"); }
-            }
-            Console.WriteLine(); // Adding a leading newline for readablity within terminal.
-
             try
             {
-                return [
-                    .. dpkgApps.Select(x => x),
-                    .. flatpakApps.Where(x => true)
-                    .Concat(rpmApps.OrderBy(x => x)).Distinct()
-                ];
+                List<AppInfo> dpkgApps = [];
+                List<AppInfo> flatpakApps = [];
+                List<AppInfo> rpmApps = [];
+
+                if (CommandExists("dpkg"))
+                    dpkgApps.AddRange(ParseDpkgList());
+                if (CommandExists("flatpak"))
+                    flatpakApps.AddRange(ParseFlatpakList());
+                if (CommandExists("rpm"))
+                    rpmApps.AddRange(ParseRpmList());
+
+                if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0)
+                {
+                    Errors.WriteErrorAndExit(
+                        message:
+                            "BAM Manager (BAMM) was unable to detect any of the following commands:\n\n" +
+                            "dpkg\nflatpak\nrpm\n",
+                        status: 1
+                    );
+                }
+
+                var appSources = new List<(string Name, List<AppInfo> Apps)>
+                {
+                    ("Debian Package Manager (dpkg)", dpkgApps),
+                    ("Flatpak", flatpakApps),
+                    ("RPM", rpmApps)
+                };
+
+                Console.WriteLine(); // Adding a leading newline for readablity within terminal.
+                foreach (var (Name, Apps) in appSources)
+                {
+                    if (Apps.Count == 0) { Warning.Write($"Found 0 apps from: {Name}"); }
+                    else if (Apps.Count == 1) { Success.WriteSuccessMessage($"Found 1 app from: {Name}"); }
+                    else { Success.WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}"); }
+                }
+                Console.WriteLine(); // Adding a leading newline for readablity within terminal.
+                return [.. dpkgApps.Concat(flatpakApps).Concat(rpmApps).Distinct()];
             }
 
             catch (Exception ex)
@@ -58,6 +59,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return [];
             }
         }
+
 
         // Instead of parsing each distro by type finding the available commands is much more efficient.
         static bool CommandExists(string cmd)
@@ -148,10 +150,14 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     CreateNoWindow = true
                 };
                 using var proc = Process.Start(procStartInfo);
-                if (proc == null) { return string.Empty; }
+                if (proc == null) { 
+                    return string.Empty; 
+                }
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit();
-                if (proc.ExitCode == 0) { return output; }
+                if (proc.ExitCode == 0) { 
+                    return output;
+                }
                 return string.Empty;
             }
             catch (Exception ex){
@@ -165,5 +171,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return string.Empty;
             }
         }
+    
     }
 }

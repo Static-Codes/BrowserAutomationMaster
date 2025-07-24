@@ -3,7 +3,17 @@ using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Messaging.Menu;
 using BrowserAutomationMaster.Parsing;
+
+// Works :D
+//var config = ConfigManager.LoadConfig();
+//Console.WriteLine($"AutoCompile: {config.AutoCompile}");
+//Console.WriteLine($"AutoCopyPath: {config.AutoCopyPath}");
+//Console.WriteLine($"ShowCpuCheck: {config.ShowCpuCheck}");
+//Console.WriteLine($"ShowMemoryCheck: {config.ShowMemoryCheck}");
+//Console.WriteLine($"ShowUpdateCheck: {config.ShowUpdateCheck}");
+//Console.WriteLine($"ThemeType: {config.ThemeType.Equals(ThemeManager.DarkTheme)}");
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
@@ -146,30 +156,30 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("uninstall", StringComparison.Curr
 
 while (isRunning)
 {
-    KeyValuePair<Parser.MenuOption, string> parserResult = Parser.New(); // The value of this KeyValuePair is the filepath of the selected file.
+    KeyValuePair<MenuOption, string> parserResult = Parser.New(); // The value of this KeyValuePair is the filepath of the selected file.
     switch (parserResult.Key)
     {
-        case Parser.MenuOption.Add:
+        case MenuOption.Add:
             string compileInput = Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:") ?? "n";
             bool overwriteConfirmation = compileInput.Trim().Equals("y", StringComparison.OrdinalIgnoreCase);
             if (overwriteConfirmation) { 
                 Transpiler.New(parserResult.Value, args); 
             }
             break;
-        case Parser.MenuOption.Compile:
+        case MenuOption.Compile:
             Transpiler.New(parserResult.Value, args);
             break;
 
-        case Parser.MenuOption.Run:
+        case MenuOption.Run:
             RuntimeManager runtimeManager = new(parserResult.Value);
             await runtimeManager.RunScript();
             break;
 
-        case Parser.MenuOption.Help:
+        case MenuOption.Help:
             Help.GetDescriptionOfCommand("bamm help --all");
             break;
 
-        case Parser.MenuOption.Invalid:
+        case MenuOption.Invalid:
             isRunning = false;
             break;
     }

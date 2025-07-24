@@ -1,7 +1,6 @@
-﻿using System.Runtime.InteropServices;
-using System.Text.Json;
+﻿using System.Text.Json;
 
-namespace BrowserAutomationMaster
+namespace BrowserAutomationMaster.Compilation
 {
     internal class BrowserFunctions
     {
@@ -460,7 +459,7 @@ setTimeout(() => {{timeout*1000}});
 @"    try:
         stdout.write(f'Navigating to: {url}\n')
 " +
-@$"        {BrowserFunctions.AddUserAgentFunction(pythonSafeUserAgent)}"+
+@$"        {AddUserAgentFunction(pythonSafeUserAgent)}"+
             @"        driver.get(url)
         final_url = driver.current_url
         stdout.write(f'Navigation complete. Final URL: {final_url}\n')
