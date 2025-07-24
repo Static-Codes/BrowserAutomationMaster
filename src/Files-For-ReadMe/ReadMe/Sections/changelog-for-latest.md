@@ -19,6 +19,7 @@
 - Increased BAMC JavaScript validation accuracy
 - Increased BAMC URL validation accuracy
 - Moved code from `Transpiler.cs` to `CompilationHandler.cs`
+- Moved `Parsing.Parser.Menu` and `Parsing.Parser.MenuOptions` to `Messaging.Menu`
 - Moved `Transpiler.cs` and `CompilationHandler.cs` to `BrowserAutomationMaster.Transpiler`
 - Refactored Managers.AppManager.OS.Win.GetPhysicalCoreCount to use CSWin32 for increased stability.
 - Refactored `Managers.Python.VEnvManager` and `Managers.UpdateManager` to be asynchronous
