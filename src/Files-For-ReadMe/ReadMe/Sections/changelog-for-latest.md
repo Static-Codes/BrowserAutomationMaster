@@ -2,7 +2,7 @@
 
 ## **Notes**
 - v1.0.0-Alpha4 is still in development.
-- There are 7 releases below aswell as the raw source code (source.zip).
+- There are 8 releases below aswell as the raw source code (source.zip).
 
 ---
 
