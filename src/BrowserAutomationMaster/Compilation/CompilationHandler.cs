@@ -4,7 +4,7 @@ using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Compilation
 {
-    internal static class CompilationHandler
+    public static class CompilationHandler
     {
         public static void AddHeader(List<string> scriptBody, string sanitizedArg2, string sanitizedArg3)
         {
@@ -305,18 +305,20 @@ namespace BrowserAutomationMaster.Compilation
         {
             scriptBody.AddRange([
                 $"isSaved = save_as_html('{sanitizedArg2}')\n",
-                "if isSaved:",
-                $"\n{Transpiler.Indent(1)}print('Saved page source to: {sanitizedArg2}')",
-                "else:\n{Indent(1)",
-                "print('Unable to save page source, please ensure the page was fully loaded.')\n"
+                "if isSaved:\n",
+                $"{Transpiler.Indent(1)}print('Saved page source to: {sanitizedArg2}')\n",
+                "else:",
+                $"\n{Transpiler.Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n"
             ]);
         }
         public static void SaveAsHTMLExp(List<string> scriptBody, string sanitizedArg2)
         {
             scriptBody.AddRange([
-                $"isSaved = save_as_html_experimental('{sanitizedArg2}')\n",
-                $"else:\n{Transpiler.Indent(1)}",
-                 "print('Unable to save page source, please ensure the page was fully loaded.')\n"
+                $"isSaved = save_as_html('{sanitizedArg2}')\n",
+                "if isSaved:\n",
+                $"{Transpiler.Indent(1)}print('Saved page source to: {sanitizedArg2}')\n",
+                "else:",
+                $"\n{Transpiler.Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n"
             ]);
         }
         public static (bool, string) SelectElement(List<string> scriptBody, string[] splitLine, int actionTimeout)

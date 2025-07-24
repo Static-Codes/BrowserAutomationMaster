@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using BrowserAutomationMaster.Managers.Python;
+﻿using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Managers
@@ -61,6 +60,25 @@ namespace BrowserAutomationMaster.Managers
                     status: 1
                 );
             }
+        }
+
+        public static string GetConfigDirectory()
+        {
+            return true switch
+            {
+                _ when RuntimeManager.IsSupportedWindowsVersion() => Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "BrowserAutomationMaster",
+                    "config"
+                ),
+
+                _ when RuntimeManager.IsSupportedOSXVersion() || OperatingSystem.IsLinux() => Path.Combine(
+                    Path.GetDirectoryName(UserScriptManager.GetUserScriptDirectory()) ?? Environment.CurrentDirectory,
+                    "config"
+                ),
+                _ => string.Empty,
+
+            };
         }
 
         public static string GetDesiredSaveDirectory()
