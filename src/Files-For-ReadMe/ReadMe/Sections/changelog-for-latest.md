@@ -14,6 +14,7 @@
 - Added `feature` line validation in `Parsing.Parser.cs`
 - Added support for Fedora based Linux Distros (CentOS, Oracle Linux, Qubes, etc)
 - Cleaned up `Parsing.Parser.cs`.
+- Created `Managers.ConfigManager` and `Managers.ThemeManager`
 - Created `BrowserAutomationMaster.Transpiler` namespace
 - Increased BAMC JavaScript validation accuracy
 - Increased BAMC URL validation accuracy
