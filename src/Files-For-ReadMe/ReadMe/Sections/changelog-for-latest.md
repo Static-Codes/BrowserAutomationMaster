@@ -1,8 +1,8 @@
 # BAMM v1.0.0-Alpha4
 
 ## **Notes**
-
-- There are 6 releases below aswell as the raw source code (source.zip).
+- v1.0.0-Alpha4 is still in development.
+- There are 7 releases below aswell as the raw source code (source.zip).
 
 ---
 
@@ -59,3 +59,5 @@ There are two versions for Windows. You most likely need the **x64** version.
 
 - `bamm.v1.0.0A3.linux-x64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS.
 - `bamm.v1.0.0A3.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on Macs.
+- `bamm.v1.0.0A3.linux-x64.deb`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes.
+- `bamm.v1.0.0A3.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Macs.
