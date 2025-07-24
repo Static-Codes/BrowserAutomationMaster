@@ -1,23 +1,32 @@
-﻿using BrowserAutomationMaster.Compilation;
+﻿
+using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Messaging.Menu;
 using BrowserAutomationMaster.Parsing;
 
-// Works :D
-//var config = ConfigManager.LoadConfig();
-//Console.WriteLine($"AutoCompile: {config.AutoCompile}");
-//Console.WriteLine($"AutoCopyPath: {config.AutoCopyPath}");
-//Console.WriteLine($"ShowCpuCheck: {config.ShowCpuCheck}");
-//Console.WriteLine($"ShowMemoryCheck: {config.ShowMemoryCheck}");
-//Console.WriteLine($"ShowUpdateCheck: {config.ShowUpdateCheck}");
-//Console.WriteLine($"ThemeType: {config.ThemeType.Equals(ThemeManager.DarkTheme)}");
+using static BrowserAutomationMaster.Messaging.Menu;
+
+// Working
+ConfigManager.GlobalConfig = ConfigManager.LoadConfig();
+
+// Working
+//Color BGC = ConfigManager.GlobalConfig.ThemeType.BackgroundColor;
+//Color FGC = ConfigManager.GlobalConfig.ThemeType.ForegroundColor;
+
+//Console.WriteLine(AnsiManager.AnsiColor.Colorize(
+//    "This is a test",
+//    foregroundColor: FGC,
+//    backgroundColor: BGC
+//));
+
+// Working
+// AnsiManager.HasAnsiSupport();
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
-if (OperatingSystem.IsWindowsVersionAtLeast(10, 1, 7601)) { 
+if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240)) { 
     Win.VerifyRootDrive(pArgs); 
 } // Verify the user is running on their C: drive (assuming they're on windows 10 or 11)
 

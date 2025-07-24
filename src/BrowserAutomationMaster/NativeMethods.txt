@@ -2,3 +2,6 @@
 GetSystemMetrics
 GlobalMemoryStatusEx
 MEMORYSTATUSEX
+SetConsoleMode
+GetConsoleMode
+GetStdHandle
