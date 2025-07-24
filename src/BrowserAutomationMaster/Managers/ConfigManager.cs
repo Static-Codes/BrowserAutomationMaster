@@ -11,12 +11,12 @@ namespace BrowserAutomationMaster.Managers
 
     public partial class Config
     {
-        public Theme? ThemeType { get; set; }
+        public required Theme ThemeType { get; set; } // Add functionality to convert convert 'BrowserAutomationMaster.Managers.Theme' to 'System.ConsoleColor'
         public bool ShowCpuCheck { get; set; }
         public bool ShowMemoryCheck { get; set; }
         public bool ShowUpdateCheck { get; set; }
-        public bool AutoCompile { get; set; }
         public bool AutoCopyPath { get; set; }
+        public bool RunOnCompile { get; set; }
     }
     
     public partial class ConfigParser()
@@ -60,6 +60,9 @@ namespace BrowserAutomationMaster.Managers
     }
     public class ConfigManager
     {
+        public static Config? GlobalConfig { get; set; }
+
+
         private static readonly Dictionary<string, List<KeyValuePair<string, string>>> rawSections = new()
         {
             {
@@ -81,8 +84,8 @@ namespace BrowserAutomationMaster.Managers
             {
                 "[compilation]", new List<KeyValuePair<string, string>>()
                 {
-                    KeyValuePair.Create("auto_compile", "false"),
                     KeyValuePair.Create("auto_copy_path", "false"),
+                    KeyValuePair.Create("run_on_compile", "true"),
                     //KeyValuePair.Create("", "")
                 }
             },
@@ -344,7 +347,10 @@ namespace BrowserAutomationMaster.Managers
 
             var configContents = File.ReadAllText(ConfigFilePath!, Encoding.UTF8);
 
-            Config config = new();
+            var config = new Config()
+            {
+                ThemeType = ThemeManager.DefaultTheme
+            };
             string? currentSection = null;
 
             var splitLines = configContents.Split('\n');

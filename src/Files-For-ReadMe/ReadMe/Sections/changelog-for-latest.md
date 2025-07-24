@@ -1,6 +1,7 @@
 # BAMM v1.0.0-Alpha4
 
 ## **Notes**
+
 - v1.0.0-Alpha4 is still in development.
 - There are 8 releases below aswell as the raw source code (source.zip).
 
@@ -13,8 +14,9 @@
 - Added 4 new commands (3 action, 1 feature).
 - Added `feature` line validation in `Parsing.Parser.cs`
 - Added support for Fedora based Linux Distros (CentOS, Oracle Linux, Qubes, etc)
+- Added `Managers.AnsiManager`
 - Cleaned up `Parsing.Parser.cs`.
-- Created `Managers.ConfigManager` and `Managers.ThemeManager`
+- Created `Managers.AnsiManager`, `Managers.ConfigManager`, and `Managers.ThemeManager`
 - Created `BrowserAutomationMaster.Transpiler` namespace
 - Increased BAMC JavaScript validation accuracy
 - Increased BAMC URL validation accuracy

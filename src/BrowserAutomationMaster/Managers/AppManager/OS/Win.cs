@@ -14,6 +14,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
     [SupportedOSPlatform("windows10.0.10240")] 
     public static partial class Win
     {
+
         public static List<AppInfo> GetApps()
         {
             var apps = new List<AppInfo>();
@@ -66,6 +67,19 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             try
             {
+                var config = ConfigManager.GlobalConfig;
+                if (config == null)
+                {
+                    Console.WriteLine("null");
+                    return;
+                }
+                Console.WriteLine($"AutoCopyPath: {config.AutoCopyPath}");
+                Console.WriteLine($"RunOnCompile: {config.RunOnCompile}");
+                Console.WriteLine($"ShowCpuCheck: {config.ShowCpuCheck}");
+                Console.WriteLine($"ShowMemoryCheck: {config.ShowMemoryCheck}");
+                Console.WriteLine($"ShowUpdateCheck: {config.ShowUpdateCheck}");
+                Console.WriteLine($"ThemeType: {config.ThemeType.Equals(ThemeManager.DarkTheme)}");
+
                 if (args.Contains("--ignore-drive-root")) { return; }
                 string? rootDrive = Path.GetPathRoot(AppContext.BaseDirectory);
 

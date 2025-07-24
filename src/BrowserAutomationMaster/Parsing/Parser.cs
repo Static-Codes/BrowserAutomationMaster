@@ -910,9 +910,6 @@ namespace BrowserAutomationMaster.Parsing
                 ); 
             }
         }
-        
-        
-        
         public static KeyValuePair<MenuOption, string> New()
         {
             bool userScriptDirExists = CreateUserScriptsDirectory();

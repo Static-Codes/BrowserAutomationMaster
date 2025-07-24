@@ -6,10 +6,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     public static class Linux
     {
-
-        static Color terminalBackgroundColor;
-        static Color terminalForegroundColor;
-        
         public static List<AppInfo> GetApps()
         {
             try

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using BrowserAutomationMaster.Managers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -26,6 +27,7 @@ namespace BrowserAutomationMaster.Messaging
         public static void WriteErrorAndContinue(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
+            //Console.ForegroundColor = ConfigManager.GlobalConfig.ThemeType;
             Console.WriteLine(message);
             Console.ForegroundColor = ConsoleColor.White;
         }

@@ -10,7 +10,7 @@ namespace BrowserAutomationMaster.Managers.AppManager
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static List<AppInfo> GetInstalledApps()
         {
-            if (RuntimeManager.IsSupportedWindowsVersion()) // >= Windows 6.1.7601
+            if (RuntimeManager.IsSupportedWindowsVersion()) // >= Windows 10 Build 10240
                 return OS.Win.GetApps();
             if (RuntimeManager.IsSupportedOSXVersion())
                 return OS.MacOS.GetApps();
