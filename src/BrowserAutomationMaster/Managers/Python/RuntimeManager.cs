@@ -83,7 +83,11 @@ namespace BrowserAutomationMaster.Managers.Python
             if (memoryInfo.Count != 5)
             {
                 Errors.WriteErrorAndExit(
-                    $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\nIf this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\nMemoryInfoManager.CheckForWindows() returned an invalid dictionary.", 1);
+                    $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
+                    $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                    $"Error log:\nMemoryInfoManager.CheckForWindows() returned an invalid dictionary.", 
+                    status: 1
+                );
             }
             memoryInfo.TryGetValue("totalMemoryMB", out double totalMemoryMB);
             //memoryInfo.TryGetValue("usedMemoryMB", out double usedMemoryMB); // Will be used in a later update to display various info.
@@ -94,31 +98,54 @@ namespace BrowserAutomationMaster.Managers.Python
             // Less than 2GiB Total
             if (totalMemoryMB < 2048)
             {
-                Errors.WriteErrorAndExit("BAM Manager (BAMM) determined you are running below the minimum RAM requirements to properly use bamm.\nPlease run BAMM on a system with atleast 4GB of DDR3 RAM.", 1);
+                Errors.WriteErrorAndExit(
+                    "BAM Manager (BAMM) determined you are running below the minimum RAM requirements to properly use bamm.\n" +
+                    "Please run BAMM on a system with atleast 4GB of DDR3 RAM.", 
+                    status: 1
+                );
             }
 
             // Less than 512MiB Free
             if (freeMemoryMB < 512)
             {
-                Errors.WriteErrorAndExit("BAM Manager (BAMM) determined you don't have enough free RAM to continue.\n\nPlease ensure atleast 512MB of RAM is free before trying to run BAMM again.", 1);
+                Errors.WriteErrorAndExit(
+                    "BAM Manager (BAMM) determined you don't have enough free RAM to continue.\n\n" +
+                    "Please ensure atleast 512MB of RAM is free before trying to run BAMM again.", 
+                    status: 1
+                );
             }
 
             // Less than 4GiB Total but between 512MiB and 1GiB Free.
             else if (totalMemoryMB < 4096 && freeMemoryMB < 1024)
             {
-                Warning.Write("BAM Manager (BAMM) determined you are running below the minimum RAM requirements.\nCompiling BAMC scripts will work just fine, however running compiled scripts WILL cause system instability, please avoid compiling on the current device.");
+                Warning.Write(
+                    "BAM Manager (BAMM) determined you are running below the minimum RAM requirements.\n" +
+                    "Compiling BAMC scripts will work just fine, " +
+                    "however running compiled scripts WILL cause system instability, " +
+                    "please avoid compiling on the current device."
+                );
             }
 
             // 4GiB Total but under 1GiB Free.
             else if (totalMemoryMB == 4096 && freeMemoryMB < 1024)
             {
-                Warning.Write("BAM Manager (BAMM) determined you running on the minimum RAM requirements.\nCompiling BAMC scripts will work just fine, however you will need to close more applications/processes before attempting to run any compiled scripts.\nRunning scripts containing multiple tabs WILL cause system instability, please avoid the use of the 'new-tab' command, and try to free up 1GB of RAM before running compiled scripts.");
+                Warning.Write(
+                    "BAM Manager (BAMM) determined you running on the minimum RAM requirements.\n" +
+                    "Compiling BAMC scripts will work just fine, " +
+                    "however you will need to close more applications/processes before attempting to run any compiled scripts.\n" +
+                    "Running scripts containing multiple tabs WILL cause system instability, " +
+                    "please avoid the use of the 'new-tab' command, " +
+                    "and try to free up 1GB of RAM before running compiled scripts."
+                );
             }
 
             // 4GiB Total and 1GiB free.
             else if (totalMemoryMB == 4096 && freeMemoryMB >= 1024)
             {
-                Success.WriteSuccessMessage("BAM Manager (BAMM) determined you running on the minimum RAM requirements, but you have enough free RAM (1GB) for most automation tasks.");
+                Success.WriteSuccessMessage(
+                    "BAM Manager (BAMM) determined you running on the minimum RAM requirements, " +
+                    "but you have enough free RAM (1GB) for most automation tasks."
+                );
             }
             return true;
         }
@@ -151,7 +178,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 ); 
             }
             PythonValidationResult result = ScriptValidationManager.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
-            Console.WriteLine(result.Output);
+            Spectre.Console.AnsiConsole.Write(result.Output);
             if (!result.IsValid) {
                 Errors.WriteErrorAndExit(
                     message: 
@@ -181,7 +208,7 @@ namespace BrowserAutomationMaster.Managers.Python
                             $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
                             $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
                             $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                            $"Error log:\n: No compiled scripts found in {saveDirectory}", 
+                            $"Error log:\nNo compiled scripts found in {saveDirectory}", 
                         status: 1); }
                 string menu = string.Empty;
                 int index = 0;

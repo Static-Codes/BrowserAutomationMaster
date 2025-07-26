@@ -1,4 +1,5 @@
 using BrowserAutomationMaster.Messaging;
+using Spectre.Console;
 using System.Diagnostics;
 using System.Drawing;
 
@@ -38,20 +39,24 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     ("RPM", rpmApps)
                 };
 
-                Console.WriteLine(); // Adding a leading newline for readablity within terminal.
+                AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
                 foreach (var (Name, Apps) in appSources)
                 {
                     if (Apps.Count == 0) { Warning.Write($"Found 0 apps from: {Name}"); }
                     else if (Apps.Count == 1) { Success.WriteSuccessMessage($"Found 1 app from: {Name}"); }
                     else { Success.WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}"); }
                 }
-                Console.WriteLine(); // Adding a leading newline for readablity within terminal.
+                AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
                 return [.. dpkgApps.Concat(flatpakApps).Concat(rpmApps).Distinct()];
             }
 
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit($"BAM Manager (BAMM) was unable to parse installed system applications, please see the error below:\n\n{ex}", 1);
+                Errors.WriteErrorAndExit(
+                    $"BAM Manager (BAMM) was unable to parse installed system applications, " +
+                    $"please see the error below:\n\n{ex}", 
+                    status: 1
+                );
                 return [];
             }
         }

@@ -13,7 +13,7 @@ using BrowserAutomationMaster.Parsing;
 namespace BrowserAutomationMaster.Compilation
 {
 
-    internal partial class Transpiler
+    public partial class Transpiler
     {
         // This will be used in GenerateBackupName(); in the case of failure.
         readonly static string defaultScriptFileName = "untitled-script";  
@@ -23,7 +23,6 @@ namespace BrowserAutomationMaster.Compilation
         readonly static string requirementsFileName = "requirements.txt"; 
         static string projectDirectory = "";
         
-        readonly static string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
 
         static string pythonScriptFileName = "";  // Modified by SetScriptName();
         static string pythonVersion = "3.10";
@@ -31,24 +30,24 @@ namespace BrowserAutomationMaster.Compilation
         // Default value if inhouse function fails.
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0"; 
         
-        static string selectedBrowser = "firefox"; // Defaults to firefox.  Accepts 'chrome' and 'firefox'
+        private static string selectedBrowser = "firefox"; // Defaults to firefox.  Accepts 'chrome' and 'firefox'
 
         private readonly static string[] browserlessActions = ["save-as-html", "wait-for-seconds"];
 
         // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
-        static bool browserPresent = false;
-        static bool featurePresent = false;
-        static bool otherPresent = false;
+        private static bool browserPresent = false;
+        private static bool featurePresent = false;
+        private static bool otherPresent = false;
 
 
         // Disables Visual Studio Code from writing __pycache__ directory.
-        static bool disablePycache = false;
+        private static bool disablePycache = false;
 
         // Disables SSL certificate authorization session wide.
-        static bool disableSSL = false;
+        private static bool disableSSL = false;
 
         // Runs the browser in headless mode if specified.
-        static bool runHeadless = false;
+        private static bool runHeadless = false;
 
         // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
         static bool noBrowsersFound = false;
@@ -778,7 +777,7 @@ namespace BrowserAutomationMaster.Compilation
                 iterationIndex += 1;
             }
             while (true){
-                Console.WriteLine(inputMessage);
+                Spectre.Console.AnsiConsole.Write(inputMessage);
                 string? inputResponse = Console.ReadLine();
                 if (int.TryParse(inputResponse, out int selection) && selection > 0 && selection <= iterationIndex)
                 {
@@ -837,6 +836,9 @@ namespace BrowserAutomationMaster.Compilation
             }
             if (numberOfIndents == 0) { return string.Empty; } // Return an empty string if no indentations are needed.
 
+
+
+            string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
             return string.Concat(
                 Enumerable.Repeat(pythonIndent, numberOfIndents)
             );

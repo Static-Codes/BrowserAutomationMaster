@@ -2,7 +2,9 @@
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Menu;
+
 
 namespace BrowserAutomationMaster.Parsing
 {
@@ -89,38 +91,38 @@ namespace BrowserAutomationMaster.Parsing
                 }
                 catch (ArgumentNullException ane)
                 {
-                    Console.WriteLine(ane.GetType().Name);
-                    Console.WriteLine(ane.Message);
+                    Spectre.Console.AnsiConsole.Write(ane.GetType().Name);
+                    Spectre.Console.AnsiConsole.Write(ane.Message);
                     return false;
                 }
                 catch (UnauthorizedAccessException uae)
                 {
-                    Console.WriteLine(uae.GetType().Name);
-                    Console.WriteLine(uae.Message);
+                    Spectre.Console.AnsiConsole.Write(uae.GetType().Name);
+                    Spectre.Console.AnsiConsole.Write(uae.Message);
                     return false;
                 }
                 catch (PathTooLongException ptle)
                 {
-                    Console.WriteLine(ptle.GetType().Name);
-                    Console.WriteLine(ptle.Message);
+                    Spectre.Console.AnsiConsole.Write(ptle.GetType().Name);
+                    Spectre.Console.AnsiConsole.Write(ptle.Message);
                     return false;
                 }
                 catch (DirectoryNotFoundException dnfe)
                 {
-                    Console.WriteLine(dnfe.GetType().Name);
-                    Console.WriteLine(dnfe.Message);
+                    Spectre.Console.AnsiConsole.Write(dnfe.GetType().Name);
+                    Spectre.Console.AnsiConsole.Write(dnfe.Message);
                     return false;
                 }
                 catch (IOException ie)
                 {
-                    Console.WriteLine(ie.GetType().Name);
-                    Console.WriteLine(ie.Message);
+                    Spectre.Console.AnsiConsole.Write(ie.GetType().Name);
+                    Spectre.Console.AnsiConsole.Write(ie.Message);
                     return false;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"An unexpected error occurred while creating userScript directory:\n{ex.GetType().Name}");
-                    Console.WriteLine(ex.Message);
+                    Spectre.Console.AnsiConsole.Write($"An unexpected error occurred while creating userScript directory:\n{ex.GetType().Name}");
+                    Spectre.Console.AnsiConsole.Write(ex.Message);
                     return false;
                 }
             }
@@ -167,12 +169,12 @@ namespace BrowserAutomationMaster.Parsing
                 catch { rawFileName = null; }
                 if (rawFileName != null)
                 {
-                    Console.WriteLine($"File {index} ----> {rawFileName}\n");
+                    Spectre.Console.AnsiConsole.Write($"File {index} ----> {rawFileName}\n");
                 }
             }
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("\n\nPress any key to exit...");
-            Console.ReadKey();
+            Spectre.Console.AnsiConsole.Write("\n\nPress any key to exit...");
+            ReadKey();
         }
         public static string[] GetBAMCFiles()
         {
@@ -183,8 +185,8 @@ namespace BrowserAutomationMaster.Parsing
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.GetType().Name);
-                Console.WriteLine(ex.Message);
+                Spectre.Console.AnsiConsole.Write(ex.GetType().Name);
+                Spectre.Console.AnsiConsole.Write(ex.Message);
                 return [];
             }
         }
@@ -639,12 +641,15 @@ namespace BrowserAutomationMaster.Parsing
             while (true)
             {
                 // This will run until valid input is provided.
-                object? rawInput = Input.WriteTextAndReturnInputType(inputText, panicText, desiredType, true);
+                object? rawInput = Input.WriteTextAndReturnInputType(inputText, panicText, desiredType, repeatUntilValid: true);
                 if (rawInput != null && rawInput.GetType() == desiredType) 
                 {
                     int fileNumber = (int)rawInput;
-                    // Continue until valid input or user exit.
-                    if (fileNumber < 1 || fileNumber > numberOfFilesFound) { inputText = panicText; continue; }
+                    
+                    if (fileNumber < 1 || fileNumber > numberOfFilesFound) { 
+                        inputText = panicText; 
+                        continue; 
+                    }
                     return fileNumber - 1; // index = fileNumber - 1;
                 }
             }

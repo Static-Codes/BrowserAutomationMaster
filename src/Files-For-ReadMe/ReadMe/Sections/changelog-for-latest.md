@@ -13,8 +13,7 @@
 
 - Added 4 new commands (3 action, 1 feature).
 - Added `feature` line validation in `Parsing.Parser.cs`
-- Added support for Fedora based Linux Distros (CentOS, Oracle Linux, Qubes, etc)
-- Added `Managers.AnsiManager`
+- Added support for Fedora based Linux Distros (CentOS, Oracle Linux, Qubes, etc) via a .RPM package
 - Cleaned up `Parsing.Parser.cs`.
 - Created `Managers.AnsiManager`, `Managers.ConfigManager`, and `Managers.ThemeManager`
 - Created `BrowserAutomationMaster.Transpiler` namespace

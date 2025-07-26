@@ -1,5 +1,7 @@
-﻿using System.Text.Json;
+﻿using BrowserAutomationMaster.Managers;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -71,11 +73,12 @@ namespace BrowserAutomationMaster.Messaging
                 Errors.WriteErrorAndExit("BAM Manager (BAMM) could not parse embedded help string, this is a huge bug and needs to be fixed.", 1);
             }
 
-            Console.WriteLine("\n--- Action Commands ---");
+            WriteMessage("\n--- Action Commands ---");
+
             // Null check is above so if this line is reached config will not be null.
             if (config!.Actions != null) {
                 foreach (var args in config.Actions) {
-                    Console.WriteLine($"     {args.Key}");
+                    WriteMessage($"     {args.Key}");
                     if (!AllCommands.TryGetValue(args.Key, out string? _)) {
                         AllCommands.Add(args.Key, args.Value);
                     }
@@ -83,10 +86,10 @@ namespace BrowserAutomationMaster.Messaging
             }
 
 
-            Console.WriteLine("\n--- Command Line Arguments ---");
+            WriteMessage("\n--- Command Line Arguments ---");
             if (config.Arguments != null) {
                 foreach (var args in config.Arguments) {
-                    Console.WriteLine($"     {args.Key}");
+                    WriteMessage($"     {args.Key}");
                     if (!AllCommands.TryGetValue(args.Key, out string? _)) {
                         AllCommands.Add(args.Key, args.Value);
                     }
@@ -94,16 +97,16 @@ namespace BrowserAutomationMaster.Messaging
             }
 
 
-            Console.WriteLine("\n--- Feature Commands ---");
+            WriteMessage("\n--- Feature Commands ---");
             if (config.Features != null) {
                 foreach (var args in config.Features) {
-                    Console.WriteLine($"     {args.Key}");
+                    WriteMessage($"     {args.Key}");
                     if (!AllCommands.TryGetValue(args.Key, out string? _)) {
                         AllCommands.Add(args.Key, args.Value);
                     }
                 }
             }
-            Console.WriteLine("\n");
+            WriteMessage("\n");
         }
         
         public static string GetDescriptionOfCommand(string command)

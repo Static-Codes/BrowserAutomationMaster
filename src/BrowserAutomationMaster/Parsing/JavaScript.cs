@@ -74,6 +74,6 @@ internal class JavaScript
 //    console.warn(""User is not active."");
 //}";
 //bool status = JavaScript.IsValidSyntax(code, out string? error);
-//Console.WriteLine(status);
-//Console.WriteLine(error ?? "test");
+//Spectre.Console.AnsiConsole.Write(status);
+//Spectre.Console.AnsiConsole.Write(error ?? "test");
 //Environment.Exit(0);
