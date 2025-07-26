@@ -1,11 +1,14 @@
-﻿namespace BrowserAutomationMaster.Messaging
+﻿using static BrowserAutomationMaster.Managers.AnsiManager;
+
+namespace BrowserAutomationMaster.Messaging
 {
     public class Input
     {
         public static string? WriteTextAndReturnRawInput(string inputMessage)
         {
-            Console.WriteLine(inputMessage);
-            return Console.ReadLine();
+            WriteMessage(inputMessage);
+            //return Console.ReadLine();
+            return ReadLine();
         }
         public static object? WriteTextAndReturnInputType(string inputMessage, string panicMessage, Type desiredType, bool repeatUntilValid = false)
         {

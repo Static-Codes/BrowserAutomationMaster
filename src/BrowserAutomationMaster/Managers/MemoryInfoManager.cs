@@ -183,7 +183,7 @@ namespace BrowserAutomationMaster.Managers
 
                 // Handles the cross system issues caused by pasting a unix script on a windows machine
                 var lines = output.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries); 
-                //foreach (string line in lines) { Console.WriteLine(line); } // Used for debug only do not forget to comment this out.
+                //foreach (string line in lines) { Spectre.Console.AnsiConsole.Write(line); } // Used for debug only do not forget to comment this out.
 
                 if (lines.Length < 3) { return []; }
 

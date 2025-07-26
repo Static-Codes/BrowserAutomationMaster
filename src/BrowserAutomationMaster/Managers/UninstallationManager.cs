@@ -61,7 +61,7 @@ namespace BrowserAutomationMaster.Managers
         }
         private static void DoMacUninstall() 
         {
-            Console.WriteLine(@"To uninstall BAM Manager (BAMM) on macOS:
+            Spectre.Console.AnsiConsole.Write(@"To uninstall BAM Manager (BAMM) on macOS:
 
 1.  Delete the BAM Manager executable file:
     	1A. Locate the 'bamm' executable file (wherever you saved it, whether in your 'Downloads' folder, 'Desktop', or 'Applications' folder).
@@ -80,7 +80,7 @@ namespace BrowserAutomationMaster.Managers
             Environment.Exit(0);
         }
         private static void DoLinuxUninstall() {
-            Console.WriteLine(@"To uninstall BAM Manager (BAMM) on Linux:
+            Spectre.Console.AnsiConsole.Write(@"To uninstall BAM Manager (BAMM) on Linux:
     - Run the following command: sudo apt-get remove --purge bamm
     - You may be prompted for your user password. Enter it and press Enter.
     - Confirm any prompts from apt-get to proceed with the uninstallation.");

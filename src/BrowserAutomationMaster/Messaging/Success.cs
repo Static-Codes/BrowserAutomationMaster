@@ -1,23 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BrowserAutomationMaster.Managers;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
     public class Success
     {
         public static void WriteSuccessMessage(string message) {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(message);
-            Console.ForegroundColor = ConsoleColor.White;
+            WriteMessage(message, isSuccess: true);
         }
-
-        public static void WriteSuccessMessageAndExit(string message, int exitCode) {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(message);
-            Console.ForegroundColor = ConsoleColor.White;
+        public static void WriteSuccessMessageAndExit(string message, int exitCode) 
+        {
+            WriteMessage(message, isSuccess: true);
             Environment.Exit(exitCode);
         }
     }

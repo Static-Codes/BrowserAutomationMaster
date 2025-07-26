@@ -12,9 +12,8 @@ namespace BrowserAutomationMaster.Managers
         private static readonly Color LightGray = Color.FromArgb(204, 220, 220);
         private static readonly Color LightRed = Color.FromArgb(255, 18, 43);
         private static readonly Color LightYellow = Color.FromArgb(102, 245, 241, 11);
-        private static readonly Color NeonYellow = Color.FromArgb(232, 255, 8);
 
-        public static Theme DarkTheme = new(
+        public readonly static Theme DarkTheme = new(
             BackgroundColor: DarkGray,
             ForegroundColor: Color.White,
             SuccessColor: EmeraldGreen,
@@ -22,14 +21,14 @@ namespace BrowserAutomationMaster.Managers
             ErrorColor: LightRed
         );
 
-        public static Theme LightTheme = new(
+        public readonly static Theme LightTheme = new(
             BackgroundColor: LightGray,
             ForegroundColor: Color.Black,
             SuccessColor: DarkGreen,
             WarningColor: Color.DarkGoldenrod,
             ErrorColor: CherryRed
         );
-        public static Theme DefaultTheme = DarkTheme;
+        public readonly static Theme DefaultTheme = DarkTheme;
     }
 
     public class Theme(Color BackgroundColor, Color ForegroundColor, Color SuccessColor, Color WarningColor, Color ErrorColor)

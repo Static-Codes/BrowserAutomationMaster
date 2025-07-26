@@ -1,10 +1,12 @@
 ﻿using BrowserAutomationMaster.Managers;
 using System.Diagnostics.CodeAnalysis;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
     public class Errors
     {
+
         public static string GenerateErrorMessage(string fileName, string line, int lineNumber, string issueText)
         {
             return "BAM Manager (BAMM) was unable to compile the selected .BAMC script.\n" +
@@ -26,35 +28,26 @@ namespace BrowserAutomationMaster.Messaging
 
         public static void WriteErrorAndContinue(string message)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            //Console.ForegroundColor = ConfigManager.GlobalConfig.ThemeType;
-            Console.WriteLine(message);
-            Console.ForegroundColor = ConsoleColor.White;
+            WriteMessage(message, isError: true);
         }
 
         [DoesNotReturn]
         public static void WriteErrorAndExit(string message, int status)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(
-                message + $"\n\n{Debug.GetPlatformInfoForErrorLog()}"
-            );
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.ReadKey();
+            WriteMessage(message, isError: true);
+            ReadKey();
             Environment.Exit(status);
         }
         
         public static bool WriteErrorAndReturnBool(string message, bool returnBool)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(message);
-            Console.ForegroundColor = ConsoleColor.White;
+            WriteMessage(message, isError: true);
             return returnBool;
         }
         public static string WriteErrorAndReturnEmptyString(string message)
         {
-            Console.WriteLine(message);
-            Console.ReadKey();
+            WriteMessage(message, isError: true);
+            ReadKey();
             return string.Empty;
         }
 

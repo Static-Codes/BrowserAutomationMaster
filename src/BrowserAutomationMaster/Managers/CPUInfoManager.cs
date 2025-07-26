@@ -90,13 +90,13 @@ namespace BrowserAutomationMaster.Managers
             if (Cores <= 4) { 
                 Success.WriteSuccessMessage(message: 
                         $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
-                        $"this might impact your performance slightly if your CPU is older."
+                        $"this might impact your performance slightly if your CPU is older.\n"
                 ); 
             }
             else { 
                 Success.WriteSuccessMessage(message: 
                     $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
-                    $"you should not experience any performance issues directly related to your CPU."
+                    $"you should not experience any performance issues directly related to your CPU.\n"
                 ); 
             }
             return true;
@@ -105,7 +105,7 @@ namespace BrowserAutomationMaster.Managers
         public static void DisplayMissingInstructions()
         {
             foreach (X64Instructions instruction in unsupportedInstructions) {
-                Console.WriteLine($"{instruction} is unsupported on the current CPU.");
+                Spectre.Console.AnsiConsole.Write($"{instruction} is unsupported on the current CPU.");
             }
         }
 

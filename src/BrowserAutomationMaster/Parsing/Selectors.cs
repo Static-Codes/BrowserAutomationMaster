@@ -301,7 +301,7 @@ namespace BrowserAutomationMaster
 
             foreach (string selector in selectors) {
                 ParsedSelector parsedSelector = SelectorParser.Parse(selector);
-                Console.WriteLine(parsedSelector.ToString() + "\n\n");
+                Spectre.Console.AnsiConsole.Write(parsedSelector.ToString() + "\n\n");
             }
             Environment.Exit(0);
         }

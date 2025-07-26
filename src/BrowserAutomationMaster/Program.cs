@@ -5,24 +5,11 @@ using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-
+using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 
 // Working
 ConfigManager.GlobalConfig = ConfigManager.LoadConfig();
-
-// Working
-//Color BGC = ConfigManager.GlobalConfig.ThemeType.BackgroundColor;
-//Color FGC = ConfigManager.GlobalConfig.ThemeType.ForegroundColor;
-
-//Console.WriteLine(AnsiManager.AnsiColor.Colorize(
-//    "This is a test",
-//    foregroundColor: FGC,
-//    backgroundColor: BGC
-//));
-
-// Working
-// AnsiManager.HasAnsiSupport();
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
@@ -77,7 +64,7 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("clear", StringComparison.CurrentC
         "bamm clear compiled\n\n" +
         "Press any key to continue..."
     );
-    Console.ReadKey();
+    ReadKey();
 }
 
 // Handles 'bamm clear compiled' and 'bamm clear userScripts'
@@ -85,7 +72,7 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
     if (pArgs[1].Equals("userScripts", StringComparison.CurrentCultureIgnoreCase)) {
 
         string deleteInput = Input.WriteTextAndReturnRawInput(
-            "Are you sure you want to delete the 'userScripts' directory? [y/n]:"
+            "Are you sure you want to delete the 'userScripts' directory? [y/n]:\n"
         ) ?? "n";
 
         if (deleteInput.ToLower().Trim().Equals("y")) {
@@ -97,7 +84,7 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
     }
     else if (pArgs[1].Equals("compiled", StringComparison.CurrentCultureIgnoreCase)) {
         string input = Input.WriteTextAndReturnRawInput(
-            "Are you sure you want to delete the 'compiled' directory? [y/n]:"
+            "Are you sure you want to delete the 'compiled' directory? [y/n]:\n"
         ) ?? "n";
         if (input.ToLower().Trim().Equals("y")) {
             DirectoryManager.DeleteDirectory(DirectoryManager.GetDesiredSaveDirectory());
@@ -112,7 +99,7 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
             "bamm clear compiled\n\n" +
             "Press any key to continue..."
         );
-        Console.ReadKey();
+        ReadKey();
     }
 
 }
@@ -124,7 +111,7 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("help", StringComparison.CurrentCu
         "To see available entries for the 'help' command please type: 'bamm help --all'\n\n" +
         "Press any key to continue."
     );
-    Console.ReadKey();
+    ReadKey();
 }
 
 // Handles bamm help "command-name"
@@ -197,5 +184,5 @@ while (isRunning)
     if (exitConfirmation) { isRunning = false; }
 }
 
-Console.WriteLine("\nPress any key to exit...");
-Console.ReadKey();
+Spectre.Console.AnsiConsole.Write("\nPress any key to exit...");
+ReadKey();

@@ -68,17 +68,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             try
             {
                 var config = ConfigManager.GlobalConfig;
-                if (config == null)
-                {
-                    Console.WriteLine("null");
-                    return;
-                }
-                Console.WriteLine($"AutoCopyPath: {config.AutoCopyPath}");
-                Console.WriteLine($"RunOnCompile: {config.RunOnCompile}");
-                Console.WriteLine($"ShowCpuCheck: {config.ShowCpuCheck}");
-                Console.WriteLine($"ShowMemoryCheck: {config.ShowMemoryCheck}");
-                Console.WriteLine($"ShowUpdateCheck: {config.ShowUpdateCheck}");
-                Console.WriteLine($"ThemeType: {config.ThemeType.Equals(ThemeManager.DarkTheme)}");
 
                 if (args.Contains("--ignore-drive-root")) { return; }
                 string? rootDrive = Path.GetPathRoot(AppContext.BaseDirectory);
@@ -97,7 +86,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Spectre.Console.AnsiConsole.Write(e.Message);
             }
         }
 
@@ -339,19 +328,19 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 nint currentPtr = buffer;
 
                 // Debug values
-                // Console.WriteLine("\n--- Debugging GetLogicalProcessorInformationEx Entries ---");
-                // Console.WriteLine($"Total buffer size: {bufferSize} bytes");
-                // Console.WriteLine(bufferSize);
+                // Spectre.Console.AnsiConsole.Write("\n--- Debugging GetLogicalProcessorInformationEx Entries ---");
+                // Spectre.Console.AnsiConsole.Write($"Total buffer size: {bufferSize} bytes");
+                // Spectre.Console.AnsiConsole.Write(bufferSize);
                 while (bytesParsed < bufferSize)
                 {
                     // Deserializes the raw bytes of the currentPtr to the SYSTEM_PROCESSOR_INFORMATION_EX struct
                     var currentInfoExHeader = Marshal.PtrToStructure<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>(currentPtr);
 
                     // Debug values
-                    // Console.WriteLine($"Bytes parsed: {bytesParsed}");
-                    // Console.WriteLine($"\n  Entry at offset {currentPtr.ToInt64() - Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0).ToInt64()}:");
-                    // Console.WriteLine($"    Relationship: {currentInfoExHeader.Relationship}");
-                    // Console.WriteLine($"    Entry Size: {currentInfoExHeader.Size}");
+                    // Spectre.Console.AnsiConsole.Write($"Bytes parsed: {bytesParsed}");
+                    // Spectre.Console.AnsiConsole.Write($"\n  Entry at offset {currentPtr.ToInt64() - Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0).ToInt64()}:");
+                    // Spectre.Console.AnsiConsole.Write($"    Relationship: {currentInfoExHeader.Relationship}");
+                    // Spectre.Console.AnsiConsole.Write($"    Entry Size: {currentInfoExHeader.Size}");
 
                     if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore)
                     {
