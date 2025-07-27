@@ -1,18 +1,46 @@
-﻿using static BrowserAutomationMaster.Managers.AnsiManager;
+﻿using BrowserAutomationMaster.Managers;
+using Spectre.Console;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
     public class Input
     {
-        public static string? WriteTextAndReturnRawInput(string inputMessage)
+        public static string WriteTextAndReturnRawInput(string inputMessage)
         {
-            WriteMessage(inputMessage);
-            //return Console.ReadLine();
-            return ReadLine();
+            TextPrompt<string>? prompt;
+            if (inputMessage.Contains("[y/n]:"))
+            {
+                inputMessage = inputMessage.Replace("[y/n]:", "");
+
+                prompt =
+                    new TextPrompt<string>(Markup.Escape(inputMessage))
+                        .AddChoices(["y", "n"])
+                        .PromptStyle(GetStyle());
+                return AnsiConsole.Prompt(prompt);
+            }
+            prompt = new TextPrompt<string>(Markup.Escape(inputMessage));
+            return AnsiConsole.Prompt(prompt);
         }
-        public static object? WriteTextAndReturnInputType(string inputMessage, string panicMessage, Type desiredType, bool repeatUntilValid = false)
+
+        public static string WriteListFromOptions(string[] options)
         {
-            string? rawInputString;
+            var prompt = new SelectionPrompt<string>()
+                .HighlightStyle(new Style(
+                    foreground: ToSpectreColor(GetColors().newFG),
+                    background: ToSpectreColor(GetColors().newBG),
+                    decoration: Decoration.Bold
+                ))
+                .Title("Please select your desired action from the menu options below:")
+                .AddChoices(options.Select(opt => opt.EscapeMarkup()))
+                .PageSize(Math.Max(1, options.Length / 2));
+
+            return AnsiConsole.Prompt(prompt);
+        }
+
+        public static object? WriteTextAndReturnInputType(string inputMessage, string panicMessage, Type desiredType, bool repeatUntilValid = false, bool isOptionNumber = false)
+        {
+            string rawInputString;
             if (desiredType == null)
             {
                 Errors.WriteErrorAndExit(
@@ -25,30 +53,43 @@ namespace BrowserAutomationMaster.Messaging
 
             while (true)
             {
-                rawInputString = WriteTextAndReturnRawInput(inputMessage);
-
-                if (rawInputString != null)
+                rawInputString = WriteListFromOptions(inputMessage.Split('\n'));
+                if (desiredType == typeof(int))
                 {
-                    if (desiredType == typeof(int))
+                    if (isOptionNumber)
                     {
-                        try { return Convert.ToInt32(rawInputString); }
-                        catch {
+                        var chars = new List<char>();
+                        foreach (var c in rawInputString)
+                        {
+                            if (char.IsNumber(c)) {
+                                chars.Add(c);
+                                continue;
+                            }
+                            break;
+                        }
+                        try { return string.Join("", chars); }
+                        catch (Exception ex) {
+                            WriteMessage(ex.Message, isError: true);
                             if (!repeatUntilValid) { return null; }
                         }
-                    }
-                    else if (desiredType == typeof(string))
-                    {
-                        try { return rawInputString; }
-                        catch {
-                            if (!repeatUntilValid) { return null; }
-                        }
-                    }
 
+                    }
+                    try { return Convert.ToInt32(rawInputString); }
+                    catch {
+                        if (!repeatUntilValid) { return null; }
+                    }
+                }
+                else if (desiredType == typeof(string))
+                {
+                    try { return rawInputString; }
+                    catch {
+                        if (!repeatUntilValid) { return null; }
+                    }
                 }
                 if (!repeatUntilValid) {
                     return null;
                 }
-                inputMessage = panicMessage; // Starts writing the panic message instead of the initial input message.
+                WriteMessage(panicMessage, isError: true);
             }
 
         }

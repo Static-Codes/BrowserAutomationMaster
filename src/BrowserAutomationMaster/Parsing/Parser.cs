@@ -240,8 +240,7 @@ namespace BrowserAutomationMaster.Parsing
         }
         public static void HandleHelpSelection()
         {
-            bool isContinuing = true;
-            while (isContinuing) {
+            while (true) {
                 Help.DisplayAvailableCommands();
 
                 string? command = Input.WriteTextAndReturnRawInput(
@@ -250,7 +249,7 @@ namespace BrowserAutomationMaster.Parsing
 
                 Help.ShowCommandDetails(command.Trim());
 
-                isContinuing = (Input.WriteTextAndReturnRawInput(
+                (Input.WriteTextAndReturnRawInput(
                     "\nWould you like to continue learning more about BAM Manager (BAMM)? [y/n]:"
                 ) ?? "n").ToLower().Trim().Equals("y");
             }
@@ -612,7 +611,6 @@ namespace BrowserAutomationMaster.Parsing
         }
         public static int HandleUserSelection(Dictionary<int, string> mapping)
         {
-            Type desiredType = typeof(int);
 
             if (mapping.Count == 0)
             {
@@ -633,21 +631,30 @@ namespace BrowserAutomationMaster.Parsing
 
             if (inputText == string.Empty) { Errors.WriteErrorAndExit(noFilesFoundMessage, 1); }
 
-            inputText += $"\n\nPlease enter the number corresponding to your desired file [Between 1-{numberOfFilesFound}]: ";
             string panicText = $"BAM Manager (BAMM) panicked due an invalid value provided as input.  " +
-                $"Value must be between 1 and {numberOfFilesFound}\n\n{inputText}";
+                $"Value must be between 1 and {numberOfFilesFound}";
             
 
             while (true)
             {
                 // This will run until valid input is provided.
-                object? rawInput = Input.WriteTextAndReturnInputType(inputText, panicText, desiredType, repeatUntilValid: true);
-                if (rawInput != null && rawInput.GetType() == desiredType) 
-                {
-                    int fileNumber = (int)rawInput;
+                object? rawInput = 
+                    Input.WriteTextAndReturnInputType(
+                        inputText, 
+                        panicText, 
+                        desiredType: typeof(int), 
+                        repeatUntilValid: true, 
+                        isOptionNumber: true
+                    );
+
+                if (rawInput != null) 
+                { 
+                    if (!int.TryParse(rawInput.ToString(), out int fileNumber)){
+                        continue;
+                    }
                     
-                    if (fileNumber < 1 || fileNumber > numberOfFilesFound) { 
-                        inputText = panicText; 
+                    if (fileNumber < 1 || fileNumber > numberOfFilesFound) {
+                        WriteMessage(panicText, isError: true);
                         continue; 
                     }
                     return fileNumber - 1; // index = fileNumber - 1;
@@ -938,24 +945,25 @@ namespace BrowserAutomationMaster.Parsing
             switch (selection)
             {
                 case MenuOption.Add:
-                    string input = Input.WriteTextAndReturnRawInput(
-                        "Drag and drop the file you wish to add to the userScripts directory, or enter 'exit'.\n\n"
-                    ) ?? "exit";
+                    string input = Input.WriteListFromOptions(
+                        options: ["Select a File", "Exit"]
+                    );
 
-                    if (input.Equals("exit")) { 
+                    if (input.Equals("Exit")) { 
                         Errors.WriteErrorAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
                     }
-
-                    if (!File.Exists(input)) { 
+                    string path = Input.WriteTextAndReturnRawInput("Path: ");
+                    if (!File.Exists(path))
+                    {
                         Errors.WriteErrorAndExit(
                             message:
                                 "BAMM Manager (BAMM) was unable to find the provided file, " +
-                                $"please ensure the file below exists:\n{input}", 
+                                $"please ensure the file below exists:\n{path}",
                             status: 1
-                        ); 
+                        );
                     }
-                    UserScriptManager _ = new(input, "add");
-                    return KeyValuePair.Create(MenuOption.Add, input);
+                    UserScriptManager _ = new(path, "add");
+                    return KeyValuePair.Create(MenuOption.Add, path);
 
                 case MenuOption.Compile:
                     HandleBAMCFileValidation(BAMCFiles);

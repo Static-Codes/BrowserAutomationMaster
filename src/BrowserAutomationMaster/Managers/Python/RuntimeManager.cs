@@ -178,7 +178,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 ); 
             }
             PythonValidationResult result = ScriptValidationManager.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
-            Spectre.Console.AnsiConsole.Write(result.Output);
+            Spectre.Console.AnsiConsole.Write($"{result.Output}\n");
             if (!result.IsValid) {
                 Errors.WriteErrorAndExit(
                     message: 

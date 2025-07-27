@@ -1,4 +1,6 @@
 ﻿using BrowserAutomationMaster.Managers;
+using Spectre.Console;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static BrowserAutomationMaster.Managers.AnsiManager;
@@ -148,10 +150,11 @@ namespace BrowserAutomationMaster.Messaging
                 { "wait-for-seconds", "wait-for-seconds 5\n\nThis command also accepts decimals, so if you want to wait for 1/5 of a second (200ms), just type .2" },
                 { "add", "bamm add \"path\to\file.bamc\"\n" },
                 { "--set-timeout", "bamm --set-timeout 5\n\nThis sets the timeout for all actions to 5 seconds.\n" },
-                { "async", "feature \"async\"\n" },
+                //{ "async", "feature \"async\"\n" },
                 { "browser", "browser \"chrome\"\nbrowser \"firefox\"\n" },
-                { "bypass-cloudflare", "feature \"bypass-cloudflare\"\n" },
+                //{ "bypass-cloudflare", "feature \"bypass-cloudflare\"\n" },
                 { "disable-pycache", "feature \"disable-pycache\"\n" },
+                { "disable-ssl", "feature \"disable-ssl\"\n"},
                 { "use-http-proxy", "feature \"use-http-proxy\"\n" },
                 { "use-https-proxy", "feature \"use-https-proxy\"\n" },
                 { "use-socks4-proxy", "feature \"use-socks4-proxy\"\n" },
@@ -168,11 +171,14 @@ namespace BrowserAutomationMaster.Messaging
         public static void ShowCommandDetails(string command)
         {
             if (command.Trim() == "bamm help --all") { DisplayAvailableCommands(); }
-            else {
+            if (command.Trim() == "exit") { Environment.Exit(0); } // Replace with Menu.WriteAndReturnToMenu(message: "Press any key to continue")
+            else
+            {
                 // Ensures no invalid command will be passed to show
-                while (string.IsNullOrEmpty(command) || !AllCommands.TryGetValue(command, out string? _)) {
+                while (string.IsNullOrEmpty(command) || !AllCommands.TryGetValue(command, out string? _))
+                {
                     Errors.WriteErrorAndContinue(
-                        "Invalid command provided, for more information on valid commands, please type:\n\nbamm help --all"
+                        $"Invalid command provided, for more information on valid commands, please type:\n\nbamm help --all"
                         );
 
                     command = Input.WriteTextAndReturnRawInput("Please provide a valid command for more information.\n") ?? "";
@@ -185,7 +191,7 @@ namespace BrowserAutomationMaster.Messaging
             // Ensures no invalid command will be passed to show
             while (string.IsNullOrEmpty(command) || !AllCommands.TryGetValue(command, out string? _))
             {
-                Errors.WriteErrorAndContinue("Invalid command provided, for more information on valid commands, please type:\n\nbamm help --all");
+                Errors.WriteErrorAndContinue($"Invalid command {command} provided, for more information on valid commands, please type:\n\nbamm help --all");
                 command = Input.WriteTextAndReturnRawInput("Please provide a valid command for more information.\n") ?? "";
             }
             Success.WriteSuccessMessage($"\nCommand: {command}\n\nExample(s):\n{GetExampleOfCommand(command)}");

@@ -936,7 +936,7 @@ namespace BrowserAutomationMaster.Compilation
                             $"Exception:\n\n{ex.InnerException}"
                     );
                 }
-                string input = Input.WriteTextAndReturnRawInput("Would you like to continue compilation? [y/n]: ") ?? "n";
+                string input = Input.WriteTextAndReturnRawInput("Would you like to continue compilation? [y/n]: ");
                 if (!input.Trim().Equals("y", StringComparison.OrdinalIgnoreCase)) {
                     return false;
                 }
