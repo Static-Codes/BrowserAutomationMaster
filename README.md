@@ -3,11 +3,11 @@
 
 A custom scripting language that compiles into Python 3.9+ code.
 
-Selenium automation in Python can involve a lot of repetitive code and detailed setup. BAM simplifies that process by allowing you to write automation scripts in a more concise, readable, and English-like language. This script is then passed to the compiler, which generates a Python file, effectively reducing the amount of boilerplate you need to manage.
+Selenium automation in Python can involve a lot of repetitive code and detailed setup. BAM Manager simplifies that process by allowing you to write automation scripts in a more concise, readable, and English-like language. This script is then passed to the compiler, which generates a Python file, effectively reducing the amount of boilerplate you need to manage.
 
 
 ## Quick Start Guide 🚀
-- To get started with BrowserAutomationMaster, please follow the [Quick Start Guide](https://static-codes.github.io/BrowserAutomationMaster/)
+- To get started with Browser Automation Master, please follow the [Quick Start Guide](https://static-codes.github.io/BrowserAutomationMaster/)
 
 
 ## Table of Contents 📖
