@@ -5,3 +5,6 @@ MEMORYSTATUSEX
 SetConsoleMode
 GetConsoleMode
 GetStdHandle
+AttachConsole
+FreeConsole
+STD_HANDLE

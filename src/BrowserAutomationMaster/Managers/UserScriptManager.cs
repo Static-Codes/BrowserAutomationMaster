@@ -119,7 +119,7 @@ namespace BrowserAutomationMaster.Managers
                     $"\nThe file '{fileName}' already exists in the userScript directory. Overwrite? [y/n]:\n"
                 ) ?? "n";
 
-                if (!response.ToLower().Trim().Equals("y")) {
+                if (!response.Equals("y")) {
                     Errors.WriteErrorAndExit("Operation canceled by user, exiting...", 0);
                     return;
                 }
@@ -127,10 +127,19 @@ namespace BrowserAutomationMaster.Managers
             }
 
             try {
-                File.Copy(sourceFilePath, scriptPath, overwrite);
-                Success.WriteSuccessMessage(
-                    $"\nSuccessfully {(overwrite ? "overwritten" : "added")} '{fileName}' to the userScript directory.\n"
-                );
+                if (sourceFilePath != scriptPath)
+                {
+                    File.Copy(
+                        sourceFilePath,
+                        destFileName: scriptPath,
+                        overwrite
+                    );
+                    Success.WriteSuccessMessage(
+                        $"\nSuccessfully {(overwrite ? "overwritten" : "added")} '{fileName}' to the userScript directory.\n"
+                    );
+                    return;
+                }
+                Errors.WriteErrorAndExit($"\nBAM Manager (BAMM) was unable to overwrite {fileName}\nError log:\n\nThe Source Path is the same as the Destination Path.", status: 1);
             }
             catch (UnauthorizedAccessException ex) {
                 Errors.WriteErrorAndExit(
@@ -250,15 +259,15 @@ namespace BrowserAutomationMaster.Managers
 
                         string response = Input.WriteTextAndReturnRawInput(
                             "Would you like to manually enter the username? [y/n]: "
-                        ) ?? "n";
+                        );
 
-                        bool manuallyEntering = response.ToLower().Equals("y");
+                        bool manuallyEntering = response.Equals("y");
 
                         if (manuallyEntering)
                         {
                             username = Input.WriteTextAndReturnRawInput(
                                 "Please enter the exact username of the current active user: "
-                            ) ?? string.Empty;
+                            );
 
                             if (string.IsNullOrEmpty(username)) {
                                 Errors.WriteErrorAndExit(

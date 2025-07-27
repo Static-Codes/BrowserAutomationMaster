@@ -8,8 +8,12 @@ using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 
+
+
+ProcessManager.CheckForMultipleInstances();
 // Working
 ConfigManager.GlobalConfig = ConfigManager.LoadConfig();
+
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
@@ -32,8 +36,10 @@ if (!pArgs.Any(arg => nonUserScriptArgs.Contains(arg))) {
     await UpdateManager.CheckForUpdate(); // New releases are fun - Ghandi probably.
 }
 
-
-if (pArgs.Length == 2 && !nonUserScriptArgs.Contains(pArgs[0].ToLower())) { isCLI = true; } // Set CLI True if a validCLIArg is passed.
+// Set CLI True if a validCLIArg is passed.
+if (pArgs.Length == 2 && !nonUserScriptArgs.Contains(pArgs[0].ToLower())) { 
+    isCLI = true; 
+}
 
 
 // Handles direct CLI cases
@@ -50,7 +56,7 @@ if (isCLI) {
 // Handles cases where file is double clicked. (Functions the same as bamm add "file.bamc") The file is added to userScripts directory.
 if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pArgs[0])) {
     var __ = new UserScriptManager(pArgs[0], "add");
-    string input = Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ") ?? "n";
+    string input = Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ");
     bool wantsToContinue = input.Trim().Equals("y", StringComparison.OrdinalIgnoreCase);
     if (!wantsToContinue) { isRunning = false; }
 }
@@ -73,9 +79,9 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
 
         string deleteInput = Input.WriteTextAndReturnRawInput(
             "Are you sure you want to delete the 'userScripts' directory? [y/n]:\n"
-        ) ?? "n";
+        );
 
-        if (deleteInput.ToLower().Trim().Equals("y")) {
+        if (deleteInput.Equals("y")) {
             DirectoryManager.DeleteDirectory(
                 UserScriptManager.GetUserScriptDirectory()
             );
@@ -85,8 +91,8 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
     else if (pArgs[1].Equals("compiled", StringComparison.CurrentCultureIgnoreCase)) {
         string input = Input.WriteTextAndReturnRawInput(
             "Are you sure you want to delete the 'compiled' directory? [y/n]:\n"
-        ) ?? "n";
-        if (input.ToLower().Trim().Equals("y")) {
+        );
+        if (input.Equals("y")) {
             DirectoryManager.DeleteDirectory(DirectoryManager.GetDesiredSaveDirectory());
         }
         else { isRunning = false; }

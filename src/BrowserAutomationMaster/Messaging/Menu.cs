@@ -1,4 +1,5 @@
-﻿using static BrowserAutomationMaster.Managers.AnsiManager;
+﻿using Spectre.Console;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -24,30 +25,26 @@ namespace BrowserAutomationMaster.Messaging
                 { 4, MenuOption.Help },
                 { 5, MenuOption.Exit },
             };
-            string menuText = "\nWelcome to the BAM Manager (BAMM)!\n\n" +
-                "Please select the number correlating to your desired action from the menu options below:\n\n" +
+            var selectionPrompt = new SelectionPrompt<string>()
+                .HighlightStyle(new Style(
+                    foreground: ToSpectreColor(GetColors().newFG),
+                    background: ToSpectreColor(GetColors().newBG),
+                    decoration: Decoration.Bold
+                ))
+                .Title("[bold blue]Welcome to the BAM Manager (BAMM)![/]\n\n" +
+                        "Please select your desired action from the menu options below:")
+                .AddChoices([.. menuOptionsMapping.Values.Select(x => x.ToString())])
+                .PageSize(10);
 
-                "1. Add local .BAMC File to userScripts Directory\n" +
-                "2. Compile .BAMC File from userScripts Directory\n" +
-                "3. Run .py script compiled by BAMM\n" +
-                "4. Help\n" +
-                "5. Exit\n\n";
 
-            string invalidChoiceText =
-                $"Invalid option please enter a number between 1 and {menuOptionsMapping.Count}.\n\n{menuText}";
 
-            WriteMessage(menuText);
-            while (true)
-            {
-                // ? Declares userChoice as a nullable value, as input cannot be verified without sanitization.
-                bool validChoice = int.TryParse(ReadLine(), out int optionNumber);
-                if (validChoice && menuOptionsMapping.TryGetValue(optionNumber, out MenuOption selection))
-                {
-                    Spectre.Console.AnsiConsole.Clear(); // Clears Terminal prior to proceeding.
-                    return selection;
+                string selectedDisplayOption = AnsiConsole.Prompt(selectionPrompt);
+                bool parsed = Enum.TryParse(typeof(MenuOption), selectedDisplayOption, out object? selectedMenuOption);
+
+                if (parsed && selectedMenuOption is MenuOption castedOption){
+                    return castedOption;
                 }
-                Errors.WriteErrorAndContinue(invalidChoiceText);
-            }
+                return MenuOption.Invalid;
         }
     }
 }

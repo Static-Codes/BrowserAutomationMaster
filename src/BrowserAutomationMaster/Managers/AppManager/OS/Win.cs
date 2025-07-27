@@ -1,11 +1,13 @@
+
+using BrowserAutomationMaster.Messaging;
+using Microsoft.Win32;
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
-using BrowserAutomationMaster.Messaging;
-using Microsoft.Win32;
-using Windows.Win32;
 using System.Runtime.InteropServices;
+using Windows.Win32;
 using Windows.Win32.System.SystemInformation;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
@@ -181,16 +183,16 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             if (python3Paths.Length == 1) { return python3Paths[0]; }
 
-            string choicesMessage = "Multiple Python 3 interpreters found.\n";
-            for (int i = 0; i < python3Paths.Length; i++) { choicesMessage += $"{i + 1}. {python3Paths[i]}\n"; }
-
-            string promptMessage = choicesMessage + 
-                $"Please select the number correlating to your desired intepreter version.\n" +
-                $"Between [1-{python3Paths.Length}]:\n";
+            var choicesMessage = "Multiple Python 3 interpreters found.\n";
+            string[] choices = new string[python3Paths.Length];
+            for (int i = 0; i < python3Paths.Length; i++) {
+                choices[i] = $"{i + 1}. {python3Paths[i]}\n";
+            }
 
             while (true)
             {
-                string rawChoice = Input.WriteTextAndReturnRawInput(promptMessage) ?? "";
+                WriteMessage(choicesMessage, isWarning: true);
+                string rawChoice = Input.WriteListFromOptions(choices);
                 if (int.TryParse(rawChoice, out int choice) && choice >= 1 && choice <= python3Paths.Length) { 
                     return python3Paths[choice - 1]; 
                 }
