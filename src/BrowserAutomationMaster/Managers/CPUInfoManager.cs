@@ -5,6 +5,7 @@ using System.Runtime.Intrinsics.X86;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.ConfigManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -87,17 +88,23 @@ namespace BrowserAutomationMaster.Managers
         public bool HasEnoughCores()
         {
             if (Cores < 2) { return false; }
-            if (Cores <= 4) { 
-                Success.WriteSuccessMessage(message: 
-                        $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
-                        $"this might impact your performance slightly if your CPU is older.\n"
-                ); 
+            if (Cores <= 4) {
+                if (GlobalConfig.ShowCpuCheck) {
+                    Warning.Write(
+                        message:
+                            $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
+                            $"this might impact your performance slightly if your CPU is older.\n"
+                    );
+                }
             }
-            else { 
-                Success.WriteSuccessMessage(message: 
+            else {
+                if (GlobalConfig.ShowCpuCheck)
+                {
+                    Success.WriteSuccessMessage(message:
                     $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
                     $"you should not experience any performance issues directly related to your CPU.\n"
-                ); 
+                    );
+                }
             }
             return true;
         }
@@ -132,10 +139,8 @@ namespace BrowserAutomationMaster.Managers
         }
     }
 
-    internal class CPUCoreManager() // This doesn't need to be public
+    public class CPUCoreManager() // This doesn't need to be public
     {
-
-
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static int GetCoreCount()

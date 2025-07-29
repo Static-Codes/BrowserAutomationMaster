@@ -1,7 +1,6 @@
-﻿using BrowserAutomationMaster.Messaging;
-using Spectre.Console;
+﻿using Spectre.Console;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using static BrowserAutomationMaster.Managers.ConfigManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -20,7 +19,6 @@ namespace BrowserAutomationMaster.Managers
                 var paddedLine = line.PadRight(Console.WindowWidth);
 
                 AnsiConsole.Write(paddedLine);
-                //Spectre.Console.AnsiConsole.Write(line);
                 if (i < lines.Length){
                     AnsiConsole.WriteLine();
                 }
@@ -28,51 +26,33 @@ namespace BrowserAutomationMaster.Managers
         }
         public static void SetAnsiColors(bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
-            Color oldBG = AnsiConsole.Background;
             Color oldFG = AnsiConsole.Foreground;
-
-            var (newBG, newFG) = GetColors(isSuccess, isWarning, isError);
-            
-            if (!oldBG.Equals(newBG)) {
-                AnsiConsole.Background = ToSpectreColor(newBG);
-            }
-
+            var newFG = GetForeground(isSuccess, isWarning, isError);
             if (!oldFG.Equals(newFG)) {
-                AnsiConsole.Foreground = ToSpectreColor(newFG);
+                AnsiConsole.Foreground = newFG;
             }
         }
-        public static (System.Drawing.Color newFG, System.Drawing.Color newBG) GetColors(bool isSuccess = false, bool isWarning = false, bool isError = false)
+        public static Color GetAccentColor()
         {
-            System.Drawing.Color newBackgroundColor;
-            System.Drawing.Color newForegroundColor;
-            if (ConfigManager.GlobalConfig != null && ConfigManager.GlobalConfig.ThemeType != null)
-            {
-
-                newBackgroundColor = ConfigManager.GlobalConfig!.ThemeType.BackgroundColor;
-
-                newForegroundColor = (isSuccess, isWarning, isError) switch
-                {
-                    (true, false, false) => ConfigManager.GlobalConfig!.ThemeType.SuccessColor,
-                    (false, true, false) => ConfigManager.GlobalConfig!.ThemeType.WarningColor,
-                    (false, false, true) => ConfigManager.GlobalConfig!.ThemeType.ErrorColor,
-                    _ => ConfigManager.GlobalConfig!.ThemeType.ForegroundColor
-                };
-                return (newBackgroundColor, newForegroundColor);
-            }
-
-            newBackgroundColor = ThemeManager.DefaultTheme.BackgroundColor;
-
-            newForegroundColor = (isSuccess, isWarning, isError) switch
-            {
-                (true, false, false) => ThemeManager.DefaultTheme.SuccessColor,
-                (false, true, false) => ThemeManager.DefaultTheme.WarningColor,
-                (false, false, true) => ThemeManager.DefaultTheme.ErrorColor,
-                _ => ThemeManager.DefaultTheme.ForegroundColor
-            };
-            return (newBackgroundColor, newForegroundColor);
-
+            return ToSpectreColor(GlobalConfig.ThemeType.AccentColor);
         }
-
+        public static Color GetForeground(bool isSuccess = false, bool isWarning = false, bool isError = false)
+        {
+            return (isSuccess, isWarning, isError) switch
+            {
+                (true, false, false) => ToSpectreColor(GlobalConfig.ThemeType.SuccessColor),
+                (false, true, false) => ToSpectreColor(GlobalConfig.ThemeType.WarningColor),
+                (false, false, true) => ToSpectreColor(GlobalConfig.ThemeType.ErrorColor),
+                _ => ToSpectreColor(GlobalConfig.ThemeType.ForegroundColor)
+            };
+        }
+        public static (Color HighlightBackground, Color HighlightForeground) GetHighlights()
+        {
+            return (
+                ToSpectreColor(GlobalConfig.ThemeType.HighlightBackground), 
+                ToSpectreColor(GlobalConfig.ThemeType.HighlightForeground)
+            );
+        }
         public static Color ToSpectreColor(System.Drawing.Color color)
         {
             return new Color(color.R, color.G, color.B);
@@ -101,13 +81,11 @@ namespace BrowserAutomationMaster.Managers
 
             return result.Length > 0 ? result.ToString() : value;
         }
-
         public static Style GetStyle(bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
-            var (newBG, newFG) = GetColors(isSuccess, isWarning, isError);
+            var newFG = GetForeground(isSuccess, isWarning, isError);
             return new Style(
-                foreground: ToSpectreColor(newFG),
-                background: ToSpectreColor(newBG)
+                foreground: newFG
             );
         }
     }

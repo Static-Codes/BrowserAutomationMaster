@@ -15,19 +15,26 @@
 - Added `feature` line validation in `Parsing.Parser.cs`
 - Added support for Fedora based Linux Distros (CentOS, Oracle Linux, Qubes, etc) via a .RPM package
 - Cleaned up `Parsing.Parser.cs`.
-- Created `Managers.AnsiManager`, `Managers.ConfigManager`, and `Managers.ThemeManager`
+- Created `Managers.AnsiManager`.
+- Created `Managers.CommandManager`.
+- Created `Managers.CommandTypes`.
+- Created `Managers.ConfigManager`.
+- Created `Managers.ThemeManager`.
 - Created `BrowserAutomationMaster.Transpiler` namespace
+- Created `BrowserAutomationMaster.Types`
+- Created `Types.Command`
 - Increased BAMC JavaScript validation accuracy
 - Increased BAMC URL validation accuracy
 - Moved code from `Transpiler.cs` to `CompilationHandler.cs`
 - Moved `Parsing.Parser.Menu` and `Parsing.Parser.MenuOptions` to `Messaging.Menu`
 - Moved `Transpiler.cs` and `CompilationHandler.cs` to `BrowserAutomationMaster.Transpiler`
-- Refactored Managers.AppManager.OS.Win.GetPhysicalCoreCount to use CSWin32 for increased stability.
+- Refactored `Messaging.Help` to use new class `Types.Command`
+- Refactored `Managers.AppManager.OS.Win.GetPhysicalCoreCount()` to use CSWin32 for increased stability.
 - Refactored `Managers.Python.VEnvManager` and `Managers.UpdateManager` to be asynchronous
 - Removed 300+ lines of bloat from Parsing.Transpiler
 - Removed redundant OS checks and tightened Windows checks.
 - Removed unused features `async` and `bypass-cloudflare`
-- Renamed internal class Managers.AppManager.OS.Windows -> Managers.AppManager.OS.Win
+- Renamed internal class to prevent naming conflicts, `Managers.AppManager.OS.Windows` -> `Managers.AppManager.OS.Win`
 
 ### New Action Commands:
 

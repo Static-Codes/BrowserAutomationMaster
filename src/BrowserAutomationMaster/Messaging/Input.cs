@@ -1,5 +1,4 @@
-﻿using BrowserAutomationMaster.Managers;
-using Spectre.Console;
+﻿using Spectre.Console;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Messaging
@@ -13,10 +12,10 @@ namespace BrowserAutomationMaster.Messaging
             {
                 inputMessage = inputMessage.Replace("[y/n]:", "");
 
-                prompt =
-                    new TextPrompt<string>(Markup.Escape(inputMessage))
-                        .AddChoices(["y", "n"])
-                        .PromptStyle(GetStyle());
+                prompt = new TextPrompt<string>(
+                    Markup.Escape(inputMessage)
+                ).AddChoices(["y", "n"]);
+
                 return AnsiConsole.Prompt(prompt);
             }
             prompt = new TextPrompt<string>(Markup.Escape(inputMessage));
@@ -25,15 +24,24 @@ namespace BrowserAutomationMaster.Messaging
 
         public static string WriteListFromOptions(string[] options)
         {
-            var prompt = new SelectionPrompt<string>()
-                .HighlightStyle(new Style(
-                    foreground: ToSpectreColor(GetColors().newFG),
-                    background: ToSpectreColor(GetColors().newBG),
-                    decoration: Decoration.Bold
-                ))
-                .Title("Please select your desired action from the menu options below:")
-                .AddChoices(options.Select(opt => opt.EscapeMarkup()))
-                .PageSize(Math.Max(1, options.Length / 2));
+            SetAnsiColors();
+            var (bgColor, fgColor) = GetHighlights();
+            var style = new Style(
+                foreground: fgColor,
+                background: bgColor,
+                decoration: Decoration.Bold
+            );
+            var prompt = new SelectionPrompt<string>() {
+                SearchEnabled = true,
+            }
+            .HighlightStyle(style)
+            .Title("Please select your desired action from the menu options below:")
+            .AddChoices(
+                options.Select(
+                    opt => opt.EscapeMarkup()
+                )
+            )
+            .PageSize(Math.Max(3, options.Length / 2));
 
             return AnsiConsole.Prompt(prompt);
         }
