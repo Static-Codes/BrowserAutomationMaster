@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.ConfigManager;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -142,11 +143,14 @@ namespace BrowserAutomationMaster.Managers.Python
             // 4GiB Total and 1GiB free.
             else if (totalMemoryMB == 4096 && freeMemoryMB >= 1024)
             {
-                Success.WriteSuccessMessage(
-                    "BAM Manager (BAMM) determined you running on the minimum RAM requirements, " +
-                    "but you have enough free RAM (1GB) for most automation tasks."
-                );
+                if (GlobalConfig.ShowMemoryCheck) {
+                    Success.WriteSuccessMessage(
+                        "BAM Manager (BAMM) determined you running on the minimum RAM requirements, " +
+                        "but you have enough free RAM (1GB) for most automation tasks."
+                    );
+                }
             }
+            
             return true;
         }
         public static void DoRuntimeCheck()
@@ -163,7 +167,6 @@ namespace BrowserAutomationMaster.Managers.Python
                     status: 1
                 );
             }
-
         }
         private void ValidateScript()
         {
@@ -189,7 +192,6 @@ namespace BrowserAutomationMaster.Managers.Python
                 );
             }
         }
-
         public static string HandleUserScriptChoice()
         {
             string saveDirectory = DirectoryManager.GetDesiredSaveDirectory();
@@ -226,15 +228,15 @@ namespace BrowserAutomationMaster.Managers.Python
                         }
                     }
                 }
-                if (index == 0) { 
+                if (index == 0) {
                     Errors.WriteErrorAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
                             $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
                             $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                            $"Error log:\n: No compiled scripts found in {saveDirectory}", 
+                            $"Error log:\n: No compiled scripts found in {saveDirectory}",
                         status: 1
-                    ); 
+                    );
                 }
                 
                 Success.WriteSuccessMessage($"BAM Manager (BAMM) successfully detected {index} scripts.\n");
@@ -263,7 +265,6 @@ namespace BrowserAutomationMaster.Managers.Python
             }
             return usersChoice;
         }
-
         public async Task<bool> RunScript()
         {
             ValidateScript();

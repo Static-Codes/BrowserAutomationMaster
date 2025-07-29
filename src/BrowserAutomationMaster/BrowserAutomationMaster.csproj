@@ -37,6 +37,7 @@
 		<RepositoryUrl>https://github.com/Static-Codes/BrowserAutomationMaster/</RepositoryUrl>
 	</PropertyGroup>
 
+	<!-- Debian Package Metadata-->
 	<PropertyGroup Condition="'$(BuildDebPackage)' == 'true'">
 		<DebianPackageMaintainer>$(Authors)</DebianPackageMaintainer>
 		<DebianPackageDescription>$(Description)</DebianPackageDescription>
@@ -49,6 +50,8 @@
 		<DebianDesktopName>$(CommonDesktopName)</DebianDesktopName>
 	</PropertyGroup>
 
+
+	<!-- Fedora Package Metadata-->
 	<PropertyGroup Condition="'$(BuildRpmPackage)' == 'true'">
 		<RpmPackageName>$(CommonPackageName)</RpmPackageName>
 		<RpmVersion>$(CommonPackageVersion)</RpmVersion>

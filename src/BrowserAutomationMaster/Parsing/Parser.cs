@@ -4,6 +4,7 @@ using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Menu;
+using static BrowserAutomationMaster.Managers.CommandManager;
 
 
 namespace BrowserAutomationMaster.Parsing
@@ -241,28 +242,26 @@ namespace BrowserAutomationMaster.Parsing
         public static void HandleHelpSelection()
         {
             while (true) {
-                Help.DisplayAvailableCommands();
-
-                string? command = Input.WriteTextAndReturnRawInput(
-                    "Please find the command you wish to learn more about, then type it below."
-                ) ?? "Not Found";
-
+                string command = Input.WriteListFromOptions([.. CommandList.Select(cmd => cmd.Name), "Exit App"]);
                 Help.ShowCommandDetails(command.Trim());
 
-                (Input.WriteTextAndReturnRawInput(
+                string choice = Input.WriteTextAndReturnRawInput(
                     "\nWould you like to continue learning more about BAM Manager (BAMM)? [y/n]:"
-                ) ?? "n").ToLower().Trim().Equals("y");
+                );
+                if (!choice.Equals("y")) {
+                    Environment.Exit(1);
+                }
             }
         }
         public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
             string selectorString = "selector"; // Defaults to "selector" for selector based actions
             string trimmedLine = line.Trim();
-            if (trimmedLine.StartsWith(" //") || trimmedLine.StartsWith("//")) { return true; } // This is assumed as a comment
+            if (line.StartsWith(" //") || line.StartsWith("//")) { return true; } // This is assumed as a comment
 
-            if (trimmedLine.StartsWith("add-headers")) {
+            if (line.StartsWith("add-headers")) {
                 selectorString = $"{{\"header-name\": \"header-value\", \"header-name2\": \"header-value2\"}}";
-                if (!IsValidHeaderFormat(trimmedLine)) {
+                if (!IsValidHeaderFormat(line)) {
                     return Errors.WriteErrorAndReturnBool(
                         message:
                             $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -280,9 +279,9 @@ namespace BrowserAutomationMaster.Parsing
             string[] lineArgSpecialCases = ["add-header",  "fill-text", "fill-text-exp", "set-custom-useragent"];
 
             // Special case to handle lineArgSpecialCases
-            if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg))) { lineArgs = trimmedLine.Split(" \""); } 
+            if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg))) { lineArgs = line.Split(" \""); } 
 
-            else { lineArgs = trimmedLine.Split(" "); } // Handle all others
+            else { lineArgs = line.Split(" "); } // Handle all others
 
             string firstArg = lineArgs[0];
             switch (firstArg)
@@ -669,7 +668,7 @@ namespace BrowserAutomationMaster.Parsing
             {
                 List<string> lines = [.. 
                     File.ReadAllLines(filePath)
-                    .Select(line => line.Trim())
+                    .Select(line => DeleteCommentIfPresent(line.Trim()))
                     .Where(line => !string.IsNullOrWhiteSpace(line))
                 ];
                 string currentJSBlockContent = string.Empty;
@@ -683,14 +682,13 @@ namespace BrowserAutomationMaster.Parsing
                 {
                     string selectorString = "value";
                     string line = lines[i];
-                    string trimmedLine = DeleteCommentIfPresent(line);
 
                     if (!jsBlockFinished) {
 
                         // At this point the following are true:
                         // There are atleast 3 lines in the file (visit, start-javascript, and end-javascript)
                         // Its also possible browser is defined at the top of the file.
-                        if (trimmedLine.StartsWith("end-javascript")) {
+                        if (line.StartsWith("end-javascript")) {
                             if (!JavaScript.IsValidSyntax(currentJSBlockContent, out string? jsError)) {
                                 string surroundingLines = 
                                     $"Line {i-2} -> {lines[i - 2]}\n" +
@@ -709,7 +707,7 @@ namespace BrowserAutomationMaster.Parsing
                             }
                             jsBlockFinished = true; 
                         }
-                        else if (trimmedLine.StartsWith("start-javascript")) {
+                        else if (line.StartsWith("start-javascript")) {
                             lineCurrentJSBlockStarts = i + 1;
                             return Errors.WriteErrorAndReturnBool(
                                 message:
@@ -727,7 +725,7 @@ namespace BrowserAutomationMaster.Parsing
                     }
                     else
                     {
-                        string[] lineArgs = trimmedLine.Split(" ");
+                        string[] lineArgs = line.Split(" ");
                         if (lineArgs.Length == 0) { return false; }
                         string firstArg = lineArgs[0];
                         if (firstArg.Equals("browser"))
@@ -853,15 +851,15 @@ namespace BrowserAutomationMaster.Parsing
                                 );
                             }
                         }
-                        else if (trimmedLine.StartsWith("start-javascript")){ jsBlockFinished = false; }
-                        else if (trimmedLine.StartsWith("end-javascript")) {
+                        else if (line.StartsWith("start-javascript")){ jsBlockFinished = false; }
+                        else if (line.StartsWith("end-javascript")) {
                             jsBlockFinished = true;
                             currentJSBlockContent = string.Empty;
                         }
                         else {
-                            bool validLine = HandleLineValidation(fileName, trimmedLine, i + 1);
+                            bool validLine = HandleLineValidation(fileName, line, i + 1);
                             if (!validLine) { return false; }
-                            if (!trimmedLine.StartsWith("//")){ // Ignores comments
+                            if (!line.StartsWith("//")){ // Ignores comments
                                 // This flag will be used to ensure all 'feature' commands are placed before all other commands, excluding 'browser'.
                                 featureBlockFinished = true;
                             }

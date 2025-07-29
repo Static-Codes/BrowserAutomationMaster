@@ -1,8 +1,5 @@
 ﻿using BrowserAutomationMaster.Messaging;
-using Esprima.Ast;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -11,12 +8,12 @@ namespace BrowserAutomationMaster.Managers
 
     public partial class Config
     {
-        public required Theme ThemeType { get; set; } // Add functionality to convert convert 'BrowserAutomationMaster.Managers.Theme' to 'System.ConsoleColor'
+        public required Theme ThemeType { get; set; }
         public bool ShowCpuCheck { get; set; }
         public bool ShowMemoryCheck { get; set; }
         public bool ShowUpdateCheck { get; set; }
         public bool AutoCopyPath { get; set; }
-        public bool RunOnCompile { get; set; }
+        public bool RunOnCompile { get; set; } 
     }
     
     public partial class ConfigParser()
@@ -60,8 +57,15 @@ namespace BrowserAutomationMaster.Managers
     }
     public class ConfigManager
     {
-        public static Config? GlobalConfig { get; set; }
-
+        public static Config GlobalConfig { get; set; } = new() 
+        {
+            AutoCopyPath = false,
+            RunOnCompile = false,
+            ShowCpuCheck = true,
+            ShowMemoryCheck = true,
+            ShowUpdateCheck = false,
+            ThemeType = ThemeManager.DefaultTheme
+        };
 
         private static readonly Dictionary<string, List<KeyValuePair<string, string>>> rawSections = new()
         {
@@ -91,7 +95,6 @@ namespace BrowserAutomationMaster.Managers
             },
 
         };
-
         private static string ConfigDirectory { get; set; } = DirectoryManager.GetConfigDirectory();
         public static string ConfigFilePath { get; private set; } = Path.Combine(ConfigDirectory, "config.ini");
         private static string BuildConfigContents()
@@ -124,23 +127,66 @@ namespace BrowserAutomationMaster.Managers
         {
             return !string.IsNullOrEmpty(ConfigDirectory) && Directory.Exists(ConfigDirectory);
         }
-
         private static bool ConfigFileExists()
         {
             return !string.IsNullOrEmpty(ConfigFilePath) && File.Exists(ConfigFilePath);
         }
+        private static object? DoCast(string value, Type targetType)
+        {
 
+            if (targetType == typeof(bool))
+            {
+                return bool.Parse(value);
+            }
+
+            else if (targetType == typeof(int))
+            {
+                return int.Parse(value);
+            }
+
+            else if (targetType == typeof(string))
+            {
+                return value;
+            }
+
+            else if (targetType == typeof(Theme))
+            {
+                var themeName = char.ToUpper(value[0]) + value[1..] + "Theme";
+                var bindingAttr = BindingFlags.Public | BindingFlags.Static;
+                var name = string.Join("", themeName);
+                FieldInfo? field =
+                    typeof(ThemeManager).GetField(name, bindingAttr) ??
+                    throw new ArgumentException($"Theme '{value}' not found in ThemeManager (expected field '{themeName}').");
+
+                // I can't wrap my head around why:
+                // return field doesnt work
+                // but...
+                // field.GetValue(null) does??
+
+                return field.GetValue(null);
+            }
+            else if (targetType.IsEnum)
+            {
+                return Enum.Parse(
+                    enumType: targetType,
+                    value,
+                    ignoreCase: true
+                );
+            }
+            else
+            {
+                throw new InvalidCastException(
+                    $"Cannot convert value '{value}' to type '{targetType.Name}', as its currently not supported.\n" +
+                    "Please add this feature in ConfigManager.ConvertValue()"
+                );
+            }
+        }
         public static void EnsureConfigExists()
         {
             if (!ConfigDirectoryExists())
             {
-                try
-                {
+                try {
                     Directory.CreateDirectory(ConfigDirectory);
-                    //Success.WriteSuccessMessage(
-                    //    $"Successfully created config directory.\n" +
-                    //    $"Location: {ConfigDirectory}"
-                    //);
                 }
                 catch (Exception ex)
                 {
@@ -158,10 +204,6 @@ namespace BrowserAutomationMaster.Managers
                     string configContents = BuildConfigContents();
                     ValidateConfigContents(configContents);
                     File.WriteAllText(ConfigFilePath, configContents); // Null check is done in ConfigFileExists
-                    //Success.WriteSuccessMessage(
-                    //    $"Successfully created config directory.\n" +
-                    //    $"Location: {ConfigDirectory}"
-                    //);
                     return;
                 }
                 catch (Exception ex)
@@ -176,7 +218,7 @@ namespace BrowserAutomationMaster.Managers
             }
             try
             {
-                string configContents = File.ReadAllText(path: ConfigFilePath!, encoding: Encoding.UTF8);
+                string configContents = File.ReadAllText(path: ConfigFilePath, encoding: Encoding.UTF8);
                 ValidateConfigContents(configContents);
             }
             catch
@@ -210,6 +252,95 @@ namespace BrowserAutomationMaster.Managers
                 }
             }
             return propsAndFuncs;
+        }
+        public static void LoadConfig()
+        {
+            EnsureConfigExists();
+
+            var configContents = File.ReadAllText(ConfigFilePath, Encoding.UTF8);
+
+            string? currentSection = null;
+
+            var splitLines = configContents.Split('\n');
+
+            foreach (string originalLine in splitLines)
+            {
+                string trimmedLine = ConfigParser.RemoveCommentIfPresent(
+                    originalLine.Replace('\r', ' ').Trim()
+                );
+
+                if (string.IsNullOrWhiteSpace(trimmedLine)) { continue; }
+
+                if (trimmedLine.StartsWith('[') && trimmedLine.EndsWith(']'))
+                {
+                    currentSection = trimmedLine;
+                }
+                else if (currentSection != null)
+                {
+                    string[] parts = trimmedLine.Split('=', 2);
+                    if (parts.Length == 2)
+                    {
+                        var rawPropName = parts[0].Trim();
+                        var bindingAttr = BindingFlags.Public | BindingFlags.Instance;
+
+                        var propName = ConfigParser.ConvertSnakeToPascal(rawPropName);
+                        var propValue = parts[1].Trim();
+
+                        // Reflection was the only the way I found to access all properties of my class dynamically.
+                        PropertyInfo? property = typeof(Config).GetProperty(propName, bindingAttr);
+
+
+                        if (property == null)
+                        {
+                            // This error SHOULD be caught by ValidateConfigContents() but a fallback is nice.
+                            Errors.WriteErrorAndExit(
+                                Errors.GenerateErrorMessage(
+                                    fileName: "config.ini",
+                                    line: originalLine,
+                                    lineNumber: Array.IndexOf(splitLines, originalLine),
+                                    $"Property '{propName}' not found or not settable in Config class."
+                                ),
+                                status: 1
+                            );
+                        }
+
+
+                        try
+                        {
+
+                            // Casts the property's string value to the property's type.
+                            object? castedValue = DoCast(propValue, property.PropertyType);
+                            if (castedValue == null)
+                            {
+                                Errors.WriteErrorAndExit(
+                                    Errors.GenerateErrorMessage(
+                                        fileName: "config.ini",
+                                        line: originalLine,
+                                        lineNumber: Array.IndexOf(splitLines, originalLine),
+                                        $"Failed to convert value '{propValue}' for property '{propName}'."
+                                    ),
+                                    status: 1
+                                );
+                            }
+                            property.SetValue(GlobalConfig, castedValue);
+                            
+                        }
+                        catch (Exception ex)
+                        {
+                            Errors.WriteErrorAndExit(
+                                Errors.GenerateErrorMessage(
+                                    fileName: "config.ini",
+                                    line: originalLine,
+                                    lineNumber: Array.IndexOf(splitLines, originalLine),
+                                    $"Failed to convert value '{propValue}' for property '{propName}': {ex.Message}"
+                                ),
+                                status: 1
+                            );
+                        }
+                    }
+
+                }
+            }
         }
         private static void ValidateConfigContents(string configContents)
         {
@@ -340,148 +471,6 @@ namespace BrowserAutomationMaster.Managers
                 }
             }
         }
-
-        public static Config LoadConfig()
-        {
-            EnsureConfigExists();
-
-            var configContents = File.ReadAllText(ConfigFilePath!, Encoding.UTF8);
-
-            var config = new Config()
-            {
-                ThemeType = ThemeManager.DefaultTheme
-            };
-            string? currentSection = null;
-
-            var splitLines = configContents.Split('\n');
-
-            foreach (string originalLine in splitLines)
-            {
-                string trimmedLine = ConfigParser.RemoveCommentIfPresent(
-                    originalLine.Replace('\r', ' ').Trim()
-                );
-
-                if (string.IsNullOrWhiteSpace(trimmedLine)) { continue; }
-
-                if (trimmedLine.StartsWith('[') && trimmedLine.EndsWith(']'))
-                {
-                    currentSection = trimmedLine;
-                }
-                else if (currentSection != null)
-                {
-                    string[] parts = trimmedLine.Split('=', 2);
-                    if (parts.Length == 2)
-                    {
-                        var rawPropName = parts[0].Trim();
-                        var bindingAttr = BindingFlags.Public | BindingFlags.Instance;
-
-                        var propName = ConfigParser.ConvertSnakeToPascal(rawPropName);
-                        var propValue = parts[1].Trim();
-
-                        // Reflection was the only the way I found to access all properties of my class dynamically.
-                        PropertyInfo? property = typeof(Config).GetProperty(propName, bindingAttr);
-                              
-
-                        if (property == null)
-                        {
-                            // This error SHOULD be caught by ValidateConfigContents() but a fallback is nice.
-                            Errors.WriteErrorAndExit(
-                                Errors.GenerateErrorMessage(
-                                    fileName: "config.ini",
-                                    line: originalLine,
-                                    lineNumber: Array.IndexOf(splitLines, originalLine),
-                                    $"Property '{propName}' not found or not settable in Config class."
-                                ),
-                                status: 1
-                            );
-                        }
-
-
-                        try
-                        {
-                            // Casts the property's string value to the property's type.
-                            object? castedValue = DoCast(propValue, property.PropertyType);
-                            if (castedValue == null) {
-                                Errors.WriteErrorAndExit(
-                                    Errors.GenerateErrorMessage(
-                                        fileName: "config.ini",
-                                        line: originalLine,
-                                        lineNumber: Array.IndexOf(splitLines, originalLine),
-                                        $"Failed to convert value '{propValue}' for property '{propName}'."
-                                    ),
-                                    status: 1
-                                );
-                            }
-                            property.SetValue(config, castedValue);
-                        }
-                        catch (Exception ex)
-                        {
-                            Errors.WriteErrorAndExit(
-                                Errors.GenerateErrorMessage(
-                                    fileName: "config.ini",
-                                    line: originalLine,
-                                    lineNumber: Array.IndexOf(splitLines, originalLine),
-                                    $"Failed to convert value '{propValue}' for property '{propName}': {ex.Message}"
-                                ),
-                                status: 1
-                            );
-                        }
-                    }
-                    
-                }
-            }
-            return config;
-        }
-
-        private static object? DoCast(string value, Type targetType)
-        {
-
-            if (targetType == typeof(bool))
-            {
-                return bool.Parse(value);
-            }
-
-            else if (targetType == typeof(int))
-            {
-                return int.Parse(value);
-            }
-
-            else if (targetType == typeof(string))
-            {
-                return value;
-            }
-
-            else if (targetType == typeof(Theme))
-            {
-                var themeName = char.ToUpper(value[0]) + value[1..] + "Theme";
-                var bindingAttr = BindingFlags.Public | BindingFlags.Static;
-                var name = string.Join("", themeName);
-                FieldInfo? field = 
-                    typeof(ThemeManager).GetField(name, bindingAttr) ?? 
-                    throw new ArgumentException($"Theme '{value}' not found in ThemeManager (expected field '{themeName}').");
-
-                // I can't wrap my head around why:
-                // return field doesnt work
-                // but...
-                // field.GetValue(null) does??
-
-                return field.GetValue(null);
-            }
-            else if (targetType.IsEnum)
-            {
-                return Enum.Parse(
-                    enumType: targetType,
-                    value,
-                    ignoreCase: true
-                );
-            }
-            else
-            {
-                throw new InvalidCastException(
-                    $"Cannot convert value '{value}' to type '{targetType.Name}', as its currently not supported.\n" +
-                    "Please add this feature in ConfigManager.ConvertValue()"
-                );
-            }
-        }
+        
     }
 }

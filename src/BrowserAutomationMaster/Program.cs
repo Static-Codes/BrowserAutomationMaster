@@ -7,13 +7,13 @@ using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Menu;
-
+using static BrowserAutomationMaster.Managers.ConfigManager;
 
 
 ProcessManager.CheckForMultipleInstances();
-// Working
-ConfigManager.GlobalConfig = ConfigManager.LoadConfig();
+LoadConfig();
 
+Console.WriteLine(GlobalConfig.ShowUpdateCheck);
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
@@ -31,9 +31,12 @@ Console.Title = $"BrowserAutomationMaster Manager (BAMM!) {UpdateManager.Current
 bool isRunning = true;
 bool isCLI = false;
 
-if (!pArgs.Any(arg => nonUserScriptArgs.Contains(arg))) {
+if (!pArgs.Any(arg => nonUserScriptArgs.Contains(arg)))
+{
     RuntimeManager.DoRuntimeCheck();  // Set expectations regarding automation performance given the user's specs.
-    await UpdateManager.CheckForUpdate(); // New releases are fun - Ghandi probably.
+    if (GlobalConfig.ShowUpdateCheck) {
+        await UpdateManager.CheckForUpdate(); // New releases are fun - Ghandi probably.
+    }
 }
 
 // Set CLI True if a validCLIArg is passed.
@@ -97,12 +100,24 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
         }
         else { isRunning = false; }
     }
+    else if (pArgs[1].Equals("config", StringComparison.CurrentCultureIgnoreCase))
+    {
+        string input = Input.WriteTextAndReturnRawInput(
+            "Are you sure you want to delete the 'config' directory? [y/n]:\n"
+        );
+        if (input.Equals("y"))
+        {
+            DirectoryManager.DeleteDirectory(DirectoryManager.GetConfigDirectory());
+        }
+        else { isRunning = false; }
+    }
     else {
         Errors.WriteErrorAndContinue(
             "Invalid 'clear' command.\n\n" +
             "Valid commands:\n" +
-            "bamm clear userScripts\n" +
             "bamm clear compiled\n\n" +
+            "bamm clear config\n\n" +
+            "bamm clear userScripts\n" +
             "Press any key to continue..."
         );
         ReadKey();
@@ -168,6 +183,7 @@ while (isRunning)
                 Transpiler.New(parserResult.Value, args); 
             }
             break;
+
         case MenuOption.Compile:
             Transpiler.New(parserResult.Value, args);
             break;
@@ -178,7 +194,7 @@ while (isRunning)
             break;
 
         case MenuOption.Help:
-            Help.GetDescriptionOfCommand("bamm help --all");
+            Help.ShowCommandDetails("bamm help --all");
             break;
 
         case MenuOption.Invalid:

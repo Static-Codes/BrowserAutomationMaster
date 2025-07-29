@@ -1,5 +1,4 @@
-﻿
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Messaging;
@@ -67,10 +66,10 @@ namespace BrowserAutomationMaster.Managers
                 {
                     Errors.WriteErrorAndContinue(
                         message:
-                            $"BAM Manager (BAMM) was unable to check github for the latest version, " +
-                            $"if this issue persists, and you are positive your network connection is stable, " +
-                            $"please make a bug report at {ConstantManager.ISSUES_LINK}\n" +
-                            $"Error log:\n\n" +
+                            $"BAM Manager (BAMM) was unable to check github for the latest version.\n" +
+                            $"If this issue persists, " +
+                            $"please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\n" +
                             $"The response for the version request didn't contain a redirect status code (302), " +
                             $"contains: {response.StatusCode}."
                     );
@@ -78,12 +77,12 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndContinue(
-                    message:
-                    $"BAM Manager (BAMM) was unable to check github for the latest version, " +
-                    $"if this issue persists, and you are positive your network connection is stable, " +
-                    $"please make a bug report at {ConstantManager.ISSUES_LINK}\n" +
-                    $"Error log:\n{e.Message}");
+                Errors.WriteErrorAndReturnEmptyString(
+                    $"BAM Manager (BAMM) was unable to check github for the latest version.\n" +
+                    $"If this issue persists, " +
+                    $"please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                    $"Error log:\n{e.Message}"
+                );
             }
             string url = 
                 response.Headers.Location != null ? response.Headers.Location.AbsoluteUri : string.Empty;
@@ -104,7 +103,6 @@ namespace BrowserAutomationMaster.Managers
                 return url[(versionIndex + 1)..]; // returns vX.X.X
             }
             return string.Empty;
-
         }
         private static bool HasNetworkConnection()
         {

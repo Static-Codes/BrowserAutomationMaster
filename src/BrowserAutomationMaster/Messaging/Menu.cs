@@ -25,26 +25,32 @@ namespace BrowserAutomationMaster.Messaging
                 { 4, MenuOption.Help },
                 { 5, MenuOption.Exit },
             };
+
+            var accentColor = GetAccentColor().ToMarkup();
+            var (bgColor, fgColor) = GetHighlights();
+            var style = new Style(
+                foreground: fgColor,
+                background: bgColor,
+                decoration: Decoration.Bold
+            );
             var selectionPrompt = new SelectionPrompt<string>()
                 .HighlightStyle(new Style(
-                    foreground: ToSpectreColor(GetColors().newFG),
-                    background: ToSpectreColor(GetColors().newBG),
+                    foreground: GetForeground(),
                     decoration: Decoration.Bold
                 ))
-                .Title("[bold blue]Welcome to the BAM Manager (BAMM)![/]\n\n" +
+                .Title($"[{accentColor}]Welcome to the BAM Manager (BAMM)![/]\n\n" +
                         "Please select your desired action from the menu options below:")
                 .AddChoices([.. menuOptionsMapping.Values.Select(x => x.ToString())])
+                .HighlightStyle(style)
                 .PageSize(10);
 
+            var selectedDisplayOption = AnsiConsole.Prompt(selectionPrompt);
+            var parsed = Enum.TryParse(typeof(MenuOption), selectedDisplayOption, out object? selectedMenuOption);
 
-
-                string selectedDisplayOption = AnsiConsole.Prompt(selectionPrompt);
-                bool parsed = Enum.TryParse(typeof(MenuOption), selectedDisplayOption, out object? selectedMenuOption);
-
-                if (parsed && selectedMenuOption is MenuOption castedOption){
-                    return castedOption;
-                }
-                return MenuOption.Invalid;
+            if (parsed && selectedMenuOption is MenuOption castedOption){
+                return castedOption;
+            }
+            return MenuOption.Invalid;
         }
     }
 }

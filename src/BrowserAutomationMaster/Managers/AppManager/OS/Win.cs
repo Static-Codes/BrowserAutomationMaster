@@ -1,11 +1,14 @@
 
 using BrowserAutomationMaster.Messaging;
 using Microsoft.Win32;
+using Spectre.Console;
 using System.Diagnostics;
-using System.Runtime.Versioning;
-using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using System.Text;
+using System.Text.RegularExpressions;
 using Windows.Win32;
+using Windows.Win32.System.Console;
 using Windows.Win32.System.SystemInformation;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 
@@ -69,8 +72,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             try
             {
-                var config = ConfigManager.GlobalConfig;
-
                 if (args.Contains("--ignore-drive-root")) { return; }
                 string? rootDrive = Path.GetPathRoot(AppContext.BaseDirectory);
 
@@ -88,7 +89,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             catch (Exception e)
             {
-                Spectre.Console.AnsiConsole.Write(e.Message);
+                AnsiConsole.Write(e.Message);
             }
         }
 
@@ -364,8 +365,60 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         $"please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\n{errorMessage}.",
                     status: 1
                 );
+                return 0; // Wont be reached.
             }
-            return 0; // Wont be reached.
+        }
+
+        #endregion
+
+        #region P/Invoke AttachConsole + FreeConsole -> HandleMultipleInstances(string[] instances)
+        public static void HandleMultipleInstances(Process[] instances)
+        {
+            var instance = instances[0];
+            PInvoke.FreeConsole();
+            if (PInvoke.AttachConsole((uint)instance.Id))
+            {
+                var safeHandle = PInvoke.GetStdHandle_SafeHandle(STD_HANDLE.STD_ERROR_HANDLE);
+                using var fileStream = new FileStream(safeHandle, FileAccess.ReadWrite);
+                var standardOutput = new StreamWriter(fileStream, Encoding.UTF8)
+                {
+                    AutoFlush = true
+                };
+
+                var settings = new AnsiConsoleSettings
+                {
+                    Out = new AnsiConsoleOutput(standardOutput)
+                };
+
+                var console = AnsiConsole.Create(settings);
+
+                console.Write(
+                    new Text(
+                        "There was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
+                        new Style(foreground: ToSpectreColor(ThemeManager.DefaultTheme.ForegroundColor))
+                    )
+                );
+                PInvoke.FreeConsole();
+                if (!PInvoke.AttachConsole((uint)instances[1].Id))
+                {
+                    WriteMessage(
+                        "Unable to switch window handles, please restart BAMM, " +
+                        $"then make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nUnable to attach to the console associated with instance.",
+                        isError: true
+                    );
+                }
+            }
+            else
+            {
+                AnsiConsole.Write(
+                    new Text(
+                        "There was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
+                        new Style(foreground: ToSpectreColor(ThemeManager.DefaultTheme.ForegroundColor))
+                    )
+                );
+            }
+
         }
 
         #endregion
