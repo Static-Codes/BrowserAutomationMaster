@@ -4,6 +4,7 @@ using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 
 
 namespace BrowserAutomationMaster.Managers
@@ -31,17 +32,14 @@ namespace BrowserAutomationMaster.Managers
                 var instances = Process.GetProcessesByName(curProc.ProcessName);
                 if (instances.Length > 1)
                 {
-                    if (RuntimeManager.IsSupportedWindowsVersion())
-                    {
-                        Win.HandleMultipleInstances(instances);
+                    if (RuntimeManager.IsSupportedWindowsVersion()) {
+                        Win.HandleMultipleInstances(instances);  // Execution ends if this line is hit.
                     }
-                    else if (RuntimeManager.IsSupportedOSXVersion())
-                    {
-                    }
-                    else if (OperatingSystem.IsLinux())
-                    {
-
-                    }
+                    WriteMessage(
+                        "Only one instance of BAMM can be running at once, please close the current session and open bamm again.",
+                        isError: true
+                    );
+                    Environment.Exit(1);
                 }
             }
             catch (Exception ex)

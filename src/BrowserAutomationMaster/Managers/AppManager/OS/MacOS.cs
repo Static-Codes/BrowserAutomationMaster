@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
@@ -59,6 +58,22 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             return apps;
         }
-        
+
+        [Obsolete("Unused but left for future references")]
+        public static void HandleMultipleInstances(string procName)
+        {
+            // Since osx and linux are both unix like systems, they share relational similarities regarding certain command execution.
+            string output = Linux.RunCommand("pgrep", procName);
+            string[] instancePIDs = output.Split('\n');
+            int numberOfInstances = instancePIDs.Length;
+            if (numberOfInstances != 1)
+            {
+                WriteMessage(
+                    "Only one instance of BAMM can be running at once, please close the current session and open bamm again.",
+                    isError: true
+                );
+                Environment.Exit(1);
+            }
+        }
     }
 }

@@ -22,8 +22,7 @@ namespace BrowserAutomationMaster.Managers.Python
         }
         public static bool IsSupportedOSXVersion()
         {
-            return OperatingSystem.IsMacOS() && 
-                   OperatingSystem.IsMacCatalystVersionAtLeast(11);
+            return OperatingSystem.IsMacOSVersionAtLeast(11);
         }
         private static OSPlatform GetPlatform()
         {
@@ -86,7 +85,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 Errors.WriteErrorAndExit(
                     $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                     $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                    $"Error log:\nMemoryInfoManager.CheckForWindows() returned an invalid dictionary.", 
+                    $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary.", 
                     status: 1
                 );
             }

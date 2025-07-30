@@ -21,7 +21,7 @@ namespace BrowserAutomationMaster.Managers
             WarningColor: LightYellow,
             ErrorColor: LightRed,
             HighlightBackground: DarkGray,
-            HighlightForeground: DarkGreen,
+            HighlightForeground: OliveGreen,
             AccentColor: LightBlue
         );
 
@@ -31,7 +31,7 @@ namespace BrowserAutomationMaster.Managers
             WarningColor: Color.DarkGoldenrod,
             ErrorColor: CherryRed,
             HighlightBackground: LightGray,
-            HighlightForeground: OliveGreen,
+            HighlightForeground: DarkGreen,
             AccentColor: LightBlue
         );
         public readonly static Theme DefaultTheme = DarkTheme;

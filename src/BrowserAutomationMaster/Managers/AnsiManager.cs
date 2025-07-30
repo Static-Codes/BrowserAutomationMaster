@@ -53,9 +53,13 @@ namespace BrowserAutomationMaster.Managers
                 ToSpectreColor(GlobalConfig.ThemeType.HighlightForeground)
             );
         }
-        public static Color ToSpectreColor(System.Drawing.Color color)
+
+        public static Style GetStyle(bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
-            return new Color(color.R, color.G, color.B);
+            var newFG = GetForeground(isSuccess, isWarning, isError);
+            return new Style(
+                foreground: newFG
+            );
         }
         public static string? ReadKey()
         {
@@ -81,12 +85,26 @@ namespace BrowserAutomationMaster.Managers
 
             return result.Length > 0 ? result.ToString() : value;
         }
-        public static Style GetStyle(bool isSuccess = false, bool isWarning = false, bool isError = false)
+        public static Color ToSpectreColor(System.Drawing.Color color)
         {
-            var newFG = GetForeground(isSuccess, isWarning, isError);
-            return new Style(
-                foreground: newFG
-            );
+            return new Color(color.R, color.G, color.B);
+        }
+        public static Color ToSpectreColor(byte r, byte g, byte b)
+        {
+            return new Color(r, g, b);
+        }
+        public static (int r, int g, int b) ToRGB(string color12bit) // Accepts XXXX/XXXX/XXXX
+        {
+            var parts = color12bit.Split('/');
+            if (parts.Length != 3)
+                throw new ArgumentException("Invalid 12-bit color format");
+
+            // Convert from 16-bit (0-65535) to 8-bit (0-255)
+            int r = Convert.ToInt32(parts[0], 16) / 257; // 65535 / 255 = 257
+            int g = Convert.ToInt32(parts[1], 16) / 257;
+            int b = Convert.ToInt32(parts[2], 16) / 257;
+
+            return (r, g, b);
         }
     }
 }

@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 
 namespace BrowserAutomationMaster.Managers
 {
-
     public partial class Config
     {
         public required Theme ThemeType { get; set; }
@@ -13,19 +12,18 @@ namespace BrowserAutomationMaster.Managers
         public bool ShowMemoryCheck { get; set; }
         public bool ShowUpdateCheck { get; set; }
         public bool AutoCopyPath { get; set; }
-        public bool RunOnCompile { get; set; } 
+        public bool RunOnCompile { get; set; }
     }
-    
-    public partial class ConfigParser()
-    {
-        //[GeneratedRegex("^.\\S*=\\S.*$")]
 
+    public partial class ConfigParser
+    {
         [GeneratedRegex("^.*=.*(true|false)$")]
         public static partial Regex BoolRegex();
 
         [GeneratedRegex("^.*=.*(dark|light)$")]
         public static partial Regex ThemeRegex();
-        [GeneratedRegex("^.*=.*(\\d)$")]
+
+        [GeneratedRegex("^.*=.*(\\d+)$")]
         public static partial Regex IntRegex();
 
         public static string ConvertSnakeToPascal(string snake_case)
@@ -34,12 +32,10 @@ namespace BrowserAutomationMaster.Managers
                 string.Empty,
                 snake_case
                     .Split('_')
-                    .Select(
-                        s => char.ToUpper(s[0]) + s[1..]
-                    )
+                    .Select(s => char.ToUpper(s[0]) + s[1..])
             );
-            
         }
+
         public static bool IsValidLine(string line, Regex regexName)
         {
             return regexName.IsMatch(line);
@@ -55,9 +51,10 @@ namespace BrowserAutomationMaster.Managers
             return line;
         }
     }
-    public class ConfigManager
+
+    public class ConfigManager()
     {
-        public static Config GlobalConfig { get; set; } = new() 
+        public static Config GlobalConfig { get; private set; } = new()
         {
             AutoCopyPath = false,
             RunOnCompile = false,
@@ -74,8 +71,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     KeyValuePair.Create("show_cpu_check", "true"),
                     KeyValuePair.Create("show_memory_check", "true"),
-                    KeyValuePair.Create("show_update_check", "true"),
-                    //KeyValuePair.Create("", ""),
+                    KeyValuePair.Create("show_update_check", "false"),
                 }
             },
             {
@@ -83,20 +79,19 @@ namespace BrowserAutomationMaster.Managers
                 {
                     KeyValuePair.Create("theme_type", "dark"), // Also supports "light"
                 }
-
             },
             {
                 "[compilation]", new List<KeyValuePair<string, string>>()
                 {
                     KeyValuePair.Create("auto_copy_path", "false"),
-                    KeyValuePair.Create("run_on_compile", "true"),
-                    //KeyValuePair.Create("", "")
+                    KeyValuePair.Create("run_on_compile", "false"),
                 }
             },
-
         };
+
         private static string ConfigDirectory { get; set; } = DirectoryManager.GetConfigDirectory();
         public static string ConfigFilePath { get; private set; } = Path.Combine(ConfigDirectory, "config.ini");
+
         private static string BuildConfigContents()
         {
             var configContents = new StringBuilder();
@@ -105,16 +100,16 @@ namespace BrowserAutomationMaster.Managers
             foreach (var sectionEntry in sortedSections)
             {
                 var sectionName = sectionEntry.Key;
-                var propertys = sectionEntry.Value;
+                var properties = sectionEntry.Value;
 
                 configContents.AppendLine($"{sectionName}");
 
-                foreach (var property in propertys)
+                foreach (var property in properties)
                 {
                     configContents.AppendLine($"{property.Key} = {property.Value}");
                 }
 
-                // Adds trailing spaces to all lines except the final.
+                // Adds trailing newline to all sections except the final one
                 if (sectionEntry.Key != sortedSections.Last().Key)
                 {
                     configContents.AppendLine();
@@ -123,69 +118,64 @@ namespace BrowserAutomationMaster.Managers
 
             return configContents.ToString();
         }
+
         private static bool ConfigDirectoryExists()
         {
             return !string.IsNullOrEmpty(ConfigDirectory) && Directory.Exists(ConfigDirectory);
         }
+
         private static bool ConfigFileExists()
         {
             return !string.IsNullOrEmpty(ConfigFilePath) && File.Exists(ConfigFilePath);
         }
+
         private static object? DoCast(string value, Type targetType)
         {
-
             if (targetType == typeof(bool))
             {
                 return bool.Parse(value);
             }
-
             else if (targetType == typeof(int))
             {
                 return int.Parse(value);
             }
-
             else if (targetType == typeof(string))
             {
                 return value;
             }
-
             else if (targetType == typeof(Theme))
             {
                 var themeName = char.ToUpper(value[0]) + value[1..] + "Theme";
                 var bindingAttr = BindingFlags.Public | BindingFlags.Static;
-                var name = string.Join("", themeName);
-                FieldInfo? field =
-                    typeof(ThemeManager).GetField(name, bindingAttr) ??
-                    throw new ArgumentException($"Theme '{value}' not found in ThemeManager (expected field '{themeName}').");
 
-                // I can't wrap my head around why:
-                // return field doesnt work
-                // but...
-                // field.GetValue(null) does??
+                FieldInfo? field = typeof(ThemeManager).GetField(themeName, bindingAttr);
+
+                if (field == null)
+                {
+                    throw new ArgumentException($"Theme '{value}' not found in ThemeManager (expected field '{themeName}').");
+                }
 
                 return field.GetValue(null);
             }
             else if (targetType.IsEnum)
             {
-                return Enum.Parse(
-                    enumType: targetType,
-                    value,
-                    ignoreCase: true
-                );
+                return Enum.Parse(targetType, value, ignoreCase: true);
             }
             else
             {
                 throw new InvalidCastException(
-                    $"Cannot convert value '{value}' to type '{targetType.Name}', as its currently not supported.\n" +
-                    "Please add this feature in ConfigManager.ConvertValue()"
+                    $"Cannot convert value '{value}' to type '{targetType.Name}', as it's currently not supported.\n" +
+                    "Please add this feature in ConfigManager.DoCast()"
                 );
             }
         }
+
         public static void EnsureConfigExists()
         {
             if (!ConfigDirectoryExists())
             {
-                try {
+                try
+                {
                     Directory.CreateDirectory(ConfigDirectory);
                 }
                 catch (Exception ex)
@@ -197,13 +187,14 @@ namespace BrowserAutomationMaster.Managers
                     );
                 }
             }
+
             if (!ConfigFileExists())
             {
                 try
                 {
                     string configContents = BuildConfigContents();
                     ValidateConfigContents(configContents);
-                    File.WriteAllText(ConfigFilePath, configContents); // Null check is done in ConfigFileExists
+                    File.WriteAllText(ConfigFilePath, configContents);
                     return;
                 }
                 catch (Exception ex)
@@ -216,9 +207,10 @@ namespace BrowserAutomationMaster.Managers
                     );
                 }
             }
+
             try
             {
-                string configContents = File.ReadAllText(path: ConfigFilePath, encoding: Encoding.UTF8);
+                string configContents = File.ReadAllText(ConfigFilePath, Encoding.UTF8);
                 ValidateConfigContents(configContents);
             }
             catch
@@ -226,41 +218,43 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndContinue("Failed to validate config.ini, writing default values.");
                 string configContents = BuildConfigContents();
                 ValidateConfigContents(configContents);
-                File.WriteAllText(ConfigDirectory, configContents);
+                File.WriteAllText(ConfigFilePath, configContents); // Fixed: was ConfigDirectory, should be ConfigFilePath
             }
         }
+
         private static Dictionary<string, Regex> GetPropsAndFuncs()
         {
             var propsAndFuncs = new Dictionary<string, Regex>();
-            Action Add(string propName, Regex func) => () => {
-                propsAndFuncs.Add(propName, func);
-            };
 
             // Builds propsAndFuncs dynamically
             foreach (var sectionName in rawSections.Keys)
             {
-                foreach (var propName in rawSections[sectionName])
+                foreach (var propKvp in rawSections[sectionName])
                 {
-                    if (propName.Key.Equals("theme_type"))
+                    if (propKvp.Key.Equals("theme_type"))
                     {
-                        Add(propName: "theme_type", func: ConfigParser.ThemeRegex())();
+                        propsAndFuncs.Add(propKvp.Key, ConfigParser.ThemeRegex());
                     }
-                    else if (bool.TryParse(propName.Value, out bool res))
+                    else if (bool.TryParse(propKvp.Value, out bool _))
                     {
-                        Add(propName.Key, ConfigParser.BoolRegex())();
+                        propsAndFuncs.Add(propKvp.Key, ConfigParser.BoolRegex());
+                    }
+                    // Add support for integer properties if needed
+                    else if (int.TryParse(propKvp.Value, out int _))
+                    {
+                        propsAndFuncs.Add(propKvp.Key, ConfigParser.IntRegex());
                     }
                 }
             }
             return propsAndFuncs;
         }
-        public static void LoadConfig()
+
+        public static Config LoadConfig()
         {
             EnsureConfigExists();
 
             var configContents = File.ReadAllText(ConfigFilePath, Encoding.UTF8);
-
             string? currentSection = null;
-
             var splitLines = configContents.Split('\n');
 
             foreach (string originalLine in splitLines)
@@ -286,29 +280,23 @@ namespace BrowserAutomationMaster.Managers
                         var propName = ConfigParser.ConvertSnakeToPascal(rawPropName);
                         var propValue = parts[1].Trim();
 
-                        // Reflection was the only the way I found to access all properties of my class dynamically.
                         PropertyInfo? property = typeof(Config).GetProperty(propName, bindingAttr);
-
 
                         if (property == null)
                         {
-                            // This error SHOULD be caught by ValidateConfigContents() but a fallback is nice.
                             Errors.WriteErrorAndExit(
                                 Errors.GenerateErrorMessage(
                                     fileName: "config.ini",
                                     line: originalLine,
-                                    lineNumber: Array.IndexOf(splitLines, originalLine),
+                                    lineNumber: Array.IndexOf(splitLines, originalLine) + 1,
                                     $"Property '{propName}' not found or not settable in Config class."
                                 ),
                                 status: 1
                             );
                         }
 
-
                         try
                         {
-
-                            // Casts the property's string value to the property's type.
                             object? castedValue = DoCast(propValue, property.PropertyType);
                             if (castedValue == null)
                             {
@@ -316,14 +304,13 @@ namespace BrowserAutomationMaster.Managers
                                     Errors.GenerateErrorMessage(
                                         fileName: "config.ini",
                                         line: originalLine,
-                                        lineNumber: Array.IndexOf(splitLines, originalLine),
+                                        lineNumber: Array.IndexOf(splitLines, originalLine) + 1,
                                         $"Failed to convert value '{propValue}' for property '{propName}'."
                                     ),
                                     status: 1
                                 );
                             }
                             property.SetValue(GlobalConfig, castedValue);
-                            
                         }
                         catch (Exception ex)
                         {
@@ -331,27 +318,20 @@ namespace BrowserAutomationMaster.Managers
                                 Errors.GenerateErrorMessage(
                                     fileName: "config.ini",
                                     line: originalLine,
-                                    lineNumber: Array.IndexOf(splitLines, originalLine),
+                                    lineNumber: Array.IndexOf(splitLines, originalLine) + 1,
                                     $"Failed to convert value '{propValue}' for property '{propName}': {ex.Message}"
                                 ),
                                 status: 1
                             );
                         }
                     }
-
                 }
             }
+            return GlobalConfig;
         }
+
         private static void ValidateConfigContents(string configContents)
         {
-            // ;            Comments
-            // [            Key start  ||
-            // ]            Key end
-            // name = value
-            // (check if previous trimmed line ends with ]
-            // if it does check for [ or ] in the current line, if this is true then an error is thrown
-            // if no error is thrown add it to the section
-
             var splitLines = configContents.Split('\n');
             string? currentSection = null;
             var encounteredSections = new HashSet<string>();
@@ -359,7 +339,7 @@ namespace BrowserAutomationMaster.Managers
 
             for (int i = 0; i < splitLines.Length; i++)
             {
-                string originalLine = splitLines[i]; // Original is used for errors
+                string originalLine = splitLines[i];
                 string trimmedLine = ConfigParser.RemoveCommentIfPresent(
                     originalLine.Replace('\r', ' ').Trim()
                 );
@@ -376,7 +356,7 @@ namespace BrowserAutomationMaster.Managers
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 line: originalLine,
-                                lineNumber: i,
+                                lineNumber: i + 1, // Fixed: line numbers should be 1-based
                                 issueText: $"Unknown section detected: `{sectionName}` is not a valid section."
                             ),
                             status: 1
@@ -389,7 +369,7 @@ namespace BrowserAutomationMaster.Managers
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 line: originalLine,
-                                lineNumber: i,
+                                lineNumber: i + 1,
                                 issueText: $"Duplicate section detected: `{sectionName}` has already been defined."
                             ),
                             status: 1
@@ -399,8 +379,6 @@ namespace BrowserAutomationMaster.Managers
                     currentSection = sectionName;
                     encounteredSections.Add(sectionName);
                 }
-
-                // Handles lines within a given section
                 else
                 {
                     if (currentSection == null)
@@ -409,14 +387,13 @@ namespace BrowserAutomationMaster.Managers
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 line: originalLine,
-                                lineNumber: i,
+                                lineNumber: i + 1,
                                 issueText: "Content found before any section header. All configuration must be within a section."
                             ),
                             status: 1
                         );
                     }
 
-                    // Validate property format (name = value)
                     string[] parts = trimmedLine.Split('=', 2);
                     if (parts.Length != 2)
                     {
@@ -424,7 +401,7 @@ namespace BrowserAutomationMaster.Managers
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 line: originalLine,
-                                lineNumber: i,
+                                lineNumber: i + 1,
                                 issueText: "Invalid property format, expected 'name = value'."
                             ),
                             status: 1
@@ -433,44 +410,49 @@ namespace BrowserAutomationMaster.Managers
 
                     string propName = parts[0].Trim();
                     string propValue = parts[1].Trim();
-                    
 
-                    // Validate if the property is expected in the current section
                     if (!rawSections[currentSection].Any(pair => pair.Key.Equals(propName)))
                     {
                         Errors.WriteErrorAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 line: originalLine,
-                                lineNumber: i,
+                                lineNumber: i + 1,
                                 issueText: $"Unknown property `{propName}` in section `{currentSection}`."
                             ),
                             status: 1
                         );
                     }
 
-                    propsAndFuncs.TryGetValue(propName, out Regex? func);
-                    if (func == null) {
-                        // This wont be executed but the out parameter cannot be used the null forgiveness operator.
+                    if (propsAndFuncs.TryGetValue(propName, out Regex? func))
+                    {
+                        if (!ConfigParser.IsValidLine(trimmedLine, func))
+                        {
+                            Errors.WriteErrorAndExit(
+                                Errors.GenerateErrorMessage(
+                                    fileName: "config.ini",
+                                    line: originalLine,
+                                    lineNumber: i + 1,
+                                    issueText: $"Invalid value '{propValue}' for property `{propName}`."
+                                ),
+                                status: 1
+                            );
+                        }
+                    }
+                    else
+                    {
                         Errors.WriteErrorAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 line: originalLine,
-                                lineNumber: i,
-                                issueText: $"Unknown property `{propName}` in section `{currentSection}`."
+                                lineNumber: i + 1,
+                                issueText: $"No validation rule found for property `{propName}` in section `{currentSection}`."
                             ),
                             status: 1
                         );
                     }
-
-                    if (!ConfigParser.IsValidLine(trimmedLine, func))
-                    {
-                        Errors.WriteErrorAndExit($"Invalid value passed to: `{propName}`", 1);
-                    }
-
                 }
             }
         }
-        
     }
 }
