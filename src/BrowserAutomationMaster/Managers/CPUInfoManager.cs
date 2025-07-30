@@ -148,7 +148,7 @@ namespace BrowserAutomationMaster.Managers
             if (RuntimeManager.IsSupportedWindowsVersion()) {
                 return Win.GetPhysicalCoreCount();
             }
-            if (RuntimeManager.IsSupportedWindowsVersion()) { 
+            if (RuntimeManager.IsSupportedOSXVersion()) {
                 return GetPhysicalCoreCountMacOS(); 
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { 

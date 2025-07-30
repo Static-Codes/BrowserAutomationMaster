@@ -5,15 +5,21 @@ using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using Spectre.Console;
 using static BrowserAutomationMaster.Managers.AnsiManager;
-using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Managers.ConfigManager;
+using static BrowserAutomationMaster.Messaging.Menu;
 
 
 ProcessManager.CheckForMultipleInstances();
-LoadConfig();
+var colorString = Linux.GetTerminalBackgroundColor();
+if (colorString != null)
+{
+    (int r, int g, int b) = ToRGB(colorString);
+    var color = ToSpectreColor((byte)r, (byte)g, (byte)b);
+}
 
-Console.WriteLine(GlobalConfig.ShowUpdateCheck);
+var _ = new ConfigManager(); // Instantiates ConfigManager.GlobalConfig
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 

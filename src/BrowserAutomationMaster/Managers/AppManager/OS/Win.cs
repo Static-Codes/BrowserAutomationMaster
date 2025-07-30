@@ -390,11 +390,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     Out = new AnsiConsoleOutput(standardOutput)
                 };
 
+                AnsiConsole.Clear();
                 var console = AnsiConsole.Create(settings);
 
                 console.Write(
                     new Text(
-                        "There was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
+                        "\n\nThere was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
                         new Style(foreground: ToSpectreColor(ThemeManager.DefaultTheme.ForegroundColor))
                     )
                 );
@@ -408,16 +409,15 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         isError: true
                     );
                 }
+                Environment.Exit(1);
             }
-            else
-            {
-                AnsiConsole.Write(
-                    new Text(
-                        "There was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
-                        new Style(foreground: ToSpectreColor(ThemeManager.DefaultTheme.ForegroundColor))
-                    )
-                );
-            }
+            AnsiConsole.Write(
+                new Text(
+                    "There was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
+                    new Style(foreground: ToSpectreColor(ThemeManager.DefaultTheme.ForegroundColor))
+                )
+            );
+            Environment.Exit(1);
 
         }
 

@@ -1,12 +1,16 @@
 using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
 using System.Diagnostics;
-using System.Drawing;
+using System.Text.RegularExpressions;
+using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
-    public static class Linux
+    public static partial class Linux
     {
+        private static readonly Regex ForegroundMatch = ForegroundColorRegex();
+        [GeneratedRegex("rgb:([0-9a-fA-F]+/[0-9a-fA-F]+).*?\n.{51}([0-9a-fA-F]+/[0-9a-fA-F]+)", RegexOptions.Compiled)]
+        private static partial Regex ForegroundColorRegex();
         public static List<AppInfo> GetApps()
         {
             try
@@ -61,9 +65,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
-
         // Instead of parsing each distro by type finding the available commands is much more efficient.
-        static bool CommandExists(string cmd)
+        private static bool CommandExists(string cmd)
         {
             try
             {
@@ -85,9 +88,45 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return false;
             }
         }
+        public static string? GetTerminalBackgroundColor()
+        {
+            try
+            {
+                string tempFile = Path.GetTempFileName();
 
+                string command = "bash";
+                string args = $"-c \"printf '\\e]11;?\\e\\\\' >/dev/tty; read -rs -t 3 -d $'\\\\' response </dev/tty; echo \\\"$response\\\" | xxd > {tempFile}\"";
+
+                string response = RunCommand(command, args);
+                Thread.Sleep(300);
+
+                if (File.Exists(tempFile))
+                {
+                    string hexDump = File.ReadAllText(tempFile);
+                    File.Delete(tempFile);
+
+                    if (!string.IsNullOrWhiteSpace(hexDump))
+                    {
+                        var match = ForegroundMatch.Match(hexDump);
+                        var groups = match.Groups;
+                        if (groups.Count == 3) // groups[0] is the whole match
+                        {
+                            return groups[1].Value + groups[2].Value;
+                        }
+                        return hexDump;
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                WriteMessage($"Error reading terminal color: {ex.Message}");
+                return null;
+            }
+        }
+        
         // Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.)
-        static List<AppInfo> ParseDpkgList()
+        private static List<AppInfo> ParseDpkgList()
         {
             try
             {
@@ -107,7 +146,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         }
 
         // Parses apps installed via RPM (Red Hat Package Manager) (only for CentOS, Fedora, Oracle Linux, etc.)
-        static List<AppInfo> ParseRpmList()
+        private static List<AppInfo> ParseRpmList()
         {
             var apps = new List<AppInfo>();
             var output = RunCommand("rpm", "-qa");
@@ -122,7 +161,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         }
 
         // Parses apps installed via Flatpak
-        static List<AppInfo> ParseFlatpakList()
+        private static List<AppInfo> ParseFlatpakList()
         {
             var apps = new List<AppInfo>();
             var output = RunCommand("flatpak", "list");
@@ -136,8 +175,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             return apps;
         }
-
-        static string RunCommand(string cmd, string args)
+        public static string RunCommand(string cmd, string args)
         {
             try
             {
@@ -149,6 +187,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
+                    
                 };
                 using var proc = Process.Start(procStartInfo);
                 if (proc == null) { 
@@ -164,7 +203,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             catch (Exception ex){
                 Errors.WriteErrorAndExit(
                     message:
-                        $"BAM Manager (BAMM) was unable to query installed apps, if this issue persists, " +
+                        $"BAM Manager (BAMM) was unable to execute a necessary command, if this issue persists, " +
                         $"please make a bug report at {ConstantManager.ISSUES_LINK}\nError log:\nUnable to execute\n" +
                         $"{cmd}\nException:\n{ex.Message}",
                     status: 1
@@ -172,6 +211,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return string.Empty;
             }
         }
-    
+        
+    }
+    public static partial class TerminalParser
+    {
+        
+        
     }
 }
