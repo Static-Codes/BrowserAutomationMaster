@@ -1,63 +1,53 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
-using BrowserAutomationMaster.Managers.AppManager.OS;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Parsing;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using System.Text;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
     // This class is responsible for executing the compiled python scripts.
-    public class RuntimeManager(string scriptFilePath) // VEnvManager.RunScriptInVEnv(); SHOULD WORK but it needs to be passed InterpreterPath, ScriptFilePath
+    public class RuntimeManager(string scriptFilePath)
     {
         private string SanitizedScriptPath { get; set; } = string.Empty;
         public static OSPlatform Platform { get; } = GetPlatform();
         public string InterpreterPath { get; } = GetInterpreterFromPath();
 
-        public static bool IsSupportedWindowsVersion()
+        private static string BuildScriptMenu(List<string> scriptPaths)
         {
-            return OperatingSystem.IsWindows() && 
-                   OperatingSystem.IsWindowsVersionAtLeast(
-                       10, 0, 10240
-                   );
+            var menu = new StringBuilder();
+            for (int i = 0; i < scriptPaths.Count; i++)
+            {
+                string fileName = Path.GetFileName(scriptPaths[i]);
+                menu.AppendLine($"{i + 1}. {fileName} -> {scriptPaths[i]}");
+            }
+            return menu.ToString();
         }
-        public static bool IsSupportedOSXVersion()
+        public static void DoRuntimeCheck()
         {
-            return OperatingSystem.IsMacOSVersionAtLeast(11);
-        }
-        private static OSPlatform GetPlatform()
-        {
-            if (!Environment.Is64BitOperatingSystem) {
+            HasEnoughMemory();
+            CPUInfoManager cpuInfoManager = new();
+            if (!cpuInfoManager.HasEnoughCores())
+            {
                 Errors.WriteErrorAndExit(
-                    message: "Due to a variety of factors, BAM Manager (BAMM) is unable to run on x86 (32bit) CPUs.  Ensure your CPU supports 64 bit operating systems, and try again.", 
+                    message:
+                        $"BAM Manager (BAMM) requires atleast a 2 core cpu, " +
+                        $"unfortunately your CPU is not powerful enough for modern browser automation, " +
+                        $"if you believe this is an error, please submit a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\nBAM Manager (BAMM) detected {cpuInfoManager.Cores} physical CPU cores.",
                     status: 1
                 );
             }
-            if (RuntimeInformation.OSArchitecture == Architecture.Arm64) { 
-                Warning.Write(
-                    message:
-                        "BAM Manager (BAMM) supports ARM64 architecture, " +
-                        "but performance for browser automation can vary widely depending on your specific ARM processor. " +
-                        "Some lower-power ARM systems may experience degraded performance."
-                ); 
-            }
-            
-            if (IsSupportedOSXVersion())
-                return OSPlatform.OSX;
-
-            if (IsSupportedWindowsVersion())
-                return OSPlatform.Windows;
-
-            if (OperatingSystem.IsLinux())
-                return OSPlatform.Linux;
-
-            else {
-                throw new PlatformNotSupportedException(
-                    "Unsupported OS.\nBAM Manager (BAMM) currently supports:\n" +
-                    "Windows 10/11\n" +
-                    "Linux\n" +
-                    "MacOS 11+\n"
-                );
-            }
+        }
+        private static List<string> GetCompiledScriptPaths(string saveDirectory)
+        {
+            return [.. Directory.GetDirectories(saveDirectory)
+                .Where(dir => !dir.EndsWith("venv", StringComparison.CurrentCultureIgnoreCase))
+                .SelectMany(dir => Directory.GetFiles(dir, "*.py"))
+                .Where(File.Exists)
+                .Distinct()];
         }
         
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
@@ -77,6 +67,107 @@ namespace BrowserAutomationMaster.Managers.Python
                 "MacOS 11+\n"
             );
         }
+        private static OSPlatform GetPlatform()
+        {
+            if (!Environment.Is64BitOperatingSystem)
+            {
+                Errors.WriteErrorAndExit(
+                    message: "Due to a variety of factors, BAM Manager (BAMM) is unable to run on x86 (32bit) CPUs.  Ensure your CPU supports 64 bit operating systems, and try again.",
+                    status: 1
+                );
+            }
+            if (RuntimeInformation.OSArchitecture == Architecture.Arm64)
+            {
+                Warning.Write(
+                    message:
+                        "BAM Manager (BAMM) supports ARM64 architecture, " +
+                        "but performance for browser automation can vary widely depending on your specific ARM processor. " +
+                        "Some lower-power ARM systems may experience degraded performance."
+                );
+            }
+
+            if (IsSupportedOSXVersion())
+                return OSPlatform.OSX;
+
+            if (IsSupportedWindowsVersion())
+                return OSPlatform.Windows;
+
+            if (OperatingSystem.IsLinux())
+                return OSPlatform.Linux;
+
+            else
+            {
+                throw new PlatformNotSupportedException(
+                    "Unsupported OS.\nBAM Manager (BAMM) currently supports:\n" +
+                    "Windows 10/11\n" +
+                    "Linux\n" +
+                    "MacOS 11+\n"
+                );
+            }
+        }
+        private static string GetUserScriptChoice(List<string> scriptPaths, string menu)
+        {
+            while (true)
+            {
+                var message = "Unable to parse selected menu option.\n" +
+                              $"If this continues please make a bug report at {ConstantManager.ISSUES_LINK}" +
+                              "Error Log:\nchoice returned null.";
+
+                string rawChoice = Input.WriteListFromOptions(menu.Split('\n'));
+                string? choice = Parser.GetFileNumber(rawChoice);
+
+                if (choice == null)
+                {
+                    Errors.WriteErrorAndExit(message, 1);
+                }
+
+                if (int.TryParse(choice, out int result) && result >= 1 && result <= scriptPaths.Count)
+                {
+                    return scriptPaths[result - 1];
+                }
+
+                Errors.WriteErrorAndContinue($"Invalid option, please choose a number between 1 and {scriptPaths.Count}\n");
+            }
+        }
+        public static string HandleUserScriptChoice()
+        {
+            string saveDirectory = DirectoryManager.GetDesiredSaveDirectory();
+
+            try
+            {
+                var scriptPaths = GetCompiledScriptPaths(saveDirectory);
+
+                if (scriptPaths.Count == 0)
+                {
+                    Errors.WriteErrorAndExit(
+                        message:
+                            $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
+                            $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
+                            $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"Error log:\nNo compiled scripts found in {saveDirectory}",
+                        status: 1
+                    );
+                }
+
+                Success.WriteSuccessMessage($"BAM Manager (BAMM) successfully detected {scriptPaths.Count} scripts.\n");
+
+                string menu = BuildScriptMenu(scriptPaths);
+
+                return GetUserScriptChoice(scriptPaths, menu);
+            }
+            catch (Exception e)
+            {
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
+                        $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
+                        $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error log:\n {e.Message}",
+                    status: 1
+                );
+                return string.Empty; // This won't execute due to WriteErrorAndExit, but satisfies compiler
+            }
+        }
         public static bool HasEnoughMemory()
         {
             Dictionary<string, double> memoryInfo = MemoryInfoManager.RunCheck();
@@ -85,7 +176,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 Errors.WriteErrorAndExit(
                     $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                     $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                    $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary.", 
+                    $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary.",
                     status: 1
                 );
             }
@@ -100,7 +191,7 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 Errors.WriteErrorAndExit(
                     "BAM Manager (BAMM) determined you are running below the minimum RAM requirements to properly use bamm.\n" +
-                    "Please run BAMM on a system with atleast 4GB of DDR3 RAM.", 
+                    "Please run BAMM on a system with atleast 4GB of DDR3 RAM.",
                     status: 1
                 );
             }
@@ -110,7 +201,7 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 Errors.WriteErrorAndExit(
                     "BAM Manager (BAMM) determined you don't have enough free RAM to continue.\n\n" +
-                    "Please ensure atleast 512MB of RAM is free before trying to run BAMM again.", 
+                    "Please ensure atleast 512MB of RAM is free before trying to run BAMM again.",
                     status: 1
                 );
             }
@@ -142,30 +233,27 @@ namespace BrowserAutomationMaster.Managers.Python
             // 4GiB Total and 1GiB free.
             else if (totalMemoryMB == 4096 && freeMemoryMB >= 1024)
             {
-                if (GlobalConfig.ShowMemoryCheck) {
+                if (GlobalConfig.ShowMemoryCheck)
+                {
                     Success.WriteSuccessMessage(
                         "BAM Manager (BAMM) determined you running on the minimum RAM requirements, " +
                         "but you have enough free RAM (1GB) for most automation tasks."
                     );
                 }
             }
-            
+
             return true;
         }
-        public static void DoRuntimeCheck()
+        public static bool IsSupportedWindowsVersion()
         {
-            HasEnoughMemory();
-            CPUInfoManager cpuInfoManager = new();
-            if (!cpuInfoManager.HasEnoughCores()) {
-                Errors.WriteErrorAndExit(
-                    message: 
-                        $"BAM Manager (BAMM) requires atleast a 2 core cpu, " +
-                        $"unfortunately your CPU is not powerful enough for modern browser automation, " +
-                        $"if you believe this is an error, please submit a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                        $"Error log:\nBAM Manager (BAMM) detected {cpuInfoManager.Cores} physical CPU cores.",
-                    status: 1
-                );
-            }
+            return OperatingSystem.IsWindows() && 
+                   OperatingSystem.IsWindowsVersionAtLeast(
+                       10, 0, 10240
+                   );
+        }
+        public static bool IsSupportedOSXVersion()
+        {
+            return OperatingSystem.IsMacOSVersionAtLeast(11);
         }
         private void ValidateScript()
         {
@@ -191,80 +279,14 @@ namespace BrowserAutomationMaster.Managers.Python
                 );
             }
         }
-        public static string HandleUserScriptChoice()
-        {
-            string saveDirectory = DirectoryManager.GetDesiredSaveDirectory();
-            List<string> compiledScriptDirectories = [];
-            string[] pythonFilePaths = [];
-            string usersChoice = string.Empty;
-            try {
-                compiledScriptDirectories.AddRange(
-                    Directory.GetDirectories(saveDirectory).Where(
-                        directory => !directory.EndsWith("venv", StringComparison.CurrentCultureIgnoreCase)
-                    )
-                );
-                if (compiledScriptDirectories.Count == 0) { 
-                    Errors.WriteErrorAndExit(
-                        message:
-                            $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
-                            $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
-                            $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                            $"Error log:\nNo compiled scripts found in {saveDirectory}", 
-                        status: 1); }
-                string menu = string.Empty;
-                int index = 0;
-                foreach (string scriptDirectory in compiledScriptDirectories) {
-                    // Modify this to check scriptDirectory for .py files or pass the actual script.
-                    pythonFilePaths = [..pythonFilePaths.Concat([..Directory.GetFiles(scriptDirectory).Where(file => file.EndsWith(".py"))])];
-                    foreach (string pythonFilePath in pythonFilePaths)
-                    {
-                        string fileName = Path.GetFileName(pythonFilePath);
-                        if (string.IsNullOrEmpty(fileName) || !File.Exists(Path.Combine(scriptDirectory, pythonFilePath))) { continue; }
-
-                        if (!menu.Contains(pythonFilePath)) { 
-                            index++; 
-                            menu += $"{index}. {fileName} -> {pythonFilePath}\n";
-                        }
-                    }
-                }
-                if (index == 0) {
-                    Errors.WriteErrorAndExit(
-                        message:
-                            $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
-                            $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
-                            $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                            $"Error log:\n: No compiled scripts found in {saveDirectory}",
-                        status: 1
-                    );
-                }
-                
-                Success.WriteSuccessMessage($"BAM Manager (BAMM) successfully detected {index} scripts.\n");
-                while (true)
-                {
-                    string choice = Input.WriteTextAndReturnRawInput(
-                        $"Please choose the number corresponding to your desired script from the list below:\n\n{menu}"
-                    ) ?? string.Empty;
-                    if (string.IsNullOrEmpty(choice) || !int.TryParse(choice, out int result)) {
-                        Errors.WriteErrorAndContinue($"Invalid option, please choose a number between 1 and {index}\n");
-                        continue;
-                    }
-                    usersChoice = pythonFilePaths[result - 1];
-                    break;
-                }
-            }
-            catch (Exception e) {
-                Errors.WriteErrorAndExit(
-                    message:
-                        $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
-                        $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
-                        $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
-                        $"Error log:\n {e.Message}", 
-                    status: 1
-                );
-            }
-            return usersChoice;
-        }
         public async Task<bool> RunScript()
+        {
+            ValidateScript();
+            VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);
+            await vEnvManager.RunScriptInVEnv();
+            return true;
+        }
+        public async Task<bool> RunScriptFromTranspiler()
         {
             ValidateScript();
             VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);

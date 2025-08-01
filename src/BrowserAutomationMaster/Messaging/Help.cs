@@ -1,7 +1,4 @@
-﻿using BrowserAutomationMaster.Managers;
-using Spectre.Console;
-using System.Security.Cryptography.X509Certificates;
-using static BrowserAutomationMaster.Managers.AnsiManager;
+﻿using Spectre.Console;
 using static BrowserAutomationMaster.Managers.CommandManager;
 
 namespace BrowserAutomationMaster.Messaging
@@ -18,6 +15,7 @@ namespace BrowserAutomationMaster.Messaging
             if (command.Trim() == "Exit App") { 
                 Environment.Exit(0); 
             }
+
             else
             {
                 // Ensures no invalid command will be passed to show

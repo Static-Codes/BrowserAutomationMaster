@@ -8,3 +8,9 @@ GetStdHandle
 AttachConsole
 FreeConsole
 STD_HANDLE
+GlobalLock
+GlobalUnlock
+OpenClipboard
+CloseClipboard
+EmptyClipboard
+SetClipboardData

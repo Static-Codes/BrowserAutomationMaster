@@ -22,7 +22,7 @@ namespace BrowserAutomationMaster.Messaging
             return AnsiConsole.Prompt(prompt);
         }
 
-        public static string WriteListFromOptions(string[] options)
+        public static string WriteListFromOptions(string[] options, string noun = "action")
         {
             SetAnsiColors();
             var (bgColor, fgColor) = GetHighlights();
@@ -35,7 +35,7 @@ namespace BrowserAutomationMaster.Messaging
                 SearchEnabled = true,
             }
             .HighlightStyle(style)
-            .Title("Please select your desired action from the menu options below:")
+            .Title($"Please select your desired {noun} from the menu options below:")
             .AddChoices(
                 options.Select(
                     opt => opt.EscapeMarkup()

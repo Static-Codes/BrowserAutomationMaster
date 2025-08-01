@@ -1,6 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers.AppManager.OS;
 using System.Drawing;
-using System.Reflection;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -19,18 +18,18 @@ namespace BrowserAutomationMaster.Managers
 
         public readonly static Theme DarkTheme = new(
             ForegroundColor: Color.Black,
-            SuccessColor: DarkGreen,
-            WarningColor: Color.DarkGoldenrod,
-            ErrorColor: CherryRed,
+            SuccessColor: EmeraldGreen,
+            WarningColor: LightYellow,
+            ErrorColor: LightRed,
             HighlightBackground: LightGray,
             HighlightForeground: DarkGreen,
             AccentColor: LightBlue
         );
         public readonly static Theme LightTheme = new(
             ForegroundColor: Color.White,
-            SuccessColor: EmeraldGreen,
-            WarningColor: LightYellow,
-            ErrorColor: LightRed,
+            SuccessColor: DarkGreen,
+            WarningColor: Color.DarkGoldenrod,
+            ErrorColor: CherryRed,
             HighlightBackground: DarkGray,
             HighlightForeground: OliveGreen,
             AccentColor: LightBlue

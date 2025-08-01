@@ -1,14 +1,16 @@
 ﻿
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Text.Json;
-using System.Net;
-using System.Net.NetworkInformation;
 using BrowserAutomationMaster.Checks;
-using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager;
+using BrowserAutomationMaster.Managers.Python;
+using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using static BrowserAutomationMaster.Managers.ConfigManager;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -16,16 +18,16 @@ namespace BrowserAutomationMaster.Compilation
     public partial class Transpiler
     {
         // This will be used in GenerateBackupName(); in the case of failure.
-        readonly static string defaultScriptFileName = "untitled-script";  
+        private readonly static string defaultScriptFileName = "untitled-script";  
         
-        static string desiredSaveDirectory = "";
-        static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
-        readonly static string requirementsFileName = "requirements.txt"; 
-        static string projectDirectory = "";
+        private static string desiredSaveDirectory = "";
+        private static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
+        private readonly static string requirementsFileName = "requirements.txt"; 
+        private static string projectDirectory = "";
         
 
-        static string pythonScriptFileName = "";  // Modified by SetScriptName();
-        static string pythonVersion = "3.10";
+        private static string pythonScriptFileName = "";  // Modified by SetScriptName();
+        private static string pythonVersion = "3.10";
 
         // Default value if inhouse function fails.
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0"; 
@@ -50,21 +52,21 @@ namespace BrowserAutomationMaster.Compilation
         private static bool runHeadless = false;
 
         // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
-        static bool noBrowsersFound = false;
+        private static bool noBrowsersFound = false;
 
         // This is the timeout applied to all WebDriverWait calls.
-        static int actionTimeout = 10;
+        private static int actionTimeout = 10;
 
-        readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
-        static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
-        static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
-        readonly static List<string> importStatements = [
+        private readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
+        private static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
+        private static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
+        private readonly static List<string> importStatements = [
             "from importlib import import_module", 
             "from subprocess import run", 
             "from sys import modules, stderr, stdout\n",
         ];
-        readonly static List<string> scriptBody = [];
-        readonly static List<string> requirements = [];
+        private readonly static List<string> scriptBody = [];
+        private readonly static List<string> requirements = [];
 
         // Used for --set-timeout==5 (or any desired timeout)
         private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
@@ -79,23 +81,36 @@ namespace BrowserAutomationMaster.Compilation
         
         public static void New(string filePath, string[] args)
         {
-            SetDesiredSaveDirectory();
-            CreateProjectDirectory(); // Also sets variable projectDirectory
-            SetScriptName(filePath);
-            SetFileLines(filePath);
-            GetDesiredUrls();
+            try
+            {
+                SetDesiredSaveDirectory();
+                CreateProjectDirectory(); // Also sets variable projectDirectory
+                SetScriptName(filePath);
+                SetFileLines(filePath);
+                GetDesiredUrls();
 
-            Installations ___ = new(InstalledApps.GetInstalledApps()); // was originally named installations
-            AddBrowserImportsAndRequirements();
-            //HandlePythonVersionSelection(installations); // This isn't needed currently 
+                Installations ___ = new(InstalledApps.GetInstalledApps()); // was originally named installations
+                AddBrowserImportsAndRequirements();
+                //HandlePythonVersionSelection(installations); // This isn't needed currently 
 
-            HandleCompilation(filePath, args);
-            WritePythonFile();
-            WriteRequirementsFile();
+                HandleCompilation(filePath, args);
+                WritePythonFile();
+                WriteRequirementsFile();
 
-            Success.WriteSuccessMessage($"\nCompiled -> {pythonScriptFileName}");
-            Success.WriteSuccessMessage($"Location -> {projectDirectory}\n");
-            ResetTranspilerState();
+                Success.WriteSuccessMessage($"\nCompiled -> {pythonScriptFileName}");
+                Success.WriteSuccessMessage($"Location -> {filePath}\n");
+
+                HandleAutoCopy();
+            }
+            catch (Exception ex)
+            {
+                Errors.WriteErrorAndExit(
+                    "BAM Manager (BAMM) was unable to continue due to a fatal error.\n\n" +
+                    $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                    $"Error Log:\nUnhandled exception: {ex.Message}",
+                    status: 1
+                );
+            }
         }
         public static void AddBrowserImportsAndRequirements()
         {
@@ -392,6 +407,21 @@ namespace BrowserAutomationMaster.Compilation
                 }
                 lineNumber++;
             }
+        }
+        public static void HandleAutoCopy()
+        {
+            if (!GlobalConfig.AutoCopyPath)
+                return;
+            
+            if (!Directory.Exists(projectDirectory))
+                return;
+
+            if (!ClipboardHelper.TrySetText(projectDirectory)) {
+                Errors.WriteErrorAndContinue(
+                    $"Unable to copy project directory to clipboard, please manually copy this path:\n{projectDirectory}"
+                );
+            }
+            Success.WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
         public static void HandleBrowserCmd()
         {
@@ -791,6 +821,34 @@ namespace BrowserAutomationMaster.Compilation
                 }
             }
         } // Currently unused.
+        public static async Task<bool> HandleRunOnCompile()
+        {
+            if (!GlobalConfig.RunOnCompile)
+                return false;
+
+            if (!Directory.Exists(projectDirectory))
+            {
+                Errors.WriteErrorAndExit(
+                    "Unable to run the newly compiled project, please ensure this directory still exists.",
+                    status: 1
+                );
+            }
+
+            var path = Path.Combine(projectDirectory, pythonScriptFileName);
+            if (!File.Exists(path))
+            {
+                Errors.WriteErrorAndExit(
+                    "Unable to run the newly compiled project, please ensure this file still exists.\\n\\n" +
+                    $"Path: {path}",
+                    status: 1
+                );
+            }
+
+            var runtimeManager = new RuntimeManager(path);
+
+            await runtimeManager.RunScriptFromTranspiler();
+            return true;
+        }
         public static bool HasUnclosedQuotes(string line)
         {
             bool inSingleQuote = false;

@@ -5,6 +5,7 @@ using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Managers.CommandManager;
+using System.Text;
 
 
 namespace BrowserAutomationMaster.Parsing
@@ -191,6 +192,21 @@ namespace BrowserAutomationMaster.Parsing
                 return [];
             }
         }
+
+        public static string? GetFileNumber(string rawInput)
+        {
+            var builder = new StringBuilder();
+            foreach (char c in rawInput)
+            {
+                if (char.IsWhiteSpace(c)) { continue; }
+                if (!char.IsNumber(c))
+                {
+                    break;
+                }
+                builder.Append(c);
+            }
+            return builder.Length > 0 ? builder.ToString() : null;
+        }
         public static string[] ValidateBAMCFiles(string[] BAMCFiles)
         {
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
@@ -253,7 +269,7 @@ namespace BrowserAutomationMaster.Parsing
                 }
             }
         }
-        public static bool HandleLineValidation(string fileName, string line, int lineNumber)
+        private static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
             string selectorString = "selector"; // Defaults to "selector" for selector based actions
             string trimmedLine = line.Trim();
@@ -608,7 +624,7 @@ namespace BrowserAutomationMaster.Parsing
 
             }
         }
-        public static int HandleUserSelection(Dictionary<int, string> mapping)
+        private static int HandleUserSelection(Dictionary<int, string> mapping)
         {
 
             if (mapping.Count == 0)
@@ -618,49 +634,54 @@ namespace BrowserAutomationMaster.Parsing
 
             int numberOfFilesFound = mapping.Count;
            
-            string inputText = string.Empty;
-            foreach (KeyValuePair<int, string> pair in mapping)
+            //string inputText = string.Empty;
+            string[] menuOptions = new string[numberOfFilesFound];
+
+            for (int i = 0; i < menuOptions.Length; i++) 
             {
-                int index = pair.Key + 1;
-                string? rawFileName = null;
-                try { rawFileName = Path.GetFileName(pair.Value); }
-                catch { rawFileName = null; }
-                if (rawFileName != null) { inputText += $"{index}. {rawFileName}\n"; }
-            }
-
-            if (inputText == string.Empty) { Errors.WriteErrorAndExit(noFilesFoundMessage, 1); }
-
-            string panicText = $"BAM Manager (BAMM) panicked due an invalid value provided as input.  " +
-                $"Value must be between 1 and {numberOfFilesFound}";
-            
-
-            while (true)
-            {
-                // This will run until valid input is provided.
-                object? rawInput = 
-                    Input.WriteTextAndReturnInputType(
-                        inputText, 
-                        panicText, 
-                        desiredType: typeof(int), 
-                        repeatUntilValid: true, 
-                        isOptionNumber: true
-                    );
-
-                if (rawInput != null) 
+                string? rawFileName;
+                try 
                 { 
-                    if (!int.TryParse(rawInput.ToString(), out int fileNumber)){
-                        continue;
-                    }
-                    
-                    if (fileNumber < 1 || fileNumber > numberOfFilesFound) {
-                        WriteMessage(panicText, isError: true);
-                        continue; 
-                    }
-                    return fileNumber - 1; // index = fileNumber - 1;
+                    rawFileName = Path.GetFileName(mapping.Values.ElementAt(i)); 
+                }
+                catch 
+                {
+                    continue; // Silent continue is the intended be
+                }
+                if (rawFileName != null) 
+                {
+                    menuOptions[i] = $"{i + 1}.  {rawFileName}"; 
                 }
             }
+
+            if (menuOptions.Length == 0) 
+            { 
+                Errors.WriteErrorAndExit(noFilesFoundMessage, 1); 
+            }
+
+            string panicText = 
+                $"BAM Manager (BAMM) panicked due an invalid value provided as input.  " +
+                $"Value must be between 1 and {numberOfFilesFound}";
+
+            var rawInput = Input.WriteListFromOptions(menuOptions, "file");
+            var input = GetFileNumber(rawInput);
+            if (input == null)
+            {
+                Errors.WriteErrorAndExit(panicText, 1);
+            }
+
+            if (!int.TryParse(input, out int fileNumber))
+            {
+                Errors.WriteErrorAndExit(panicText, 1);
+            }
+
+            if (fileNumber < 1 || fileNumber > numberOfFilesFound)
+            {
+                Errors.WriteErrorAndExit(panicText, 1);
+            }
+            return fileNumber - 1; // index = fileNumber - 1;
         }
-        public static bool IsValidFile(string filePath)
+        private static bool IsValidFile(string filePath)
         {
             List<string> usedFeatures = [];
             string fileName = Path.GetFileName(filePath);
@@ -983,13 +1004,13 @@ namespace BrowserAutomationMaster.Parsing
                         selectedFile
                     );
 
-
+                // Add functionality to return back to the main menu after a completed action
                 case MenuOption.Help:
                     HandleHelpSelection();
                     return KeyValuePair.Create(
                         MenuOption.Help,
                         string.Empty
-                    ); // This just needs to passthrough, action will be taken back in program.cs
+                    );
 
                 case MenuOption.Exit:
                     Environment.Exit(0);
@@ -998,7 +1019,8 @@ namespace BrowserAutomationMaster.Parsing
 
             return KeyValuePair.Create(
                 MenuOption.Help, 
-                "If you're reading this a menu option was incorrectly handled."
+                "If you're reading this a menu option was incorrectly handled.\n\n" +
+                $"Please make a bug report {ConstantManager.ISSUES_LINK}"
             );
         }
         
