@@ -5,21 +5,18 @@ using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using Spectre.Console;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
+using static BrowserAutomationMaster.Managers.ProcessManager;
+using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 
 
-ProcessManager.CheckForMultipleInstances();
-var colorString = Linux.GetTerminalBackgroundColor();
-if (colorString != null)
-{
-    (int r, int g, int b) = ToRGB(colorString);
-    var color = ToSpectreColor((byte)r, (byte)g, (byte)b);
-}
+//Console.WriteLine(OverrideLineHasComment(" ; @Override SuccessColor = #EEEEEE"));
 
-var _ = new ConfigManager(); // Instantiates ConfigManager.GlobalConfig
+CheckForMultipleInstances();
+GlobalConfig = LoadConfig();
+
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
@@ -41,7 +38,7 @@ if (!pArgs.Any(arg => nonUserScriptArgs.Contains(arg)))
 {
     RuntimeManager.DoRuntimeCheck();  // Set expectations regarding automation performance given the user's specs.
     if (GlobalConfig.ShowUpdateCheck) {
-        await UpdateManager.CheckForUpdate(); // New releases are fun - Ghandi probably.
+        await CheckForUpdate(); // New releases are fun - Ghandi probably.
     }
 }
 
@@ -135,8 +132,8 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
 else if (pArgs.Length == 1 && pArgs[0].Equals("help", StringComparison.CurrentCultureIgnoreCase)) {
     Errors.WriteErrorAndContinue(
         "Invalid command: 'bamm help'\n\n" +
-        "To see available entries for the 'help' command please type: 'bamm help --all'\n\n" +
-        "Press any key to continue."
+        "To see available entries for the 'help' command," +
+        "run bamm without arguments then select the Help tab.\n\n"
     );
     ReadKey();
 }

@@ -58,7 +58,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             {
                 Errors.WriteErrorAndExit(
                     $"BAM Manager (BAMM) was unable to parse installed system applications, " +
-                    $"please see the error below:\n\n{ex}", 
+                    $"please see the error below:\n\n{ex}",
                     status: 1
                 );
                 return [];
@@ -96,7 +96,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 string command = "bash";
                 string args = $"-c \"printf '\\e]11;?\\e\\\\' >/dev/tty; read -rs -t 3 -d $'\\\\' response </dev/tty; echo \\\"$response\\\" | xxd > {tempFile}\"";
-
                 string response = RunCommand(command, args);
                 Thread.Sleep(300);
 
@@ -124,7 +123,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return null;
             }
         }
-        
+
         // Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.)
         private static List<AppInfo> ParseDpkgList()
         {
@@ -181,26 +180,29 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             {
                 ProcessStartInfo procStartInfo = new()
                 {
-                    FileName = cmd, 
+                    FileName = cmd,
                     Arguments = args,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
-                    
+
                 };
                 using var proc = Process.Start(procStartInfo);
-                if (proc == null) { 
-                    return string.Empty; 
+                if (proc == null)
+                {
+                    return string.Empty;
                 }
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit();
-                if (proc.ExitCode == 0) { 
+                if (proc.ExitCode == 0)
+                {
                     return output;
                 }
                 return string.Empty;
             }
-            catch (Exception ex){
+            catch (Exception ex)
+            {
                 Errors.WriteErrorAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to execute a necessary command, if this issue persists, " +
@@ -211,11 +213,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return string.Empty;
             }
         }
-        
-    }
-    public static partial class TerminalParser
-    {
-        
-        
+
     }
 }
