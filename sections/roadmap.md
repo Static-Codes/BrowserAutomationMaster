@@ -8,7 +8,6 @@ This section outlines the planned commands and features for later BAMM releases.
 
 ## Browser Commands
 
-- **`new-tab "url"`** - Opens a new tab with the specified url, if not supplied or invalid the browser's homepage will be loaded.
 - **`get-validated-text "selector" "desired result"`**: This powerful command will try to get the text of a specific element, if it's found the result is then validated against "desired result", useful for checking the status of a page after input. 
 - **`add-cookie "name" "value"`**: This command will let you add a single cookie to the browser session.
 - **`add-cookies {"name": "value", "name2": "value2"}`**: For more complex scenarios, you'll be able to add multiple cookies using a JSON object.
@@ -19,15 +18,9 @@ This section outlines the planned commands and features for later BAMM releases.
   You could use the command: `set-element-property "#idp-month__selected" "data-selected-value" "02"` to change the selected month.
 
 ## User Experience Enhancements
-- Allow multiple visit commands in a single .BAMC script without jeopardizing current functionality.
-- Adding an option for users to copy the path of the compiled script directory to their clipboard.
-- Adding back a config.ini which allows the user to more tightly control the compiler's actions.
 - Allow users the ability to open a new explorer/finder window to that directory, provided there's at least 100MB of RAM available.
-- Clean up error messages to be under 120 characters per line.
 
 ## LSP (Language Server Protocol)
 - This will allow you to create bamm scripts with syntax highlighting and other features similar to pylance.
 
-## Android app
-- Port BAMM to android using appium
 ---
