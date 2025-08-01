@@ -11,15 +11,15 @@
 
 ### General Changes:
 
-- Added 4 new commands (3 action, 1 feature).
-- Added `feature` line validation in `Parsing.Parser.cs`
-- Added support for Fedora based Linux Distros (CentOS, Oracle Linux, Qubes, etc) via a .RPM package
+- Added `feature` line validation in `Parsing.Parser`
+- Added Color Support (3 bit to 24 bit) ➜ `Managers.AnsiManager`.
+- Added Config Functionality ➜ `Managers.ConfigManager`.
+- Added Custom Themes ➜ `Managers.ThemeManager`
+- Added support for Fedora based Linux Distros _(CentOS, Oracle Linux, Qubes, etc)_
 - Cleaned up `Parsing.Parser.cs`.
-- Created `Managers.AnsiManager`.
 - Created `Managers.CommandManager`.
 - Created `Managers.CommandTypes`.
-- Created `Managers.ConfigManager`.
-- Created `Managers.ThemeManager`.
+- Created `Messaging.Clipboard`
 - Created `BrowserAutomationMaster.Transpiler` namespace
 - Created `BrowserAutomationMaster.Types`
 - Created `Types.Command`
