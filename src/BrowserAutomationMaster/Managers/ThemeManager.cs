@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS;
+using System.Drawing;
+using System.Reflection;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -16,16 +18,6 @@ namespace BrowserAutomationMaster.Managers
         private static readonly Color OliveGreen = Color.FromArgb(13, 176, 9);
 
         public readonly static Theme DarkTheme = new(
-            ForegroundColor: Color.White,
-            SuccessColor: EmeraldGreen,
-            WarningColor: LightYellow,
-            ErrorColor: LightRed,
-            HighlightBackground: DarkGray,
-            HighlightForeground: OliveGreen,
-            AccentColor: LightBlue
-        );
-
-        public readonly static Theme LightTheme = new(
             ForegroundColor: Color.Black,
             SuccessColor: DarkGreen,
             WarningColor: Color.DarkGoldenrod,
@@ -34,7 +26,50 @@ namespace BrowserAutomationMaster.Managers
             HighlightForeground: DarkGreen,
             AccentColor: LightBlue
         );
-        public readonly static Theme DefaultTheme = DarkTheme;
+        public readonly static Theme LightTheme = new(
+            ForegroundColor: Color.White,
+            SuccessColor: EmeraldGreen,
+            WarningColor: LightYellow,
+            ErrorColor: LightRed,
+            HighlightBackground: DarkGray,
+            HighlightForeground: OliveGreen,
+            AccentColor: LightBlue
+        );
+        public readonly static Theme DefaultTheme = GetDefaultTheme();
+
+        private static Theme GetDefaultTheme()
+        {
+            var Ansi24BitColor = Linux.GetTerminalBackgroundColor();
+
+            if (Ansi24BitColor == null) {
+                return DarkTheme;
+            }
+
+            (int r, int g, int b) = AnsiManager.FromANSI(Ansi24BitColor);
+            var color = Color.FromArgb(r, g, b);
+
+            return GetThemeFromColor(color);
+        }
+        private static Theme GetThemeFromColor(Color terminalBGColor)
+        {
+            // RGB (TrueColor / 24 bit color)
+            // Relative Luminance = 0.2126(R) + 0.7152(G) + 0.0722(B)
+
+            double midpoint = 127.5;
+
+            int R = terminalBGColor.R;
+            int G = terminalBGColor.G;
+            int B = terminalBGColor.B;
+
+            double luminescence = (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
+            bool closerToBlack = luminescence <= midpoint;
+            // Debug values
+            Console.WriteLine($"Luminescence: {luminescence}");
+            Console.WriteLine($"Is Dark Theme: {!closerToBlack}");
+            Console.WriteLine($"Is Light Theme: {closerToBlack}");
+
+            return closerToBlack ? LightTheme : DarkTheme;
+        }
     }
 
     public class Theme(Color ForegroundColor, Color SuccessColor, Color WarningColor, Color ErrorColor, Color HighlightBackground, Color HighlightForeground, Color AccentColor)

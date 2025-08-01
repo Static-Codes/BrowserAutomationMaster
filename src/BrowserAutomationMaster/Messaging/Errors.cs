@@ -9,11 +9,11 @@ namespace BrowserAutomationMaster.Messaging
 
         public static string GenerateErrorMessage(string fileName, string line, int lineNumber, string issueText)
         {
-            return "BAM Manager (BAMM) was unable to compile the selected .BAMC script.\n" +
+            return "BAM Manager (BAMM) was unable to continue due to an unexpected error.\n" +
                 $"File: {fileName}\n" +
                 $"Line Number: {lineNumber}\n" +
                 $"Line: {line}\n" +
-                $"Issue: {issueText}";
+                $"Error Log: {issueText}";
         }
 
         [DoesNotReturn]
