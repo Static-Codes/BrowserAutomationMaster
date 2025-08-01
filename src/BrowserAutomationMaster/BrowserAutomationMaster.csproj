@@ -88,6 +88,7 @@
 		<PackageReference Include="Spectre.Console" Version="0.50.0" />
 		<PackageReference Include="System.Memory" Version="4.6.3" />
 		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
+		<PackageReference Include="TextCopy" Version="6.2.1" />
 	</ItemGroup>
 
 

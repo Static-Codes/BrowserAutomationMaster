@@ -255,7 +255,6 @@ namespace BrowserAutomationMaster.Managers
                         "bamm help browser",
                         "bamm help take-screenshot",
                         "bamm help save-as-html",
-                        "bamm help --all",
                     ],
                     type: CommandType.Argument
                 )

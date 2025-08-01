@@ -12,24 +12,23 @@ using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 
 
-//Console.WriteLine(OverrideLineHasComment(" ; @Override SuccessColor = #EEEEEE"));
 
 CheckForMultipleInstances();
 GlobalConfig = LoadConfig();
-
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
 if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240)) { 
     Win.VerifyRootDrive(pArgs); 
-} // Verify the user is running on their C: drive (assuming they're on windows 10 or 11)
+}
 
 
 List<string> validCLIArgs = ["add", "clear", "compile", "delete", "help", "run"];
+
 // If pArgs contains any args from nonUserScriptArgs, Compatibility checks are skipped because the user is not attempting to compile or run any scripts.
 List<string> nonUserScriptArgs = ["clear", "help", "uninstall"]; // These commands are handled within the program loop instead of in UserScriptManager.
 
-Console.Title = $"BrowserAutomationMaster Manager (BAMM!) {UpdateManager.CurrentVersion}";
+Console.Title = $"BrowserAutomationMaster Manager (BAMM!) {CurrentVersion}";
 
 bool isRunning = true;
 bool isCLI = false;
@@ -180,7 +179,7 @@ while (isRunning)
     switch (parserResult.Key)
     {
         case MenuOption.Add:
-            string compileInput = Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:") ?? "n";
+            string compileInput = Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:");
             bool overwriteConfirmation = compileInput.Trim().Equals("y", StringComparison.OrdinalIgnoreCase);
             if (overwriteConfirmation) { 
                 Transpiler.New(parserResult.Value, args); 
@@ -197,7 +196,6 @@ while (isRunning)
             break;
 
         case MenuOption.Help:
-            Help.ShowCommandDetails("bamm help --all");
             break;
 
         case MenuOption.Invalid:

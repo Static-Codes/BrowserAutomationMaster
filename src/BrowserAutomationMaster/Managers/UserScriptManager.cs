@@ -47,7 +47,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
-            // Performs path validation 4/6
+            // Performs path validation 4/6 (Sets the value of scriptPath
             string fileName;
             try {
                 fileName = Path.GetFileName(filePath);
@@ -76,37 +76,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
-            // Handles CLI args
-            switch (method.ToLower().Trim())
-            {
-                case "add":
-                    AddScript(sourceFilePath: filePath, fileName: fileName);
-                    break;
-                case "compile": // Only compiles from .bamc files within the userScripts directory, this creates standardized behavior. 
-                    if (!File.Exists(scriptPath)) {
-                        Errors.WriteErrorAndExit(
-                            message: $"BAM Manager (BAMM) was unable to compile: {filePath}\n" +
-                            $"Please ensure you've added this script to the userScript directory and try again.", 
-                            status: 1);
-                    }
-                    Transpiler.New(filePath: scriptPath, args: []); 
-                    break;
-                case "delete":
-                    DeleteScript();
-                    break;
-                case "run":
-                    RuntimeManager runtimeManager = new(scriptFilePath: scriptPath);
-                    Action RunAction(RuntimeManager runtimeManager) => async () => { await runtimeManager.RunScript(); };
-                    Task.Run(RunAction(runtimeManager));
-                    break;
-
-                default:
-                    Errors.WriteErrorAndExit(
-                        message: $"Unknown method: {method}. Please type:\nbamm help\n\nFor further instructions.",
-                        status: 1
-                    );
-                    break;
-            }
+            HandleCLIArgs(method, filePath, scriptPath);
         }
 
 
@@ -117,7 +87,7 @@ namespace BrowserAutomationMaster.Managers
             if (File.Exists(scriptPath)) {
                 string response = Input.WriteTextAndReturnRawInput(
                     $"\nThe file '{fileName}' already exists in the userScript directory. Overwrite? [y/n]:\n"
-                ) ?? "n";
+                );
 
                 if (!response.Equals("y")) {
                     Errors.WriteErrorAndExit("Operation canceled by user, exiting...", 0);
@@ -341,7 +311,7 @@ namespace BrowserAutomationMaster.Managers
             }
             else { throw new PlatformNotSupportedException($"Unsupported OS"); }
         }
-        static void EnsureDirectoryExists(string path) {
+        private static void EnsureDirectoryExists(string path) {
             if (!Directory.Exists(path)) {
                 try { Directory.CreateDirectory(path); }
                 catch (Exception) { 
@@ -349,6 +319,40 @@ namespace BrowserAutomationMaster.Managers
                         message: $"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"
                     );
                 }
+            }
+        }
+        private void HandleCLIArgs(string method, string filePath, string fileName)
+        {
+            switch (method.ToLower().Trim())
+            {
+                case "add":
+                    AddScript(sourceFilePath: filePath, fileName);
+                    break;
+                case "compile": // Only compiles from .bamc files within the userScripts directory, this creates standardized behavior. 
+                    if (!File.Exists(scriptPath))
+                    {
+                        Errors.WriteErrorAndExit(
+                            message: $"BAM Manager (BAMM) was unable to compile: {filePath}\n" +
+                            $"Please ensure you've added this script to the userScript directory and try again.",
+                            status: 1);
+                    }
+                    Transpiler.New(filePath: scriptPath, args: []);
+                    break;
+                case "delete":
+                    DeleteScript();
+                    break;
+                case "run":
+                    RuntimeManager runtimeManager = new(scriptFilePath: scriptPath);
+                    Action RunAction(RuntimeManager runtimeManager) => async () => { await runtimeManager.RunScript(); };
+                    Task.Run(RunAction(runtimeManager));
+                    break;
+
+                default:
+                    Errors.WriteErrorAndExit(
+                        message: $"Unknown method: {method}. Please type:\nbamm help\n\nFor further instructions.",
+                        status: 1
+                    );
+                    break;
             }
         }
     }
