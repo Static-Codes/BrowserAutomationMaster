@@ -14,7 +14,7 @@ Selenium automation in Python can involve a lot of repetitive code and detailed 
 
 ### [Installation](sections/installation.md)
 
-### [Examples](src/Files-For-ReadMe/Examples)
+### [Examples](examples/)
 
 ### [Compile BrowserAutomationMaster from Source](sections/compile.md)
 
