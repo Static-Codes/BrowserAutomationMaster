@@ -1,4 +1,5 @@
-﻿using Spectre.Console;
+﻿using BrowserAutomationMaster.Managers;
+using Spectre.Console;
 using static BrowserAutomationMaster.Managers.CommandManager;
 
 namespace BrowserAutomationMaster.Messaging
@@ -30,7 +31,7 @@ namespace BrowserAutomationMaster.Messaging
                 var examples = exArray.Length != 0 ? string.Join("\n", exArray) : "Not Found";
                 Success.WriteSuccessMessage(
                     $"\nCommand: {command}\n" +
-                    $"\nType: {command}" + 
+                    $"\nType: {CommandManager.GetType(command)}" + 
                     $"\n\nDescription:\n{GetDescription(command)}" +
                     $"\n\nExamples:\n{Markup.Escape(examples)}\n"
                 );
