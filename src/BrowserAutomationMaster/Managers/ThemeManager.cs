@@ -44,7 +44,7 @@ namespace BrowserAutomationMaster.Managers
                 return DarkTheme;
             }
 
-            (int r, int g, int b) = AnsiManager.FromANSI(Ansi24BitColor);
+            (int r, int g, int b) = AnsiManager.FromXTerm(Ansi24BitColor);
             var color = Color.FromArgb(r, g, b);
 
             return GetThemeFromColor(color);
