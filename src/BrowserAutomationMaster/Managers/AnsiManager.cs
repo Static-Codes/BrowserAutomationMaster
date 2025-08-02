@@ -7,7 +7,7 @@ namespace BrowserAutomationMaster.Managers
 {
     public static class AnsiManager
     {
-        public static (int r, int g, int b) FromANSI(string Ansi24bit) // Accepts XXXX/XXXX/XXXX
+        public static (int r, int g, int b) FromXTerm(string Ansi24bit) // Accepts XXXX/XXXX/XXXX
         {
             var parts = Ansi24bit.Split('/');
             if (parts.Length != 3)
@@ -125,7 +125,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 "Hex" => Color.FromHex(colorValue),
                 "RGB" => FromRGB(colorValue) ?? throw new Exception(""),
-                "ANSI" => ToSpectreColor(FromANSI(colorValue)),
+                "ANSI" => ToSpectreColor(FromXTerm(colorValue)),
                 _ => null
             };
         }
