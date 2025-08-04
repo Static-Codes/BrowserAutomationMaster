@@ -10,6 +10,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using static BrowserAutomationMaster.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 
 namespace BrowserAutomationMaster.Compilation
@@ -223,27 +224,56 @@ namespace BrowserAutomationMaster.Compilation
             }
             
             int index = 1; // Accounts for the functions below in the scriptBody.
-            scriptBody.Insert(0, BrowserFunctions.makeRequestFunction(requestUserAgent));
+            scriptBody.Insert(0, makeRequestFunction(requestUserAgent));
 
             // Starts at line 4 (index 3) to account for imports required by check_imports
-            importStatements.Insert(3, BrowserFunctions.checkImportFunction);
-            importStatements.Insert(4, BrowserFunctions.installPackagesFunction);
+            importStatements.Insert(3, checkImportFunction);
+            importStatements.Insert(4, installPackagesFunction);
             importStatements.Insert(5, "install_packages()");
 
             Action Add(string func) => () => scriptBody.Insert(index, func);
+            Action AddRange(string[] funcs) => () => {
+                foreach (var func in funcs) {
+                    Add(func);
+                }
+            };
             Dictionary<string, Action> functionsAndActions = new() {
-                { "click", Add(BrowserFunctions.clickElementFunction)                              },
-                { "click-at-position", Add(BrowserFunctions.clickAtPositionFunction)               },
-                { "click-exp", () => Add(BrowserFunctions.clickElementExperimentalFunction)        },
-                { "close-current-tab", Add(BrowserFunctions.closeCurrentTabFunction)               },
-                { "fill-text", Add(BrowserFunctions.fillTextFunction)                              },
-                { "fill-text-exp", Add(BrowserFunctions.fillTextExperimentalFunction)              },
-                { "get-text", Add(BrowserFunctions.getTextFunction)                                },
-                { "open-new-tab", Add(BrowserFunctions.openNewTabFunction)                         },
-                { "save-as-html", Add(BrowserFunctions.saveAsHTMLFunction)                         },
-                { "save-as-html-exp", Add(BrowserFunctions.saveAsHTMLExperimentalFunction)         },
-                { "select-option", Add(BrowserFunctions.selectOptionByIndexFunction)               },
-                { "take-screenshot", Add(BrowserFunctions.takeScreenshotFunction)                  }
+                { 
+                    "click", Add(clickElementFunction)
+                },
+                { 
+                    "click-at-position", Add(clickAtPositionFunction)
+                },
+                { 
+                    "click-exp", Add(clickElementExperimentalFunction)        
+                },
+                { 
+                    "close-current-tab", Add(closeCurrentTabFunction)               
+                },
+                { 
+                    "fill-text", Add(fillTextFunction)                              
+                },
+                { 
+                    "fill-text-exp", Add(fillTextExperimentalFunction)              
+                },
+                { 
+                    "get-text", Add(getTextFunction)                                
+                },
+                { 
+                    "open-new-tab", Add(openNewTabFunction)                         
+                },
+                { 
+                    "save-as-html", Add(saveAsHTMLFunction)                         
+                },
+                { 
+                    "save-as-html-exp", Add(saveAsHTMLExperimentalFunction)         
+                },
+                { 
+                    "select-option", AddRange([selectElementFunction, selectOptionByIndexFunction])               
+                },
+                { 
+                    "take-screenshot", Add(takeScreenshotFunction)                  
+                }
             };
 
             foreach (var functionPair in functionsAndActions) {
@@ -262,10 +292,10 @@ namespace BrowserAutomationMaster.Compilation
                 }
             }
             if (scriptBody.Count != index) { 
-                scriptBody.Insert(scriptBody.Count, BrowserFunctions.browserQuitCode); 
+                scriptBody.Insert(scriptBody.Count, browserQuitCode); 
             }
             else { 
-                Add(BrowserFunctions.browserQuitCode); 
+                Add(browserQuitCode); 
             }
         }
         public static void CheckConfigLines()
@@ -437,7 +467,7 @@ namespace BrowserAutomationMaster.Compilation
             int lineNumber = 1;
             bool hasComment = false;
 
-            // Prevents duplicate entries of BrowserFunctions.makeRequestFunction();
+            // Prevents duplicate entries of makeRequestFunction();
             bool firstVisitFinished = false;
             // Prevents issues caused by set-custom-user-agent having unique formatting (Many spaces).
             bool isCU = false;
@@ -490,7 +520,7 @@ namespace BrowserAutomationMaster.Compilation
                     else {  
                         scriptBody.Insert(
                             index - 1, 
-                            BrowserFunctions.addHeadersFunction(
+                            addHeadersFunction(
                                 JsonSerializer.Deserialize<Dictionary<string, string>>(match.Groups["json"].Value)!
                             )
                         );
