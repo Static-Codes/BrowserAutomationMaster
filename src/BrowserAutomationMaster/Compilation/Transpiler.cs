@@ -226,10 +226,6 @@ namespace BrowserAutomationMaster.Compilation
             int index = 1; // Accounts for the functions below in the scriptBody.
             scriptBody.Insert(0, makeRequestFunction(requestUserAgent));
 
-            // Starts at line 4 (index 3) to account for imports required by check_imports
-            importStatements.Insert(3, checkImportFunction);
-            importStatements.Insert(4, installPackagesFunction);
-            importStatements.Insert(5, "install_packages()");
 
             Action Add(string func) => () => scriptBody.Insert(index, func);
             Action AddRange(string[] funcs) => () => {
