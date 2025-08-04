@@ -389,31 +389,31 @@ namespace BrowserAutomationMaster.Compilation
                 {
                     case SelectorCategory.Id:
                         scriptBody.Add(
-                            $"isSelected = select_option_by_index(By.ID, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                            $"isSelected = select_option_by_index(By.ID, '{parsedOptionSelector.Value}', {sanitizedArg3}, {actionTimeout})\n"
                         );
                         break;
 
                     case SelectorCategory.ClassName:
                         scriptBody.Add(
-                            $"isSelected = select_option_by_index(By.CLASS_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                            $"isSelected = select_option_by_index(By.CLASS_NAME, '{parsedOptionSelector.Value}', {sanitizedArg3}, {actionTimeout})\n"
                         );
                         break;
 
                     case SelectorCategory.NameAttribute:
                         scriptBody.Add(
-                            $"isSelected = select_option_by_index(By.NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                            $"isSelected = select_option_by_index(By.NAME, '{parsedOptionSelector.Value}', {sanitizedArg3}, {actionTimeout})\n"
                         );
                         break;
 
                     case SelectorCategory.TagName:
                         scriptBody.Add(
-                            $"isSelected = select_option_by_index(By.TAG_NAME, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                            $"isSelected = select_option_by_index(By.TAG_NAME, '{parsedOptionSelector.Value}', {sanitizedArg3}, {actionTimeout})\n"
                         );
                         break;
 
                     case SelectorCategory.XPath:
                         scriptBody.Add(
-                            $"isSelected = select_option_by_index(By.XPATH, '{parsedOptionSelector.Value}', '{sanitizedArg3}', {actionTimeout})\n"
+                            $"isSelected = select_option_by_index(By.XPATH, '{parsedOptionSelector.Value}', {sanitizedArg3}, {actionTimeout})\n"
                         );
                         break;
 
@@ -422,7 +422,7 @@ namespace BrowserAutomationMaster.Compilation
                     SelectorCategory.PseudoElement or
                     SelectorCategory.InvalidOrUnknown:
                         scriptBody.Add(
-                            $"isSelected = select_option_by_index(By.CSS_SELECTOR, '{parsedOptionSelector.Value}', '{sanitizedArg3}, {actionTimeout}')\n"
+                            $"isSelected = select_option_by_index(By.CSS_SELECTOR, '{parsedOptionSelector.Value}', {sanitizedArg3}, {actionTimeout})\n"
                         );
                         break;
 

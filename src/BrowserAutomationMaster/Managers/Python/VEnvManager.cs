@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using BrowserAutomationMaster.Messaging;
+using Spectre.Console;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -145,7 +146,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 };
 
 
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
                 startVEnvProcess.Start();
                 startVEnvProcess.BeginOutputReadLine();
                 startVEnvProcess.BeginErrorReadLine();

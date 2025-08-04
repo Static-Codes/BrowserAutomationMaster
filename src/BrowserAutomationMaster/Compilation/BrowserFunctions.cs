@@ -584,6 +584,7 @@ setTimeout(() => {{timeout*1000}});
     index: int,
     timeout: int = 10
 ) -> bool:
+    optionNumber = index + 1
     select_tag_element = select_element(byType, selector, timeout)
     if not select_tag_element:
         stderr.write(f""Standard <select> element not found using selector:\n{selector}\n"")
@@ -596,13 +597,13 @@ setTimeout(() => {{timeout*1000}});
     try:
         select_obj = Select(select_tag_element)
         select_obj.select_by_index(index)
-        stdout.write(f""Selected option #{index+1} from {selector}.\n"")
+        stdout.write(f""Selected option {optionNumber} from {selector}.\n"")
         return True
     except NoSuchElementException:
-        stderr.write(f'Unable to find element: ', selector)
+        stderr.write(f'Unable to find element: {selector}\n')
         return False
     except Exception as e:
-        stderr.write(f""Error selecting option #{index+1} (Index: {index}) from <select> tag with selector:\n'{selector}'\nError: {e}\n"")
+        stderr.write(f""Error selecting option {optionNumber} (Index: {index}) from <select> tag with selector:\n'{selector}'\nError: {e}\n"")
         return False" + string.Concat(Enumerable.Repeat('\n', 1));
 
         public static string takeScreenshotFunction = @"def take_screenshot(filename: str):
