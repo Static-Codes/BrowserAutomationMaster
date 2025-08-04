@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "BAM Manager (BAMM)"
-#define MyAppVersion "1.0.0-Alpha3"
+#define MyAppVersion "1.0.0-Alpha4"
 #define MyAppExeName "bamm.exe"
 #define MyAppAssocName "BAMM Config"
 #define MyAppAssocExt ".bamc"
@@ -20,8 +20,8 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
-OutputDir=..\..\Published Builds\BAMM-v1.0.0A3-ARM64
-OutputBaseFilename=BAMM-v1.0.0A3-ARM64-Setup
+OutputDir=..\..\Published Builds\BAMM-v1.0.0A4-x64
+OutputBaseFilename=BAMM-v1.0.0A4-x64-Setup
 SolidCompression=yes
 WizardStyle=modern
 
@@ -33,10 +33,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "addtopath"; Description: "Add application directory to your system PATH"; GroupDescription: "Advanced Options:"; Flags: checkedonce
 
 [Files]
-Source: "..\..\BrowserAutomationMaster\bin\Release\net8.0\win-arm64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-// Source: ..\..\BrowserAutomationMaster\bin\Release\net8.0\win-arm64\publish\userScripts\*"; DestDir: "{userappdata}\BrowserAutomationMaster\userScripts"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall skipifsourcedoesntexist;
-// Source: ..\..\BrowserAutomationMaster\bin\Release\net8.0\win-arm64\publish\packages.json"; DestDir: "{app}"; Flags: ignoreversion
-// Source: ..\..\BrowserAutomationMaster\bin\Release\net8.0\win-arm64\publish\userAgents.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+// These files are no longer needed since the app is developed to be cross platform with the OOBE
+// Source: "..\..\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\packages.json"; DestDir: "{app}"; Flags: ignoreversion
+// Source: "..\..\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\userAgents.json"; DestDir: "{app}"; Flags: ignoreversion
+// Source: "..\..\BrowserAutomationMaster\bin\Release\net8.0\win-x64\publish\userScripts\*"; DestDir: "{userappdata}\BrowserAutomationMaster\userScripts"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall skipifsourcedoesntexist;
 
 [Registry]
 Root: HKLM; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue

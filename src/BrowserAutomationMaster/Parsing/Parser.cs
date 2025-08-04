@@ -681,7 +681,7 @@ namespace BrowserAutomationMaster.Parsing
             }
             return fileNumber - 1; // index = fileNumber - 1;
         }
-        private static bool IsValidFile(string filePath)
+        public static bool IsValidFile(string filePath)
         {
             List<string> usedFeatures = [];
             string fileName = Path.GetFileName(filePath);
