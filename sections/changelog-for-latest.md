@@ -8,44 +8,15 @@
 
 ## Changelog
 
-### General Changes:
-
-- Added `feature` line validation in `Parsing.Parser`
-- Added Color Support (3 bit to 24 bit) ➜ `Managers.AnsiManager`.
-- Added Config Functionality ➜ `Managers.ConfigManager`.
-- Added Custom Themes ➜ `Managers.ThemeManager`
-- Added support for Fedora based Linux Distros _(CentOS, Oracle Linux, Qubes, etc)_
-- Cleaned up `Parsing.Parser.cs`.
-- Created `Managers.CommandManager`.
-- Created `Managers.CommandTypes`.
-- Created `Messaging.Clipboard`
-- Created `BrowserAutomationMaster.Transpiler` namespace
-- Created `BrowserAutomationMaster.Types`
-- Created `Types.Command`
-- Increased BAMC JavaScript validation accuracy
-- Increased BAMC URL validation accuracy
-- Moved code from `Transpiler.cs` to `CompilationHandler.cs`
-- Moved `Parsing.Parser.Menu` and `Parsing.Parser.MenuOptions` to `Messaging.Menu`
-- Moved `Transpiler.cs` and `CompilationHandler.cs` to `BrowserAutomationMaster.Transpiler`
-- Refactored `Messaging.Help` to use new class `Types.Command`
-- Refactored `Managers.AppManager.OS.Win.GetPhysicalCoreCount()` to use CSWin32 for increased stability.
-- Refactored `Managers.Python.VEnvManager` and `Managers.UpdateManager` to be asynchronous
-- Removed 300+ lines of bloat from Parsing.Transpiler
-- Removed redundant OS checks and tightened Windows checks.
-- Removed unused features `async` and `bypass-cloudflare`
-- Renamed internal class to prevent naming conflicts, `Managers.AppManager.OS.Windows` -> `Managers.AppManager.OS.Win`
-
 ### New Action Commands:
-
-- `click-at-position "600" "600"` - Clicks at a specific point on screen
-- `close-current-tab` - Closes the currrent tab and will close the browser if there's only one open tab.
-- `open-new-tab "https://google.com" "3"` - A new browser tab is opened, the system will then pause for the number of seconds specified, then visits the requested url.
-
----
 
 ### New Feature Command:
 
-- `feature "disable-ssl"` - Disables SSL certificate authentication for the given session.
+### New CLI Arguments:
+
+- `bamm validate "path/to/file.bamc" - Validates a BAMC file.
+
+---
 
 ### Windows 💻
 

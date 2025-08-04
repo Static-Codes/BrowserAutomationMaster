@@ -63,9 +63,9 @@ namespace BrowserAutomationMaster.Managers
             double luminescence = (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
             bool closerToBlack = luminescence <= midpoint;
             // Debug values
-            Console.WriteLine($"Luminescence: {luminescence}");
-            Console.WriteLine($"Is Dark Theme: {!closerToBlack}");
-            Console.WriteLine($"Is Light Theme: {closerToBlack}");
+            // Console.WriteLine($"Luminescence: {luminescence}");
+            // Console.WriteLine($"Is Dark Theme: {!closerToBlack}");
+            // Console.WriteLine($"Is Light Theme: {closerToBlack}");
 
             return closerToBlack ? LightTheme : DarkTheme;
         }

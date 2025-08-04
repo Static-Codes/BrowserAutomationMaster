@@ -5,6 +5,7 @@ using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using static BrowserAutomationMaster.Parsing.Parser;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ProcessManager;
@@ -23,10 +24,11 @@ if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240)) {
 }
 
 
-List<string> validCLIArgs = ["add", "clear", "compile", "delete", "help", "run"];
+List<string> validCLIArgs = ["add", "clear", "compile", "delete", "help", "run", "validate"];
 
 // If pArgs contains any args from nonUserScriptArgs, Compatibility checks are skipped because the user is not attempting to compile or run any scripts.
-List<string> nonUserScriptArgs = ["clear", "help", "uninstall"]; // These commands are handled within the program loop instead of in UserScriptManager.
+// These commands are handled within the program loop instead of in UserScriptManager.
+List<string> nonUserScriptArgs = ["clear", "help", "uninstall", "validate"];
 
 Console.Title = $"BrowserAutomationMaster Manager (BAMM!) {CurrentVersion}";
 
@@ -171,6 +173,26 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("uninstall", StringComparison.Curr
     new UninstallationManager().Uninstall(); 
 }
 
+// Handles bamm validate
+else if (pArgs.Length == 1 && pArgs[0].Equals("validate", StringComparison.CurrentCultureIgnoreCase))
+{
+    Errors.WriteErrorAndExit(
+        "Invalid 'validate' command.\n\n" +
+        "Valid Syntax:\n" +
+        "bamm validate \"path/to/file.bamc\"\n",
+        status: 1
+    );
+}
+
+// Handles bamm 
+else if (pArgs.Length == 2 && pArgs[0].Equals("validate", StringComparison.CurrentCultureIgnoreCase))
+{
+    if (IsValidFile(pArgs[1]))
+    {
+        Success.WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
+    }
+    Errors.WriteErrorAndExit("Select file has invalid syntax.", 1);
+}
 
 
 while (isRunning)
@@ -181,8 +203,9 @@ while (isRunning)
         case MenuOption.Add:
             string compileInput = Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:");
             bool overwriteConfirmation = compileInput.Trim().Equals("y", StringComparison.OrdinalIgnoreCase);
-            if (overwriteConfirmation) { 
-                Transpiler.New(parserResult.Value, args); 
+            if (overwriteConfirmation)
+            {
+                Transpiler.New(parserResult.Value, args);
             }
             break;
 
