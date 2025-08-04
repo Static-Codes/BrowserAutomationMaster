@@ -950,10 +950,30 @@ namespace BrowserAutomationMaster.Compilation
 
             return isValidVersion;
         }
+
+        public static bool IsLocalFile(string link)
+        {
+            if (string.IsNullOrWhiteSpace(link))
+                return false;
+   
+            if (!link.StartsWith("file://"))
+                return false;
+        
+            string filePath = link[7..];
+            
+            if (string.IsNullOrWhiteSpace(filePath))
+                return false;
+
+            return File.Exists(filePath);
+        }
+
         public static bool IsResolvableLink(string link)
         {
             try
-            {
+            {  
+                if (IsLocalFile(link))
+                    return true;
+                    
                 bool isValidUri = Uri.TryCreate(link, UriKind.Absolute, out Uri? uriResult);
                 if (!isValidUri) {
                     Errors.WriteErrorAndExit(
