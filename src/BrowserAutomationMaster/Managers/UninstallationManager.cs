@@ -80,10 +80,26 @@ namespace BrowserAutomationMaster.Managers
             Environment.Exit(0);
         }
         private static void DoLinuxUninstall() {
-            Spectre.Console.AnsiConsole.Write(@"To uninstall BAM Manager (BAMM) on Linux:
-    - Run the following command: sudo apt-get remove --purge bamm
-    - You may be prompted for your user password. Enter it and press Enter.
-    - Confirm any prompts from apt-get to proceed with the uninstallation.");
+            string platform = Input.WriteListFromOptions(["Debian Based", "Fedora Based", "Other"]);
+            
+            string debianMessage = 
+                "To uninstall BAM Manager (BAMM) on Debian:" +
+                "   - Run the following command:\nsudo apt-get remove --purge bamm -y\n\n" +
+                "   - You may be prompted for your user password, enter it and press enter.";
+            
+            string fedoraMessage = 
+                "To uninstall BAM Manager (BAMM) on Fedora:" +
+                "   - Run the following command" +
+                "   - sudo dnf remove bamm -y";
+            
+            var message = platform switch {
+				"Debian Based" => debianMessage,
+				"Fedora Based" => fedoraMessage,
+				"Other" => "Unsupported, please manually uninstall",
+				_ => "Invalid choice" 
+            };
+
+            Spectre.Console.AnsiConsole.Write(message);
             Environment.Exit(0);
         }
     }
