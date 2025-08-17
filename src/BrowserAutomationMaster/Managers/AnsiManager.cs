@@ -125,7 +125,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 "Hex" => Color.FromHex(colorValue),
                 "RGB" => FromRGB(colorValue) ?? throw new Exception(""),
-                "ANSI" => ToSpectreColor(FromXTerm(colorValue)),
+                "XTerm" => ToSpectreColor(FromXTerm(colorValue)),
                 _ => null
             };
         }

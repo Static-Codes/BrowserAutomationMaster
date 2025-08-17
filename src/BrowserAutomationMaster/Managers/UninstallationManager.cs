@@ -80,7 +80,7 @@ namespace BrowserAutomationMaster.Managers
             Environment.Exit(0);
         }
         private static void DoLinuxUninstall() {
-            string platform = Input.WriteListFromOptions(["Debian Based", "Fedora Based", "Other"]);
+            string platform = Input.WriteListFromOptions(["Debian Based", "Fedora Based", "Other"], noun: "distro");
             
             string debianMessage = 
                 "To uninstall BAM Manager (BAMM) on Debian:" +

@@ -16,10 +16,6 @@ namespace BrowserAutomationMaster.Managers
 
         readonly private static string malformedJSONMessage = "$BAM Manager: (BAMM) Failed to parse package data from 'packages.json'. JSON is malformed.";
         private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];
-
-        // Old logic, its much easier for compatibility to embed the required data and update per release.
-        //readonly static string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-        //readonly static string PackagesFilePath = Path.Combine(ProgramFilesPath, "BAM Manager (BAMM)", "packages.json");
         
 
         public static string New(string packageName, string pythonVersion)
@@ -74,7 +70,12 @@ namespace BrowserAutomationMaster.Managers
             {
                 if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { return false; }
                 RequestManager requestManager = RequestManager.Create(uriResult);
-                HttpResponseMessage response = await requestManager.GetAsync(followRedirects: true);
+                HttpResponseMessage? response = await requestManager.GetAsync(followRedirects: true);
+                
+                if (response == null)
+                    return false; 
+              
+
                 response.EnsureSuccessStatusCode();
 
                 HttpStatusCode statusCode = response.StatusCode;
@@ -167,20 +168,15 @@ namespace BrowserAutomationMaster.Managers
     {
         readonly public static string jsonString = """
         {
-            "aiohttp": {
-                "3.11.18": [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
-            },
             "selenium": {
-                "4.32.0": [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
+                "4.32.0": [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ],
+                "4.27.1": [ "3.8" ]
             },
             "selenium-wire": {
-                "5.1.0": [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
-            },
-            "tls_client": {
-                "1.0.1": [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
+                "5.1.0": [ "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
             },
             "webdriver_manager": {
-                "4.0.2": [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
+                "4.0.2": [ "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
             }
         }
         """;

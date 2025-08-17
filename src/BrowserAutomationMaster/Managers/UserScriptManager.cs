@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -194,133 +195,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
         }
-
-        public static string GetUserScriptDirectory()
-        {
-            string appName = "BrowserAutomationMaster";
-            string userScriptsFolderName = "userScripts";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string userScriptsPath = Path.Combine(appDataPath, appName, userScriptsFolderName);
-                EnsureDirectoryExists(userScriptsPath);
-                return userScriptsPath;
-            }
-
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                string userScriptsPath;
-
-                if (string.IsNullOrEmpty(homeDirectory))
-                {
-                    Errors.WriteErrorAndContinue(
-                        message: 
-                            $"BAM Manager (BAMM) could not automatically determine the user's home directory\n" +
-                            $"(UserProfile was empty)."
-                    );
-                    string? username = Environment.UserName;
-                    if (string.IsNullOrEmpty(username))
-                    {
-                        Errors.WriteErrorAndContinue(
-                            message: "BAM Manager (BAMM) was also unable to determine the active user's username automatically."
-                        );
-
-                        string response = Input.WriteTextAndReturnRawInput(
-                            "Would you like to manually enter the username? [y/n]: "
-                        );
-
-                        bool manuallyEntering = response.Equals("y");
-
-                        if (manuallyEntering)
-                        {
-                            username = Input.WriteTextAndReturnRawInput(
-                                "Please enter the exact username of the current active user: "
-                            );
-
-                            if (string.IsNullOrEmpty(username)) {
-                                Errors.WriteErrorAndExit(
-                                    message: 
-                                        "Invalid username provided. " +
-                                        "BAM Manager (BAMM) will now exit. " +
-                                        "Press any key to exit...",
-                                    status: 1
-                                );
-                            }
-                        }
-                        else {
-                            Errors.WriteErrorAndExit(
-                                message:
-                                    "Username not provided. Press any key to exit...", 
-                                status: 1
-                            );
-                        }
-                    }
-                    // Assuming username is a non null value, created using /Users/{username} structure
-                    homeDirectory = $"/Users/{username}";
-                    userScriptsPath = Path.Combine(
-                        homeDirectory, 
-                        "Library", 
-                        "Application Support", 
-                        appName, 
-                        userScriptsFolderName
-                    );
-                }
-                else {
-                    userScriptsPath = Path.Combine(
-                        homeDirectory,
-                        "Library",
-                        "Application Support",
-                        appName, 
-                        userScriptsFolderName
-                    );
-                }
-
-                EnsureDirectoryExists(userScriptsPath);
-                return userScriptsPath;
-            }
-
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                if (string.IsNullOrEmpty(homeDirectory)) { 
-                    homeDirectory = Environment.GetEnvironmentVariable("HOME"); 
-                }
-                
-                // Fallback for second check
-                if (string.IsNullOrEmpty(homeDirectory)) {
-                    Errors.WriteErrorAndExit(
-                        message: 
-                            "BAM Manager (BAMM) could not determine home directory on Linux.\n" +
-                            "Press any key to exit...",
-                        status: 1
-                    );
-                    return "";
-                }
-
-                // Ensures compliance with XDG specs using $XDG_CONFIG_HOME or $HOME/.config
-                string? configHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-                if (string.IsNullOrEmpty(configHome)) {
-                    configHome = Path.Combine(homeDirectory, ".config");
-                }
-
-                string userScriptsPath = Path.Combine(configHome, appName, userScriptsFolderName);
-                EnsureDirectoryExists(userScriptsPath);
-                return userScriptsPath;
-            }
-            else { throw new PlatformNotSupportedException($"Unsupported OS"); }
-        }
-        private static void EnsureDirectoryExists(string path) {
-            if (!Directory.Exists(path)) {
-                try { Directory.CreateDirectory(path); }
-                catch (Exception) { 
-                    Errors.WriteErrorAndContinue(
-                        message: $"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"
-                    );
-                }
-            }
-        }
+        
         private void HandleCLIArgs(string method, string filePath, string fileName)
         {
             switch (method.ToLower().Trim())
@@ -533,7 +408,7 @@ take-screenshot ""youtube-feed.png""";
                     string filename = example.Key;
                     string contents = example.Value;
                     if (string.IsNullOrEmpty(filename) || string.IsNullOrEmpty(contents)) { continue; }
-                    string filepath = Path.Combine(UserScriptManager.GetUserScriptDirectory(), filename);
+                    string filepath = Path.Combine(GetUserScriptDirectory(), filename);
                     if (File.Exists(filepath)) { continue; } // This is an unnecessary check but i felt the need to include it
                     File.WriteAllText(filepath, contents); // Writes the actual contents
                 }

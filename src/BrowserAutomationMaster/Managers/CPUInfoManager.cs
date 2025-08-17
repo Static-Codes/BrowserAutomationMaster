@@ -6,6 +6,7 @@ using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConfigManager;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -173,7 +174,7 @@ namespace BrowserAutomationMaster.Managers
                 using Process? process = Process.Start(coreCountProcessInfo);
                 if (process == null) {
                     Errors.WriteErrorAndExit(
-                        $"BAM Manager (BAMM) was unable to check the number of physical cores on the current machine, please make sure you are on an admin account.\n\nIf this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\nprocess returned null\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
+                        $"BAM Manager (BAMM) was unable to check the number of physical cores on the current machine, please make sure you are on an admin account.\n\nIf this continues, please make a bug report at {ISSUES_LINK}\n\nError log:\nprocess returned null\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
                     return -1; // This is purely to appease the compiler since -> process.StandardOutput has plausibility to be null according to the compiler, this is incorrect given that the function above kills the main thread.
                 }
                 Process coreCountProcess = new() { StartInfo = coreCountProcessInfo };
@@ -187,7 +188,7 @@ namespace BrowserAutomationMaster.Managers
                     Errors.WriteErrorAndExit(
                         message:   
                             $"BAM Manager (BAMM) was unable to give corecheck.sh executable permissions.\n\n" +
-                            $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                             $"Error log:\nchmod failed with exit code {coreCountProcess.ExitCode}", 
                         status: 1
                     );
@@ -199,7 +200,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to determine the amount of physical CPU cores on your system.\n\n" +
-                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\ncorecheck.sh returned the following error:\n{errorOutput}\n" +
                         $"Exit Code: {coreCountProcess.ExitCode}",
                     status: 1
@@ -209,7 +210,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the amount of physical CPU cores on your system.\n\n" +
-                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\n{ex}\n\n{ex.InnerException}",
                     status: 1
                 );
@@ -240,7 +241,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                        $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\n{error}", 
                     status: 1
                 );
@@ -249,7 +250,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                        $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n" +
+                        $"if this issue persists, please make a bug report at {ISSUES_LINK}\n" +
                         $"Error log:\nManagers.CPUInfoManager.GetPhysicalCoreCountLinux() returned an invalid input.", 
                     status: 1
                 );

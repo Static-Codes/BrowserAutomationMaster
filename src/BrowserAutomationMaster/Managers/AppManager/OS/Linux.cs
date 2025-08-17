@@ -3,11 +3,13 @@ using Spectre.Console;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     public static partial class Linux
     {
+        public static bool IsChromeOS { get; set; } = false;
         private static readonly Regex ForegroundMatch = ForegroundColorRegex();
         [GeneratedRegex("rgb:([0-9a-fA-F]+/[0-9a-fA-F]+).*?\n.{51}([0-9a-fA-F]+/[0-9a-fA-F]+)", RegexOptions.Compiled)]
         private static partial Regex ForegroundColorRegex();
@@ -66,7 +68,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         }
 
         // Instead of parsing each distro by type finding the available commands is much more efficient.
-        private static bool CommandExists(string cmd)
+        public static bool CommandExists(string cmd)
         {
             try
             {
@@ -92,6 +94,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             try
             {
+                string black = "0000/0000/0000";
+                if (IsChromeOS) 
+                {
+                    return black; 
+                }
                 string tempFile = Path.GetTempFileName();
 
                 string command = "bash";
@@ -124,6 +131,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
+        public static void ChromeOSCheck()
+        {
+            string cmdResponse = RunCommand("grep", "cros_ /proc/cmdline");
+            IsChromeOS = !string.IsNullOrEmpty(cmdResponse) && cmdResponse.StartsWith("cros_");
+        }
         // Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.)
         private static List<AppInfo> ParseDpkgList()
         {
@@ -206,7 +218,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 Errors.WriteErrorAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to execute a necessary command, if this issue persists, " +
-                        $"please make a bug report at {ConstantManager.ISSUES_LINK}\nError log:\nUnable to execute\n" +
+                        $"please make a bug report at {ISSUES_LINK}\nError log:\nUnable to execute\n" +
                         $"{cmd}\nException:\n{ex.Message}",
                     status: 1
                 );
