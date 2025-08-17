@@ -8,12 +8,31 @@ using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Parsing.Parser;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
+using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.ProcessManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Menu;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.BrowserVersionManager;
 
 
+SetBrowserVersions(await GetLatestVersionInfo());
+var versions = GetBrowserVersion();
+bool useLatest = false;
 
+if (versions == null)
+{
+    Warning.Write(
+        "Unable to get most browser versions, please ensure you have an active internet connection.\n" +
+        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n"
+    );
+    useLatest = true;
+}
+
+//Console.WriteLine(result.Firefox);
+Environment.Exit(0);
+
+Linux.ChromeOSCheck();
 CheckForMultipleInstances();
 GlobalConfig = LoadConfig();
 
@@ -35,11 +54,16 @@ Console.Title = $"BrowserAutomationMaster Manager (BAMM!) {CurrentVersion}";
 bool isRunning = true;
 bool isCLI = false;
 
+
+
 if (!pArgs.Any(arg => nonUserScriptArgs.Contains(arg)))
 {
-    RuntimeManager.DoRuntimeCheck();  // Set expectations regarding automation performance given the user's specs.
-    if (GlobalConfig.ShowUpdateCheck) {
-        await CheckForUpdate(); // New releases are fun - Ghandi probably.
+    if (!pArgs.Contains("--vlinux-bypass")) // Crude solution because its 10:38PM and i want to test before sleeping.
+    { 
+        RuntimeManager.DoRuntimeCheck();  // Set expectations regarding automation performance given the user's specs.
+        if (GlobalConfig.ShowUpdateCheck) {
+            await CheckForUpdate(); // New releases are fun - Ghandi probably.
+        }
     }
 }
 
@@ -88,32 +112,32 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
             "Are you sure you want to delete the 'userScripts' directory? [y/n]:\n"
         );
 
-        if (deleteInput.Equals("y")) {
-            DirectoryManager.DeleteDirectory(
-                UserScriptManager.GetUserScriptDirectory()
-            );
-        }
-        else { isRunning = false; }
+        if (deleteInput.Equals("y"))
+            DeleteDirectory(GetUserScriptDirectory());
+        else
+            isRunning = false;
+
     }
     else if (pArgs[1].Equals("compiled", StringComparison.CurrentCultureIgnoreCase)) {
         string input = Input.WriteTextAndReturnRawInput(
             "Are you sure you want to delete the 'compiled' directory? [y/n]:\n"
         );
-        if (input.Equals("y")) {
-            DirectoryManager.DeleteDirectory(DirectoryManager.GetDesiredSaveDirectory());
-        }
-        else { isRunning = false; }
+
+        if (input.Equals("y"))
+            DeleteDirectory(GetDesiredSaveDirectory());
+        else
+            isRunning = false;
     }
     else if (pArgs[1].Equals("config", StringComparison.CurrentCultureIgnoreCase))
     {
         string input = Input.WriteTextAndReturnRawInput(
             "Are you sure you want to delete the 'config' directory? [y/n]:\n"
         );
+
         if (input.Equals("y"))
-        {
-            DirectoryManager.DeleteDirectory(DirectoryManager.GetConfigDirectory());
-        }
-        else { isRunning = false; }
+            DeleteDirectory(GetConfigDirectory());
+        else
+            isRunning = false;
     }
     else {
         Errors.WriteErrorAndContinue(

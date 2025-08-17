@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -266,7 +267,7 @@ namespace BrowserAutomationMaster.Managers
                     Errors.WriteErrorAndExit(
                         "Failed to create config file.\n'" +
                         $"{ConfigFilePath}'\nError: {ex.Message}\n" +
-                        $"Please make a bug report at {ConstantManager.ISSUES_LINK}",
+                        $"Please make a bug report at {ISSUES_LINK}",
                         status: 1
                     );
                 }

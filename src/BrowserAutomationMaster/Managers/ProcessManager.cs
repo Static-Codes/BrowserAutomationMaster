@@ -5,7 +5,7 @@ using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Managers.AnsiManager;
-
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -20,7 +20,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 Errors.WriteErrorAndExit(
                     "Unable to determine the number of open instances of BAMM.\n" +
-                    "This is a bug, please make a bug report at {ConstantManager.ISSUES_LINK}\n" +
+                    "This is a bug, please make a bug report at {ISSUES_LINK}\n" +
                     "Error log:\n\n" +
                     "ProcessManager.GetInstances() returned null on curProc.",
                     status: 1
@@ -47,7 +47,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndExit(
                     message: 
                         "BAM Manager (BAMM) was unable to check for multiple instances, " +
-                        $"please make a bug report at {ConstantManager.ISSUES_LINK}\n" + 
+                        $"please make a bug report at {ISSUES_LINK}\n" + 
                         $"Error log:\n\n{ex.Message}",
                     status: 1
                 );

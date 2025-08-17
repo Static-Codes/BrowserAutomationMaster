@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
-using Spectre.Console;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -48,7 +48,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     Errors.WriteErrorAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to create a virtual environment for the interpreter:\n" +
-                            $"{InterpreterPath}.\n\nIf this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"{InterpreterPath}.\n\nIf this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                             $"Error log:\nCommand: '{InterpreterPath} -m venv {VEnvPath}' " +
                             $"failed with exit code {createVEnvProcess.ExitCode}",
                         status: 1
@@ -59,7 +59,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 Errors.WriteErrorAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to create a virtual environment for the interpreter:\n{InterpreterPath}.\n\n" +
-                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\nCommand: '{InterpreterPath} -m venv {VEnvPath}' failed.\n\n" +
                         $"Interpreter Response:\n{e.Message}",
                     status: 1
@@ -74,29 +74,33 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public async Task<bool> RunScript()
         {
+            if (Linux.IsChromeOS)
+                { return true; } // Replace with BrowserStack
+
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             string executablePath;
-            if (isWindows) {
+            
+            if (isWindows)
                 executablePath = Path.Combine(VEnvPath, "Scripts", "python.exe");
-            }
-            else {
+
+            else
                 executablePath = Path.Combine(VEnvPath, "bin", InterpreterPath);
-            }
+
             string scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
-            if (string.IsNullOrEmpty(scriptFileName)) { scriptFileName = ScriptFilePath; }
+            
+            if (string.IsNullOrEmpty(scriptFileName))
+                scriptFileName = ScriptFilePath; 
+
             try
             {
-
                 if (!File.Exists(executablePath))
-                {
                     Errors.WriteErrorAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
-                            $"if this issue persists.please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"if this issue persists.please make a bug report at {ISSUES_LINK}\n\n" +
                             $"Error log:\nUnable to find python executable in virtual environment.",
                         status: 1
                     );
-                }
 
                 var outputLines = new List<string>();
                 var errorLines = new List<string>();
@@ -120,8 +124,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 else
                 {
                     startVEnvStartInfo.FileName = "/bin/bash";
-                    // The shell will receive: source "/path/to/venv/bin/activate" && "/path/to/python" "/path/to/script.py"
-                    startVEnvStartInfo.Arguments = $"-c \"source \\\"{ParentDirectory}/venv/bin/activate\\\" && \\\"{executablePath}\\\" \\\"{ScriptFilePath}\\\"\"";
+                    startVEnvStartInfo.Arguments = $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{executablePath}\" \"{ScriptFilePath}\"";
                 }
 
                 using Process startVEnvProcess = new() { StartInfo = startVEnvStartInfo };
@@ -158,7 +161,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     // string[] last5Lines = errorLines.Count >= 5 ? [.. errorLines.TakeLast(5)] : [.. errorLines.TakeLast(errorLines.Count)];
 
                     var userFriendlyMessage = $"BAM Manager (BAMM) was unable to start the virtual environment for runtime.\n\n" +
-                                              $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}";
+                                              $"If this continues, please make a bug report at {ISSUES_LINK}";
 
                     var detailedLog = $"Error log:\n" +
                                       $"Command: '\"{executablePath}\" \"{ScriptFilePath}\"' " +
@@ -172,7 +175,7 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 Errors.WriteErrorAndExit(
                     message: $"BAM Manager (BAMM) was unable to execute:\n{ScriptFilePath}\n\n" +
-                             $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                             $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                              $"Error log:\nCommand: '{executablePath} {scriptFileName}' failed.\n\n" +
                              $"Interpreter Response:\n{e.Message}",
                     status: 1

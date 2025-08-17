@@ -9,32 +9,86 @@
         public void UpdateUri(Uri uri) { Uri = uri; }
         public void UpdateTimeout(int timeoutSeconds) { Timeout = TimeSpan.FromSeconds(timeoutSeconds); }
 
-        public async Task<HttpResponseMessage> GetAsync()
+        public async Task<HttpResponseMessage?> GetAsync()
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, Uri);
-            using var cts = new CancellationTokenSource(Timeout);
-            return await Client.SendAsync(request, cts.Token);
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, Uri);
+                using var cts = new CancellationTokenSource(Timeout);
+                return await Client.SendAsync(request, cts.Token);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        
+
+        public async Task<HttpResponseMessage?> GetAsync(bool followRedirects)
+        {
+            try
+            {
+                using var specificClient = NetworkClient.GetClientWithRedirectsAllowed(followRedirects);
+                using var request = new HttpRequestMessage(HttpMethod.Get, Uri);
+                using var cts = new CancellationTokenSource(Timeout);
+                return await specificClient.SendAsync(request, cts.Token);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
-        public async Task<HttpResponseMessage> GetAsync(bool followRedirects)
+
+        public async Task<string?> GetStringAsync()
         {
-            using var specificClient = NetworkClient.GetClientWithRedirectsAllowed(followRedirects);
-            using var request = new HttpRequestMessage(HttpMethod.Get, Uri);
-            using var cts = new CancellationTokenSource(Timeout);
-            return await specificClient.SendAsync(request, cts.Token);
+            try
+            {
+                using var response = await GetAsync();
+
+                if (response == null)
+                    return null;
+
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        public async Task<string?> GetStringAsyncWithHeaders(Dictionary<string, string> headers, bool ensureStatus = true)
+        {
+            try
+            {
+                foreach (var header in headers)
+                    NetworkClient.Instance.DefaultRequestHeaders.Add(header.Key, header.Value);
+
+                using var response = await GetAsync();
+                
+                if (response == null)
+                    return null;
+
+                if (ensureStatus)
+                    response.EnsureSuccessStatusCode();
+
+                foreach (var header in headers)
+                    NetworkClient.Instance.DefaultRequestHeaders.Remove(header.Key);
+
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch {
+                return null;
+            }
         }
 
 
-        public async Task<string> GetStringAsync()
-        {
-            using var response = await GetAsync();
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        public async Task<string> GetStringAsync(bool disableRedirectsForThisRequest)
+        public async Task<string?> GetStringAsync(bool disableRedirectsForThisRequest)
         {
             using var response = await GetAsync(disableRedirectsForThisRequest);
+            if (response == null)
+                return null;
+
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }

@@ -3,6 +3,8 @@ using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Messaging;
 using System.Net;
+using BrowserAutomationMaster.Managers.AppManager.OS;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -13,6 +15,7 @@ namespace BrowserAutomationMaster.Managers
         public const string ISSUES_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/issues";
         public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
         public const string RELEASES_DOWNLOAD_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/download";
+        public const string BROWSER_STACK_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/browserstack.json";
     }
 
     public class UpdateManager()
@@ -50,25 +53,31 @@ namespace BrowserAutomationMaster.Managers
 
         private static async Task<string> GetLatestVersion()
         {
-            HttpResponseMessage response = new();
+            HttpResponseMessage? response = new();
             try
             {
                 bool uriCreated = Uri.TryCreate(
-                    $"{ConstantManager.LATEST_VERSION_LINK}", 
+                    $"{LATEST_VERSION_LINK}", 
                     UriKind.Absolute, 
                     out Uri? uriResult
                 );
-                if (!uriCreated || uriResult == null) { return string.Empty; }
+
+                if (!uriCreated || uriResult == null) 
+                    return string.Empty;
 
                 RequestManager requestManager = RequestManager.Create(uriResult);
                 response = await requestManager.GetAsync(followRedirects: false);
+                
+                if (response == null)
+                    return string.Empty;
+
                 if (response.StatusCode != HttpStatusCode.Redirect)
                 {
                     Errors.WriteErrorAndContinue(
                         message:
                             $"BAM Manager (BAMM) was unable to check github for the latest version.\n" +
                             $"If this issue persists, " +
-                            $"please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"please make a bug report at {ISSUES_LINK}\n\n" +
                             $"Error log:\n" +
                             $"The response for the version request didn't contain a redirect status code (302), " +
                             $"contains: {response.StatusCode}."
@@ -80,10 +89,15 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndReturnEmptyString(
                     $"BAM Manager (BAMM) was unable to check github for the latest version.\n" +
                     $"If this issue persists, " +
-                    $"please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                    $"please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error log:\n{e.Message}"
                 );
             }
+
+            // This should never actually be hit but the line below has a "Dereference of possibly null reference" error so im leaving this in"
+            if (response == null)
+                return string.Empty;
+
             string url = 
                 response.Headers.Location != null ? response.Headers.Location.AbsoluteUri : string.Empty;
 
@@ -94,7 +108,7 @@ namespace BrowserAutomationMaster.Managers
                     message: 
                     $"BAM Manager (BAMM) was unable to check github for the latest version, " +
                     $"if this issue persists, and you are positive your network connection is stable, " +
-                    $"please make a bug report at {ConstantManager.ISSUES_LINK}\n" +
+                    $"please make a bug report at {ISSUES_LINK}\n" +
                     $"Error log:\n\n" +
                     $"Unable to parse version from latest release response."
                 ); 
@@ -118,50 +132,90 @@ namespace BrowserAutomationMaster.Managers
         {
             try
             {
-                string currentReleasePath = 
+                string currentReleaseUri = 
                     Path.Combine(
-                        ConstantManager.RELEASES_DOWNLOAD_LINK, 
+                        RELEASES_DOWNLOAD_LINK, 
                         LatestVersion
                     );
 
-                string url = string.Empty;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
+                {
+                    string url = RuntimeInformation.ProcessArchitecture switch
+                    {
+                        Architecture.Arm64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-ARM64-Setup.exe"),
+                        Architecture.X64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-x64-Setup.exe"),
+                        _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
+                    };
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    if (RuntimeInformation.ProcessArchitecture == Architecture.X64) {
-                        url = Path.Combine(currentReleasePath, $"BAMM-{LatestVersion}-x64-Setup.exe");
-                    }
-                    else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64) {
-                        url = Path.Combine(currentReleasePath, $"BAMM-{LatestVersion}-ARM64-Setup.exe");
-                        Process.Start(new ProcessStartInfo("cmd", $"/c start {url}"));
-                    }
-                    else { throw new PlatformNotSupportedException("Invalid OS"); }
-                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                    var psi = new ProcessStartInfo("cmd", $"/c start {url}") { 
+                        CreateNoWindow = true 
+                    };
+
+                    Process.Start(psi);
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                    if (RuntimeInformation.ProcessArchitecture == Architecture.X64) {
-                        url = Path.Combine(currentReleasePath, "bamm");
-                    }
-                    else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64) {
-                        url = Path.Combine(currentReleasePath, "bamm-silicon");
-                    }
-                    else { throw new PlatformNotSupportedException("Invalid OS"); }
+
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) 
+                {
+                    string url = RuntimeInformation.ProcessArchitecture switch 
+                    { 
+                        Architecture.Arm64 => Path.Combine(currentReleaseUri, "bamm-silicon"),
+                        Architecture.X64 => Path.Combine(currentReleaseUri, "bamm"),
+                        _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
+                    };
                     Process.Start("open", url);
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                    if (RuntimeInformation.ProcessArchitecture == Architecture.X64) {
-                        url = Path.Combine(currentReleasePath, $"bamm.{LatestVersion}.linux-x64.deb");
+
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
+                {
+                    string choice = Input.WriteListFromOptions(["Debian Based", "Fedora Based", "Other"], noun: "distro");
+
+                    string? uri = null;
+
+                    if (choice == "Debian Based")
+                    {
+                        uri = RuntimeInformation.ProcessArchitecture switch
+                        {
+                            Architecture.Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.deb"),
+                            Architecture.X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.deb"),
+                            _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
+
+                        };
                     }
-                    else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64) {
-                        url = Path.Combine(currentReleasePath, $"bamm.{LatestVersion}.linux-arm64.deb");
+
+                    else if (choice == "Fedora Based") {
+                        uri = RuntimeInformation.ProcessArchitecture switch
+                        {
+                            Architecture.Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.rpm"),
+                            Architecture.X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.rpm"),
+                            _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
+
+                        };
                     }
-                    Process.Start("xdg-open", url);
+
+                    string openCMD = "xdg-open";
+                    try
+                    {
+
+                        if (string.IsNullOrEmpty(uri))
+                        {
+                            Warning.Write($"Unable to download latest BAMM release, please visit:\n{uri}");
+                            return;
+                        }
+
+                        if (Linux.CommandExists(openCMD))
+                            Process.Start("xdg-open", uri);
+                    }
+                    catch
+                    {
+                        Warning.Write($"Unable to download latest BAMM release, please visit:\n{uri}");
+                    }
                 }
             }
             catch (Exception e) { Errors.WriteErrorAndContinue(
                 message:
                     $"BAM Manager (BAMM) was unable to check github for the latest version.\n" + 
                     "If this issue persists, and you are positive your network connection is stable, " + 
-                    $"please make a bug report at:\n{ConstantManager.ISSUES_LINK}\n" + 
+                    $"please make a bug report at:\n{ISSUES_LINK}\n" + 
                     $"Error log:\n\n" +
                     $"Unable to download latest release using the user's default browser.\n{e.Message}:" +
                 ""); 
@@ -193,7 +247,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndReturnBool(
                     message:
                         "BAM Manager (BAMM) was unable to determine the latest release version, please check:\n" +
-                        ConstantManager.LATEST_VERSION_LINK,
+                        LATEST_VERSION_LINK,
                     returnBool: false
                 ); 
             }

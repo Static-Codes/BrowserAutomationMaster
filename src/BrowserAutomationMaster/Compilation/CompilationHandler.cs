@@ -1,6 +1,7 @@
 ﻿using System.Net.NetworkInformation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -284,7 +285,7 @@ namespace BrowserAutomationMaster.Compilation
                         message:
                             "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
                             $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
-                            $"If this error persists please make a bug report at {ConstantManager.ISSUES_LINK}",
+                            $"If this error persists please make a bug report at {ISSUES_LINK}",
                         status: 1
                     );
                 }
@@ -460,7 +461,7 @@ namespace BrowserAutomationMaster.Compilation
                     message:
                         "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
                         $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
-                        $"If this error persists please make a bug report at {ConstantManager.ISSUES_LINK}",
+                        $"If this error persists please make a bug report at {ISSUES_LINK}",
                     status: 1);
             }
 
@@ -526,7 +527,7 @@ namespace BrowserAutomationMaster.Compilation
                         message:
                             "Unable to add proxy to script, if you reading this, " +
                             "there is a huge bug in the use-proxyType-proxy feature.\n" +
-                            $"Please make a bug report at {ConstantManager.ISSUES_LINK}."
+                            $"Please make a bug report at {ISSUES_LINK}."
                     );
                 }
             }

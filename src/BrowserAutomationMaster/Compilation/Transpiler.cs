@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Checks;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
@@ -12,6 +13,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -28,7 +30,8 @@ namespace BrowserAutomationMaster.Compilation
         
 
         private static string pythonScriptFileName = "";  // Modified by SetScriptName();
-        private static string pythonVersion = "3.10";
+        //private static string pythonVersion = Linux.IsChromeOS ? "3.8" : "3.9"; // 3.8 for chromeOS in specific, else 3.9
+        private static string pythonVersion = "3.9"; // 3.9
 
         // Default value if inhouse function fails.
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0"; 
@@ -98,8 +101,9 @@ namespace BrowserAutomationMaster.Compilation
                 WritePythonFile();
                 WriteRequirementsFile();
 
+                string path = Path.Combine(desiredSaveDirectory, pythonScriptFileName);
                 Success.WriteSuccessMessage($"\nCompiled -> {pythonScriptFileName}");
-                Success.WriteSuccessMessage($"Location -> {filePath}\n");
+                Success.WriteSuccessMessage($"Location -> {path}\n");
 
                 HandleAutoCopy();
             }
@@ -107,7 +111,7 @@ namespace BrowserAutomationMaster.Compilation
             {
                 Errors.WriteErrorAndExit(
                     "BAM Manager (BAMM) was unable to continue due to a fatal error.\n\n" +
-                    $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                    $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error Log:\nUnhandled exception: {ex.Message}",
                     status: 1
                 );
@@ -116,7 +120,9 @@ namespace BrowserAutomationMaster.Compilation
         public static void AddBrowserImportsAndRequirements()
         {
             HandleBrowserCmd();
-            requirements.Add("setuptools==80.9.0");
+            
+            string packageString = GetSetupToolsVersion();
+            requirements.Add(packageString);
 
             // This function will exit if a null value is reached so no worries about a null check here
             string version = PackageManager.New("selenium", pythonVersion);
@@ -209,7 +215,7 @@ namespace BrowserAutomationMaster.Compilation
 
             scriptBody.Insert(0,
                 "stdout.write('''Made using BAM Manager (BAMM!)\n" +
-                $"{ConstantManager.BASE_REPO_LINK}\n''')\n" +
+                $"{BASE_REPO_LINK}\n''')\n" +
                 $"sleep(3)\n\n"
             );
         }
@@ -437,6 +443,14 @@ namespace BrowserAutomationMaster.Compilation
                 }
                 lineNumber++;
             }
+        }
+        public static string GetSetupToolsVersion()
+        {
+            return Linux.IsChromeOS switch
+            {
+                true => "setuptools==75.3.2",
+                false => "setuptools==80.9.0"
+            };
         }
         public static void HandleAutoCopy()
         {
@@ -1288,7 +1302,7 @@ namespace BrowserAutomationMaster.Compilation
                 Errors.WriteErrorAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable write requirements.txt for '{pythonScriptFileName}'.\n\n" +
-                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\nUnhandled exception, if you're reading this, please make a bug report, " +
                         $"clearly there's a huge issue.\n\nInterpreter Response:\n{e.Message}", 
                     status: 1
@@ -1333,7 +1347,7 @@ namespace BrowserAutomationMaster.Compilation
                 Errors.WriteErrorAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable write '{pythonScriptFileName}' for the desired script.\n\n" +
-                        $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\nUnhandled exception, if you're reading this, please make a bug report, " +
                         $"clearly there's a huge issue.\n\nInterpreter Response:\n{e.Message}", 
                     status: 1

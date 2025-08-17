@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using static BrowserAutomationMaster.Managers.ConfigManager;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -35,7 +36,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     message:
                         $"BAM Manager (BAMM) requires atleast a 2 core cpu, " +
                         $"unfortunately your CPU is not powerful enough for modern browser automation, " +
-                        $"if you believe this is an error, please submit a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"if you believe this is an error, please submit a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\nBAM Manager (BAMM) detected {cpuInfoManager.Cores} physical CPU cores.",
                     status: 1
                 );
@@ -57,7 +58,7 @@ namespace BrowserAutomationMaster.Managers.Python
             if (IsSupportedWindowsVersion())
                 return Win.GetInterpreterPath();
 
-            if (IsSupportedOSXVersion() || OperatingSystem.IsLinux())
+            if (IsSupportedOSXVersion() || OperatingSystem.IsLinux() || Linux.IsChromeOS)
                 return "python3";
 
             throw new PlatformNotSupportedException(
@@ -69,7 +70,7 @@ namespace BrowserAutomationMaster.Managers.Python
         }
         private static OSPlatform GetPlatform()
         {
-            if (!Environment.Is64BitOperatingSystem)
+            if (!Environment.Is64BitOperatingSystem && !Linux.IsChromeOS)
             {
                 Errors.WriteErrorAndExit(
                     message: "Due to a variety of factors, BAM Manager (BAMM) is unable to run on x86 (32bit) CPUs.  Ensure your CPU supports 64 bit operating systems, and try again.",
@@ -110,7 +111,7 @@ namespace BrowserAutomationMaster.Managers.Python
             while (true)
             {
                 var message = "Unable to parse selected menu option.\n" +
-                              $"If this continues please make a bug report at {ConstantManager.ISSUES_LINK}" +
+                              $"If this continues please make a bug report at {ISSUES_LINK}" +
                               "Error Log:\nchoice returned null.";
 
                 string rawChoice = Input.WriteListFromOptions(menu.Split('\n'));
@@ -143,7 +144,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         message:
                             $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
                             $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
-                            $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"If you believe this is an error, please make a bug report at {ISSUES_LINK}\n\n" +
                             $"Error log:\nNo compiled scripts found in {saveDirectory}",
                         status: 1
                     );
@@ -161,7 +162,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     message:
                         $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
                         $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
-                        $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If you believe this is an error, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\n {e.Message}",
                     status: 1
                 );
@@ -175,7 +176,7 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 Errors.WriteErrorAndExit(
                     $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
-                    $"If this continues, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                    $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary.",
                     status: 1
                 );
@@ -262,7 +263,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 Errors.WriteErrorAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to run the file provided as it isn't a python file.\n" +
-                        $"If you believe this is an error, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If you believe this is an error, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\n: Raw script file path provided for 'bamm run' was: '{scriptFilePath}'\n\n", 
                     status: 1
                 ); 
@@ -273,7 +274,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 Errors.WriteErrorAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable run the specified file as it contains syntax errors.\n" +
-                        $"If you believe this is a bug, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\n{result.Errors}'", 
                     status: 1
                 );

@@ -1,11 +1,12 @@
-﻿using System.Text.RegularExpressions;
-using BrowserAutomationMaster.Managers;
+﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using System.Text;
+using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Managers.CommandManager;
-using System.Text;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 
 namespace BrowserAutomationMaster.Parsing
@@ -36,7 +37,7 @@ namespace BrowserAutomationMaster.Parsing
 
         // This needs to be modified to properly support cross platform file structures 
         //readonly static string userScriptsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster",  "userScripts");
-        readonly static string userScriptsDirectory = UserScriptManager.GetUserScriptDirectory();
+        readonly static string userScriptsDirectory = DirectoryManager.GetUserScriptDirectory();
 
         static string noFilesFoundMessage = "";
         const string HeaderFormatPattern = @"^add-headers\s*(?<json>\{\s*(?:""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*""(?:\s*,\s*""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*"")*)?\s*\})$";
@@ -795,7 +796,7 @@ namespace BrowserAutomationMaster.Parsing
                                         "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                                         $"File: \"{fileName}\"\n" +
                                         $"Unknown feature command on line {i + 1}:\n{line}\n\n" +
-                                        $"For more information please see, {ConstantManager.DOCUMENTATION_LINK}",
+                                        $"For more information please see, {DOCUMENTATION_LINK}",
                                     returnBool: false
                                 );
                             }
@@ -1020,7 +1021,7 @@ namespace BrowserAutomationMaster.Parsing
             return KeyValuePair.Create(
                 MenuOption.Help, 
                 "If you're reading this a menu option was incorrectly handled.\n\n" +
-                $"Please make a bug report {ConstantManager.ISSUES_LINK}"
+                $"Please make a bug report {ISSUES_LINK}"
             );
         }
         

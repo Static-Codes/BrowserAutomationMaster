@@ -11,6 +11,7 @@ using Windows.Win32;
 using Windows.Win32.System.Console;
 using Windows.Win32.System.SystemInformation;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
@@ -146,7 +147,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     Errors.WriteErrorAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
-                            $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
                             $"Error log:\nNo valid Python 3 interpreter found in system PATH after checking with 'py.exe'.", 
                         status: 1
                     );
@@ -159,7 +160,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 Errors.WriteErrorAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
-                        $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\nNo valid Python 3 interpreter found in system PATH after checking with 'py.exe'." +
                         $"\nException returned: {e.Message}", 
                     status: 1
@@ -175,7 +176,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
-                        $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\nAppManager.OS.Win.SelectPythonPath was passed an empty array.", 
                     status: 1
                 );
@@ -258,7 +259,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 Errors.WriteErrorAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
-                        $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\nAppManager.OS.Win.GetIntepreterVersion returned the following exception:\n{e.Message}", 
                     status: 1
                 );
@@ -293,7 +294,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     Errors.WriteErrorAndExit(
                         message:
                             $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                            $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\n\n" +
+                            $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\nError log:\n\n" +
                             $"AppManager.OS.Windows.GetPhysicalCoreCount() Failed to get logical processor information buffer size," +
                             $" the last Win32 Error was:\n{Marshal.GetLastWin32Error()}",
                         status: 1
@@ -306,7 +307,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     Errors.WriteErrorAndExit(
                         message:
                             $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                            $"if this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                            $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
                             $"Error log:\nAppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0.",
                         status: 1
                     );
@@ -362,7 +363,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 Errors.WriteErrorAndExit(
                     message:
                         "BAM Manager (BAMM) was unable to determine the number of physical CPU cores present, if this issue persists, " +
-                        $"please make a bug report at {ConstantManager.ISSUES_LINK}\n\nError log:\n{errorMessage}.",
+                        $"please make a bug report at {ISSUES_LINK}\n\nError log:\n{errorMessage}.",
                     status: 1
                 );
                 return 0; // Wont be reached.
@@ -404,7 +405,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 {
                     WriteMessage(
                         "Unable to switch window handles, please restart BAMM, " +
-                        $"then make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"then make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\nUnable to attach to the console associated with instance.",
                         isError: true
                     );

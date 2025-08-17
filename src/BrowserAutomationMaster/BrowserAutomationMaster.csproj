@@ -9,7 +9,7 @@
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
 		<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
-		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64;linux-arm</RuntimeIdentifiers>
 		<Authors>Static</Authors>
 		<Copyright>Copyright © Static</Copyright>
 		<PackageTags>console;utility;windows;linux;osx</PackageTags>
@@ -89,6 +89,7 @@
 		<PackageReference Include="System.Memory" Version="4.6.3" />
 		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
 		<PackageReference Include="TextCopy" Version="6.2.1" />
+		<PackageReference Include="YamlDotNet" Version="16.3.0" />
 	</ItemGroup>
 
 

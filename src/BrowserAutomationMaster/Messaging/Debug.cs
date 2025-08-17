@@ -16,7 +16,7 @@ namespace BrowserAutomationMaster.Messaging
                 Platform: {Environment.OSVersion.Platform}
                 Current Dir: {Environment.CurrentDirectory}
                 Installation Dir: {AppContext.BaseDirectory}
-                UserScripts Dir: {UserScriptManager.GetUserScriptDirectory()}".Replace("                ", "");
+                UserScripts Dir: {DirectoryManager.GetUserScriptDirectory()}".Replace("                ", "");
         }
         public static void WriteTestMessage(string message) {
             Warning.Write(message);

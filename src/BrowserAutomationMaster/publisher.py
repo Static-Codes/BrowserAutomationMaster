@@ -12,6 +12,7 @@ menuOptions: dict = {
     7: "Linux-ARM64 (.rpm)",
     8: "OSX-x64",
     9: "OSX-ARM64",
+    10: "Linux-ARM32 (.deb)",
 }
 
 print("Welcome to the BAMM Publisher!\n\n")
@@ -70,11 +71,14 @@ elif choiceIndex == 8:
 elif choiceIndex == 9:
     commands.append("dotnet publish -c Release -r osx-arm64 --self-contained true")                     # OSX ARM64
 
+elif choiceIndex == 10:
+    commands.append("dotnet deb --runtime linux-arm --configuration Release -- -p:BuildDebPackage=true")
 
-targetDirectory = input("Please enter the path containing your .csproj file:\n")
+
+targetDirectory = getcwd() #input("Please enter the path containing your .csproj file:\n")
 for cmd in commands:
     print(
-        f"\nExecuting: {cmd}\nTarget Directory: {targetDirectory if targetDirectory else getcwd()})"
+        f"\nExecuting: {cmd}\nTarget Directory: {targetDirectory})"
     )
     try:
         # The 'cwd' parameter is the key here
