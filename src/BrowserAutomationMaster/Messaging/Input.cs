@@ -22,7 +22,7 @@ namespace BrowserAutomationMaster.Messaging
             return AnsiConsole.Prompt(prompt);
         }
 
-        public static string WriteListFromOptions(string[] options, string noun = "action")
+        public static string WriteListFromOptions(string[] options, string noun = "action", int pageSize = 3)
         {
             SetAnsiColors();
             var (bgColor, fgColor) = GetHighlights();
@@ -41,7 +41,7 @@ namespace BrowserAutomationMaster.Messaging
                     opt => opt.EscapeMarkup()
                 )
             )
-            .PageSize(Math.Max(3, options.Length / 2));
+            .PageSize(Math.Max(pageSize, options.Length / 2));
 
             return AnsiConsole.Prompt(prompt);
         }

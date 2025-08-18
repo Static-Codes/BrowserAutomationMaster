@@ -45,7 +45,7 @@ namespace BrowserAutomationMaster.Managers.Python
         private static List<string> GetCompiledScriptPaths(string saveDirectory)
         {
             return [.. Directory.GetDirectories(saveDirectory)
-                .Where(dir => !dir.EndsWith("venv", StringComparison.CurrentCultureIgnoreCase))
+                .Where(dir => !dir.EndsWith("venv", CCIC))
                 .SelectMany(dir => Directory.GetFiles(dir, "*.py"))
                 .Where(File.Exists)
                 .Distinct()];

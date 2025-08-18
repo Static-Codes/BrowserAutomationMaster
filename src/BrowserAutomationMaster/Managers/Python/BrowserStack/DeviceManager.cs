@@ -1,4 +1,5 @@
 ﻿using BrowserAutomationMaster.Messaging;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 
@@ -8,40 +9,27 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
     {
         public static DeviceTypes? Devices { get; set; } = null;
         // Commented out versions don't support the latest version of a specific browser.
-        public static string[] WindowsVersions = ["10", "11"]; //["XP", "7", "8", "8.1", "10", "11"];
-        public static string[] MacOSVersions =
-        [
-            
-            //"10.6 (Snow Leopard)",
-            //"10.7 (Lion)",
-            //"10.8 (Mountain Lion)",
-            //"10.9 (Mavericks)",
-            //"10.10 (Yosemite)",
-            //"10.11 (El Capitan)",
-            //"10.12 (Sierra)",
-            //"10.13 (High Sierra)",
-            //"10.14 (Mojave)",
-            //"10.15 (Catalina)",
-            //"11 (Big Sur)",
-            "12 (Monterey)",
-            "13 (Ventura)",
-            "14 (Sonoma)",
+        public static string[] OSNames = ["Android", "iOS", "MacOS", "Windows"];
+        public static string[] WindowsVersions = ["11", "10"];
+        public static string[] iOSVersions = ["26 Beta", "18", "17", "16", "15", "14", "13", "12", "11"];
+        public static string[] MacOSVersions = [
+            "26 (Tahoe)",
             "15 (Sequoia)",
-            "26 (Tahoe)"
+            "14 (Sonoma)",
+            "13 (Ventura)",
+            "12 (Monterey)"
         ];
-
-        public static string[] iOSVersions = ["11", "12", "13", "14", "15", "16", "17", "18", "26 Beta"];
         public static string[] AndroidVersions =
         [
-            "8 (Oreo)",
-            "9 (Pie)",
-            "10 (Quince Tart)",
-            "11 (Red Velvet Cake)",
-            "12 (Snow Cone)",
-            "13 (Tiramisu)",
-            "14 (Upside Down Cake)",
+            //"16 (Baklava)", // Not currently supported as of 08/17/2025
             "15 (Vanilla Ice Cream)",
-            "16 (Baklava)"
+            "14 (Upside Down Cake)",
+            "13 (Tiramisu)",
+            "12 (Snow Cone)",
+            "11 (Red Velvet Cake)",
+            "10 (Quince Tart)",
+            "9 (Pie)",
+            "8 (Oreo)"
         ];
 
 
@@ -58,14 +46,18 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         }
         public static string SanitizeOSVersion(string rawOSVersion, string rawOSName, string[] versions)
         {
-            var OSVersion = GetVersionNumber(rawOSVersion);
+            if (rawOSVersion.EndsWith("Beta"))
+                return rawOSVersion;
 
-            if (OSVersion == "Not Found")
+            bool isAndroid = rawOSName == "Android";
+            var osVersion = GetVersionNumber(rawOSVersion, isAndroid);
+
+            if (osVersion == "Not Found")
             {
                 Warning.Write($"No version number was provided, using the most recent version of {rawOSName}.");
                 return versions[^1]; // Last element (Most recent version)
             }
-            return OSVersion;
+            return osVersion;
         }
 
         public static string GetDesiredBrowser(string rawOSName)
@@ -78,109 +70,261 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             {
                 "Android" => "Chrome",
                 "iOS" => GetBrowser(["Chromium", "Safari"]),
-                "MacOS" or "Windows" or _ => GetBrowser(["Chrome", "Firefox"]),
+                "MacOS" => GetBrowser(["Chrome", "Firefox", "Safari"]),
+                "Windows" or _ => GetBrowser(["Chrome", "Firefox"]),
             };
         }
-
-        public static string[] GetVersionsOfOS(string rawOSName)
-        {
-            return rawOSName switch
-            {
-                "Android" => AndroidVersions,
-                "iOS" => iOSVersions,
-                "MacOS" => MacOSVersions,
-                "Windows" => WindowsVersions,
-                _ => WindowsVersions  // Uses windows as default.
-            };
-        }
-
-        public static string GetVersionNumber(string versionString)
+        public static string GetVersionNumber(string versionString, bool isAndroid)
         {
             var chars = versionString.AsSpan();
-            int index = -1;
-
+            int index = 0;
+            
             // Gets the index of the first non-numeric char
-            for (int i = 0; i < chars.Length; i++) 
+            for (int i = 0; i < chars.Length; i++)
             {
                 if (!char.IsNumber(chars[i]) && chars[i] != '.')
                 {
                     index = i;
                     break;
                 }
+                index++;
             }
+
+            if (index == 0)
+                return "Not Found";
+
             // Returns the raw version number or "Not Found"
-            return index != -1 ? chars[..index].ToString() : "Not Found";
+            var version = chars[..index].ToString();
+
+            // Conditionally append ".0" for Android Versioning 
+            return isAndroid ? version + ".0" : version;
         }
 
-        public bool IsValidDevice(BrowserStackConfig config)
+
+        public static async Task<bool> PopulateDevices()
         {
-            return true;
+            var msg = "Unable to populate supported devices for browserstack integration, any use of browserstack will throw an error.";
+            try
+            {
+                var devicesJSON = await RequestManager.NetworkClient.Instance.GetStringAsync(BROWSER_STACK_LINK);
+
+                if (devicesJSON == null)
+                    return Errors.WriteErrorAndReturnBool(msg, false);
+
+                Devices = JsonSerializer.Deserialize<DeviceTypes>(devicesJSON);
+                return Devices != null;
+            }
+            catch (Exception ex)
+            {
+                {
+                    Console.WriteLine(ex.Message);
+                    return Errors.WriteErrorAndReturnBool(msg, false);
+                }
+
+            }
+
         }
 
-        public void PopulateDevices()
+        public class DeviceTypes
         {
-            RequestManager.NetworkClient.Instance.GetStringAsync(BROWSER_STACK_LINK);
+            [JsonPropertyName("desktop")]
+            public required List<Desktop> Desktop { get; set; }
+
+            [JsonPropertyName("mobile")]
+            public required List<MobileOS> Mobile { get; set; }
+        }
+
+        public class Desktop
+        {
+            [JsonPropertyName("os")]
+            public string? OS { get; set; }
+
+            [JsonPropertyName("os_version")]
+            public string osVersion { get; set; } = "latest";
+
+            [JsonPropertyName("os_display_name")]
+            public string OSDisplayName { get; set; } = ""; // Not used in config
+
+            public bool RealMobile { get; init; } = false;
+
+            [JsonPropertyName("browsers")]
+            public List<Browser>? Browsers { get; set; }
+        }
+        public class MobileOS
+        {
+            [JsonPropertyName("os")]
+            public string? OS { get; set; }
+
+            [JsonPropertyName("os_display_name")]
+            public string? OSDisplayName { get; set; }
+
+            [JsonPropertyName("devices")]
+            public required List<Mobile> Devices { get; set; }
+        }
+        public class Mobile
+        {
+            [JsonPropertyName("device")]
+            public string? Device { get; set; }
+
+            [JsonPropertyName("display_name")]
+            public string DisplayName { get; set; } = ""; // Not used in config
+
+            [JsonPropertyName("os_version")]
+            public string? osVersion { get; set; }
+
+            [JsonPropertyName("real_mobile")]
+            public bool RealMobile { get; set; }
+
+            [JsonPropertyName("browser")]
+            public string? Browser { get; set; }
+
+            [JsonPropertyName("browsers")]
+            public List<Browser>? Browsers { get; set; }
+        }
+
+        public class Browser
+        {
+            [JsonPropertyName("browser")]
+            public string? BrowserName { get; set; }
+
+            [JsonPropertyName("browser_version")]
+            public string BrowserVersion { get; set; } = "latest";
+
+            // This isn't needed but i've had issues without it.
+            [JsonPropertyName("display_name")]
+            public string DisplayName { get; set; } = "";
+        }
+
+        public class DeviceHelper()
+        {
+            public static string[] GetMobileDeviceNames()
+            {
+                if (Devices == null || Devices.Mobile == null)
+                    return [];
+
+                var devices = Devices?.Mobile?
+                    .SelectMany(mobile => mobile.Devices)
+                    .Select(device => device.Device)
+                    .Where(device => !string.IsNullOrEmpty(device))
+                    .Distinct()
+                    .ToArray();
+
+                if (devices == null || devices.Length == 0)
+                    return [];
+
+                return devices!;
+
+            }
+            public static string[] GetAndroidDeviceNames(string osVersion, string browserName)
+            {
+                if (Devices == null || Devices.Mobile == null)
+                    return [];
+
+                // OIC = OrdinalIgnoreCase (imported via ConstantManager)
+                return Devices.Mobile
+                    .Where(m => m.OS?.Equals("android", OIC) ?? false)
+                    .SelectMany(m => m.Devices)
+                    .Where(m => m.osVersion?.Equals(osVersion, OIC) ?? false)
+                    .Where(m => m.Browsers != null &&
+                        m.Browsers.Any(b =>
+                            b.DisplayName.Equals(browserName, OIC)
+                        )
+                    )
+                    .Where(d => !string.IsNullOrEmpty(d.Device))
+                    .Select(d => d.Device!)
+                    .Distinct()
+                    .ToArray();
+            }
+
+            public static string[] GetiOSDeviceNames(string osVersion, string browserName)
+            {
+                if (Devices == null || Devices.Mobile == null)
+                    return [];
+
+                // OIC = OrdinalIgnoreCase (imported via ConstantManager)
+                return Devices.Mobile?
+                    .Where(m => m.OS?.Equals("ios", OIC) ?? false)
+
+                    .SelectMany(m => m.Devices)
+                    .Where(m => m.osVersion?.Equals(osVersion, OIC) ?? false)
+                    .Where(m => m.Browsers != null &&
+                        m.Browsers.Any(b =>
+                            b.DisplayName.Equals(browserName, OIC)
+                        )
+                    )
+                    .Where(d => !string.IsNullOrEmpty(d.Device))
+                    .Select(d => d.Device!) // Null check was executed with the previous clause
+                    .Distinct()
+                    .ToArray() ?? [];
+            }
+
+            public static string[] GetVersionsOfOS(string osName)
+            {
+                return osName switch
+                {
+                    "android" => AndroidVersions,
+                    "ios" => iOSVersions,
+                    "OS X" => MacOSVersions,
+                    "Windows" => WindowsVersions,
+                    _ => []
+                };
+            }
+            public static string[] GetBrowserVersionsSupported(string browserName, string osName)
+            {
+                if (Devices == null || Devices.Mobile == null)
+                    return [];
+
+                if (osName == "OS X" || osName == "Windows")
+                {
+                    return [.. Devices.Desktop
+                        .Where(d => d.OS?.Equals(osName, OIC) ?? false)
+                        .SelectMany(d => d.Browsers ?? [])
+                        .Where(d => d.BrowserName?.Equals(browserName, OIC) ?? false)
+                        .Select(d => d.BrowserVersion)
+                        .OrderDescending()
+                    ];
+                }
+                // OIC = OrdinalIgnoreCase (imported via ConstantManager)
+                return [.. Devices.Mobile
+                    .Where(m => m.OS?.Equals(osName, OIC) ?? false)
+                    .SelectMany(m => m.Devices)
+                    .Where(d => d.Browsers != null &&
+                        d.Browsers.Any(
+                            b => b.DisplayName.Equals(browserName, OIC)
+                        )
+                     )
+                    .Select(d => d.osVersion!)
+                    .Distinct()
+                    .OrderDescending()
+                ];
+            }
+
+            public static string GetDesiredBrowerVersion(string browserName, string osName, string osVersion)
+            {
+                if (browserName == "Safari" && osName == "OS X")
+                    return GetDesiredSafariVersion(osVersion);
+                else if (browserName == "Safari" && osName == "ios")
+                    return "";
+                else
+                    return "latest";
+            }
+
+            private static string GetDesiredSafariVersion(string osVersion)
+            {
+                return osVersion switch
+                {
+                        "12" => "Monterey",
+                        "13" => "Venura",
+                        "14" => "Sonoma",
+                        "15" => "Sequoia",
+                        "26" => "Tahoe",
+                        _ => ""
+                };
+
+
+            }
         }
 
     }
-
-    public class DeviceTypes
-    {
-        [JsonPropertyName("desktop")]
-        public required List<Desktop> Desktop { get; set; }
-
-        [JsonPropertyName("mobile")]
-        public required List<Mobile> Mobile { get; set; }
-    }
-    public class Desktop
-    {
-        [JsonPropertyName("os")]
-        public required string OS { get; set; }
-
-        [JsonPropertyName("os_version")]
-        public string OSVersion { get; set; } = "latest";
-
-        [JsonPropertyName("os_display_name")]
-        public string OSDisplayName { get; set; } = ""; // Not used in config
-
-        public bool RealMobile { get; init; } = false;
-
-        [JsonPropertyName("browsers")]
-        public required List<Browser> Browsers { get; set; }
-    }
-    public class Mobile
-    {
-        [JsonPropertyName("device")]
-        public required string Device { get; set; }
-
-        [JsonPropertyName("display_name")]
-        public string DisplayName { get; set; } = ""; // Not used in config
-
-        [JsonPropertyName("os_version")]
-        public required string OSVersion { get; set; }
-
-        [JsonPropertyName("real_mobile")]
-        public required bool RealMobile { get; set; }
-
-        [JsonPropertyName("browser")]
-        public required string Browser { get; set; }
-
-        [JsonPropertyName("browsers")]
-        public required List<Browser> Browsers { get; set; }
-    }
-    public class Browser
-    {
-        [JsonPropertyName("browser")]
-        public required string BrowserName { get; set; }
-
-        [JsonPropertyName("browser_version")]
-        public string BrowserVersion { get; set; } = "latest";
-
-        // This isn't needed but i've had issues without it.
-        [JsonPropertyName("display_name")]
-        public string DisplayName { get; set; } = ""; 
-    }
-
-
 
 }

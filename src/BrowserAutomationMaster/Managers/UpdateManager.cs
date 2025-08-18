@@ -16,6 +16,8 @@ namespace BrowserAutomationMaster.Managers
         public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
         public const string RELEASES_DOWNLOAD_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/download";
         public const string BROWSER_STACK_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/browserstack.json";
+        public const StringComparison CCIC = StringComparison.CurrentCultureIgnoreCase;
+        public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
     }
 
     public class UpdateManager()
@@ -127,89 +129,96 @@ namespace BrowserAutomationMaster.Managers
             catch (PingException) { return false; }
         }
 
+        private static void OpenLatestForWindows(string currentReleaseUri)
+        {
+            string url = RuntimeInformation.ProcessArchitecture switch
+            {
+                Architecture.Arm64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-ARM64-Setup.exe"),
+                Architecture.X64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-x64-Setup.exe"),
+                _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
+            };
+
+            var psi = new ProcessStartInfo("cmd", $"/c start {url}")
+            {
+                CreateNoWindow = true
+            };
+
+            Process.Start(psi);
+        }
+        
+        private static void OpenLatestForMacOS(string currentReleaseUri)
+        {
+            string url = RuntimeInformation.ProcessArchitecture switch
+            {
+                Architecture.Arm64 => Path.Combine(currentReleaseUri, "bamm-silicon"),
+                Architecture.X64 => Path.Combine(currentReleaseUri, "bamm"),
+                _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
+            };
+            Process.Start("open", url);
+        }
+
+        private static void OpenLatestForLinux(string currentReleaseUri)
+        {
+            string choice = Input.WriteListFromOptions(["Debian Based", "Fedora Based", "Other"], noun: "distro");
+
+            string? uri = null;
+
+            if (choice == "Debian Based")
+            {
+                uri = RuntimeInformation.ProcessArchitecture switch
+                {
+                    Architecture.Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.deb"),
+                    Architecture.X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.deb"),
+                    _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-cpu-bypass flag.")
+
+                };
+            }
+
+            else if (choice == "Fedora Based")
+            {
+                uri = RuntimeInformation.ProcessArchitecture switch
+                {
+                    Architecture.Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.rpm"),
+                    Architecture.X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.rpm"),
+                    _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-cpu-bypass flag.")
+
+                };
+            }
+
+            string openCMD = "xdg-open";
+            try
+            {
+
+                if (string.IsNullOrEmpty(uri))
+                {
+                    Warning.Write($"Unable to download latest BAMM release, please visit:\n{uri}");
+                    return;
+                }
+
+                if (Linux.CommandExists(openCMD))
+                    Process.Start("xdg-open", uri);
+            }
+            catch
+            {
+                Warning.Write($"Unable to download latest BAMM release, please visit:\n{uri}");
+            }
+        }
+
         // https://github.com/dotnet/runtime/issues/17938#issuecomment-
         private static void OpenLatestVersionInBrowser()
         {
             try
             {
-                string currentReleaseUri = 
-                    Path.Combine(
-                        RELEASES_DOWNLOAD_LINK, 
-                        LatestVersion
-                    );
+                string currentReleaseUri = Path.Combine(RELEASES_DOWNLOAD_LINK, LatestVersion);
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
-                {
-                    string url = RuntimeInformation.ProcessArchitecture switch
-                    {
-                        Architecture.Arm64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-ARM64-Setup.exe"),
-                        Architecture.X64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-x64-Setup.exe"),
-                        _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
-                    };
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    OpenLatestForWindows(currentReleaseUri);
 
-                    var psi = new ProcessStartInfo("cmd", $"/c start {url}") { 
-                        CreateNoWindow = true 
-                    };
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    OpenLatestForMacOS(currentReleaseUri);
 
-                    Process.Start(psi);
-                }
-
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) 
-                {
-                    string url = RuntimeInformation.ProcessArchitecture switch 
-                    { 
-                        Architecture.Arm64 => Path.Combine(currentReleaseUri, "bamm-silicon"),
-                        Architecture.X64 => Path.Combine(currentReleaseUri, "bamm"),
-                        _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
-                    };
-                    Process.Start("open", url);
-                }
-
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
-                {
-                    string choice = Input.WriteListFromOptions(["Debian Based", "Fedora Based", "Other"], noun: "distro");
-
-                    string? uri = null;
-
-                    if (choice == "Debian Based")
-                    {
-                        uri = RuntimeInformation.ProcessArchitecture switch
-                        {
-                            Architecture.Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.deb"),
-                            Architecture.X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.deb"),
-                            _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
-
-                        };
-                    }
-
-                    else if (choice == "Fedora Based") {
-                        uri = RuntimeInformation.ProcessArchitecture switch
-                        {
-                            Architecture.Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.rpm"),
-                            Architecture.X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.rpm"),
-                            _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
-
-                        };
-                    }
-
-                    string openCMD = "xdg-open";
-                    try
-                    {
-
-                        if (string.IsNullOrEmpty(uri))
-                        {
-                            Warning.Write($"Unable to download latest BAMM release, please visit:\n{uri}");
-                            return;
-                        }
-
-                        if (Linux.CommandExists(openCMD))
-                            Process.Start("xdg-open", uri);
-                    }
-                    catch
-                    {
-                        Warning.Write($"Unable to download latest BAMM release, please visit:\n{uri}");
-                    }
-                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    OpenLatestForLinux(currentReleaseUri);
             }
             catch (Exception e) { Errors.WriteErrorAndContinue(
                 message:
@@ -232,13 +241,11 @@ namespace BrowserAutomationMaster.Managers
                         "this likely means your system doesn't currently have an internet connection."
                 );
 
-                string response = Input.WriteTextAndReturnRawInput(
-                    "\nWould you like to continue? [y/n]:\n"
-                ) ?? "n";
+                string response = Input.WriteTextAndReturnRawInput("\nWould you like to continue? [y/n]:\n");
 
-                if (response.Trim().Equals("n", StringComparison.OrdinalIgnoreCase)) { 
+                if (response.Trim().Equals("n", StringComparison.OrdinalIgnoreCase))
                     Environment.Exit(1); 
-                }
+                
                 return false;
             }
             LatestVersion = await GetLatestVersion();
@@ -251,11 +258,7 @@ namespace BrowserAutomationMaster.Managers
                     returnBool: false
                 ); 
             }
-            return !string.Equals(
-                CurrentVersion, 
-                LatestVersion, 
-                StringComparison.CurrentCultureIgnoreCase
-            );
+            return !string.Equals(CurrentVersion, LatestVersion, CCIC);
         }
 
     }
