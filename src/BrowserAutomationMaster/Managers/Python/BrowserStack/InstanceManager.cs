@@ -1,33 +1,34 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using static BrowserAutomationMaster.Helpers.EnumHelper;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.BrowserVersionManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager.DeviceHelper;
 
 namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 {
-    public struct BrowserStackConfig(string BuildName, string ProjectName)
+    public struct BrowserStackConfig()
     {
         public required string UserName;
         public required string AccessKey;
         public required BrowserStackPlatform[] Platforms;
-        public bool BrowserStackLocal = true;
-        public string BuildName = BuildName; // Python script filename (without the extension)
-        public string ProjectName = ProjectName; // projectDirectory (Current timestamp)
-        public bool Debug { get; private set; } = true;
-        public string ConsoleLogs { get; private set; } = "info";
-        public string Framework { get; private set; } = "python";
+        public required bool BrowserStackLocal;
+        public required string BuildName; // Python script filename (without the extension)
+        public required string ProjectName; // projectDirectory (Current timestamp)
+        public required bool Debug;
+        public required string ConsoleLogs;
+        public required string Framework;
     }
 
     public struct BrowserStackPlatform()
     {
-        public required string OSName;
-        public required string OSVersion;
+        public required string osName;
+        public required string osVersion;
         public required string BrowserName;
         public required string BrowserVersion;
         public string? DeviceName = null;
-        public DeviceOrientation? DeviceOrientation = null;
+        public string? DeviceOrientation = null;
     }
 
     public enum DeviceOrientation
@@ -40,7 +41,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
     public class InstanceManager
     {
         private readonly static string browserStackDirectory = GetBrowserStackDirectory();
-        public readonly string browserStackConfig = Path.Combine(browserStackDirectory, "browserstack.yml");
+        public readonly static string browserStackConfig = Path.Combine(browserStackDirectory, "browserstack.yml");
         
         public static BrowserStackConfig StackConfig { get; private set; }
 
@@ -66,65 +67,128 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
         }
 
-        private void BuildConfig(string userName, string accessKey)
+        public static void WriteConfig(string userName, string accessKey, string projectName, string scriptName)
         {
-            var rawOSName = Input.WriteListFromOptions(["Android", "iOS", "MacOS", "Windows"], noun: "operating system");
-            var OSName = SanitizeOSName(rawOSName);
-
-            var versions = GetVersionsOfOS(rawOSName);
-            var rawOSVersion = Input.WriteListFromOptions(versions, noun: "version");
-            var OSVersion = SanitizeOSVersion(rawOSVersion, rawOSName, versions);
-
-            // Will be used for defining DeviceName and DeviceOrientation if mobile
-            // If not mobile, browserVersion must be specified.
-            var isMobile = rawOSName switch
+            try
             {
-                "Android" or "iOS" => true,
-                _ => false,
-            };
+                var rawOSName = Input.WriteListFromOptions(OSNames, noun: "Operating System", pageSize: 4);
+                var osName = SanitizeOSName(rawOSName);
+                var browserName = GetDesiredBrowser(rawOSName);
 
-            var browserName = GetDesiredBrowser(rawOSName);
+                var osVersions = GetVersionsOfOS(osName);
+                var rawOSVersion = Input.WriteListFromOptions(osVersions, noun: $"Version of {rawOSName}");
+                var osVersion = SanitizeOSVersion(rawOSVersion, rawOSName, osVersions);
 
-            // Add a flag isManualBrowserVersion
-            //var browserVersion = GetDesiredBrowserVersion(rawOSName, browserName);
+                var versions = GetBrowserVersionsSupported(browserName, osName);
 
-            var browserVersion = "latest";
+                var description = $"version of {rawOSName} that supports {browserName}";
+                if (versions == null)
+                    Errors.WriteErrorAndExit($"Unable to find a {description}, please try a different combination.", 1);
 
-            
+                // Will be used for defining DeviceName and DeviceOrientation if mobile
+                // If not mobile, browserVersion must be specified.
+                var isMobile = osName switch
+                {
+                    "android" or "ios" => true,
+                    _ => false,
+                };
 
-            string? deviceOrientation = null;
-            //if (isMobile)
-            //    deviceOrientation = Input.WriteListFromOptions(DeviceOrientation.Portrait, DeviceOrientation.Landscape);
+                string browserVersion = "";
+                if (osName != "android") // BrowserStack doesn't allow you to specify the browserVersion on android.
+                    browserVersion = GetDesiredBrowerVersion(browserName, osName, osVersion);
 
-            
+                string[] devices;
+                string? device = null;
+                string? deviceOrientation = null;
+
+                if (isMobile)
+                {
+                    devices = osName switch
+                    {
+                        "android" => GetAndroidDeviceNames(osVersion, browserName),
+                        "ios" => GetiOSDeviceNames(osVersion, browserName),
+                        _ => []
+                    };
+
+                    if (devices.Length == 0)
+                        Errors.WriteErrorAndExit("Unable to find device supported by BrowserStack that fits your requirements.", status: 1);
+
+                    device = Input.WriteListFromOptions(devices, noun: "device");
+
+                    var reprs = GetStringReprs(typeof(DeviceOrientation));
+                    deviceOrientation = Input.WriteListFromOptions(reprs, noun: "orientation");
+                }
 
 
+                // Currently only one platform is supported at a time but plans are to implement multiple if desired.
+                var platform = new BrowserStackPlatform[]
+                {
+                    new()
+                    {
+                        osName = osName,
+                        osVersion = osVersion,
+                        BrowserName = browserName,
+                        BrowserVersion = browserVersion ?? "", // This needs to be changed.
+                        DeviceName = device,
+                        DeviceOrientation = deviceOrientation
+                    }
+                };
 
+                var config = new BrowserStackConfig()
+                {
+                    AccessKey = accessKey,
+                    UserName = userName,
+                    Platforms = platform,
+                    Debug = true,
+                    BrowserStackLocal = true,
+                    BuildName = scriptName,
+                    ProjectName = projectName,
+                    ConsoleLogs = "disabled",
+                    Framework = "python",
+                };
 
+                var serializer = new SerializerBuilder()
+                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                    .Build();
+                
+                var yaml = serializer.Serialize(config);
+                if (yaml == null)
+                    Errors.WriteErrorAndExit("Unable to generate browserstack.yml using the selected information, please try again.", 1);
+                EnsureDirectoryExists(browserStackDirectory);
+                File.WriteAllText(browserStackConfig, yaml);
 
+            }
 
+            catch (Exception e)
+            {
+                Errors.WriteErrorAndExit(
+                    "Unable to generate browserstack.yml using the selected information, please try again.\n\n" +
+                    $"Error Log:\n{e.Message} in WriteConfig()", 
+                    status: 1
+                );
+            }
 
         }
 
-        private void WriteConfig(BrowserStackPlatform[] stackPlatforms)
-        {
+        //private void WriteConfig(BrowserStackPlatform[] stackPlatforms)
+        //{
 
-            //var stackPlatform = new BrowserStackPlatform()
-            //{
-            //    OSName = "",
-            //    OSVersion = "",
-            //    BrowserName = "",
-            //    BrowserVersion = "",
-            //    DeviceName = "",
-            //    DeviceOrientation = null,
-            //};
+        //    //var stackPlatform = new BrowserStackPlatform()
+        //    //{
+        //    //    osName = "",
+        //    //    osVersion = "",
+        //    //    BrowserName = "",
+        //    //    BrowserVersion = "",
+        //    //    DeviceName = "",
+        //    //    DeviceOrientation = null,
+        //    //};
 
-            BrowserStackConfig config = new(BuildName: "", ProjectName: "")
-            {
-                UserName = Input.WriteTextAndReturnRawInput("Please enter your BrowserStack Username: "),
-                AccessKey = Input.WriteTextAndReturnRawInput("Please enter your BrowserStack Access Key: "),
-                Platforms = stackPlatforms,
-            };
-        }
+        //    BrowserStackConfig config = new()
+        //    {
+        //        UserName = Input.WriteTextAndReturnRawInput("Please enter your BrowserStack Username: "),
+        //        AccessKey = Input.WriteTextAndReturnRawInput("Please enter your BrowserStack Access Key: "),
+        //        Platforms = stackPlatforms,
+        //    };
+        //}
     }
 }

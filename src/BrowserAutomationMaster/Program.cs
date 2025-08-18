@@ -3,34 +3,48 @@ using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
+using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using static BrowserAutomationMaster.Parsing.Parser;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.ProcessManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.BrowserVersionManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Menu;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.BrowserVersionManager;
+using static BrowserAutomationMaster.Parsing.Parser;
 
 
+
+// Populate DeviceManager.Devices
+var isPopulated = await PopulateDevices();
+if (!isPopulated)
+    Environment.Exit(0);
+
+// Populates BrowserVersionManager.browserVersions
 SetBrowserVersions(await GetLatestVersionInfo());
 var versions = GetBrowserVersion();
-bool useLatest = false;
 
+// Null check on BrowserVersionManager.browserVersions
 if (versions == null)
 {
     Warning.Write(
         "Unable to get most browser versions, please ensure you have an active internet connection.\n" +
         $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n"
     );
-    useLatest = true;
 }
 
-//Console.WriteLine(result.Firefox);
-Environment.Exit(0);
+// Working Example of BrowserStack Config Generation.
+//InstanceManager.WriteConfig(
+//    userName: "test", 
+//    accessKey: "test", 
+//    projectName: "08-17-2025_5-30PM", 
+//    scriptName: "scriptName"
+//);
+//Environment.Exit(0);
 
 Linux.ChromeOSCheck();
 CheckForMultipleInstances();
@@ -93,7 +107,7 @@ if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pAr
 }
 
 // Handles bare 'bamm clear' command
-else if (pArgs.Length == 1 && pArgs[0].Equals("clear", StringComparison.CurrentCultureIgnoreCase)) {
+else if (pArgs.Length == 1 && pArgs[0].Equals("clear", CCIC)) {
     Errors.WriteErrorAndContinue(
         "Invalid 'clear' command.\n\n" +
         "Valid commands:\n" +
@@ -105,8 +119,8 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("clear", StringComparison.CurrentC
 }
 
 // Handles 'bamm clear compiled' and 'bamm clear userScripts'
-else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentCultureIgnoreCase)) {
-    if (pArgs[1].Equals("userScripts", StringComparison.CurrentCultureIgnoreCase)) {
+else if (pArgs.Length == 2 && pArgs[0].Equals("clear", CCIC)) {
+    if (pArgs[1].Equals("userScripts", CCIC)) {
 
         string deleteInput = Input.WriteTextAndReturnRawInput(
             "Are you sure you want to delete the 'userScripts' directory? [y/n]:\n"
@@ -118,7 +132,7 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
             isRunning = false;
 
     }
-    else if (pArgs[1].Equals("compiled", StringComparison.CurrentCultureIgnoreCase)) {
+    else if (pArgs[1].Equals("compiled", CCIC)) {
         string input = Input.WriteTextAndReturnRawInput(
             "Are you sure you want to delete the 'compiled' directory? [y/n]:\n"
         );
@@ -128,7 +142,7 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
         else
             isRunning = false;
     }
-    else if (pArgs[1].Equals("config", StringComparison.CurrentCultureIgnoreCase))
+    else if (pArgs[1].Equals("config", CCIC))
     {
         string input = Input.WriteTextAndReturnRawInput(
             "Are you sure you want to delete the 'config' directory? [y/n]:\n"
@@ -154,7 +168,7 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("clear", StringComparison.CurrentC
 }
 
 // Handles cases where only bare "bamm help" command is supplied
-else if (pArgs.Length == 1 && pArgs[0].Equals("help", StringComparison.CurrentCultureIgnoreCase)) {
+else if (pArgs.Length == 1 && pArgs[0].Equals("help", CCIC)) {
     Errors.WriteErrorAndContinue(
         "Invalid command: 'bamm help'\n\n" +
         "To see available entries for the 'help' command," +
@@ -164,12 +178,12 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("help", StringComparison.CurrentCu
 }
 
 // Handles bamm help "command-name"
-else if (pArgs.Length == 2 && pArgs[0].Equals("help", StringComparison.CurrentCultureIgnoreCase)) { 
+else if (pArgs.Length == 2 && pArgs[0].Equals("help", CCIC)) { 
     Help.ShowCommandDetails(pArgs[1]); 
 }
 
 // Handles cases where no filename is provided to bamm run
-else if (pArgs.Length == 1 && pArgs[0].Equals("run", StringComparison.CurrentCultureIgnoreCase)) {
+else if (pArgs.Length == 1 && pArgs[0].Equals("run", CCIC)) {
     Errors.WriteErrorAndExit(
         message:
             "Invalid command: 'bamm run'\n\n" +
@@ -181,7 +195,7 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("run", StringComparison.CurrentCul
 }
 
 // Handles bamm run "filename.py" -> ensures the file passed exists.
-else if (pArgs.Length == 2 && pArgs[0].Equals("run", StringComparison.CurrentCultureIgnoreCase) && File.Exists(pArgs[1])) {
+else if (pArgs.Length == 2 && pArgs[0].Equals("run", CCIC) && File.Exists(pArgs[1])) {
     Errors.WriteErrorAndExit(
         message:
             "Invalid command: 'bamm run'\n\n" +
@@ -193,12 +207,12 @@ else if (pArgs.Length == 2 && pArgs[0].Equals("run", StringComparison.CurrentCul
 }
 
 // Handles bamm uninstall
-else if (pArgs.Length == 1 && pArgs[0].Equals("uninstall", StringComparison.CurrentCultureIgnoreCase)) { 
+else if (pArgs.Length == 1 && pArgs[0].Equals("uninstall", CCIC)) { 
     new UninstallationManager().Uninstall(); 
 }
 
 // Handles bamm validate
-else if (pArgs.Length == 1 && pArgs[0].Equals("validate", StringComparison.CurrentCultureIgnoreCase))
+else if (pArgs.Length == 1 && pArgs[0].Equals("validate", CCIC))
 {
     Errors.WriteErrorAndExit(
         "Invalid 'validate' command.\n\n" +
@@ -209,7 +223,7 @@ else if (pArgs.Length == 1 && pArgs[0].Equals("validate", StringComparison.Curre
 }
 
 // Handles bamm 
-else if (pArgs.Length == 2 && pArgs[0].Equals("validate", StringComparison.CurrentCultureIgnoreCase))
+else if (pArgs.Length == 2 && pArgs[0].Equals("validate", CCIC))
 {
     if (IsValidFile(pArgs[1]))
     {

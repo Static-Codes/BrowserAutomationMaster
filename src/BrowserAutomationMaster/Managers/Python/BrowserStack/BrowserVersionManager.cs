@@ -47,21 +47,6 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 return null;
             }
         }
-        public static string? GetDesiredBrowserVersion(string rawOSName, string browserName)
-        {
-            if (browserVersions == null)
-                return null;
-
-            return (rawOSName, browserName) switch
-            {
-                (_, "Chrome") => browserVersions.Chrome, // All chrome versions are shared.
-                (_, "Firefox") => browserVersions.Firefox, // All Firefox versions are shared.
-                ("iOS", "Chromium") => browserVersions.Chrome, // Chrome's major build number is based off Chromium.
-                ("iOS", "Safari") => browserVersions.SafariIOS,
-                ("MacOS", "Safari") => browserVersions.SafariMac,
-                _ => "Chrome"
-            };
-        }
         public static BrowserVersions? GetBrowserVersion() { return browserVersions; }
         public static void SetBrowserVersions(BrowserVersions? versions) { browserVersions = versions; }
 

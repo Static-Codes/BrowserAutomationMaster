@@ -21,5 +21,11 @@ namespace BrowserAutomationMaster.Helpers
             try { return Enum.GetNames(type); }
             catch { return []; }
         }
+
+        public static string[] GetStringReprs(Enum e)
+        {
+            try { return Enum.GetNames(e.GetType()); }
+            catch { return []; }
+        }
     }
 }
