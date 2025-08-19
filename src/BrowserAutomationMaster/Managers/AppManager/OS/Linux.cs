@@ -168,7 +168,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 }
                 return apps;
             }
-            catch { Errors.WriteErrorAndContinue("DPKG not found, checking another method."); return []; }
+            catch { Errors.Write("DPKG not found, checking another method."); return []; }
         }
 
         // Parses apps installed via RPM (Red Hat Package Manager) (only for CentOS, Fedora, Oracle Linux, etc.)

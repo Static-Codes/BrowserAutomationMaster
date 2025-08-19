@@ -69,7 +69,7 @@ namespace BrowserAutomationMaster.Managers
                 try { Directory.CreateDirectory(path); }
                 catch (Exception)
                 {
-                    Errors.WriteErrorAndContinue(
+                    Errors.Write(
                         message: $"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"
                     );
                 }
@@ -130,7 +130,7 @@ namespace BrowserAutomationMaster.Managers
 
             else
             {
-                Errors.WriteErrorAndContinue(
+                Errors.Write(
                     message:
                         $"BAM Manager (BAMM) could not automatically determine the user's home directory\n" +
                         $"(UserProfile was empty)."
@@ -138,7 +138,7 @@ namespace BrowserAutomationMaster.Managers
                 string username = Environment.UserName;
                 if (string.IsNullOrEmpty(username))
                 {
-                    Errors.WriteErrorAndContinue(
+                    Errors.Write(
                         message: "BAM Manager (BAMM) was also unable to determine the active user's username automatically."
                     );
 

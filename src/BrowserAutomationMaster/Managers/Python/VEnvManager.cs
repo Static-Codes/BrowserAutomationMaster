@@ -144,7 +144,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     if (args.Data != null)
                     {
                         errorLines.Add(args.Data);
-                        Errors.WriteErrorAndContinue(args.Data + '\n');
+                        Errors.Write(args.Data + '\n');
                     }
                 };
 

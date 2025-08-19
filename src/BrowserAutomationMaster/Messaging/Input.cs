@@ -1,10 +1,13 @@
 ﻿using Spectre.Console;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
     public class Input
     {
+        public static bool ConditionAccepted(string condition) { return condition.Trim().Equals("y", CCIC); }
+        public static bool ConditionRejected(string condition) { return condition.Trim().Equals("n", CCIC); }
         public static string WriteTextAndReturnRawInput(string inputMessage)
         {
             TextPrompt<string>? prompt;
