@@ -133,9 +133,24 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static void ChromeOSCheck()
         {
-            string cmdResponse = RunCommand("grep", "cros_ /proc/cmdline");
-            IsChromeOS = !string.IsNullOrEmpty(cmdResponse) && cmdResponse.StartsWith("cros_");
+
+            if (!OperatingSystem.IsLinux())
+            {
+                IsChromeOS = false;
+                return;
+            }
+
+            try
+            {
+                string cmdline = File.ReadAllText("/proc/cmdline");
+                IsChromeOS = cmdline.Contains("cros_");
+            }
+            catch 
+            {
+                IsChromeOS = false;
+            }
         }
+
         // Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.)
         private static List<AppInfo> ParseDpkgList()
         {

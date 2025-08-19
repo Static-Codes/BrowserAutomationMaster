@@ -1,7 +1,8 @@
-﻿using BrowserAutomationMaster.Messaging;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.InstanceManager;
 
 namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 {
@@ -13,34 +14,35 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         {
             PropertyNameCaseInsensitive = true
         };
+        private readonly static string browserJSONPath = Path.Combine(browserStackDirectory, "browsers.json");
 
         public static async Task<BrowserVersions?> GetLatestVersionInfo()
         {
             try
             {
+                string? response;
+                if (File.Exists(browserJSONPath))
+                    response = File.ReadAllText(browserJSONPath);
+
                 var uri = new Uri("https://raw.githubusercontent.com/browser-update/browser-update/refs/heads/master/data/browsers.json");
                 var requestManager = new RequestManager(uri, timeout: 10);
-                var response = await requestManager.GetStringAsync();
+                response = await requestManager.GetStringAsync();
 
                 if (response == null)
                     return null;
 
                 using JsonDocument doc = JsonDocument.Parse(response);
-
                 JsonElement currentElement = doc.RootElement.GetProperty("current");
-
                 JsonElement desktopElement = currentElement.GetProperty("desktop");
 
-
                 BrowserVersions? versionInfo = desktopElement.Deserialize<BrowserVersions>(options);
-
                 return versionInfo;
             }
             catch (Exception ex)
             {
                 Errors.WriteErrorAndExit(
-                    "Unable to get the latest browser versions, " +
-                    $"if this persists, please make a bug report at {ISSUES_LINK}\n\n" +
+                    "Unable to get the latest browser versions for BrowserStack.\n" +
+                    $"If this persists, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error Log:\n{ex.Message}",
                     status: 1
                 );

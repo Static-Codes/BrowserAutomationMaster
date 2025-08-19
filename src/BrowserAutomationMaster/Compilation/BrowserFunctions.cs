@@ -11,16 +11,27 @@ namespace BrowserAutomationMaster.Compilation
             WriteIndented = true,
         };
 
-#pragma warning disable // Disable warnings about these 2 functions starting with a lowercase letter
-        public static string addHeaderFunction(string headerName, string headerValue) {
-            Dictionary<string, string> header = new(){{headerName, headerValue}};
+        public static string? AddHeaderFunction(string headerName, string headerValue) {
+            Dictionary<string, string> header = new(){
+                { headerName, headerValue }
+            };
 
-            return @$"driver.request_interceptor = lambda request: setattr(request, 'headers', {{
-    **request.headers, " + @$"{{{JsonSerializer.Serialize(header, options)}}}".Replace("\"", "'").Replace("{", " ").Replace("}", " ").Trim() + "})"
-    + string.Concat(Enumerable.Repeat('\n', 1));
+            try {
+                var jsonString = JsonSerializer.Serialize(header, options);
+                var sanitizedJSON = jsonString
+                    .Replace("\"", "'")
+                    .Replace("{", " ")
+                    .Replace("}", " ")
+                    .Trim() + "})";
+                return sanitizedJSON;
+            }
+            catch
+            {
+                return null;
+            }
         }
         
-        public static string addHeadersFunction(Dictionary<string, string> headers)
+        public static string AddHeadersFunction(Dictionary<string, string> headers)
         {
 
             return @$"driver.request_interceptor = lambda request: setattr(request, 'headers', {{
@@ -28,10 +39,9 @@ namespace BrowserAutomationMaster.Compilation
     + string.Concat(Enumerable.Repeat('\n', 1));
         }
 
-#pragma warning enable
 
-        public static string AddUserAgentFunction(string userAgent) {
-            return addHeaderFunction("User-Agent", userAgent);
+        public static string? AddUserAgentFunction(string userAgent) {
+            return AddHeaderFunction("User-Agent", userAgent);
         }
 
         public static string browserQuitCode = "stdout.write('Quitting driver...')\ndriver.quit()\n";

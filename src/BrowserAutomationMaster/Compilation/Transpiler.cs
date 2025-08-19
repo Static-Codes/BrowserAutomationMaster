@@ -541,7 +541,7 @@ namespace BrowserAutomationMaster.Compilation
                     else {  
                         scriptBody.Insert(
                             index - 1, 
-                            addHeadersFunction(
+                            AddHeadersFunction(
                                 JsonSerializer.Deserialize<Dictionary<string, string>>(match.Groups["json"].Value)!
                             )
                         );
@@ -616,7 +616,8 @@ namespace BrowserAutomationMaster.Compilation
                 if (line.StartsWith("end-javascript") && !isJSBlock) {
                     // Handles cases where Esprima might be more lenient towards invalid code.
                     PreprocessJSCodeBlock(jsBlockContent);
-                    if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error)) {
+                    if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error)) 
+                    {
                         Errors.WriteErrorAndExit(
                             message:
                                 Errors.GenerateErrorMessage(
