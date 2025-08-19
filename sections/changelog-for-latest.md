@@ -1,4 +1,4 @@
-# BAMM v1.0.0-Alpha4
+# BAMM v1.0.0-Alpha5
 
 ## **Notes**
 
@@ -14,7 +14,7 @@
 
 ### New CLI Arguments:
 
-- `bamm validate "path/to/file.bamc" - Validates a BAMC file.
+- `bamm backup` - Backs up all application files to `BAMM-Backup.zip`.
 
 ---
 
@@ -22,8 +22,8 @@
 
 There are two versions for Windows. You most likely need the **x64** version.
 
-- `BAMM-v1.0.0A3-x64-Setup.exe`: For modern **64-bit** Windows systems. This is the most common version.
-- `BAMM-v1.0.0A3-ARM64-Setup.exe`: For Windows devices running on **ARM** processors (like newer Microsoft Surface Pro models).
+- `BAMM-v1.0.0A5-x64-Setup.exe`: For modern **64-bit** Windows systems. This is the most common version.
+- `BAMM-v1.0.0A5-ARM64-Setup.exe`: For Windows devices running on **ARM** processors (like newer Microsoft Surface Pro models).
 
 ---
 
@@ -36,7 +36,7 @@ There are two versions for Windows. You most likely need the **x64** version.
 
 ### Linux 🐧
 
-- `bamm.v1.0.0A3.linux-x64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS.
-- `bamm.v1.0.0A3.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on Macs.
-- `bamm.v1.0.0A3.linux-x64.deb`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes.
-- `bamm.v1.0.0A3.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Macs.
+- `bamm.v1.0.0A5.linux-x64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS.
+- `bamm.v1.0.0A5.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on Macs.
+- `bamm.v1.0.0A5.linux-x64.deb`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes.
+- `bamm.v1.0.0A5.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Macs.
