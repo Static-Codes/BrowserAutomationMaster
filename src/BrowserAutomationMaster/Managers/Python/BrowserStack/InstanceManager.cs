@@ -40,7 +40,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
     public class InstanceManager
     {
-        private readonly static string browserStackDirectory = GetBrowserStackDirectory();
+        public readonly static string browserStackDirectory = GetBrowserStackDirectory();
         public readonly static string browserStackConfig = Path.Combine(browserStackDirectory, "browserstack.yml");
         
         public static BrowserStackConfig StackConfig { get; private set; }
@@ -128,7 +128,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                         osName = osName,
                         osVersion = osVersion,
                         BrowserName = browserName,
-                        BrowserVersion = browserVersion ?? "", // This needs to be changed.
+                        BrowserVersion = browserVersion,
                         DeviceName = device,
                         DeviceOrientation = deviceOrientation
                     }

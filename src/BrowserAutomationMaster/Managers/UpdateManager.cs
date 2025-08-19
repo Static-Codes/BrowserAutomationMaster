@@ -8,24 +8,12 @@ using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers
 {
-    public class ConstantManager
-    {
-        public const string BASE_REPO_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/";
-        public const string DOCUMENTATION_LINK = "https://static-codes.github.io/BrowserAutomationMaster/";
-        public const string ISSUES_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/issues";
-        public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
-        public const string RELEASES_DOWNLOAD_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/download";
-        public const string BROWSER_STACK_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/browserstack.json";
-        public const StringComparison CCIC = StringComparison.CurrentCultureIgnoreCase;
-        public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
-    }
-
     public class UpdateManager()
     {
         public const string CurrentVersion = "v1.0.0A4";
         // Assuming current is latest until further checks are done.
         public static string LatestVersion { get; set; } = CurrentVersion; 
-        public static async Task<bool> CheckForUpdate()
+        public static async Task CheckForUpdate()
         {
             if (await UpdateAvailable())
             {
@@ -42,14 +30,12 @@ namespace BrowserAutomationMaster.Managers
                     OpenLatestVersionInBrowser();
                     Environment.Exit(0);
                 }
-                return true;
                 
             }
             else { 
                 Success.WriteSuccessMessage(
                     $"BAM Manager (BAMM) is currently running the latest release ({LatestVersion})"
                 );
-                return true;
             }
         }
 

@@ -1,5 +1,4 @@
-﻿using BrowserAutomationMaster.Managers.Python;
-using BrowserAutomationMaster.Messaging;
+﻿using BrowserAutomationMaster.Messaging;
 using System.Runtime.InteropServices;
 
 namespace BrowserAutomationMaster.Managers
@@ -81,22 +80,12 @@ namespace BrowserAutomationMaster.Managers
         {
             return Path.Combine(AppDataDirectory, "browserstack");
         }
-        public static string GetConfigDirectory()
-        {
-            return Path.Combine(AppDataDirectory, "config");
-        }
-        public static string GetDesiredSaveDirectory()
-        {
-            return Path.Combine(AppDataDirectory, "compiled");
-        }
-        public static string GetUserAgentsPath()
-        {
-            return Path.Combine(AppDataDirectory, "useragents.json");
-        }
-        public static string GetUserScriptDirectory()
-        {
-            return Path.Combine(AppDataDirectory, "userScripts");
-        }
+
+        public static string GetConfigDirectory() { return Path.Combine(AppDataDirectory, "config"); }
+        public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
+        public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
+        public static string GetUserScriptDirectory() { return Path.Combine(AppDataDirectory, "userScripts"); }
+
         private static string GetAppDataLinux(string appName)
         {
             string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);

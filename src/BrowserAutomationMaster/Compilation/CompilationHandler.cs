@@ -1,5 +1,4 @@
 ﻿using System.Net.NetworkInformation;
-using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 
@@ -9,8 +8,15 @@ namespace BrowserAutomationMaster.Compilation
     {
         public static void AddHeader(List<string> scriptBody, string sanitizedArg2, string sanitizedArg3)
         {
-            scriptBody.Add(BrowserFunctions.addHeaderFunction(sanitizedArg2, sanitizedArg3));
+            var headerString = BrowserFunctions.AddHeaderFunction(sanitizedArg2, sanitizedArg3);
+            if (headerString == null)
+            {
+                Warning.Write($"Unable to add header '{sanitizedArg2}' with value '{sanitizedArg3}'");
+                return;
+            }
+            scriptBody.Add(headerString);
         }
+
         public static bool Click(List<string> scriptBody, string[] splitLine, int actionTimeout)
         {
             string clickSelector = splitLine[1].Replace('"', ' ').Trim();
@@ -87,10 +93,7 @@ namespace BrowserAutomationMaster.Compilation
                 return (false, ex.Message);
             }
         }
-        public static void CloseCurrentTab(List<string> scriptBody)
-        {
-            scriptBody.Add("close_current_tab()");
-        }
+        public static void CloseCurrentTab(List<string> scriptBody) { scriptBody.Add("close_current_tab()"); }
         public static (bool, string) GetText(List<string> scriptBody, string[] splitLine)
         {
             try
