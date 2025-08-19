@@ -26,7 +26,7 @@ namespace BrowserAutomationMaster.Messaging
             );
         }
 
-        public static void WriteErrorAndContinue(string message)
+        public static void Write(string message)
         {
             WriteMessage(message, isError: true);
         }

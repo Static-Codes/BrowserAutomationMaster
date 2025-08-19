@@ -73,11 +73,12 @@ namespace BrowserAutomationMaster
             if (pArgs.Length == 0) 
                 return false; // No args, proceed to interactive loop.
 
-            string[] nonUserScriptArgs = ["clear", "help", "uninstall", "validate"];
-            string[] validCLIArgs = ["add", "compile", "delete", "run", "validate"];
+            var nonUserScriptArgs = new string[] {"backup", "clear", "help", "uninstall", "validate"};
+            var validCLIArgs = new string[] { "add", "compile", "delete", "run", "validate" };
 
-            bool isCLI = pArgs.Length == 2 && !nonUserScriptArgs.Contains(pArgs[0].ToLower());
-            bool validCLIArg = isCLI && validCLIArgs.Contains(pArgs[0]);
+            var method = pArgs[0].ToLower();
+            var isCLI = pArgs.Length == 2 && !nonUserScriptArgs.Contains(method);
+            var validCLIArg = isCLI && validCLIArgs.Contains(pArgs[0]);
 
             if (validCLIArg)
             {
@@ -86,30 +87,30 @@ namespace BrowserAutomationMaster
             }
 
             // Handles double-clicking a BAMC file (On Windows)
-            if (pArgs.Length == 1 && pArgs[0].ToLower().EndsWith(".bamc") && File.Exists(pArgs[0]))
+            if (pArgs.Length == 1 && method.EndsWith(".bamc") && File.Exists(pArgs[0]))
             {
                 _ = new UserScriptManager(pArgs[0], "add");
-                string input = Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ");
-                bool wantsToContinue = input.Trim().Equals("y", OIC); // OIC = StringComparison.OrdinalIgnoreCase
+                var response = Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ");
+                var wantsToContinue = Input.ConditionAccepted(response); // OIC = StringComparison.OrdinalIgnoreCase
                 return !wantsToContinue; // Exit if user doesn't want to continue
             }
 
             // Handles 'clear' command variations
-            if (pArgs.Length > 0 && pArgs[0].Equals("clear", CCIC)) // CCIC = StringComparison.CurrentCultureIgnoreCase
+            if (pArgs[0].Equals("clear", CCIC)) // CCIC = StringComparison.CurrentCultureIgnoreCase
             {
                 HandleClearCommand(pArgs);
                 return true;
             }
 
             // Handles 'help' command variations
-            if (pArgs.Length > 0 && pArgs[0].Equals("help", CCIC))
+            if (pArgs[0].Equals("help", CCIC))
             {
                 HandleHelpCommand(pArgs);
                 return true;
             }
 
             // Handles 'run' command variations
-            if (pArgs.Length > 0 && pArgs[0].Equals("run", CCIC))
+            if (pArgs[0].Equals("run", CCIC))
             {
                 if (pArgs.Length == 2 && File.Exists(pArgs[1]))
                 {
@@ -117,39 +118,38 @@ namespace BrowserAutomationMaster
                     await runtimeManager.RunScript();
                 }
                 else
-                {
                     Errors.WriteErrorAndExit(
-                       message: "Invalid 'run' command.\nPlease provide a valid path to a Python script.\n\nValid Syntax:\nbamm run \"path/to/file.py\"",
-                       status: 1);
-                }
-                return true; // Exit after handling
+                       message: 
+                           "Invalid 'run' command.\n" +
+                           "Please provide a valid path to a Python script.\n\n" +
+                           "Valid Syntax:\n" +
+                           "bamm run 'path/to/file.py'",
+                       status: 1
+                    );
+                return true;
             }
 
             // Handles 'uninstall' command
             if (pArgs.Length == 1 && pArgs[0].Equals("uninstall", CCIC))
             {
-                new UninstallationManager().Uninstall();
-                return true; // Exit after handling
+                UninstallationManager.Uninstall();
+                return true;
             }
 
             // Handles 'validate' command variations
-            if (pArgs.Length > 0 && pArgs[0].Equals("validate", CCIC))
+            if (pArgs[0].Equals("validate", CCIC))
             {
-                if (pArgs.Length == 2)
-                {
-                    if (IsValidFile(pArgs[1]))
-                        Success.WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
-                    else
-                        Errors.WriteErrorAndExit("Selected file has invalid syntax.", 1);
-                }
-                else
-                {
+                if (pArgs.Length != 2)
                     Errors.WriteErrorAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", 1);
-                }
-                return true; // Exit after handling
+                
+                if (IsValidFile(pArgs[1]))
+                    Success.WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
+                else
+                    Errors.WriteErrorAndExit("Selected file has invalid syntax.", 1);
+                return true;
             }
 
-            return false; // No recognized CLI args, proceed to interactive mode
+            return false;
         }
 
 
@@ -159,7 +159,7 @@ namespace BrowserAutomationMaster
         {
             if (pArgs.Length != 2)
             {
-                Errors.WriteErrorAndContinue(
+                Errors.Write(
                     "Invalid 'clear' command.\n\nValid commands:\nbamm clear userScripts\nbamm clear compiled\nbamm clear config\n\nPress any key to continue...");
                 ReadKey();
                 return;
@@ -176,7 +176,7 @@ namespace BrowserAutomationMaster
 
             if (string.IsNullOrEmpty(dirPath))
             {
-                Errors.WriteErrorAndContinue("Invalid 'clear' target. Use 'userScripts', 'compiled', or 'config'.");
+                Errors.Write("Invalid 'clear' target. Use 'userScripts', 'compiled', or 'config'.");
                 ReadKey();
                 return;
             }
@@ -193,7 +193,7 @@ namespace BrowserAutomationMaster
         {
             if (pArgs.Length == 1)
             {
-                Errors.WriteErrorAndContinue(
+                Errors.Write(
                     "Invalid command: 'bamm help'\n\nTo see available entries for the 'help' command, run bamm without arguments then select the Help tab.\n\n");
                 ReadKey();
             }
@@ -215,8 +215,8 @@ namespace BrowserAutomationMaster
                 switch (parserResult.Key)
                 {
                     case MenuOption.Add:
-                        string compileInput = Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:");
-                        if (compileInput.Trim().Equals("y", OIC))
+                        string response = Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:");
+                        if (Input.ConditionAccepted(response))
                             await Transpiler.New(parserResult.Value, args);
                         break;
 
@@ -239,8 +239,8 @@ namespace BrowserAutomationMaster
 
                 if (isRunning)
                 {
-                    string input = Input.WriteTextAndReturnRawInput("\nWould you like to exit BAM Manager (BAMM)? [y/n]:") ?? "n";
-                    if (input.Trim().Equals("y", OIC))
+                    string input = Input.WriteTextAndReturnRawInput("\nWould you like to exit BAM Manager (BAMM)? [y/n]:");
+                    if (Input.ConditionAccepted(input))
                         isRunning = false;
                 }
             }

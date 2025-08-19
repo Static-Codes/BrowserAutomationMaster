@@ -22,7 +22,7 @@ namespace BrowserAutomationMaster.Messaging
                 // Ensures no invalid command will be passed to show
                 while (string.IsNullOrEmpty(command) || !CommandExists(command))
                 {
-                    Errors.WriteErrorAndContinue(
+                    Errors.Write(
                         $"Invalid command '{command}' provided, for more information on valid commands, please type:\n\nbamm help --all"
                     );
                     command = Input.WriteTextAndReturnRawInput("Please provide a valid command for more information.\n");

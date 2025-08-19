@@ -297,7 +297,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndContinue(
+                Errors.Write(
                     message:
                         $"BAM Manager (BAMM) was unable to resolve the url: '{sanitizedArg2}'\n" +
                         $"Error log:\n\n{e.Message}"

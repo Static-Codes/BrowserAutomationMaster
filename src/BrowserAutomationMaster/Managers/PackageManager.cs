@@ -80,25 +80,25 @@ namespace BrowserAutomationMaster.Managers
 
                 HttpStatusCode statusCode = response.StatusCode;
                 if (statusCode != HttpStatusCode.OK) {  
-                    Errors.WriteErrorAndContinue(unvalidatedMessage); 
+                    Errors.Write(unvalidatedMessage); 
                     return false; 
                 }
 
                 HttpContent content = response.Content;
                 if (content == null) { 
-                    Errors.WriteErrorAndContinue(unvalidatedMessage); 
+                    Errors.Write(unvalidatedMessage); 
                     return false; 
                 }
                 
                 string responseBody = await content.ReadAsStringAsync(); // Catch Aggregate Exception
                 
                 if (string.IsNullOrEmpty(responseBody)) { 
-                    Errors.WriteErrorAndContinue(unvalidatedMessage); 
+                    Errors.Write(unvalidatedMessage); 
                     return false; 
                 }
                 
                 if (responseBody.Contains("This release has been yanked<br>")) { 
-                    Errors.WriteErrorAndContinue(deprecatedMessage); 
+                    Errors.Write(deprecatedMessage); 
                     return true; 
                 }
 
@@ -110,7 +110,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch { } // Reminder to add AggregateException if encountered.
 
-            Errors.WriteErrorAndContinue(unvalidatedMessage);
+            Errors.Write(unvalidatedMessage);
             return false;
 
         }

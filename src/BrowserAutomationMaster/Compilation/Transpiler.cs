@@ -462,7 +462,7 @@ namespace BrowserAutomationMaster.Compilation
                 return;
 
             if (!ClipboardHelper.TrySetText(projectDirectory)) {
-                Errors.WriteErrorAndContinue(
+                Errors.Write(
                     $"Unable to copy project directory to clipboard, please manually copy this path:\n{projectDirectory}"
                 );
             }
@@ -1050,7 +1050,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndContinue(
+                Errors.Write(
                     message:
                         $"BAM Manager (BAMM) was unable to resolve the url: '{link}'"
                 );
@@ -1066,8 +1066,8 @@ namespace BrowserAutomationMaster.Compilation
                             $"Exception:\n\n{ex.InnerException}"
                     );
                 }
-                string input = Input.WriteTextAndReturnRawInput("Would you like to continue compilation? [y/n]: ");
-                if (!input.Trim().Equals("y", StringComparison.OrdinalIgnoreCase)) {
+                string response = Input.WriteTextAndReturnRawInput("Would you like to continue compilation? [y/n]: ");
+                if (Input.ConditionRejected(response)) {
                     return false;
                 }
             }

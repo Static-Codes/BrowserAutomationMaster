@@ -127,7 +127,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     return scriptPaths[result - 1];
                 }
 
-                Errors.WriteErrorAndContinue($"Invalid option, please choose a number between 1 and {scriptPaths.Count}\n");
+                Errors.Write($"Invalid option, please choose a number between 1 and {scriptPaths.Count}\n");
             }
         }
         public static string HandleUserScriptChoice()

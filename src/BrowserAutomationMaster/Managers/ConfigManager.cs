@@ -281,7 +281,7 @@ namespace BrowserAutomationMaster.Managers
             catch (Exception ex)
             {
                 WriteMessage(ex.Message);
-                Errors.WriteErrorAndContinue("Failed to validate config.ini, writing default values.");
+                Errors.Write("Failed to validate config.ini, writing default values.");
                 string configContents = BuildConfigContents();
                 ValidateConfigContents(configContents);
                 File.WriteAllText(ConfigFilePath, configContents); // Fixed: was ConfigDirectory, should be ConfigFilePath
@@ -382,7 +382,7 @@ namespace BrowserAutomationMaster.Managers
                             "where PropertyName is one of the supported color properties and value is a valid color format.\n\n" +
                             "For more information please check {}";
 
-            Errors.WriteErrorAndContinue(
+            Errors.Write(
                 Errors.GenerateErrorMessage(
                     fileName: "config.ini",
                     originalLine,

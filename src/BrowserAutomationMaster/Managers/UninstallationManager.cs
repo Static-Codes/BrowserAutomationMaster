@@ -2,105 +2,146 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 
 namespace BrowserAutomationMaster.Managers
 {
     public class UninstallationManager()
     {
-        private bool ActionConfirmed { get; set; } = false;
-        public void Uninstall()
+        public static void Uninstall()
         {
-            string response = Input.WriteTextAndReturnRawInput("Are you sure you want to uninstall BAM Manager (BAMM)? [y/n]: ") ?? "n";
-            ActionConfirmed = response.ToLower().Trim().Equals("y");
-            if (!ActionConfirmed) { Environment.Exit(0); }
+            Errors.Write("This will delete BAM Manager (BAMM) from your system.\n");
 
-            string message = "This will delete all program files and associated data, please backup before accepting this.  " +
-                "Would you like to continue with the uninstallation process? [y/n]: ";
+            var response = Input.WriteTextAndReturnRawInput("Would you like to continue with the uninstallation process? [y/n]: ");
+            var uninstallConfirmed = Input.ConditionAccepted(response);
+            
+            if (!uninstallConfirmed) 
+                Environment.Exit(0);
 
-            response = Input.WriteTextAndReturnRawInput(message) ?? "n";
-            ActionConfirmed = response.ToLower().Trim().Equals("y");
-            if (!ActionConfirmed) { Environment.Exit(0); }
+            string dataMessage = "This will delete all program files and associated data.\n" +
+                "Please ensure you've backed up your data before continuing.\n\n" +
+                "THIS CANNOT BE REVERSED!\n\n" +
+                "To backup your data close BAMM and enter the following command:\n" +
+                "bamm backup\n\n";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { DoWindowsUninstall(); }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) { DoMacUninstall(); }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { DoLinuxUninstall(); }
-            else { throw new PlatformNotSupportedException("Unsupported OS."); }
+
+            response = Input.WriteTextAndReturnRawInput("Do you want to remove all application data? [y/n]: ");
+            var removeAppData = Input.ConditionAccepted(response);
+
+            if (removeAppData)
+            {
+                Errors.Write(dataMessage);
+                response = Input.WriteTextAndReturnRawInput("Have you backed up your data? [y/n]: ");
+                if (Input.ConditionAccepted(response))
+                    DoAppDataDeletion();
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                DoWindowsUninstall();
+            
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                DoMacUninstall();
+
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                DoLinuxUninstall();
+            
+            else 
+                throw new PlatformNotSupportedException("Unsupported OS.");
         }
-        private static void DoWindowsUninstall() 
+        private static void DoWindowsUninstall()
         {
             string failureMessage = "BAM Manager (BAMM) was unable to determine the current directory, " +
                     "please uninstall this application by searching " +
                     "'Add or remove programs' in your Windows Searchbar.";
-            string InstallationDirectory = AppContext.BaseDirectory;
+            string installationDirectory = AppContext.BaseDirectory;
 
-            if (!Path.Exists(InstallationDirectory)) { 
-                Errors.WriteErrorAndExit(message: failureMessage, status: 1); 
-            }
-            string UninstallerPath = Path.Combine(InstallationDirectory, "unins000.exe");
-            try {
-                if (File.Exists(UninstallerPath)) {
-                    Process.Start(UninstallerPath);
+            if (!Path.Exists(installationDirectory))
+                Errors.WriteErrorAndExit(message: failureMessage, status: 1);
+
+            string uninstallerPath = Path.Combine(installationDirectory, "unins000.exe");
+            try
+            {
+                if (File.Exists(uninstallerPath))
+                {
+                    Process.Start(uninstallerPath);
                     Success.WriteSuccessMessageAndExit(
                         message: "Started uninstaller, BAM Manager (BAMM) will now exit...",
                         exitCode: 0
                     );
                 }
             }
-            catch (FileNotFoundException notFound) {
+            catch (FileNotFoundException notFound)
+            {
                 Errors.WriteErrorAndExit(message: notFound.Message, status: 1);
             }
-            catch (Win32Exception w32e) {
+            catch (Win32Exception w32e)
+            {
                 Errors.WriteErrorAndExit(message: w32e.Message, status: 1);
             }
-            catch (ObjectDisposedException notDisposed) {
+            catch (ObjectDisposedException notDisposed)
+            {
                 Errors.WriteErrorAndExit(message: notDisposed.Message, status: 1);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Errors.WriteErrorAndExit(message: $"{ex.Message}", status: 1);
             }
         }
-        private static void DoMacUninstall() 
+        private static void DoMacUninstall()
         {
-            Spectre.Console.AnsiConsole.Write(@"To uninstall BAM Manager (BAMM) on macOS:
+            var message =
+                "To uninstall BAM Manager (BAMM) on macOS:\n" +
+                "   - 1. Locate the 'bamm' executable file (wherever you saved it)\n" +
+                "   - 2. Drag the 'bamm' executable file to the Trash, or click 'Move To Trash'.";
 
-1.  Delete the BAM Manager executable file:
-    	1A. Locate the 'bamm' executable file (wherever you saved it, whether in your 'Downloads' folder, 'Desktop', or 'Applications' folder).
-    	1B. Drag the 'bamm' executable file to the Trash, or click 'Move To Trash'.
-
-2.  BAM Manager stores its data (including 'userScripts' and 'compiled' directories) in your user's Library folder. To remove this:
-        2A. Open 'Finder'.
-        2B. In the menu bar at the top of the screen, click 'Go'.
-        2C. Hold down the 'Option (⌥) key' on your keyboard, and a ""Library"" option will appear in the ""Go"" menu. 
-	2D. Click 'Library'. (This folder is hidden by default.)
-        2E. Navigate to the 'Application Support' folder within Library.
-        2F. Locate and drag the 'BrowserAutomationMaster' folder to the Trash. This folder should contain your 'userScripts' and 'compiled' directories.
-
-3.  Empty the Trash:
-    	3A. Right-click (or Control-click) on the Trash icon in your Dock and select ""Empty Trash"" to permanently remove the files.");
+            WriteMessage(message, isWarning: true);
             Environment.Exit(0);
         }
-        private static void DoLinuxUninstall() {
+        private static void DoLinuxUninstall()
+        {
+
             string platform = Input.WriteListFromOptions(["Debian Based", "Fedora Based", "Other"], noun: "distro");
-            
-            string debianMessage = 
-                "To uninstall BAM Manager (BAMM) on Debian:" +
+
+            string debianMessage =
+                "To uninstall BAM Manager (BAMM) on Debian:\n" +
                 "   - Run the following command:\nsudo apt-get remove --purge bamm -y\n\n" +
                 "   - You may be prompted for your user password, enter it and press enter.";
-            
-            string fedoraMessage = 
-                "To uninstall BAM Manager (BAMM) on Fedora:" +
+
+            string fedoraMessage =
+                "To uninstall BAM Manager (BAMM) on Fedora:\n" +
                 "   - Run the following command" +
                 "   - sudo dnf remove bamm -y";
-            
-            var message = platform switch {
-				"Debian Based" => debianMessage,
-				"Fedora Based" => fedoraMessage,
-				"Other" => "Unsupported, please manually uninstall",
-				_ => "Invalid choice" 
+
+            var message = platform switch
+            {
+                "Debian Based" => debianMessage,
+                "Fedora Based" => fedoraMessage,
+                "Other" => "Unsupported, please manually uninstall",
+                _ => "Invalid choice"
             };
 
-            Spectre.Console.AnsiConsole.Write(message);
+            WriteMessage(message);
             Environment.Exit(0);
+        }
+        private static void DoAppDataDeletion()
+        {
+            try
+            {
+                DeleteDirectory(AppDataDirectory);
+            }
+            catch (Exception e)
+            {
+                {
+                    var message =
+                        "Unable to delete app data for BAM Manager (BAMM).\n" +
+                        "Please remove this directory manually:\n" +
+                        $"{AppDataDirectory}\n" +
+                        $"Please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Error Log:\n{e.Message}";
+                    Errors.Write(message);
+                }
+            }
         }
     }
 }

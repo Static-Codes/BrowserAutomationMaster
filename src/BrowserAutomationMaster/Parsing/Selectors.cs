@@ -258,7 +258,7 @@ namespace BrowserAutomationMaster
 
             string? input = Console.ReadLine();
             if (input == null || input.ToLower().Replace('\n', ' ').Trim() != "y") {
-                Errors.WriteErrorAndContinue(
+                Errors.Write(
                     message:
                         $"\nBAM Manager (BAMM) was unable to validate selector: '{selectorTrimmed}', " +
                         $"please ensure it's properly formatted then try compiling again."
