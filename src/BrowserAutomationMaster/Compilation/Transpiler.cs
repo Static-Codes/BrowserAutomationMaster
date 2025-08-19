@@ -11,6 +11,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using static BrowserAutomationMaster.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -83,7 +84,7 @@ namespace BrowserAutomationMaster.Compilation
         private static partial Regex CLIUserAgentRegex();
         
         
-        public static void New(string filePath, string[] args)
+        public static async Task New(string filePath, string[] args)
         {
             try
             {
@@ -94,7 +95,7 @@ namespace BrowserAutomationMaster.Compilation
                 GetDesiredUrls();
 
                 Installations ___ = new(InstalledApps.GetInstalledApps()); // was originally named installations
-                AddBrowserImportsAndRequirements();
+                await AddBrowserImportsAndRequirements();
                 //HandlePythonVersionSelection(installations); // This isn't needed currently 
 
                 HandleCompilation(filePath, args);
@@ -117,9 +118,9 @@ namespace BrowserAutomationMaster.Compilation
                 );
             }
         }
-        public static void AddBrowserImportsAndRequirements()
+        public static async Task AddBrowserImportsAndRequirements()
         {
-            HandleBrowserCmd();
+            await HandleBrowserCmd();
             
             string packageString = GetSetupToolsVersion();
             requirements.Add(packageString);
@@ -467,10 +468,16 @@ namespace BrowserAutomationMaster.Compilation
             }
             Success.WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
-        public static void HandleBrowserCmd()
+        public static async Task HandleBrowserCmd()
         {
             // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of !
-            if (browserPresent) { requestUserAgent = UserAgentManager.GetUserAgent(selectedBrowser)!; }
+            if (browserPresent) {
+                var potentialUA = await UserAgentManager.GetUserAgent(selectedBrowser);
+                if (potentialUA == null)
+                    Errors.WriteErrorAndReturnNull("Unable to select custom user agent, please try again");
+
+                requestUserAgent = potentialUA!; // null check is done above.
+            }
         }
         public static void HandleCompilation(string fileName, string[] args) 
         {

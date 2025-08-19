@@ -18,7 +18,6 @@ using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Parsing.Parser;
 
 
-
 // Populate DeviceManager.Devices
 var isPopulated = await PopulateDevices();
 if (!isPopulated)
@@ -52,16 +51,16 @@ GlobalConfig = LoadConfig();
 
 string[] pArgs = args.Length > 0 ? args : []; // By default args doesn't include the executable.
 
-if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240)) { 
+
+if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
     Win.VerifyRootDrive(pArgs); 
-}
 
 
-List<string> validCLIArgs = ["add", "clear", "compile", "delete", "help", "run", "validate"];
+string[] validCLIArgs = ["add", "clear", "compile", "delete", "help", "run", "validate"];
 
 // If pArgs contains any args from nonUserScriptArgs, Compatibility checks are skipped because the user is not attempting to compile or run any scripts.
 // These commands are handled within the program loop instead of in UserScriptManager.
-List<string> nonUserScriptArgs = ["clear", "help", "uninstall", "validate"];
+string[] nonUserScriptArgs = ["clear", "help", "uninstall", "validate"];
 
 Console.Title = $"BrowserAutomationMaster Manager (BAMM!) {CurrentVersion}";
 
@@ -240,15 +239,15 @@ while (isRunning)
     {
         case MenuOption.Add:
             string compileInput = Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:");
-            bool overwriteConfirmation = compileInput.Trim().Equals("y", StringComparison.OrdinalIgnoreCase);
+            bool overwriteConfirmation = compileInput.Trim().Equals("y", OIC);
             if (overwriteConfirmation)
             {
-                Transpiler.New(parserResult.Value, args);
+                await Transpiler.New(parserResult.Value, args);
             }
             break;
 
         case MenuOption.Compile:
-            Transpiler.New(parserResult.Value, args);
+            await Transpiler.New(parserResult.Value, args);
             break;
 
         case MenuOption.Run:

@@ -76,8 +76,8 @@ namespace BrowserAutomationMaster.Managers
                     status: 1
                 );
             }
-
-            HandleCLIArgs(method, filePath, scriptPath);
+            async void asyncWrap() { await HandleCLIArgs(method, filePath, scriptPath); }
+            Task.Run(asyncWrap);
         }
 
 
@@ -196,7 +196,7 @@ namespace BrowserAutomationMaster.Managers
             }
         }
         
-        private void HandleCLIArgs(string method, string filePath, string fileName)
+        private async Task HandleCLIArgs(string method, string filePath, string fileName)
         {
             switch (method.ToLower().Trim())
             {
@@ -211,15 +211,14 @@ namespace BrowserAutomationMaster.Managers
                             $"Please ensure you've added this script to the userScript directory and try again.",
                             status: 1);
                     }
-                    Transpiler.New(filePath: scriptPath, args: []);
+                    await Transpiler.New(filePath: scriptPath, args: []);
                     break;
                 case "delete":
                     DeleteScript();
                     break;
                 case "run":
                     RuntimeManager runtimeManager = new(scriptFilePath: scriptPath);
-                    Action RunAction(RuntimeManager runtimeManager) => async () => { await runtimeManager.RunScript(); };
-                    Task.Run(RunAction(runtimeManager));
+                    await runtimeManager.RunScript();
                     break;
 
                 default:

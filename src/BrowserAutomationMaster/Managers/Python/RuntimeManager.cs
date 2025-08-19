@@ -282,9 +282,23 @@ namespace BrowserAutomationMaster.Managers.Python
         }
         public async Task<bool> RunScript()
         {
-            ValidateScript();
-            VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);
-            await vEnvManager.RunScriptInVEnv();
+            try
+            {
+                ValidateScript();
+                VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);
+                await vEnvManager.RunScriptInVEnv();
+            }
+            catch (Exception ex)
+            {
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"BAM Manager (BAMM) was unable finish execution of the selected file.\n" +
+                        $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
+                        $"Error log:\n{ex.Message}'",
+                    status: 1
+                );
+            }
+
             return true;
         }
         public async Task<bool> RunScriptFromTranspiler()

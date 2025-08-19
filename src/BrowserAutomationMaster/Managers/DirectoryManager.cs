@@ -89,6 +89,10 @@ namespace BrowserAutomationMaster.Managers
         {
             return Path.Combine(AppDataDirectory, "compiled");
         }
+        public static string GetUserAgentsPath()
+        {
+            return Path.Combine(AppDataDirectory, "useragents.json");
+        }
         public static string GetUserScriptDirectory()
         {
             return Path.Combine(AppDataDirectory, "userScripts");

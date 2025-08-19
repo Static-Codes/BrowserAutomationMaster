@@ -39,6 +39,13 @@ namespace BrowserAutomationMaster.Messaging
             Environment.Exit(status);
         }
         
+        public static string? WriteErrorAndReturnNull(string message)
+        {
+            WriteMessage(message, isError: true);
+            ReadKey();
+            return null;
+        }
+
         public static bool WriteErrorAndReturnBool(string message, bool returnBool)
         {
             WriteMessage(message, isError: true);
