@@ -25,10 +25,6 @@ namespace BrowserAutomationMaster.Managers
             };
         }
 
-        #region "P/Invoke win32 api functions
-
-
-        #endregion
 
         [SupportedOSPlatform("windows10.0.10240")]
         private static Dictionary<string, double> CheckForWindows()

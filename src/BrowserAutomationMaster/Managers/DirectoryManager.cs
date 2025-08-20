@@ -1,11 +1,65 @@
-﻿using BrowserAutomationMaster.Messaging;
+﻿using System.IO.Compression;
 using System.Runtime.InteropServices;
+using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 
 namespace BrowserAutomationMaster.Managers
 {
     class DirectoryManager
     {
         public static string AppDataDirectory { get; private set; } = GetAppDataDirectory();
+        public static void ArchiveAppDataDirectory(string compression = "zip", string? outputPath = null)
+        {
+
+            var backupPath = GetDefaultBackupPath();
+            if (File.Exists(backupPath))
+            {
+                var message = $"A backup of BAM Manager's AppData already exists at:\n{backupPath}\n";
+                Warning.Write(message);
+                
+                var response = Input.WriteTextAndReturnRawInput("Would you like to override it? [y/n]: ");
+                
+                if (Input.ConditionRejected(response))
+                    Environment.Exit(0);
+                
+                DeleteFile(backupPath);
+                Success.WriteSuccessMessageAndExit("Backup successfully deleted!", 0);
+            }
+            try
+            {
+                switch (compression)
+                {
+                    case "zip" when outputPath == null:
+                        if (!Directory.Exists(AppDataDirectory))
+                            Errors.WriteErrorAndExit($"Unable to create backup file, directory doesn't exist:\n{AppDataDirectory}", 1);
+
+                        
+                        if (string.IsNullOrEmpty(backupPath))
+                        {
+                            var message = "Would you like to create a backup in the current directory? [y/n]: ";
+                            var response = Input.WriteTextAndReturnRawInput(message);
+                            if (Input.ConditionRejected(response))
+                                Environment.Exit(0);
+
+                            backupPath = Environment.CurrentDirectory;
+                        }
+
+
+                        ZipFile.CreateFromDirectory(AppDataDirectory, backupPath, CompressionLevel.Optimal, false);
+                        Success.WriteSuccessMessage($"Successfully created backup at:\n{backupPath}");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                var message =
+                    "Unable to create a backup file.\n" +
+                    $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}" +
+                    $"Error Log:\n{ex.Message}";
+
+                Errors.WriteErrorAndExit(message, 1);
+            }
+        }
         public static void DeleteDirectory(string directory)
         {
             if (string.IsNullOrWhiteSpace(directory)) { return; }
@@ -62,6 +116,69 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
         }
+        public static void DeleteFile(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) { return; }
+            if (!File.Exists(path))
+            {
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"\nBAM Manager (BAMM) was unable to locate:\n" +
+                        $"{path}\n" +
+                        $"Please ensure this directory exists.",
+                    status: 1
+                );
+            }
+            try
+            {
+                File.Delete(path);
+                Success.WriteSuccessMessage(
+                    message: $"BAM Manager (BAMM) successfully deleted file: {path}\n"
+                );
+            }
+            catch (IOException)
+            {
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
+                        $"File: {path}\n",
+                    status: 1
+                );
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {path}\n",
+                    status: 1
+                );
+            }
+            catch (System.Security.SecurityException)
+            {
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {path}\n",
+                    status: 1
+                );
+            }
+            catch (ArgumentException)
+            {
+                Errors.WriteErrorAndExit(
+                    message: $"Invalid argument for file path: '{path}'\n",
+                    status: 1
+                );
+            }
+            catch (Exception ex)
+            {
+                Errors.WriteErrorAndExit(
+                    message:
+                        $"An unexpected error of type: '{ex.GetType().Name}' " +
+                        $"occurred while trying to delete file: '{path}'\n",
+                    status: 1
+                );
+            }
+        }
+        
         public static void EnsureDirectoryExists(string path)
         {
             if (!Directory.Exists(path))
@@ -75,17 +192,28 @@ namespace BrowserAutomationMaster.Managers
                 }
             }
         }
-
-        public static string GetBrowserStackDirectory()
+        private static string GetDefaultBackupPath(string compression = "zip")
         {
-            return Path.Combine(AppDataDirectory, "browserstack");
-        }
+            try
+            {
+                var desktopDir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                if (string.IsNullOrEmpty(desktopDir))
+                    return desktopDir;
 
+                var fileName = $"BAMM-Backup.{compression}";
+                return Path.Combine(desktopDir, fileName);
+            }
+            catch
+            {
+                var message = "Unable to get the default backup directory, please ensure you have a Desktop Environment installed.";
+                return Errors.WriteErrorAndReturnEmptyString(message);
+            }
+        }
+        public static string GetBrowserStackDirectory() { return Path.Combine(AppDataDirectory, "browserstack"); }
         public static string GetConfigDirectory() { return Path.Combine(AppDataDirectory, "config"); }
         public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
         public static string GetUserScriptDirectory() { return Path.Combine(AppDataDirectory, "userScripts"); }
-
         private static string GetAppDataLinux(string appName)
         {
             string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);

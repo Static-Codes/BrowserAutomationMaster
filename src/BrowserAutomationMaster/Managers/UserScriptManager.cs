@@ -139,62 +139,6 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
         }
-        public void DeleteScript()
-        {
-            if (string.IsNullOrWhiteSpace(scriptPath)) { return; }
-            if (!File.Exists(scriptPath)) {
-                Errors.WriteErrorAndExit(
-                    message: 
-                        $"\nBAM Manager (BAMM) was unable to locate:\n" +
-                        $"{scriptPath}\n" +
-                        $"Please ensure this directory exists.",
-                    status: 1
-                );
-            }
-            try
-            {
-                File.Delete(scriptPath);
-                Success.WriteSuccessMessage(
-                    message: $"BAM Manager (BAMM) successfully deleted file: {scriptPath}\n"
-                );
-            }
-            catch (IOException) {
-                Errors.WriteErrorAndExit(
-                    message: 
-                        $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
-                        $"File: {scriptPath}\n",
-                    status: 1
-                );
-            }
-            catch (UnauthorizedAccessException) {
-                Errors.WriteErrorAndExit(
-                    message: 
-                        $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n",
-                    status: 1
-                );
-            }
-            catch (System.Security.SecurityException) {
-                Errors.WriteErrorAndExit(
-                    message: 
-                        $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {scriptPath}\n", 
-                    status: 1
-                );
-            }
-            catch (ArgumentException) {
-                Errors.WriteErrorAndExit(
-                    message: $"Invalid argument for file path: '{scriptPath}'\n",
-                    status: 1
-                );
-            }
-            catch (Exception ex) {
-                Errors.WriteErrorAndExit(
-                    message: 
-                        $"An unexpected error of type: '{ex.GetType().Name}' " +
-                        $"occurred while trying to delete file: '{scriptPath}'\n", 
-                    status: 1
-                );
-            }
-        }
         
         private async Task HandleCLIArgs(string method, string filePath, string fileName)
         {
@@ -203,6 +147,7 @@ namespace BrowserAutomationMaster.Managers
                 case "add":
                     AddScript(sourceFilePath: filePath, fileName);
                     break;
+
                 case "compile": // Only compiles from .bamc files within the userScripts directory, this creates standardized behavior. 
                     if (!File.Exists(scriptPath))
                     {
@@ -213,9 +158,11 @@ namespace BrowserAutomationMaster.Managers
                     }
                     await Transpiler.New(filePath: scriptPath, args: []);
                     break;
+
                 case "delete":
-                    DeleteScript();
+                    DeleteFile(scriptPath);
                     break;
+
                 case "run":
                     RuntimeManager runtimeManager = new(scriptFilePath: scriptPath);
                     await runtimeManager.RunScript();
