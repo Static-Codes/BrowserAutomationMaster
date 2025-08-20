@@ -33,10 +33,14 @@ namespace BrowserAutomationMaster.Compilation
         
         public static string AddHeadersFunction(Dictionary<string, string> headers)
         {
+            var sanitized = @$"{{JsonSerializer.Serialize(headers, options)}}"
+                .Replace("\"", "'")
+                .Replace("{", " ")
+                .Replace("}", " ")
+                .Trim() + "})" + '\n';
 
             return @$"driver.request_interceptor = lambda request: setattr(request, 'headers', {{
-    **request.headers, " + @$"{{{JsonSerializer.Serialize(headers, options)}}}".Replace("\"", "'").Replace("{", " ").Replace("}", " ").Trim() + "})" 
-    + string.Concat(Enumerable.Repeat('\n', 1));
+    **request.headers, {sanitized}"; 
         }
 
 
@@ -57,8 +61,8 @@ namespace BrowserAutomationMaster.Compilation
         return True
     except:
         stderr.write(error_msg + '\n')
-        return False" + string.Concat(Enumerable.Repeat('\n', 1));
-        
+        return False" + '\n';
+
         // Forked from https://pypi.org/project/a-selenium-click-on-coords/ under the MIT License.
         public static string clickAtPositionFunction = @$"def click_at_position(x: int, y: int, script_timeout=10):
     isClicked = False
@@ -86,8 +90,8 @@ namespace BrowserAutomationMaster.Compilation
         )
     finally:
         driver.set_script_timeout(old_timeout)
-    return isClicked" + string.Concat(Enumerable.Repeat('\n', 1));
-        
+    return isClicked" + '\n';
+
         public static string clickElementFunction = @"def click_element(byType: By, selector: str, actionTimeout: int):
     try:
         WebDriverWait(driver, actionTimeout).until(EC.element_to_be_clickable((byType, selector))).click()
@@ -96,7 +100,7 @@ namespace BrowserAutomationMaster.Compilation
         exit(1)
     except Exception as e:
         stderr.write('An error occured while trying to click element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
-        exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
+        exit(1)" + '\n';
 
         public static string clickElementExperimentalFunction = $@"def click_element_experimental(selector: str, timeout: int = 10):
     driver.execute_script(f""""""let selector = '{{selector}}';
@@ -173,7 +177,7 @@ setTimeout(() => {{timeout*1000}});
             f""Tab URL (before error): {{current_url}}\n""
             f""Exception Type: {{type(e).__name__}}\n""  # More readable type name
             f""Error:\n{{str(e)}}\n""
-        )" + string.Concat(Enumerable.Repeat('\n', 1));
+        )" + '\n';
         
         public static string getScreenBoundsFunction = @"def get_screen_bounds():
     try:
@@ -193,7 +197,7 @@ setTimeout(() => {{timeout*1000}});
             'Unable to determine screen boundaries of the current monitor.  '
             'You may see a portion of the browser while it executes.\n'
         )
-        return None" + string.Concat(Enumerable.Repeat('\n', 1));
+        return None" + '\n';
 
         public static string getTextFunction = $@"def get_text_from_element(byType: By, selector: str, propertyName = 'value'):
     # propertyName is optional and will be overwritten if provided.
@@ -205,7 +209,7 @@ setTimeout(() => {{timeout*1000}});
         exit(1)
     except Exception as e:
         stderr.write('An error occured while trying to get text from element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
-        exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
+        exit(1)" + '\n';
 
         public static string fillTextFunction = @"def fill_text(byType: By, selector: str, value: str):
     try:
@@ -217,7 +221,7 @@ setTimeout(() => {{timeout*1000}});
         exit(1)
     except Exception as e:
         stderr.write('An error occured while trying to fill text on element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
-        exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
+        exit(1)" + '\n';
 
         public static string fillTextExperimentalFunction = @"def fill_text_exp(byType: By, selector: str, new_value: str, timeout: int = 10) -> bool:
     element: WebElement = None
@@ -403,7 +407,7 @@ setTimeout(() => {{timeout*1000}});
         return False
     except Exception as e:
         stderr.write(f""An error occurred while attempting to fill:\n{selector}\nError:\n{e}\n"")
-        return False" + string.Concat(Enumerable.Repeat("\n", 1));
+        return False" + '\n';
 
         public static string installPackagesFunction = @"def install_packages():
     try:
@@ -457,7 +461,7 @@ setTimeout(() => {{timeout*1000}});
         return False
     except Exception as e:
         stderr.write(f'An unexpected error occurred while trying to run pip:\n{e}\n')
-        return False" + string.Concat(Enumerable.Repeat('\n', 1));
+        return False" + '\n';
         public static string makeRequestFunction(string userAgent)
         {
             string pythonSafeUserAgent = userAgent.Replace("\\", "\\\\").Replace("'", "\\'"); // Handles formatting before issues occur.
@@ -514,7 +518,7 @@ setTimeout(() => {{timeout*1000}});
         else:
             stdout.write(f'Status {status_code} indicates success/redirect.\n')
     else:
-         stderr.write(f'Could not determine status code using selenium-wire.\n')" + string.Concat(Enumerable.Repeat('\n', 1));
+         stderr.write(f'Could not determine status code using selenium-wire.\n')" + '\n';
         }
         
         public static string openNewTabFunction = @$"def open_new_tab(url: str, timeout: int):
@@ -533,7 +537,7 @@ setTimeout(() => {{timeout*1000}});
         driver.get(url)
         return new_window, original_window_handle
     except Exception as e:
-        stderr.write(f'Unable to open a new tab.\nException Type: {{type(e)}}\nError:\n{{str(e)}}')" + string.Concat(Enumerable.Repeat('\n', 1));
+        stderr.write(f'Unable to open a new tab.\nException Type: {{type(e)}}\nError:\n{{str(e)}}')" + '\n';
 
         public static string saveAsHTMLFunction = @"def save_as_html(filename: str):
     if not filename.endswith('.html'):
@@ -551,7 +555,7 @@ setTimeout(() => {{timeout*1000}});
         return True
     except Exception as e:
         stderr.write(f'Unable to save page source, please check the error below:\n\n{e}\n')
-        return False" + string.Concat(Enumerable.Repeat('\n', 1));
+        return False" + '\n';
 
         public static string saveAsHTMLExperimentalFunction = @"def save_as_html_experimental(filename: str, timeout: int):
     if not filename.endswith('.html'):
@@ -575,7 +579,7 @@ setTimeout(() => {{timeout*1000}});
         return True
     except Exception as e:
         stderr.write(f'Unable to write html to: {filename}, please check the error below:\n\n{e}\n')
-        return False" + string.Concat(Enumerable.Repeat('\n', 1));
+        return False" + '\n';
 
         public static string selectElementFunction = @"def select_element(byType: By, selector: str, timeout: int):
     try:
@@ -586,7 +590,7 @@ setTimeout(() => {{timeout*1000}});
         exit(1)
     except Exception as e:
         stderr.write(""An error occured while trying to get text from element with the selector: "" + selector + ""\n\nError:\n"" + str(e) + ""\n"");
-        exit(1)" + string.Concat(Enumerable.Repeat('\n', 1));
+        exit(1)" + '\n';
 
         public static string selectOptionByIndexFunction = @"def select_option_by_index(
     byType: By,
@@ -614,7 +618,7 @@ setTimeout(() => {{timeout*1000}});
         return False
     except Exception as e:
         stderr.write(f""Error selecting option {optionNumber} (Index: {index}) from <select> tag with selector:\n'{selector}'\nError: {e}\n"")
-        return False" + string.Concat(Enumerable.Repeat('\n', 1));
+        return False" + '\n';
 
         public static string takeScreenshotFunction = @"def take_screenshot(filename: str):
     if not filename.endswith('.png'):
@@ -624,7 +628,7 @@ setTimeout(() => {{timeout*1000}});
         with open(f'{filename}', 'wb') as file:
             file.write(driver.get_screenshot_as_png())
     except Exception as e:
-        stderr.write(f'Unable to take screenshot, please check the error below:\n\n{e}\n')" + string.Concat(Enumerable.Repeat('\n', 1));
+        stderr.write(f'Unable to take screenshot, please check the error below:\n\n{e}\n')" + '\n';
         
     }
 }
