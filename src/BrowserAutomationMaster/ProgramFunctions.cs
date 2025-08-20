@@ -71,28 +71,42 @@ namespace BrowserAutomationMaster
         public static async Task<bool> HandleCLIArguments(string[] pArgs)
         {
             if (pArgs.Length == 0) 
-                return false; // No args, proceed to interactive loop.
+                return false; // No args, proceed to main menu loop.
 
-            var nonUserScriptArgs = new string[] {"backup", "clear", "help", "uninstall", "validate"};
-            var validCLIArgs = new string[] { "add", "compile", "delete", "run", "validate" };
+            // Defining the lowercase representation of pArgs[0] to save memory (Not that its required, but its a good practice)
+            var lArg0 = pArgs[0].ToLower();
 
-            var method = pArgs[0].ToLower();
-            var isCLI = pArgs.Length == 2 && !nonUserScriptArgs.Contains(method);
-            var validCLIArg = isCLI && validCLIArgs.Contains(pArgs[0]);
+            // These args will bypass hardware checks.
+            var noHWCheckArgs = new string[] {"backup", "clear", "help", "uninstall", "validate"};
+            
+            // These args will be passed to an instance of UserScriptManager.
+            var scriptArgs = new string[] { "add", "backup", "compile", "delete", "run", "validate" };
 
-            if (validCLIArg)
+            var noHardwareCheck = pArgs.Length == 2 && !noHWCheckArgs.Contains(lArg0);
+            
+            // Flag to ensure all arguments handled by UserScriptManager are processed. 
+            var usingUSM = noHardwareCheck && scriptArgs.Contains(lArg0);
+
+            if (usingUSM)
             {
                 _ = new UserScriptManager(pArgs[1], pArgs[0]);
                 return true;
             }
 
             // Handles double-clicking a BAMC file (On Windows)
-            if (pArgs.Length == 1 && method.EndsWith(".bamc") && File.Exists(pArgs[0]))
+            if (pArgs.Length == 1 && lArg0.EndsWith(".bamc") && File.Exists(pArgs[0]))
             {
                 _ = new UserScriptManager(pArgs[0], "add");
                 var response = Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ");
                 var wantsToContinue = Input.ConditionAccepted(response); // OIC = StringComparison.OrdinalIgnoreCase
                 return !wantsToContinue; // Exit if user doesn't want to continue
+            }
+
+            // Handles 'backup' command
+            if (pArgs[0].Equals("backup", CCIC))
+            {
+                // ADD A CHECK HERE REGARDING THE USERS ARCHIVING CHOICE (ZIP, GZIP, TAR.GZ, etc)
+                ArchiveAppDataDirectory();
             }
 
             // Handles 'clear' command variations
@@ -111,26 +125,10 @@ namespace BrowserAutomationMaster
 
             // Handles 'run' command variations
             if (pArgs[0].Equals("run", CCIC))
-            {
-                if (pArgs.Length == 2 && File.Exists(pArgs[1]))
-                {
-                    var runtimeManager = new RuntimeManager(pArgs[1]);
-                    await runtimeManager.RunScript();
-                }
-                else
-                    Errors.WriteErrorAndExit(
-                       message: 
-                           "Invalid 'run' command.\n" +
-                           "Please provide a valid path to a Python script.\n\n" +
-                           "Valid Syntax:\n" +
-                           "bamm run 'path/to/file.py'",
-                       status: 1
-                    );
-                return true;
-            }
+                return await HandleRunCommand(pArgs);
 
             // Handles 'uninstall' command
-            if (pArgs.Length == 1 && pArgs[0].Equals("uninstall", CCIC))
+            if (pArgs[0].Equals("uninstall", CCIC))
             {
                 UninstallationManager.Uninstall();
                 return true;
@@ -146,10 +144,36 @@ namespace BrowserAutomationMaster
                     Success.WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
                 else
                     Errors.WriteErrorAndExit("Selected file has invalid syntax.", 1);
+
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary></summary>
+        /// <param name="pArgs"></param>
+        private static void HandleBackupCommand(string[] pArgs)
+        {
+            if (pArgs.Length > 2)
+            {
+                var message =
+                    "Invalid 'backup' command.\n\n" +
+                    "Valid commands:\n" +
+                    "bamm backup # backups to the desktop or $HOME directory." +
+                    "bamm backup path/to/desired/backupFile.zip # Creates a backup file at the specified location.";
+
+                Errors.Write(message);
+                ReadKey();
+                return;
+            }
+
+            if (pArgs.Length == 1)
+                ArchiveAppDataDirectory();
+                
+            if (pArgs.Length == 2)
+                ArchiveAppDataDirectory(pArgs[1]);
+
         }
 
 
@@ -187,7 +211,7 @@ namespace BrowserAutomationMaster
         }
 
 
-        /// <summary>Handles variations of 'bamm help'</summary>
+        /// <summary> Handles variations of 'bamm help' </summary>
         /// <param name="pArgs">Program Arguments (args)</param>
         private static void HandleHelpCommand(string[] pArgs)
         {
@@ -203,9 +227,32 @@ namespace BrowserAutomationMaster
             }
         }
 
+        /// <summary> Handle variations of 'bamm run' </summary>
+        /// <param name="pArgs"></param>
+        /// <returns></returns>
+        private static async Task<bool> HandleRunCommand(string[] pArgs)
+        {
+            var errorMessage =
+                "Invalid 'run' command.\n" +
+                "Please provide a valid path to a Python script.\n\n" +
+                "Valid Syntax:\n" +
+                "bamm run 'path/to/file.py'";
+
+            if (pArgs.Length == 2 && File.Exists(pArgs[1]))
+            {
+                var runtimeManager = new RuntimeManager(pArgs[1]);
+                await runtimeManager.RunScript();
+            }
+
+            else { Errors.WriteErrorAndExit(errorMessage, 1); }
+
+            return true;
+        }
+
 
         /// <summary>Runs the main menu loop for BAMM.</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
+
         public static async Task RunMenuLoop(string[] args)
         {
             bool isRunning = true;

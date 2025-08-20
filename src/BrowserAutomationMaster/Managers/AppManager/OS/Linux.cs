@@ -215,17 +215,17 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     CreateNoWindow = true
 
                 };
+                
                 using var proc = Process.Start(procStartInfo);
                 if (proc == null)
-                {
                     return string.Empty;
-                }
+                
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit();
+
                 if (proc.ExitCode == 0)
-                {
                     return output;
-                }
+
                 return string.Empty;
             }
             catch (Exception ex)
