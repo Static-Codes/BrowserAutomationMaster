@@ -28,8 +28,10 @@ namespace BrowserAutomationMaster
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
 
-            // interpretterPath needs to be set
-            // VEnvManager.InstallGlobalPackages needs to implemented use CreateVenv(global: true) then write function to get if browserstack-sdk is installed.
+            // interpretterPath needs to be set dynamically
+            // VEnvManager.InstallGlobalPackages needs to implemented use CreateVenv(global: true)
+            // then write function to get if browserstack-sdk is installed.
+
             var globalVEnv = new VEnvManager("python", "");
             //var globalVEnv = new VEnvManager("interpreterPath", "ScriptFileName");
             globalVEnv.CreateVEnv(global: true);
@@ -58,6 +60,9 @@ namespace BrowserAutomationMaster
                 Win.VerifyRootDrive(args);
 
             GlobalConfig = LoadConfig();
+
+            // The user will select the version of python they want to use
+            Transpiler.HandlePythonVersionSelection(GetInstallations());
 
             // Skip compatibility checks if the user is not attempting to compile or run scripts.
             string[] nonUserScriptArgs = ["clear", "help", "uninstall", "validate"];
