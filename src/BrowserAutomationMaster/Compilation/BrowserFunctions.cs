@@ -33,14 +33,17 @@ namespace BrowserAutomationMaster.Compilation
         
         public static string AddHeadersFunction(Dictionary<string, string> headers)
         {
-            var sanitized = @$"{{JsonSerializer.Serialize(headers, options)}}"
+            if (headers == null || headers.Count == 0)
+                return "# Unable to add headers using 'add-headers' command";
+
+            var sanitized = @$"{{{JsonSerializer.Serialize(headers, options)}}}"
                 .Replace("\"", "'")
                 .Replace("{", " ")
                 .Replace("}", " ")
-                .Trim() + "})" + '\n';
+                .Trim();
 
             return @$"driver.request_interceptor = lambda request: setattr(request, 'headers', {{
-    **request.headers, {sanitized}"; 
+    **request.headers, {sanitized}}})\n"; 
         }
 
 
@@ -462,7 +465,7 @@ setTimeout(() => {{timeout*1000}});
     except Exception as e:
         stderr.write(f'An unexpected error occurred while trying to run pip:\n{e}\n')
         return False" + '\n';
-        public static string makeRequestFunction(string userAgent)
+        public static string MakeRequestFunction(string userAgent)
         {
             string pythonSafeUserAgent = userAgent.Replace("\\", "\\\\").Replace("'", "\\'"); // Handles formatting before issues occur.
             return @"def make_request(url):
