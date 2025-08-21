@@ -96,7 +96,7 @@ namespace BrowserAutomationMaster.Compilation
                 GetDesiredUrls();
 
                 await AddBrowserImportsAndRequirements();
-                HandlePythonVersionSelection(GetInstallations());
+                
 
                 HandleCompilation(filePath, args);
                 
@@ -866,7 +866,7 @@ namespace BrowserAutomationMaster.Compilation
         {
             // Since there's 6 python versions supported the max number of found versions is 6.
             var maxVersions = 6;
-            var foundVersions = new string[maxVersions]; 
+            var versionArray = new string[maxVersions]; 
 
             var versionMapping = new Dictionary<ApplicationNames, string>() {
                 {ApplicationNames.Python3_9, "3.9" },
@@ -885,21 +885,29 @@ namespace BrowserAutomationMaster.Compilation
             foreach (ApplicationNames app in installations.AppNames)
             {
                 if (index == maxVersions)
-                    return;
+                    break;
 
                 if (!versionMapping.TryGetValue(app, out string? appVersion))
                     continue;
 
-
-                foundVersions[0] = appVersion;
+                versionArray[index] = appVersion;
                 index += 1;
             }
 
+            var foundVersions = versionArray.Where(ver => ver != null && ver.Contains("3."));
+
             // Checks for valid contents since the array is initialized at the beginning of the function.
-            if (!foundVersions.Any(ver => ver.Contains("3.")))
+            if (!foundVersions.Any())
                 Errors.WriteErrorAndExit(errorMessage, 1);
 
-            var response = Input.WriteListFromOptions(foundVersions, noun: "version of Python");
+
+            if (foundVersions.Count() == 1)
+            {
+                pythonVersion = versionArray[0];
+                return;
+            }
+
+            var response = Input.WriteListFromOptions(versionArray, noun: "version of Python");
             var version = GetVersionNumber(response);
 
             if (version == "Not Found")
