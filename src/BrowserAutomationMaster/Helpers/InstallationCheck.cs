@@ -36,7 +36,6 @@ namespace BrowserAutomationMaster.Helpers
 
 Supported browsers include:
 
-    - Brave
     - Chrome
     - Firefox".Replace("\r", ""); // Carriage returns cause issues with Spectre Console on Windows... odd?
 
