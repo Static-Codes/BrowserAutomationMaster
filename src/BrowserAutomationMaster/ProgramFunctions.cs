@@ -4,6 +4,7 @@ using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -24,6 +25,9 @@ namespace BrowserAutomationMaster
         /// <param name="pArgs">Program Arguments (args)</param>
         public static async Task InitializeAsync(string[] args)
         {
+            // Populates AppManager.InstalledApps.AppInfo
+            await PopulateInstallations();
+
             // Populate DeviceManager.Devices
             if (!await PopulateDevices())
                 Environment.Exit(0);

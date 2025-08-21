@@ -2,7 +2,7 @@
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 
-namespace BrowserAutomationMaster.Checks
+namespace BrowserAutomationMaster.Helpers
 {
     public enum ApplicationNames
     {
@@ -38,7 +38,7 @@ Supported browsers include:
 
     - Brave
     - Chrome
-    - Firefox";
+    - Firefox".Replace("\r", ""); // Carriage returns cause issues with Spectre Console on Windows... odd?
 
         readonly static string NoPythonMessage = @"BAM Manager (BAMM) was unable to detect any valid python installations.
 
@@ -49,19 +49,17 @@ Supported versions include:
 - Python 3.11.X
 - Python 3.12.X
 - Python 3.13.X
-- Python 3.14.X";
+- Python 3.14.X".Replace("\r", ""); // Carriage returns cause issues with Spectre Console on Windows... odd?
 
         public Installations(List<AppInfo> detectedApplications)
         {
             AppNames = [];
-            //AppNames = detectedApplications ?? [];
             foreach (AppInfo app in detectedApplications)
             {
-                if (app == null) { continue; }
-                if (app.Name == null) { continue; }
-                if (app.Name.Length == 0) { continue; }
-                //Spectre.Console.AnsiConsole.Write(app.Name);
-                //if (app.Name.ToLower().Contains("brave")) {
+                if (app == null || app.Name == null || app.Name.Length == 0) 
+                    continue;
+
+                //if (app.Name.Contains("brave", CCIC)) {
                 //    if (!AppNames.Contains(ApplicationNames.Brave)) {
                 //        AppNames.Add(ApplicationNames.Brave);
                 //    }
@@ -122,8 +120,12 @@ Supported versions include:
                     }
                 }
             }
-            if (!AppNames.Intersect(validBrowsersApps).Any()) { Errors.WriteErrorAndExit(NoBrowsersMessage, 1); }
-            if (!AppNames.Intersect(validPythonVersions).Any()) { Errors.WriteErrorAndExit(NoPythonMessage, 1); }
+
+            if (!AppNames.Intersect(validBrowsersApps).Any())
+                Errors.WriteErrorAndExit(NoBrowsersMessage, 1);
+
+            if (!AppNames.Intersect(validPythonVersions).Any()) 
+                Errors.WriteErrorAndExit(NoPythonMessage, 1);
         }
         public Installations() // Empty constructor used as a fallback.
         {

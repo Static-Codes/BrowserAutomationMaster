@@ -1,7 +1,6 @@
 ﻿using System.IO.Compression;
 using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -60,6 +59,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteErrorAndExit(message, 1);
             }
         }
+        
         public static void DeleteDirectory(string directory)
         {
             if (string.IsNullOrWhiteSpace(directory)) { return; }
@@ -116,6 +116,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
         }
+        
         public static void DeleteFile(string path)
         {
             if (string.IsNullOrWhiteSpace(path)) { return; }
@@ -192,6 +193,7 @@ namespace BrowserAutomationMaster.Managers
                 }
             }
         }
+        
         private static string GetDefaultBackupPath(string compression = "zip")
         {
             try
@@ -209,11 +211,19 @@ namespace BrowserAutomationMaster.Managers
                 return Errors.WriteErrorAndReturnEmptyString(message);
             }
         }
+        
         public static string GetBrowserStackDirectory() { return Path.Combine(AppDataDirectory, "browserstack"); }
+        
         public static string GetConfigDirectory() { return Path.Combine(AppDataDirectory, "config"); }
+        
         public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
+        
+        public static string GetGlobalVEnvPath() { return Path.Combine(AppDataDirectory, "globalVEnv"); }
+        
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
+        
         public static string GetUserScriptDirectory() { return Path.Combine(AppDataDirectory, "userScripts"); }
+        
         private static string GetAppDataLinux(string appName)
         {
             string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -240,6 +250,7 @@ namespace BrowserAutomationMaster.Managers
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
+        
         private static string GetAppDataMacOS(string appName)
         {
             string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -315,6 +326,7 @@ namespace BrowserAutomationMaster.Managers
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
+        
         private static string GetAppDataWindows(string appName)
         {
             string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -322,6 +334,7 @@ namespace BrowserAutomationMaster.Managers
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
+        
         public static string GetAppDataDirectory()
         {
             string appName = "BrowserAutomationMaster";

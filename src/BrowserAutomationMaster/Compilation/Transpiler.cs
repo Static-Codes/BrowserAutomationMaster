@@ -1,5 +1,4 @@
-﻿
-using BrowserAutomationMaster.Checks;
+﻿using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager;
 using BrowserAutomationMaster.Managers.AppManager.OS;
@@ -11,10 +10,11 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using static BrowserAutomationMaster.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
+using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -89,21 +89,25 @@ namespace BrowserAutomationMaster.Compilation
             try
             {
                 SetDesiredSaveDirectory();
-                CreateProjectDirectory(); // Also sets variable projectDirectory
+                CreateProjectDirectory(); // Also sets this.projectDirectory
+                
                 SetScriptName(filePath);
                 SetFileLines(filePath);
+                
                 GetDesiredUrls();
 
-                Installations ___ = new(InstalledApps.GetInstalledApps()); // was originally named installations
                 await AddBrowserImportsAndRequirements();
-                //HandlePythonVersionSelection(installations); // This isn't needed currently 
+                HandlePythonVersionSelection(GetInstallations());
 
                 HandleCompilation(filePath, args);
+                
                 WritePythonFile();
+                
                 WriteRequirementsFile();
 
                 string path = Path.Combine(desiredSaveDirectory, pythonScriptFileName);
-                Success.WriteSuccessMessage($"\nCompiled -> {pythonScriptFileName}");
+                
+                Success.WriteSuccessMessage($"Compiled -> {pythonScriptFileName}");
                 Success.WriteSuccessMessage($"Location -> {path}\n");
 
                 HandleAutoCopy();
@@ -141,6 +145,7 @@ namespace BrowserAutomationMaster.Compilation
 
             string swVersion = PackageManager.New("selenium-wire", pythonVersion);
             string wmVersion = PackageManager.New("webdriver_manager", pythonVersion);
+
             requirements.Add($"selenium-wire=={swVersion}");
             requirements.Add($"webdriver_manager=={wmVersion}");
 
@@ -387,7 +392,8 @@ namespace BrowserAutomationMaster.Compilation
         public static void CreateProjectDirectory()
         {
             try {
-                if (!Directory.Exists(desiredSaveDirectory)) { Directory.CreateDirectory(desiredSaveDirectory); }
+                if (!Directory.Exists(desiredSaveDirectory))
+                    Directory.CreateDirectory(desiredSaveDirectory);
             }
             catch { 
                 Errors.WriteErrorAndExit(
@@ -399,16 +405,14 @@ namespace BrowserAutomationMaster.Compilation
             
             projectDirectory = Path.Combine(desiredSaveDirectory, projectDirectoryName);
             try {
-                if (!Path.Exists(desiredSaveDirectory)) {
+                if (!Path.Exists(desiredSaveDirectory))
                     Directory.CreateDirectory(desiredSaveDirectory);
-                }
             }
             catch { }
 
             try {
-                if (!Path.Exists(projectDirectory)) {
+                if (!Path.Exists(projectDirectory))
                     Directory.CreateDirectory(projectDirectory);
-                }
             }
             catch { 
                 Errors.WriteErrorAndExit(
@@ -445,7 +449,8 @@ namespace BrowserAutomationMaster.Compilation
                 lineNumber++;
             }
         }
-        public static string GetSetupToolsVersion()
+        [Obsolete("Remove this in a future update, since chromeOS execution is handled by BrowserStack")]
+        public static string GetSetupToolsVersion() 
         {
             return Linux.IsChromeOS switch
             {
@@ -470,7 +475,7 @@ namespace BrowserAutomationMaster.Compilation
         }
         public static async Task HandleBrowserCmd()
         {
-            // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of !
+            // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of the nullable operator
             if (browserPresent) {
                 var potentialUA = await UserAgentManager.GetUserAgent(selectedBrowser);
                 if (potentialUA == null)
@@ -490,27 +495,35 @@ namespace BrowserAutomationMaster.Compilation
 
             // Prevents duplicate entries of makeRequestFunction();
             bool firstVisitFinished = false;
+
             // Prevents issues caused by set-custom-user-agent having unique formatting (Many spaces).
             bool isCU = false;
+
             // Prevents issues caused by click-exp having unique formatting.
             bool isCE = false;
+
             // Prevents issues caused by fill-text and fill-text-exp if the arguments have spaces in them.
             bool isFT = false;
            
             bool isJSBlock = false; // Prevents issues caused by embedding javascript code into python code.
             bool isJSLine = false;  // Also prevents issued caused by embedding javascript code into python code.
             string jsBlockContent = "";  
+
             foreach (string originalLine in configLines)
             {
                 // Since iterators can't be overwritten, storing it as a local variable is current solution.
                 string line = originalLine;
-                if (string.IsNullOrEmpty(line)) { continue; } // Skip blank lines.
+
+                if (string.IsNullOrEmpty(line)) // Skip blank lines.
+                    continue;
 
                 // Indicates a comment is present (ignores comments within JS blocks)
-                if (line.Contains(" // ") && !isJSBlock) { hasComment = true; }
+                if (line.Contains(" // ") && !isJSBlock) 
+                    hasComment = true;
 
                 // Deletes said comment so it's not compiled.
-                if (hasComment) { line = Parser.DeleteCommentIfPresent(line); } 
+                if (hasComment) 
+                    line = Parser.DeleteCommentIfPresent(line); 
                 
                 // Handling 'add-headers' before 'visit' is processed would be an issue if it weren't for Parser
                 // Parser ensures 'browser' first (or defaults to firefox) then features and finally any other logic.
@@ -530,12 +543,14 @@ namespace BrowserAutomationMaster.Compilation
                         ); 
                     }
                     int index = scriptBody.IndexOf(requestLine);
+
                     if (index == -1) { Errors.WriteErrorAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to locate request logic in partially compiled script, " +
                             "please attempt recompilation.", 
                         status: 1
                     ); }
+
                     // Value is assumed to be correct,
                     // but will very much cause an issue if the regex is found to not be fully reliable.
                     else {  
@@ -551,11 +566,23 @@ namespace BrowserAutomationMaster.Compilation
                 }
 
 
-                if (line.StartsWith("click-exp ")) { isCE = true; }
-                else if (line.StartsWith("fill-text")) { isFT = true; } // Also handles fill-text-exp
-                else if (line.StartsWith("set-custom-useragent")) { isCU = true; }
-                else if (line.StartsWith("start-javascript")) { isJSBlock = true; continue; }
-                else if (line.StartsWith("end-javascript")) { isJSBlock = false; }
+                if (line.StartsWith("click-exp ")) 
+                    isCE = true;
+
+                else if (line.StartsWith("fill-text"))  // Also handles fill-text-exp
+                    isFT = true;
+
+                else if (line.StartsWith("set-custom-useragent"))
+                    isCU = true;
+
+                else if (line.StartsWith("start-javascript")) 
+                { 
+                    isJSBlock = true; 
+                    continue; 
+                }
+
+                else if (line.StartsWith("end-javascript")) 
+                    isJSBlock = false;
 
 
                 string[] splitLine;
@@ -838,8 +865,11 @@ namespace BrowserAutomationMaster.Compilation
         }
         public static void HandlePythonVersionSelection(Installations installations)
         {
-            List<string> foundVersions = [];
-            Dictionary<ApplicationNames, string> versionMapping = new() {
+            // Since there's 6 python versions supported the max number of found versions is 6.
+            var maxVersions = 6;
+            var foundVersions = new string[maxVersions]; 
+
+            var versionMapping = new Dictionary<ApplicationNames, string>() {
                 {ApplicationNames.Python3_9, "3.9" },
                 {ApplicationNames.Python3_10, "3.10" },
                 {ApplicationNames.Python3_11, "3.11" },
@@ -847,32 +877,39 @@ namespace BrowserAutomationMaster.Compilation
                 {ApplicationNames.Python3_13, "3.13" },
                 {ApplicationNames.Python3_14, "3.14" },
             };
-            string inputMessage = """
-                Please select the number corresponding to the version of python to compile your BAMC file for:
-            """;
 
-            int iterationIndex = 0;
-            foreach (ApplicationNames app in installations.AppNames){
-                if (!versionMapping.TryGetValue(app, out string? version)){ continue; }
-                foundVersions.Add(version);
-                inputMessage += $"{iterationIndex}. - Python {version}\n";
-                iterationIndex += 1;
+            var errorMessage = 
+                "Unable to find a valid installation of python.\n" + 
+                $"If this error persists, please make a bug report at {ISSUES_LINK}";
+
+            int index = 0;
+            foreach (ApplicationNames app in installations.AppNames)
+            {
+                if (index == maxVersions)
+                    return;
+
+                if (!versionMapping.TryGetValue(app, out string? appVersion))
+                    continue;
+
+
+                foundVersions[0] = appVersion;
+                index += 1;
             }
-            while (true){
-                Spectre.Console.AnsiConsole.Write(inputMessage);
-                string? inputResponse = Console.ReadLine();
-                if (int.TryParse(inputResponse, out int selection) && selection > 0 && selection <= iterationIndex)
-                {
-                    int elementIndex = selection - 1;
-                    string value = foundVersions.ElementAt(elementIndex);
-                    if (IsValidPyVersion(value))
-                    {
-                        pythonVersion = value;
-                        break;
-                    }
-                }
-            }
-        } // Currently unused.
+
+            // Checks for valid contents since the array is initialized at the beginning of the function.
+            if (!foundVersions.Any(ver => ver.Contains("3.")))
+                Errors.WriteErrorAndExit(errorMessage, 1);
+
+            var response = Input.WriteListFromOptions(foundVersions, noun: "version of Python");
+            var version = GetVersionNumber(response);
+
+            if (version == "Not Found")
+                return;
+
+            if (IsValidPyVersion(version))
+                pythonVersion = version;
+            
+        }
         public static async Task<bool> HandleRunOnCompile()
         {
             if (!GlobalConfig.RunOnCompile)
@@ -1125,7 +1162,9 @@ namespace BrowserAutomationMaster.Compilation
                      "Please remove duplicate arguments and restart.",
                      1);
             }
+
             if (userAgentArgs.Count == 0) { return; }
+
             else
             {
                 string customUserAgent = userAgentArgs[0];
