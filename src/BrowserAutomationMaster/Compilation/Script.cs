@@ -38,9 +38,9 @@ namespace BrowserAutomationMaster.Compilation
             Imports.ResetStatements();
 
             var isNotEmpty =
-                Body.scriptLines.Count == 0 ||
-                Requirements.packageList.Count == 0 ||
-                Imports.statementList.Count == 0;
+                Body.scriptLines.Count != 0 ||
+                Requirements.packageList.Count != 0 ||
+                Imports.statementList.Count != 3; // The imports are added here
             
             var message = 
                 "BAM Manager (BAMM) was unable to clean up data from the previous session.\n" + 
@@ -84,7 +84,17 @@ namespace BrowserAutomationMaster.Compilation
                 AddLine(line, index);
         }
 
+        public int GetLineCount() { return scriptLines.Count; }
+        
+        public string GetMakeRequestLine() 
+        { 
+            return scriptLines
+                .Where(line => line.Equals("make_request(url)"))
+                .First() ?? string.Empty; 
+        }
+
         public void ResetLines() { scriptLines.Clear(); }
+        
     }
 
 
@@ -129,7 +139,12 @@ namespace BrowserAutomationMaster.Compilation
         public readonly List<string> statementList;
         public ScriptImports()
         {
-            statementList = [];
+            // This is the default list of import statements used by BAMM
+            statementList = [
+                "from importlib import import_module",
+                "from subprocess import run",
+                "from sys import modules, stderr, stdout\n"
+            ];
         }
 
         public ScriptImports(IEnumerable<string> imports) 
@@ -143,13 +158,33 @@ namespace BrowserAutomationMaster.Compilation
                 statementList.Add(statement);
         }
 
+        public void AddStatement(string statement, int index)
+        {
+            if (statement != null)
+                statementList.Insert(index, statement);
+        }
+
         public void AddStatements(string[] statements)
         {
             foreach (string statement in statements)
                 AddStatement(statement);
         }
 
-        public void ResetStatements() { statementList.Clear(); }
+        public void AddStatements(Dictionary<string, int> statements)
+        {
+            foreach (var (line, index) in statements)
+                AddStatement(line, index);
+        }
+
+        public void ResetStatements() 
+        { 
+            statementList.Clear();
+            statementList.AddRange([
+                "from importlib import import_module",
+                "from subprocess import run",
+                "from sys import modules, stderr, stdout\n"
+            ]);
+        }
     }
 
 }

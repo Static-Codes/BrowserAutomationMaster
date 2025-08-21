@@ -62,15 +62,11 @@ namespace BrowserAutomationMaster.Compilation
         private static int actionTimeout = 10;
 
         private readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
+
         private static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
         private static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
-        private readonly static List<string> importStatements = [
-            "from importlib import import_module", 
-            "from subprocess import run", 
-            "from sys import modules, stderr, stdout\n",
-        ];
-        private readonly static List<string> scriptBody = [];
-        private readonly static List<string> requirements = [];
+
+        private static readonly Script script = new();
 
         // Used for --set-timeout==5 (or any desired timeout)
         private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
@@ -125,12 +121,9 @@ namespace BrowserAutomationMaster.Compilation
         {
             await HandleBrowserCmd();
             
-            string packageString = GetSetupToolsVersion();
-            requirements.Add(packageString);
 
-            // This function will exit if a null value is reached so no worries about a null check here
-            string version = PackageManager.New("selenium", pythonVersion);
-            requirements.Add($"selenium=={version}");
+            
+            
 
             string noUrlsFound =
                 "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\n" +
@@ -142,42 +135,62 @@ namespace BrowserAutomationMaster.Compilation
                 return;
             }
 
+            // This function will exit if a null value is reached so no worries about a null check here
+            string sVersion = PackageManager.New("selenium", pythonVersion);
             string swVersion = PackageManager.New("selenium-wire", pythonVersion);
             string wmVersion = PackageManager.New("webdriver_manager", pythonVersion);
 
-            requirements.Add($"selenium-wire=={swVersion}");
-            requirements.Add($"webdriver_manager=={wmVersion}");
+            string[] packages = [
+                GetSetupToolsVersion(), // Will be removed in the future so the warning can be ignored.
+                $"selenium=={sVersion}",
+                $"selenium-wire=={swVersion}", 
+                $"webdriver_manager=={wmVersion}",
+                $"blinker==1.4", // This fixes the mess that selenium-wire causes by installing blinker >=1.9
+            ];
 
-            // This fixes the mess that selenium-wire causes by installing blinker >=1.9
-            requirements.Add($"blinker==1.4");
+            script.Requirements.AddPackages(packages);
 
-            importStatements.AddRange([
+            string[] imports = [
                 "from selenium.common.exceptions import NoSuchElementException",
                 "from selenium.webdriver.common.by import By",
                 "from selenium.webdriver.support.ui import Select, WebDriverWait",
                 "from selenium.webdriver.support import expected_conditions as EC",
                 "from seleniumwire import webdriver"
-                ]
-            );
+            ];
 
+            script.Imports.AddStatements(imports);
+
+            string[] statements;
             if (selectedBrowser.Equals("brave", StringComparison.OrdinalIgnoreCase))
             {
-                importStatements.AddRange(["from selenium.webdriver.chrome.options import Options",
-                                           "from selenium.webdriver.chrome.service import Service as ChromeService",
-                                           "from webdriver_manager.chrome import ChromeDriverManager",
-                                           "from webdriver_manager.core.os_manager import ChromeType"]);
+                statements = [
+                    "from selenium.webdriver.chrome.options import Options",
+                    "from selenium.webdriver.chrome.service import Service as ChromeService",
+                    "from webdriver_manager.chrome import ChromeDriverManager",
+                    "from webdriver_manager.core.os_manager import ChromeType"
+                ];
+                script.Imports.AddStatements(statements);
             }
 
-            else if (selectedBrowser.Equals("chrome", StringComparison.OrdinalIgnoreCase)){
-                importStatements.AddRange(["from selenium.webdriver.chrome.options import Options",
-                                           "from selenium.webdriver.chrome.service import Service as ChromeService",
-                                           "from webdriver_manager.chrome import ChromeDriverManager"]);
+            else if (selectedBrowser.Equals("chrome", StringComparison.OrdinalIgnoreCase))
+            {
+                statements = [
+                    "from selenium.webdriver.chrome.options import Options",
+                    "from selenium.webdriver.chrome.service import Service as ChromeService",
+                    "from webdriver_manager.chrome import ChromeDriverManager"
+                ];
+
+                script.Imports.AddStatements(statements);
             }
             else if (selectedBrowser.Equals("firefox", StringComparison.OrdinalIgnoreCase))
             {
-                importStatements.AddRange(["from selenium.webdriver.firefox.options import Options",
-                                           "from selenium.webdriver.firefox.service import Service as FirefoxService",
-                                           "from webdriver_manager.firefox import GeckoDriverManager"]);
+                statements = [
+                    "from selenium.webdriver.firefox.options import Options",
+                    "from selenium.webdriver.firefox.service import Service as FirefoxService",
+                    "from webdriver_manager.firefox import GeckoDriverManager"
+                ];
+
+                script.Imports.AddStatements(statements);
             }
             else { 
                 throw new Exception(
@@ -196,9 +209,6 @@ namespace BrowserAutomationMaster.Compilation
                 );
             }
 
-            //bool validRequirement = addToReqs && !string.IsNullOrEmpty(reqText);
-
-
             if (addToReqs && !string.IsNullOrEmpty(reqText)) {
                 Errors.WriteErrorAndExit(
                     message: $"Invalid requirement statement: {reqText}.",
@@ -206,23 +216,21 @@ namespace BrowserAutomationMaster.Compilation
                 );
             }
 
-            if (!importStatements.Contains(import)) {
-                importStatements.Add(import);
-            }
-            if (addToReqs) {
-                requirements.Add(reqText!);
-            }
+            script.Imports.AddStatement(import);
 
+            if (addToReqs)
+                script.Requirements.AddPackage(reqText!);
         }
         public static void AddWatermark()
         {
             AddImportIfNotPresent(import: "from time import sleep", addToReqs: false, reqText: null);
 
-            scriptBody.Insert(0,
+            var watermarkText =
                 "stdout.write('''Made using BAM Manager (BAMM!)\n" +
                 $"{BASE_REPO_LINK}\n''')\n" +
-                $"sleep(3)\n\n"
-            );
+                $"sleep(3)\n\n";
+
+            script.Body.AddLine(watermarkText, 0);
         }
         public static void AddRequiredFunctions()
         {
@@ -234,20 +242,25 @@ namespace BrowserAutomationMaster.Compilation
                 functionsPresent.Add(actionArg, configLines.Any(line => line.StartsWith(actionArg))); 
             }
             
-            int index = 1; // Accounts for the functions below in the scriptBody.
-            scriptBody.Insert(0, makeRequestFunction(requestUserAgent));
+            int index = 1; // Accounts for the functions below in the script.Body.
+            script.Body.AddLine(MakeRequestFunction(requestUserAgent), 0);
 
             // Starts at line 4 (index 3) to account for imports required by check_imports
-            importStatements.Insert(3, checkImportFunction);
-            importStatements.Insert(4, installPackagesFunction);
-            importStatements.Insert(5, "install_packages()");
-
-            Action Add(string func) => () => scriptBody.Insert(index, func);
-            Action AddRange(string[] funcs) => () => {
-                foreach (var func in funcs) {
-                    scriptBody.Insert(index, func);
-                }
+            var statements = new Dictionary<string, int>()
+            {
+                { checkImportFunction, 3 },
+                { installPackagesFunction, 4 },
+                { "install_packages()", 5 },
             };
+            
+            script.Imports.AddStatement(checkImportFunction, 3);
+            script.Imports.AddStatement(installPackagesFunction, 4);
+            script.Body.AddLine("install_packages()", 5);
+            script.Imports.AddStatements(statements);
+
+            Action Add(string func) => () => script.Body.AddLine(func, index);
+            Action AddRange(string[] lines) => () => script.Body.AddLines(lines);
+
             Dictionary<string, Action> functionsAndActions = new() {
                 { 
                     "click", Add(clickElementFunction)
@@ -302,12 +315,12 @@ namespace BrowserAutomationMaster.Compilation
                     }
                 }
             }
-            if (scriptBody.Count != index) { 
-                scriptBody.Insert(scriptBody.Count, browserQuitCode); 
-            }
-            else { 
+            var lineCount = script.Body.GetLineCount();
+            if (lineCount != index)
+                script.Body.AddLine(browserQuitCode, lineCount); 
+         
+            else 
                 Add(browserQuitCode); 
-            }
         }
         public static void CheckConfigLines()
         {
@@ -357,16 +370,22 @@ namespace BrowserAutomationMaster.Compilation
                 ); 
             }
 
-            if (disablePycache) { 
-                importStatements.AddRange(["import sys", "sys.dont_write_byte_code"]); 
+            if (disablePycache)
+            {
+                string[] statements = ["import sys", "sys.dont_write_byte_code = True"];
+                script.Imports.AddStatements(statements);
             }
 
-            if (disableSSL && configLines[0].Contains("\"chrome\"")) { 
-                importStatements.Add("from selenium.webdriver.chrome.options import Options"); 
+            if (disableSSL && configLines[0].Contains("\"chrome\"")) 
+            {
+                var statement = "from selenium.webdriver.chrome.options import Options";
+                script.Imports.AddStatement(statement); 
             }
 
-            else if (disableSSL && configLines[0].Contains("\"firefox\"")) { 
-                importStatements.Add("from selenium.webdriver.firefox.options import Options"); 
+            else if (disableSSL && configLines[0].Contains("\"firefox\"")) 
+            {
+                var statement = "from selenium.webdriver.firefox.options import Options";
+                script.Imports.AddStatement(statement); 
             }
 
 
@@ -492,7 +511,7 @@ namespace BrowserAutomationMaster.Compilation
             int lineNumber = 1;
             bool hasComment = false;
 
-            // Prevents duplicate entries of makeRequestFunction();
+            // Prevents duplicate entries of MakeRequestFunction();
             bool firstVisitFinished = false;
 
             // Prevents issues caused by set-custom-user-agent having unique formatting (Many spaces).
@@ -529,9 +548,7 @@ namespace BrowserAutomationMaster.Compilation
                 Match match = Parser.PrecompiledHeaderRegex().Match(line);
                 if (match.Success) {
 
-                    string requestLine = 
-                        scriptBody.Where(line => line.Equals("make_request(url)")
-                    ).First() ?? string.Empty;
+                    string requestLine = script.Body.GetMakeRequestLine();
 
                     if (string.IsNullOrEmpty(requestLine)) { 
                         Errors.WriteErrorAndExit(
@@ -541,24 +558,28 @@ namespace BrowserAutomationMaster.Compilation
                             status: 1
                         ); 
                     }
-                    int index = scriptBody.IndexOf(requestLine);
 
-                    if (index == -1) { Errors.WriteErrorAndExit(
-                        message:
-                            "BAM Manager (BAMM) was unable to locate request logic in partially compiled script, " +
-                            "please attempt recompilation.", 
-                        status: 1
-                    ); }
+                    int index = script.Body.scriptLines.IndexOf(requestLine);
+
+                    if (index == -1) { 
+                        Errors.WriteErrorAndExit(
+                            message:
+                                "BAM Manager (BAMM) was unable to locate request logic in partially compiled script, " +
+                                "please attempt recompilation.", 
+                            status: 1
+                        ); 
+                    }
 
                     // Value is assumed to be correct,
                     // but will very much cause an issue if the regex is found to not be fully reliable.
-                    else {  
-                        scriptBody.Insert(
-                            index - 1, 
-                            AddHeadersFunction(
-                                JsonSerializer.Deserialize<Dictionary<string, string>>(match.Groups["json"].Value)!
-                            )
-                        );
+                    else 
+                    {
+                        var headers = JsonSerializer.Deserialize<Dictionary<string, string>>(match.Groups["json"].Value);
+
+                        // Nullable value is handled inside AddHeadersFunction
+                        var headersString = AddHeadersFunction(headers!);
+
+                        script.Body.AddLine(headersString, index - 1);
                     } 
                    
                     continue;
@@ -655,7 +676,8 @@ namespace BrowserAutomationMaster.Compilation
                             status: 1
                         );
                     }
-                    scriptBody.Add($"driver.execute_script('''{jsBlockContent}''')\n");
+                    
+                    script.Body.AddLine($"driver.execute_script('''{jsBlockContent}''')\n");
                     jsBlockContent = string.Empty;
                     isJSLine = false;
                     continue;
@@ -699,11 +721,11 @@ namespace BrowserAutomationMaster.Compilation
                 switch (firstArg)
                 {
                     case "add-header":
-                        CompilationHandler.AddHeader(scriptBody, sanitizedArg2, sanitizedArg3);
+                        CompilationHandler.AddHeader(script.Body.scriptLines, sanitizedArg2, sanitizedArg3);
                         break;
 
                     case "click" when CompilationHandler.Click(
-                          scriptBody, 
+                          script.Body.scriptLines, 
                           splitLine, 
                           actionTimeout
                         ) is false:
@@ -717,7 +739,7 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "click-at-position" when CompilationHandler.ClickAtPosition(
-                          scriptBody,
+                          script.Body.scriptLines,
                           splitLine,
                           sanitizedArg2,
                           sanitizedArg3,
@@ -730,7 +752,7 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "click-exp" when CompilationHandler.ClickExp(
-                          scriptBody,
+                          script.Body.scriptLines,
                           splitLine,
                           sanitizedArg2,
                           actionTimeout,
@@ -743,11 +765,11 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "close-current-tab":
-                        CompilationHandler.CloseCurrentTab(scriptBody);
+                        CompilationHandler.CloseCurrentTab(script.Body.scriptLines);
                         break;
 
                     case "get-text" when CompilationHandler.GetText(
-                         scriptBody, 
+                         script.Body.scriptLines, 
                          splitLine
                         ) is (false, var e):
                         Errors.WriteErrorAndExit(
@@ -757,7 +779,7 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "fill-text" when CompilationHandler.FillText(
-                        scriptBody,
+                        script.Body.scriptLines,
                         splitLine,
                         sanitizedArg2,
                         ref isFT
@@ -769,8 +791,8 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "fill-text-exp" when CompilationHandler.FillTextExp(
-                        scriptBody, 
-                        importStatements, 
+                        script.Body.scriptLines, 
+                        script.Imports.statementList, 
                         splitLine, 
                         sanitizedArg2, 
                         ref isFT
@@ -782,7 +804,7 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "open-new-tab" when CompilationHandler.OpenNewTab(
-                        scriptBody,
+                        script.Body.scriptLines,
                         sanitizedArg2,
                         sanitizedArg3
                         ) is (false, var errorText):
@@ -793,15 +815,15 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "save-as-html":
-                        CompilationHandler.SaveAsHTML(scriptBody, sanitizedArg2);
+                        CompilationHandler.SaveAsHTML(script.Body.scriptLines, sanitizedArg2);
                         break;
 
                     case "save-as-html-exp":
-                        CompilationHandler.SaveAsHTMLExp(scriptBody, sanitizedArg2);
+                        CompilationHandler.SaveAsHTMLExp(script.Body.scriptLines, sanitizedArg2);
                         break;
                         
                     case "select-element" when CompilationHandler.SelectElement(
-                        scriptBody,
+                        script.Body.scriptLines,
                         splitLine,
                         actionTimeout
                         ) is (false, var errMsg):
@@ -812,7 +834,7 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "select-option" when CompilationHandler.SelectOption(
-                        scriptBody,
+                        script.Body.scriptLines,
                         sanitizedArg2,
                         sanitizedArg3,
                         actionTimeout
@@ -828,11 +850,11 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "take-screenshot":
-                        CompilationHandler.TakeScreenshot(scriptBody, sanitizedArg2);
+                        CompilationHandler.TakeScreenshot(script.Body.scriptLines, sanitizedArg2);
                         break;
 
                     case "visit" when CompilationHandler.Visit(
-                        scriptBody,
+                        script.Body.scriptLines,
                         featureLines, 
                         sanitizedArg2,
                         selectedBrowser,
@@ -846,7 +868,7 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
                     case "wait-for-seconds" when CompilationHandler.WaitForSeconds(
-                        scriptBody,
+                        script.Body.scriptLines,
                         splitLine,
                         sanitizedArg2) is (false, var errMessage):
                         Errors.WriteErrorAndExit(
@@ -1136,10 +1158,9 @@ namespace BrowserAutomationMaster.Compilation
         public static void ResetTranspilerState()
         {
             desiredUrls.Clear();
-            scriptBody.Clear();
-            requirements.Clear();
-            configLines.Clear();
-            featureLines.Clear();
+            script.ResetInstanceState();
+            configLines.Clear();            // THIS NEEDS ITS OWN CLASS
+            featureLines.Clear();           // THIS NEEDS ITS OWN CLASS
             browserPresent = false;
             featurePresent = false;
             otherPresent = false;
@@ -1148,12 +1169,6 @@ namespace BrowserAutomationMaster.Compilation
             runHeadless = false;
             actionTimeout = 10;
             projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
-            importStatements.Clear(); // Since its read only clearing it and reassigning the default values is the ideal solution.
-            importStatements.AddRange([
-                "from importlib import import_module", 
-                "from subprocess import run", 
-                "from sys import modules, stderr, stdout",
-            ]);
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
         public static void SetCustomUserAgent(string[] args)
@@ -1328,9 +1343,14 @@ namespace BrowserAutomationMaster.Compilation
         public static void SuppressUnneededWarnings()
         {
             // This function inserts the required code in reverse order so the output is consistent with whats desired.
-            importStatements.Insert(0, "filterwarnings('ignore', message='.*pkg_resources is deprecated.*')");
-            importStatements.Insert(0, "from warnings import filterwarnings");
-            importStatements.Insert(0, "# Disables known warnings that aren't needed.");
+            var statements = new Dictionary<string, int>()
+            {
+                { "filterwarnings('ignore', message='.*pkg_resources is deprecated.*')", 0 },
+                { "from warnings import filterwarnings", 0 },
+                { "# Disables known warnings that aren't needed.", 0 },
+            };
+
+            script.Imports.AddStatements(statements);
             
         }
         public static void WriteRequirementsFile()
@@ -1347,7 +1367,7 @@ namespace BrowserAutomationMaster.Compilation
                     encoding: new UTF8Encoding(false)
                 );
 
-                foreach (string requirement in requirements) { 
+                foreach (string requirement in script.Requirements.packageList) { 
                     writer.WriteLine(requirement); 
                 }
             }
@@ -1366,11 +1386,15 @@ namespace BrowserAutomationMaster.Compilation
         public static void WritePythonFile()
         {
             try {
+
+                var importsCount = script.Imports.statementList.Count;
+                var bodyLineCount = script.Body.scriptLines.Count;
+
                 // Removing Byte Order Mark (BOM)
-                var sanitizedImportStatements = importStatements.Select(line => line.TrimStart('\uFEFF'));
+                var sanitizedImportStatements = script.Imports.statementList.Select(line => line.TrimStart('\uFEFF'));
                 
                 // Removing Byte Order Mark (BOM)
-                var sanitizedScriptBody = scriptBody.Select(line => line.TrimStart('\uFEFF'));
+                var sanitizedScriptBody = script.Imports.statementList.Select(line => line.TrimStart('\uFEFF'));
 
                 string filePath = Path.Combine(
                     desiredSaveDirectory, 
@@ -1388,13 +1412,11 @@ namespace BrowserAutomationMaster.Compilation
                     writer.WriteLine(importStatement);
                 }
 
-                if (importStatements.Count > 0 && scriptBody.Count > 0) { 
+                if (importsCount > 0 && bodyLineCount > 0)
                     writer.WriteLine(); 
-                }
 
-                foreach (string scriptLine in scriptBody) { 
+                foreach (string scriptLine in script.Body.scriptLines)
                     writer.WriteLine(scriptLine); 
-                }
             }
             catch (Exception e)
             {
