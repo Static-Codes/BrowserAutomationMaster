@@ -51,10 +51,10 @@ namespace BrowserAutomationMaster.Managers.Python
         /// <returns>True if the VEnv exists | False if not.</returns>
         public void CreateVEnv(bool global = false)
         {
-
             if (VEnvExists(global))
                 return;
 
+            Warning.Write("Creating Global Virtual Environment, please wait up to 60 seconds for this process to complete.\n");
             ProcessStartInfo psi;
 
             // Global Virtual Environment
@@ -84,16 +84,20 @@ namespace BrowserAutomationMaster.Managers.Python
                 createVEnvProcess.Start();
                 createVEnvProcess.WaitForExit();
 
-                if (createVEnvProcess.ExitCode != 0 || !VEnvExists()) { // If the process returned an error or the venv is not able to be accessed.
+                // If the process returned an error or the venv is not able to be accessed.
+                if (createVEnvProcess.ExitCode != 0 || !VEnvExists(global)) 
+                { 
+                    var path = !string.IsNullOrEmpty(VEnvPath) ? VEnvPath : GetGlobalVEnvPath();
                     Errors.WriteErrorAndExit(
                         message:
-                            "BAM Manager (BAMM) was unable to create a virtual environment for the interpreter:\n" +
+                            "BAM Manager (BAMM) was unable to create a virtual environment with the interpreter:\n" +
                             $"{InterpreterPath}.\n\nIf this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                            $"Error log:\nCommand: '{InterpreterPath} -m venv {VEnvPath}' " +
+                            $"Error log:\nCommand: '{InterpreterPath} -m venv {path}' " +
                             $"failed with exit code {createVEnvProcess.ExitCode}",
                         status: 1
                     ); 
                 }
+                Success.WriteSuccessMessage("Successfully created Global Virtual Environment!\n");
             }
             catch (Exception e) {
                 Errors.WriteErrorAndExit(
@@ -109,7 +113,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public void InstallGlobalPackages()
         {
-
+            
         }
 
         public async Task<bool> RunScriptInVEnv()
