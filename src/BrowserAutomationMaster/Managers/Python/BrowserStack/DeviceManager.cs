@@ -74,7 +74,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 "Windows" or _ => GetBrowser(["Chrome", "Firefox"]),
             };
         }
-        public static string GetVersionNumber(string versionString, bool isAndroid)
+        public static string GetVersionNumber(string versionString, bool isAndroid = false)
         {
             var chars = versionString.AsSpan();
             int index = 0;

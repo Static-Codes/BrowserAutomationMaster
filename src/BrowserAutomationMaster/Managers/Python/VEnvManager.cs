@@ -4,20 +4,36 @@ using System.Text;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
-    // Takes in the path to the Virtual Environment and can start and stop it as needed.
+    /// <summary>
+    /// This class is responsible for managing all Virtual Environments for BAM Manager.
+    /// </summary>
+    /// <param name="InterpreterPath">Path to the Python Interpreter Executable.</param>
+    /// <param name="ScriptFilePath">Path to the Script being ran in the Virtual Environment.</param>
     internal class VEnvManager(string InterpreterPath, string ScriptFilePath)
     {
         string VEnvPath { get; set; } = string.Empty;
         private string? ParentDirectory = null;
-        private bool VEnvExists()
+
+        /// <summary>
+        /// Checks if the Virtual Environment used for individual project packages exists.
+        /// </summary>
+        /// <param name="global">If you wish to check the global config.  | If false the current project directory is checked for a Virtual Environment.</param>
+        /// <returns>True if the VEnv exists | False if not.</returns>
+        private bool VEnvExists(bool global = false)
         {
+            if (global)
+                return Directory.Exists(GetGlobalVEnvPath());
+
             try
             {
                 ParentDirectory = Path.GetDirectoryName(ScriptFilePath);
-                if (ParentDirectory == null) { Environment.Exit(1); }
+                if (ParentDirectory == null)
+                    return false;
+
                 VEnvPath = Path.Combine(ParentDirectory, "venv");
                 return Directory.Exists(VEnvPath);
             }
@@ -27,20 +43,44 @@ namespace BrowserAutomationMaster.Managers.Python
             }
         }
 
-        public void CreateVEnv()
+
+        /// <summary>
+        /// Creates a Virtual Environment used for project packages.
+        /// </summary>
+        /// <param name="global">If you wish to create the global config.  | If false a Virtual Environment is created in the current project directory.</param>
+        /// <returns>True if the VEnv exists | False if not.</returns>
+        public void CreateVEnv(bool global = false)
         {
-            if (VEnvExists()) { return; }
-            ProcessStartInfo createVEnvStartInfo = new()
-            {
-                FileName = InterpreterPath,
-                Arguments = $"-m venv \"{VEnvPath}\"",
-                CreateNoWindow = true,
-                UseShellExecute = false,
-            };
+
+            if (VEnvExists(global))
+                return;
+
+            ProcessStartInfo psi;
+
+            // Global Virtual Environment
+            if (global)
+                psi = new()
+                {
+                    FileName = InterpreterPath,
+                    Arguments = $"-m venv \"{GetGlobalVEnvPath()}\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                };
+
+            // Project Virtual Environment
+            else
+                psi = new()
+                {
+                    FileName = InterpreterPath,
+                    Arguments = $"-m venv \"{VEnvPath}\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                };
+
 
             try
             {
-                Process createVEnvProcess = new() { StartInfo = createVEnvStartInfo };
+                Process createVEnvProcess = new() { StartInfo = psi };
                 createVEnvProcess.Start();
                 createVEnvProcess.WaitForExit();
 
@@ -66,6 +106,12 @@ namespace BrowserAutomationMaster.Managers.Python
                 );
             }
         }
+
+        public void InstallGlobalPackages()
+        {
+
+        }
+
         public async Task<bool> RunScriptInVEnv()
         {
             CreateVEnv();

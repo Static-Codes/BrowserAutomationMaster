@@ -37,7 +37,6 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         Portrait
     }
 
-
     public class InstanceManager
     {
         public readonly static string browserStackDirectory = GetBrowserStackDirectory();
@@ -169,26 +168,5 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
 
         }
-
-        //private void WriteConfig(BrowserStackPlatform[] stackPlatforms)
-        //{
-
-        //    //var stackPlatform = new BrowserStackPlatform()
-        //    //{
-        //    //    osName = "",
-        //    //    osVersion = "",
-        //    //    BrowserName = "",
-        //    //    BrowserVersion = "",
-        //    //    DeviceName = "",
-        //    //    DeviceOrientation = null,
-        //    //};
-
-        //    BrowserStackConfig config = new()
-        //    {
-        //        UserName = Input.WriteTextAndReturnRawInput("Please enter your BrowserStack Username: "),
-        //        AccessKey = Input.WriteTextAndReturnRawInput("Please enter your BrowserStack Access Key: "),
-        //        Platforms = stackPlatforms,
-        //    };
-        //}
     }
 }

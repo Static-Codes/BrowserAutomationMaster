@@ -42,16 +42,23 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 {
                     ("Debian Package Manager (dpkg)", dpkgApps),
                     ("Flatpak", flatpakApps),
-                    ("RPM", rpmApps)
+                    ("RedHat Package Manager (rpm)", rpmApps)
                 };
 
                 AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
+
                 foreach (var (Name, Apps) in appSources)
                 {
-                    if (Apps.Count == 0) { Warning.Write($"Found 0 apps from: {Name}"); }
-                    else if (Apps.Count == 1) { Success.WriteSuccessMessage($"Found 1 app from: {Name}"); }
-                    else { Success.WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}"); }
+                    if (Apps.Count == 0)
+                        Warning.Write($"No apps found for: {Name}");
+
+                    else if (Apps.Count == 1)
+                        Success.WriteSuccessMessage($"Found 1 app from: {Name}");
+
+                    else
+                        Success.WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}");
                 }
+
                 AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
                 return [.. dpkgApps.Concat(flatpakApps).Concat(rpmApps).Distinct()];
             }

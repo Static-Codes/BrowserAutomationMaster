@@ -252,10 +252,7 @@ namespace BrowserAutomationMaster.Managers.Python
                        10, 0, 10240
                    );
         }
-        public static bool IsSupportedOSXVersion()
-        {
-            return OperatingSystem.IsMacOSVersionAtLeast(11);
-        }
+        public static bool IsSupportedOSXVersion() { return OperatingSystem.IsMacOSVersionAtLeast(11); }
         private void ValidateScript()
         {
             SanitizedScriptPath = scriptFilePath.EndsWith(".py") ? scriptFilePath : string.Empty;
