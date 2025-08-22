@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster
 {
@@ -104,60 +105,60 @@ namespace BrowserAutomationMaster
             Match selectorMatch = SelectorRegex.Match(selectorTrimmed);
             if (selectorMatch.Success)
             {
-                if (selectorMatch.Groups["id"].Success) {
+                if (selectorMatch.Groups["id"].Success)
                     return new ParsedSelector(
                         SelectorCategory.Id,
                         selectorMatch.Groups["id"].Value,
                         selectorTrimmed
                     );
-                }
-                else if (selectorMatch.Groups["class"].Success) {
+                
+                else if (selectorMatch.Groups["class"].Success)
                     return new ParsedSelector(
                         SelectorCategory.ClassName, 
                         selectorMatch.Groups["class"].Value, 
                         selectorTrimmed
                     );
-                }
+                
 
                 Group DQVal = selectorMatch.Groups["nameValDQ"]; // Double quoted value
                 Group SQVal = selectorMatch.Groups["nameValSQ"]; // Single quoted value
                 Group UQVal = selectorMatch.Groups["nameValUQ"]; // Unquoted value.
 
-                if (DQVal.Success) {
+                if (DQVal.Success)
                     return new ParsedSelector(
                         SelectorCategory.NameAttribute,
                         UQVal.Value,
                         selectorTrimmed
                     );
-                }
-                else if (SQVal.Success) {
+                
+                else if (SQVal.Success)
                     return new ParsedSelector(
                         SelectorCategory.NameAttribute, 
                         SQVal.Value, 
                         selectorTrimmed
                     );
-                }
-                else if (UQVal.Success) {
+                
+                else if (UQVal.Success) 
                     return new ParsedSelector(
                         SelectorCategory.NameAttribute, 
                         UQVal.Value, 
                         selectorTrimmed
                     );
-                }
-                else if (selectorMatch.Groups["xpath"].Success) {
+                
+                else if (selectorMatch.Groups["xpath"].Success)
                     return new ParsedSelector(
                         SelectorCategory.XPath, 
                         selectorMatch.Groups["xpath"].Value, 
                         selectorTrimmed
                     );
-                }
-                else if (selectorMatch.Groups["tag"].Success) {
+                
+                else if (selectorMatch.Groups["tag"].Success)
                     return new ParsedSelector(
                         SelectorCategory.TagName, 
                         selectorMatch.Groups["tag"].Value, 
                         selectorTrimmed
                     );
-                }
+                
             }
 
             else
@@ -165,30 +166,31 @@ namespace BrowserAutomationMaster
                 Match cssMatch = CssComponentRegex.Match(selectorTrimmed);
                 if (cssMatch.Success)
                 {
-                    if (cssMatch.Groups["cssId"].Success) {
+                    if (cssMatch.Groups["cssId"].Success)
                         return new ParsedSelector(
                             SelectorCategory.Id, 
                             cssMatch.Groups["cssId"].Value, 
                             selectorTrimmed);
-                    }
+                    
 
-                    if (cssMatch.Groups["cssClass"].Success) {
+                    if (cssMatch.Groups["cssClass"].Success)
                         return new ParsedSelector(
                             SelectorCategory.ClassName, 
                             cssMatch.Groups["cssClass"].Value, 
                             selectorTrimmed
                         );
-                    }
+                    
 
-                    if (cssMatch.Groups["cssTagName"].Success) {
+                    if (cssMatch.Groups["cssTagName"].Success)
                         return new ParsedSelector(
                             SelectorCategory.TagName,
                             cssMatch.Groups["cssTagName"].Value,
                             selectorTrimmed
                         );
-                    }
+                    
 
-                    if (cssMatch.Groups["attributeName"].Success) {
+                    if (cssMatch.Groups["attributeName"].Success) 
+                    {
                         string attrName = cssMatch.Groups["attributeName"].Value;
                         string extractedValue;
 
@@ -209,20 +211,27 @@ namespace BrowserAutomationMaster
 
                         string? actualAttrVal = valDQ ?? valSQ ?? valUQ; // Can return null, thus the null check below. 
 
-                        if (actualAttrVal != null) {
+                        // OIC = StringComparison.OrdinalIgnoreCase
+                        if (actualAttrVal != null) 
+                        {
                             extractedValue = actualAttrVal;
+
                             categoryForAttribute = 
-                                attrName.Equals(
-                                    "name", StringComparison.OrdinalIgnoreCase
-                                ) ? SelectorCategory.NameAttribute : SelectorCategory.Attribute;
+                                attrName.Equals("name", OIC) ? 
+                                SelectorCategory.NameAttribute : 
+                                SelectorCategory.Attribute;
                         }
-                        else {
+
+                        else 
+                        {
                             extractedValue = attrName;
+
                             categoryForAttribute = 
-                                attrName.Equals(
-                                    "name", StringComparison.OrdinalIgnoreCase
-                                ) ? SelectorCategory.NameAttribute : SelectorCategory.Attribute;
+                                attrName.Equals("name", OIC) ? 
+                                SelectorCategory.NameAttribute : 
+                                SelectorCategory.Attribute;
                         }
+
                         return new ParsedSelector(
                             categoryForAttribute, 
                             extractedValue, 
@@ -230,21 +239,21 @@ namespace BrowserAutomationMaster
                         );
                     }
 
-                    if (cssMatch.Groups["pseudoClass"].Success) {
+                    if (cssMatch.Groups["pseudoClass"].Success)
                         return new ParsedSelector(
                             SelectorCategory.PseudoClass, 
                             cssMatch.Groups["pseudoClass"].Value, 
                             selectorTrimmed
                         );
-                    }
+                    
 
-                    if (cssMatch.Groups["pseudoElement"].Success) {
+                    if (cssMatch.Groups["pseudoElement"].Success)
                         return new ParsedSelector(
                             SelectorCategory.PseudoElement,
                             cssMatch.Groups["pseudoElement"].Value,
                             selectorTrimmed
                         );
-                    }
+                 
                 }
             }
 
@@ -252,18 +261,18 @@ namespace BrowserAutomationMaster
 
             // If the selector isn't parsed the user is questioned on whether or not they intended to use a css selector.
             Warning.Write(
-                $"BAM Manager (BAMM) was unable to parse selector:\n'" +
-                $"{selectorTrimmed}'\n\nIs this a css selector? [y/n]: "
+                $"BAM Manager (BAMM) was unable to parse selector:\n'{selectorTrimmed}\n\n"
             );
 
-            string? input = Console.ReadLine();
-            if (input == null || input.ToLower().Replace('\n', ' ').Trim() != "y") {
+            string isSelector = Input.WriteTextAndReturnRawInput("Is this a css selector? [y/n]: ");
+            
+            if (Input.ConditionRejected(isSelector))
                 Errors.Write(
                     message:
                         $"\nBAM Manager (BAMM) was unable to validate selector: '{selectorTrimmed}', " +
                         $"please ensure it's properly formatted then try compiling again."
                 );
-            }
+            
             Warning.Write(
                 message: 
                     $"\nBAM Manager (BAMM) will continue without validating selector:" +
