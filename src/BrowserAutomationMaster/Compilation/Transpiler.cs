@@ -13,7 +13,7 @@ using static BrowserAutomationMaster.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
-using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -23,7 +23,7 @@ namespace BrowserAutomationMaster.Compilation
         // This will be used in GenerateBackupName(); in the case of failure.
         private readonly static string defaultScriptFileName = "untitled-script";  
         
-        private static string desiredSaveDirectory = "";
+        private readonly static string desiredSaveDirectory = GetDesiredSaveDirectory();
         private static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
         private readonly static string requirementsFileName = "requirements.txt"; 
         private static string projectDirectory = "";
@@ -83,7 +83,6 @@ namespace BrowserAutomationMaster.Compilation
         {
             try
             {
-                SetDesiredSaveDirectory();
                 CreateProjectDirectory(); // Also sets this.projectDirectory
                 
                 SetScriptName(filePath);
@@ -121,10 +120,6 @@ namespace BrowserAutomationMaster.Compilation
         {
             await HandleBrowserCmd();
             
-
-            
-            
-
             string noUrlsFound =
                 "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\n" +
                 "Please ensure the selected file has atleast one 'visit' command.";
@@ -134,6 +129,7 @@ namespace BrowserAutomationMaster.Compilation
                 Errors.WriteErrorAndExit(noUrlsFound, 1);
                 return;
             }
+
 
             // This function will exit if a null value is reached so no worries about a null check here
             string sVersion = PackageManager.New("selenium", pythonVersion);
@@ -150,6 +146,7 @@ namespace BrowserAutomationMaster.Compilation
 
             script.Requirements.AddPackages(packages);
 
+
             string[] imports = [
                 "from selenium.common.exceptions import NoSuchElementException",
                 "from selenium.webdriver.common.by import By",
@@ -161,7 +158,7 @@ namespace BrowserAutomationMaster.Compilation
             script.Imports.AddStatements(imports);
 
             string[] statements;
-            if (selectedBrowser.Equals("brave", StringComparison.OrdinalIgnoreCase))
+            if (selectedBrowser.Equals("brave", OIC))
             {
                 statements = [
                     "from selenium.webdriver.chrome.options import Options",
@@ -172,7 +169,7 @@ namespace BrowserAutomationMaster.Compilation
                 script.Imports.AddStatements(statements);
             }
 
-            else if (selectedBrowser.Equals("chrome", StringComparison.OrdinalIgnoreCase))
+            else if (selectedBrowser.Equals("chrome", OIC))
             {
                 statements = [
                     "from selenium.webdriver.chrome.options import Options",
@@ -182,7 +179,8 @@ namespace BrowserAutomationMaster.Compilation
 
                 script.Imports.AddStatements(statements);
             }
-            else if (selectedBrowser.Equals("firefox", StringComparison.OrdinalIgnoreCase))
+
+            else if (selectedBrowser.Equals("firefox", OIC))
             {
                 statements = [
                     "from selenium.webdriver.firefox.options import Options",
@@ -192,6 +190,7 @@ namespace BrowserAutomationMaster.Compilation
 
                 script.Imports.AddStatements(statements);
             }
+
             else { 
                 throw new Exception(
                     "Invalid browser provided to 'browser' command.\n" +
@@ -354,6 +353,7 @@ namespace BrowserAutomationMaster.Compilation
                         && line.StartsWith("feature")
                     )
             ];
+
             featurePresent = featureLines.Count > 0;
 
             disablePycache = featurePresent && featureLines.Any(line => line.Contains(" \"disable-pycache\""));
@@ -561,14 +561,14 @@ namespace BrowserAutomationMaster.Compilation
 
                     int index = script.Body.scriptLines.IndexOf(requestLine);
 
-                    if (index == -1) { 
+                    if (index == -1) 
                         Errors.WriteErrorAndExit(
                             message:
                                 "BAM Manager (BAMM) was unable to locate request logic in partially compiled script, " +
                                 "please attempt recompilation.", 
                             status: 1
                         ); 
-                    }
+                    
 
                     // Value is assumed to be correct,
                     // but will very much cause an issue if the regex is found to not be fully reliable.
@@ -606,26 +606,37 @@ namespace BrowserAutomationMaster.Compilation
 
 
                 string[] splitLine;
+
                 // This handles fill-text or set-custom-useragent
-                if (isFT || isCU) { splitLine = line.Split(" \""); }
+                if (isFT || isCU) 
+                    splitLine = line.Split(" \"");
+
                 // This handles all but click-exp, fill-text, and set-custom-user-agent
-                else if (!isCE) { splitLine = line.Split(" "); }
+                else if (!isCE) 
+                    splitLine = line.Split(" ");
+
                 // This handles click-exp
-                else { splitLine = line.Split(" '"); }
+                else 
+                    splitLine = line.Split(" '");
+
                 // Prevents the length check below from returning an error for javascript code blocks.
-                if (isJSBlock) { isJSLine = true;} 
+                if (isJSBlock)
+                    isJSLine = true;
 
 
                 int[] validLengths = [2, 3];
+
                 // These are special because they require no parsing.
                 // excludes start-javascript + end-javascript theyre handled below.
                 string[] specialCommands = ["close-current-tab"]; 
 
                 bool normalLengthBypass = !validLengths.Contains(splitLine.Length) && !isJSLine;
                 bool specialLengthBypass = specialCommands.Any(cmd => line.Replace('"', ' ').Trim().StartsWith(cmd));
-                
-                if (normalLengthBypass) {
-                    if (specialLengthBypass) { continue; }
+
+                if (specialLengthBypass)
+                    continue;
+
+                if (normalLengthBypass )                    
                     Errors.WriteErrorAndExit(
                         message:
                             Errors.GenerateErrorMessage(
@@ -636,10 +647,10 @@ namespace BrowserAutomationMaster.Compilation
                             ), 
                         status: 1
                     );
-                }
+              
 
                 // Handle case where user attempts to create another jsBlock before closing the previous one.
-                if (isJSBlock && line.StartsWith("start-javascript")) {
+                if (isJSBlock && line.StartsWith("start-javascript"))
                     Errors.WriteErrorAndExit(
                         message: 
                             Errors.GenerateErrorMessage(
@@ -651,20 +662,22 @@ namespace BrowserAutomationMaster.Compilation
                             ), 
                         status: 1
                     );
-                }
+                
 
                 // Add prevalidated line content to the jsBlock.
-                else if (isJSBlock) { 
+                else if (isJSBlock) 
+                { 
                     jsBlockContent += $"{line}\n";
                     continue;
                 }
 
                 // Writes the actual JS Block as python code.
-                if (line.StartsWith("end-javascript") && !isJSBlock) {
+                if (line.StartsWith("end-javascript") && !isJSBlock) 
+                {
                     // Handles cases where Esprima might be more lenient towards invalid code.
                     PreprocessJSCodeBlock(jsBlockContent);
+
                     if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error)) 
-                    {
                         Errors.WriteErrorAndExit(
                             message:
                                 Errors.GenerateErrorMessage(
@@ -675,54 +688,49 @@ namespace BrowserAutomationMaster.Compilation
                                     $"{error}"), 
                             status: 1
                         );
-                    }
                     
                     script.Body.AddLine($"driver.execute_script('''{jsBlockContent}''')\n");
+
                     jsBlockContent = string.Empty;
                     isJSLine = false;
+
                     continue;
                 }
 
                 string firstArg = splitLine.First();
                 bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
-                if (!canRunBrowserless) {
-                    if (noBrowsersFound) {
-                        //Errors.WriteErrorAndExit(
-                            //Errors.GenerateErrorMessage(
-                                //fileName,
-                                //line,
-                                //lineNumber,
-                                //"No valid browser installations found,
-                                //please install brave, chrome, or firefox."
-                            // ),
-                            // status: 1
-                        //);
 
-                        Errors.WriteErrorAndExit(
-                            message:
-                                Errors.GenerateErrorMessage(
-                                    fileName, 
-                                    line, 
-                                    lineNumber, 
-                                    "No valid browser installations found, please install chrome or firefox."
-                                ), 
-                                status: 1
-                        );
-                    }
-                }
+                if (!canRunBrowserless && noBrowsersFound)
+                    Errors.WriteErrorAndExit(
+                        message:
+                            Errors.GenerateErrorMessage(
+                                fileName, 
+                                line, 
+                                lineNumber, 
+                                "No valid browser installations found, please install chrome or firefox."
+                            ), 
+                            status: 1
+                    );
+                
                 string sanitizedArg2;
-                if (!isCE) { sanitizedArg2 = splitLine[1].Replace('"', ' ').Trim(); }
-                else { sanitizedArg2 = splitLine[1].Replace('\'', ' ').Replace('"', ' ').Trim(); }
+                if (!isCE) 
+                    sanitizedArg2 = splitLine[1].Replace('"', ' ').Trim();
+
+                else 
+                    sanitizedArg2 = splitLine[1].Replace('\'', ' ').Replace('"', ' ').Trim();
+
                 string sanitizedArg3 = string.Empty;
 
                 // The parser ensures no invalid lines can be provided to the compiler :)
-                if (splitLine.Length >= 3) { sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); }
+                if (splitLine.Length >= 3) 
+                    sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim();
 
                 switch (firstArg)
                 {
                     case "add-header":
                         CompilationHandler.AddHeader(script.Body.scriptLines, sanitizedArg2, sanitizedArg3);
                         break;
+
 
                     case "click" when CompilationHandler.Click(
                           script.Body.scriptLines, 
@@ -738,6 +746,7 @@ namespace BrowserAutomationMaster.Compilation
                         );
                         break;
 
+
                     case "click-at-position" when CompilationHandler.ClickAtPosition(
                           script.Body.scriptLines,
                           splitLine,
@@ -750,6 +759,7 @@ namespace BrowserAutomationMaster.Compilation
                           status: 1
                         );
                         break;
+
 
                     case "click-exp" when CompilationHandler.ClickExp(
                           script.Body.scriptLines,
@@ -764,9 +774,11 @@ namespace BrowserAutomationMaster.Compilation
                         );
                         break;
 
+
                     case "close-current-tab":
                         CompilationHandler.CloseCurrentTab(script.Body.scriptLines);
                         break;
+
 
                     case "get-text" when CompilationHandler.GetText(
                          script.Body.scriptLines, 
@@ -777,6 +789,7 @@ namespace BrowserAutomationMaster.Compilation
                           status: 1
                         );
                         break;
+
 
                     case "fill-text" when CompilationHandler.FillText(
                         script.Body.scriptLines,
@@ -789,6 +802,7 @@ namespace BrowserAutomationMaster.Compilation
                           status: 1
                         );
                         break;
+
 
                     case "fill-text-exp" when CompilationHandler.FillTextExp(
                         script.Body.scriptLines, 
@@ -803,6 +817,7 @@ namespace BrowserAutomationMaster.Compilation
                         );
                         break;
 
+
                     case "open-new-tab" when CompilationHandler.OpenNewTab(
                         script.Body.scriptLines,
                         sanitizedArg2,
@@ -814,13 +829,16 @@ namespace BrowserAutomationMaster.Compilation
                         );
                         break;
 
+
                     case "save-as-html":
                         CompilationHandler.SaveAsHTML(script.Body.scriptLines, sanitizedArg2);
                         break;
 
+
                     case "save-as-html-exp":
                         CompilationHandler.SaveAsHTMLExp(script.Body.scriptLines, sanitizedArg2);
                         break;
+                      
                         
                     case "select-element" when CompilationHandler.SelectElement(
                         script.Body.scriptLines,
@@ -832,6 +850,7 @@ namespace BrowserAutomationMaster.Compilation
                           status: 1
                         );
                         break;
+
 
                     case "select-option" when CompilationHandler.SelectOption(
                         script.Body.scriptLines,
@@ -845,13 +864,16 @@ namespace BrowserAutomationMaster.Compilation
                         );
                         break;
 
+
                     case "set-custom-useragent":
                         CompilationHandler.SetCustomUserAgent(splitLine, lineNumber, ref requestUserAgent, ref isCU);
                         break;
 
+
                     case "take-screenshot":
                         CompilationHandler.TakeScreenshot(script.Body.scriptLines, sanitizedArg2);
                         break;
+
 
                     case "visit" when CompilationHandler.Visit(
                         script.Body.scriptLines,
@@ -866,6 +888,7 @@ namespace BrowserAutomationMaster.Compilation
                           status: 1
                         );
                         break;
+
 
                     case "wait-for-seconds" when CompilationHandler.WaitForSeconds(
                         script.Body.scriptLines,
@@ -1218,10 +1241,6 @@ namespace BrowserAutomationMaster.Compilation
                     status: 1
                 );
             }
-        }
-        public static void SetDesiredSaveDirectory()
-        {
-            desiredSaveDirectory = DirectoryManager.GetDesiredSaveDirectory();
         }
         public static void SetFileLines(string filePath)
         {

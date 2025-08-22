@@ -118,14 +118,17 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         string potentialPath = match.Value.Trim();
 
                         // Excludes WindowsApp PyLauncher
-                        if (potentialPath.Contains(@"\Microsoft\WindowsApps\python.exe")) { continue; } 
+                        if (potentialPath.Contains(@"\Microsoft\WindowsApps\python.exe"))
+                            continue;
+                        
                         string versionOutput = GetIntepreterVersion(potentialPath, "--version");
-                        if (versionOutput.StartsWith("Python 3.", StringComparison.OrdinalIgnoreCase)) { 
+                        
+                        if (versionOutput.StartsWith("Python 3.", OIC))
                             discoveredPython3Paths.Add(potentialPath); 
-                        }
-                        else if (versionOutput.StartsWith("Python 2.", StringComparison.OrdinalIgnoreCase)) { 
+                        
+
+                        else if (versionOutput.StartsWith("Python 2.", OIC)) 
                             discoveredPython2Paths.Add(potentialPath); 
-                        }
                     }
                 }
 
