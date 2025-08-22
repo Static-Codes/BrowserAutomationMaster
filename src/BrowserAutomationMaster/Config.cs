@@ -1,33 +1,41 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using System;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
 
 
-public partial class ConfigRegex()
+public partial class Config(string filePath)
 {
-    public Regex BrowserRegex = BrowserRegexCompilation();
+	public string[] Lines = GetConfigLines(filePath);
+
+    // Lines containing feature commands
+    public string[] featureLines = [];
+
+    // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
+    public bool browserPresent = false;
+    public bool featurePresent = false;
+    public bool otherPresent = false;
+
+    // Disables Visual Studio Code from writing __pycache__ directory.
+    public bool disablePycache = false;
+
+    // Disables SSL certificate authorization session wide, if specified.
+    public bool disableSSL = false;
+
+    // Runs the browser in headless mode, if specified.
+    public bool runHeadless = false;
+	
+    public string selectedBrowser = "firefox"; // Defaults to firefox, will be changed if needbe. Accepted Values: "chrome" or "firefox"
+
+
+
+    // Used for browserPresent
+    private readonly static Regex BrowserRegex = BrowserRegexCompilation();
     [GeneratedRegex(@"^browser\s""(chrome|firefox)""$", RegexOptions.Compiled)]
     private static partial Regex BrowserRegexCompilation();
 
-}
 
-public class Config(string filePath)
-{
-	public string[] Lines = GetConfigLines(filePath);
-    public string[] featureLines = [];
-	public string desiredSaveDirectory = GetDesiredSaveDirectory();
-	public bool browserPresent = false;
-	public bool featurePresent = false;
-	public bool otherPresent = false;
-	public bool disablePycache = false;
-	public bool disableSSL = false;
-	public bool runHeadless = false;
-	public string selectedBrowser = "firefox"; // Defaults to firefox, will be changed if needbe.
-
-	private static string[] GetConfigLines(string filePath)
+    private static string[] GetConfigLines(string filePath)
 	{
 		try 
 		{ 
@@ -44,13 +52,12 @@ public class Config(string filePath)
 		}
 	}
 
-    public static bool OtherPresentFound(Config config)
+    public bool OtherPresentFound()
     {
-
-        if (config.Lines.Length == 0) 
+        if (Lines.Length == 0) 
             return false; 
         
-        foreach (string line in config.Lines)
+        foreach (string line in Lines)
         {
             if (string.IsNullOrWhiteSpace(line)) 
                 continue;
@@ -71,9 +78,9 @@ public class Config(string filePath)
         return false;
     }
 
-    public void Test(Config config)
+    public void CheckConfigLines()
 	{
-        int numberOfLines = config.Lines.Length;
+        int numberOfLines = Lines.Length;
         if (numberOfLines == 0)
         {
             Errors.WriteErrorAndExit(
@@ -84,29 +91,25 @@ public class Config(string filePath)
             );
         }
 
-        browserPresent = 
-            Lines[0].StartsWith("browser") &&
-            Lines[0].Contains(' ') &&
-            Lines[0].Split(' ').Length == 2;
+        browserPresent = BrowserRegex.IsMatch(Lines[0]);
 
         if (browserPresent)
-            selectedBrowser = config.Lines[0].Split(' ')[1].Replace('"', ' ').Trim();
+            selectedBrowser = Lines[0].Split(' ')[1].Replace('"', ' ').Trim();
 
-        config.featureLines = [..
-            config.Lines
-                .Select(line => line.Trim())
-                .Where(line =>
-                    !string.IsNullOrWhiteSpace(line)
-                    && line.StartsWith("feature")
-                )
+        featureLines = [.. Lines
+            .Select(line => line.Trim())
+            .Where(line =>
+                !string.IsNullOrWhiteSpace(line)
+                && line.StartsWith("feature")
+            )
         ];
 
-        featurePresent = config.featureLines.Length > 0;
+        featurePresent = featureLines.Length > 0;
 
         disablePycache = featurePresent && featureLines.Any(line => line.Contains(" \"disable-pycache\""));
         disableSSL = featurePresent && featureLines.Any(line => line.Contains(" \"disable-ssl\""));
         runHeadless = featurePresent && featureLines.Any(line => line.StartsWith("feature \"run-headless\""));
 
-        otherPresent = OtherPresentFound(config);
+        otherPresent = OtherPresentFound();
     }
 }

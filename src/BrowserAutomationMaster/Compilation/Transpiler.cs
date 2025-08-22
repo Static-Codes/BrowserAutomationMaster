@@ -18,7 +18,7 @@ using static BrowserAutomationMaster.Managers.DirectoryManager;
 namespace BrowserAutomationMaster.Compilation
 {
 
-    public partial class Transpiler
+    public partial class Transpiler()
     {
         // This will be used in GenerateBackupName(); in the case of failure.
         private readonly static string defaultScriptFileName = "untitled-script";  
@@ -30,7 +30,7 @@ namespace BrowserAutomationMaster.Compilation
         
 
         private static string pythonScriptFileName = "";  // Modified by SetScriptName();
-        //private static string pythonVersion = Linux.IsChromeOS ? "3.8" : "3.9"; // 3.8 for chromeOS in specific, else 3.9
+
         private static string pythonVersion = "3.9"; // 3.9
 
         // Default value if inhouse function fails.
@@ -42,6 +42,7 @@ namespace BrowserAutomationMaster.Compilation
 
         // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
         private static bool browserPresent = false;
+
         private static bool featurePresent = false;
         private static bool otherPresent = false;
 
@@ -68,10 +69,12 @@ namespace BrowserAutomationMaster.Compilation
 
         private static readonly Script script = new();
 
+
         // Used for --set-timeout==5 (or any desired timeout)
         private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
         [GeneratedRegex(@"^--set-timeout==(\d+)$", RegexOptions.Compiled)]
         private static partial Regex TimeoutRegex();
+
 
         // Used for --set-custom-useragent=="user-agent-string-here"
         private static readonly Regex CustomUserAgentRegex = CLIUserAgentRegex(); 
@@ -237,9 +240,9 @@ namespace BrowserAutomationMaster.Compilation
 
             // Checks if configLines contains each arg, if so the required function is be added.
             // add-header is added here since its in actionArg, but its not accessed in this function.
-            foreach (string actionArg in Parser.actionArgs) {
+            foreach (string actionArg in Parser.actionArgs)
                 functionsPresent.Add(actionArg, configLines.Any(line => line.StartsWith(actionArg))); 
-            }
+            
             
             int index = 1; // Accounts for the functions below in the script.Body.
             script.Body.AddLine(MakeRequestFunction(requestUserAgent), 0);
@@ -260,60 +263,36 @@ namespace BrowserAutomationMaster.Compilation
             Action Add(string func) => () => script.Body.AddLine(func, index);
             Action AddRange(string[] lines) => () => script.Body.AddLines(lines);
 
-            Dictionary<string, Action> functionsAndActions = new() {
-                { 
-                    "click", Add(clickElementFunction)
-                },
-                { 
-                    "click-at-position", Add(clickAtPositionFunction)
-                },
-                { 
-                    "click-exp", Add(clickElementExperimentalFunction)        
-                },
-                { 
-                    "close-current-tab", Add(closeCurrentTabFunction)               
-                },
-                { 
-                    "fill-text", Add(fillTextFunction)                              
-                },
-                { 
-                    "fill-text-exp", Add(fillTextExperimentalFunction)              
-                },
-                { 
-                    "get-text", Add(getTextFunction)                                
-                },
-                { 
-                    "open-new-tab", Add(openNewTabFunction)                         
-                },
-                { 
-                    "save-as-html", Add(saveAsHTMLFunction)                         
-                },
-                { 
-                    "save-as-html-exp", Add(saveAsHTMLExperimentalFunction)         
-                },
-                { 
-                    "select-option", AddRange([selectElementFunction, selectOptionByIndexFunction])               
-                },
-                { 
-                    "take-screenshot", Add(takeScreenshotFunction)                  
-                }
-            };
+            Dictionary<string, Action> cmdFuncs = new() {
+                {  "click", Add(clickElementFunction) },
+                {  "click-at-position", Add(clickAtPositionFunction) },
+                {  "click-exp", Add(clickElementExperimentalFunction) },
+                {  "close-current-tab", Add(closeCurrentTabFunction) },
+                {  "fill-text", Add(fillTextFunction) },
+                {  "fill-text-exp", Add(fillTextExperimentalFunction) },
+                {  "get-text", Add(getTextFunction) },
+                {  "open-new-tab", Add(openNewTabFunction) },
+                {  "save-as-html", Add(saveAsHTMLFunction) },
+                {  "save-as-html-exp", Add(saveAsHTMLExperimentalFunction) },
+                {  "select-option", AddRange([selectElementFunction, selectOptionByIndexFunction]) },
+                {  "take-screenshot", Add(takeScreenshotFunction) }
+            }; 
 
-            foreach (var functionPair in functionsAndActions) {
+            foreach (var cmdFunc in cmdFuncs) 
+            {
                 // Presence check
-                if (functionsPresent.TryGetValue(functionPair.Key, out bool isNeeded) && isNeeded) {
+                if (functionsPresent.TryGetValue(cmdFunc.Key, out bool isNeeded) && isNeeded) 
+                {
+                    bool wasFound = cmdFuncs.TryGetValue(cmdFunc.Key, out Action? actionToPerform);
 
-                    bool wasFound =  functionsAndActions.TryGetValue(
-                        functionPair.Key, 
-                        out Action? actionToPerform
-                    );
-
-                    if (wasFound && actionToPerform != null) { 
+                    if (wasFound && actionToPerform != null) 
+                    { 
                         actionToPerform(); 
                         index++; 
                     }
                 }
             }
+
             var lineCount = script.Body.GetLineCount();
             if (lineCount != index)
                 script.Body.AddLine(browserQuitCode, lineCount); 
@@ -321,6 +300,7 @@ namespace BrowserAutomationMaster.Compilation
             else 
                 Add(browserQuitCode); 
         }
+
         public static void CheckConfigLines()
         {
             int numberOfLines = configLines.Count;
@@ -390,6 +370,7 @@ namespace BrowserAutomationMaster.Compilation
 
 
         }
+
         public static bool CheckOtherPresent()
         {
             
@@ -407,6 +388,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             return false;
         }
+
         public static void CreateProjectDirectory()
         {
             try {
@@ -441,6 +423,7 @@ namespace BrowserAutomationMaster.Compilation
                 ); 
             }
         }
+
         public static void GenerateBackupScriptName()
         {
             string potentialFileName = $"{defaultScriptFileName}.py";          
@@ -449,11 +432,13 @@ namespace BrowserAutomationMaster.Compilation
             {
                 if (!File.Exists(potentialFileName)) {
                     pythonScriptFileName = potentialFileName;
+                    break;
                 }
                 potentialFileName = $"{defaultScriptFileName}({index}).py";
                 index++;
             }
         }
+
         public static void GetDesiredUrls()
         {
             int lineNumber = 1;
@@ -467,6 +452,7 @@ namespace BrowserAutomationMaster.Compilation
                 lineNumber++;
             }
         }
+        
         [Obsolete("Remove this in a future update, since chromeOS execution is handled by BrowserStack")]
         public static string GetSetupToolsVersion() 
         {
@@ -484,11 +470,11 @@ namespace BrowserAutomationMaster.Compilation
             if (!Directory.Exists(projectDirectory))
                 return;
 
-            if (!ClipboardHelper.TrySetText(projectDirectory)) {
+            if (!ClipboardHelper.TrySetText(projectDirectory))
                 Errors.Write(
                     $"Unable to copy project directory to clipboard, please manually copy this path:\n{projectDirectory}"
                 );
-            }
+            
             Success.WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
         public static async Task HandleBrowserCmd()
@@ -1291,9 +1277,7 @@ namespace BrowserAutomationMaster.Compilation
 
                 try
                 {
-                    // I hate c#'s static compiler I already ensured fileName cannot be null
-                    // yet I have to yell at the compiler using !
-                    pythonScriptFileName = fileName!.Split(".")[0] + ".py"; 
+                    pythonScriptFileName = fileName.Split(".")[0] + ".py"; 
                 }
                 catch {
                     GenerateBackupScriptName();
