@@ -22,7 +22,7 @@ namespace BrowserAutomationMaster.Compilation
     {
         // This will be used in GenerateBackupName(); in the case of failure.
         private readonly static string defaultScriptFileName = "untitled-script";  
-        
+
         private readonly static string desiredSaveDirectory = GetDesiredSaveDirectory();
         private static string projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
         private readonly static string requirementsFileName = "requirements.txt"; 
@@ -36,25 +36,9 @@ namespace BrowserAutomationMaster.Compilation
         // Default value if inhouse function fails.
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0"; 
         
-        private static string selectedBrowser = "firefox"; // Defaults to firefox.  Accepts 'chrome' and 'firefox'
 
         private readonly static string[] browserlessActions = ["save-as-html", "wait-for-seconds"];
 
-        // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
-        private static bool browserPresent = false;
-
-        private static bool featurePresent = false;
-        private static bool otherPresent = false;
-
-
-        // Disables Visual Studio Code from writing __pycache__ directory.
-        private static bool disablePycache = false;
-
-        // Disables SSL certificate authorization session wide.
-        private static bool disableSSL = false;
-
-        // Runs the browser in headless mode if specified.
-        private static bool runHeadless = false;
 
         // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
         private static bool noBrowsersFound = false;
@@ -63,9 +47,6 @@ namespace BrowserAutomationMaster.Compilation
         private static int actionTimeout = 10;
 
         private readonly static Dictionary<string, int> desiredUrls = []; // KeyValuePair<url, lineNumber>
-
-        private static List<string> configLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
-        private static List<string> featureLines = []; // Fix logic and make static Dictionary<int, string> configLines = [];
 
         private static readonly Script script = new();
 
@@ -86,17 +67,17 @@ namespace BrowserAutomationMaster.Compilation
         {
             try
             {
+                var config = new BAMConfig(filePath);
+
                 CreateProjectDirectory(); // Also sets this.projectDirectory
                 
                 SetScriptName(filePath);
-                SetFileLines(filePath);
                 
-                GetDesiredUrls();
+                GetDesiredUrls(config.Lines);
 
-                await AddBrowserImportsAndRequirements();
+                await AddBrowserImportsAndRequirements(config);
                 
-
-                HandleCompilation(filePath, args);
+                HandleCompilation(filePath, args, config);
                 
                 WritePythonFile();
                 
@@ -119,9 +100,9 @@ namespace BrowserAutomationMaster.Compilation
                 );
             }
         }
-        public static async Task AddBrowserImportsAndRequirements()
+        public static async Task AddBrowserImportsAndRequirements(BAMConfig config)
         {
-            await HandleBrowserCmd();
+            await HandleBrowserCmd(config);
             
             string noUrlsFound =
                 "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\n" +
@@ -159,20 +140,21 @@ namespace BrowserAutomationMaster.Compilation
             ];
 
             script.Imports.AddStatements(imports);
+            string selectedBrowser = config.selectedBrowser;
 
             string[] statements;
-            if (selectedBrowser.Equals("brave", OIC))
-            {
-                statements = [
-                    "from selenium.webdriver.chrome.options import Options",
-                    "from selenium.webdriver.chrome.service import Service as ChromeService",
-                    "from webdriver_manager.chrome import ChromeDriverManager",
-                    "from webdriver_manager.core.os_manager import ChromeType"
-                ];
-                script.Imports.AddStatements(statements);
-            }
+            //if (selectedBrowser.Equals("brave", OIC))
+            //{
+            //    statements = [
+            //        "from selenium.webdriver.chrome.options import Options",
+            //        "from selenium.webdriver.chrome.service import Service as ChromeService",
+            //        "from webdriver_manager.chrome import ChromeDriverManager",
+            //        "from webdriver_manager.core.os_manager import ChromeType"
+            //    ];
+            //    script.Imports.AddStatements(statements);
+            //}
 
-            else if (selectedBrowser.Equals("chrome", OIC))
+            if (selectedBrowser.Equals("chrome", OIC))
             {
                 statements = [
                     "from selenium.webdriver.chrome.options import Options",
@@ -234,14 +216,17 @@ namespace BrowserAutomationMaster.Compilation
 
             script.Body.AddLine(watermarkText, 0);
         }
-        public static void AddRequiredFunctions()
+        public static void AddRequiredFunctions(BAMConfig config)
         {
             Dictionary<string, bool> functionsPresent = [];
 
             // Checks if configLines contains each arg, if so the required function is be added.
             // add-header is added here since its in actionArg, but its not accessed in this function.
             foreach (string actionArg in Parser.actionArgs)
-                functionsPresent.Add(actionArg, configLines.Any(line => line.StartsWith(actionArg))); 
+                functionsPresent.Add(
+                    actionArg, 
+                    config.Lines.Any(line => line.StartsWith(actionArg))
+                ); 
             
             
             int index = 1; // Accounts for the functions below in the script.Body.
@@ -301,94 +286,6 @@ namespace BrowserAutomationMaster.Compilation
                 Add(browserQuitCode); 
         }
 
-        public static void CheckConfigLines()
-        {
-            int numberOfLines = configLines.Count;
-            if (numberOfLines == 0) {
-                Errors.WriteErrorAndExit(
-                    message:
-                        "BAM Manager (BAMM) encountered a fatal error, the selected file has no lines.\n\n" +
-                        "Press any key to exit...", 
-                    status: 1
-                );
-            }
-
-            if (numberOfLines >= 1 && 
-                configLines[0].StartsWith("browser") && 
-                configLines[0].Contains(' ') && 
-                configLines[0].Split(' ').Length == 2) 
-                { 
-                    browserPresent = true; 
-                }
-
-            if (browserPresent) { 
-                selectedBrowser = configLines[0].Split(' ')[1].Replace('"', ' ').Trim(); 
-            }
-
-            featureLines = [.. 
-                configLines
-                    .Select(line => line.Trim())
-                    .Where(line => 
-                        !string.IsNullOrWhiteSpace(line) 
-                        && line.StartsWith("feature")
-                    )
-            ];
-
-            featurePresent = featureLines.Count > 0;
-
-            disablePycache = featurePresent && featureLines.Any(line => line.Contains(" \"disable-pycache\""));
-            disableSSL = featurePresent && featureLines.Any(line => line.Contains(" \"disable-ssl\""));
-            runHeadless = featurePresent && featureLines.Any(line => line.StartsWith("feature \"run-headless\""));
-
-            otherPresent = CheckOtherPresent();
-
-            if (!otherPresent) { 
-                Warning.Write(
-                    message:
-                        "BAM Manager (BAMM) was unable to find any requests logic, " +
-                        "if this is intentional, you can safely ignore this warning."
-                ); 
-            }
-
-            if (disablePycache)
-            {
-                string[] statements = ["import sys", "sys.dont_write_byte_code = True"];
-                script.Imports.AddStatements(statements);
-            }
-
-            if (disableSSL && configLines[0].Contains("\"chrome\"")) 
-            {
-                var statement = "from selenium.webdriver.chrome.options import Options";
-                script.Imports.AddStatement(statement); 
-            }
-
-            else if (disableSSL && configLines[0].Contains("\"firefox\"")) 
-            {
-                var statement = "from selenium.webdriver.firefox.options import Options";
-                script.Imports.AddStatement(statement); 
-            }
-
-
-        }
-
-        public static bool CheckOtherPresent()
-        {
-            
-            if (configLines.Count == 0) { return false; }
-            foreach (string line in configLines)
-            {
-                if (string.IsNullOrWhiteSpace(line)) continue;
-
-                string trimmedLine = line.Trim();
-                string firstArg;
-                int spaceCharIndex = trimmedLine.IndexOf(' ');
-                if (spaceCharIndex == -1) { firstArg = trimmedLine; }
-                else { firstArg = trimmedLine[..spaceCharIndex]; }
-                if (Parser.actionArgs.Contains(firstArg)) {  return true; }
-            }
-            return false;
-        }
-
         public static void CreateProjectDirectory()
         {
             try {
@@ -439,10 +336,10 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
 
-        public static void GetDesiredUrls()
+        public static void GetDesiredUrls(string[] lines)
         {
             int lineNumber = 1;
-            foreach (string line in configLines)
+            foreach (string line in lines)
             {
                 string[] args = line.Split(' ') ?? [];
                 if (args.Length == 2 && line.Contains("visit")){
@@ -477,22 +374,24 @@ namespace BrowserAutomationMaster.Compilation
             
             Success.WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
-        public static async Task HandleBrowserCmd()
+        public static async Task HandleBrowserCmd(BAMConfig config)
         {
             // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of the nullable operator
-            if (browserPresent) {
-                var potentialUA = await UserAgentManager.GetUserAgent(selectedBrowser);
+            if (config.browserPresent) {
+                var potentialUA = await UserAgentManager.GetUserAgent(config.selectedBrowser);
                 if (potentialUA == null)
                     Errors.WriteErrorAndReturnNull("Unable to select custom user agent, please try again");
 
                 requestUserAgent = potentialUA!; // null check is done above.
             }
         }
-        public static void HandleCompilation(string fileName, string[] args) 
+        public static void HandleCompilation(string fileName, string[] args, BAMConfig config) 
         {
             SetCustomUserAgent(args);
             SetTimeout(args);
-            
+
+            // Handles disablePycache and disableSSL
+            HandleDisabling(config);
             
             int lineNumber = 1;
             bool hasComment = false;
@@ -511,11 +410,13 @@ namespace BrowserAutomationMaster.Compilation
            
             bool isJSBlock = false; // Prevents issues caused by embedding javascript code into python code.
             bool isJSLine = false;  // Also prevents issued caused by embedding javascript code into python code.
-            string jsBlockContent = "";  
+            string jsBlockContent = "";
 
-            foreach (string originalLine in configLines)
+            
+
+            foreach (string originalLine in config.Lines)
             {
-                // Since iterators can't be overwritten, storing it as a local variable is current solution.
+                // Since iterators can't be overwritten, storing it as a local variable is the best solution.
                 string line = originalLine;
 
                 if (string.IsNullOrEmpty(line)) // Skip blank lines.
@@ -863,12 +764,12 @@ namespace BrowserAutomationMaster.Compilation
 
                     case "visit" when CompilationHandler.Visit(
                         script.Body.scriptLines,
-                        featureLines, 
+                        [.. config.featureLines], 
                         sanitizedArg2,
-                        selectedBrowser,
+                        config.selectedBrowser,
                         firstVisitFinished,
-                        disableSSL,
-                        runHeadless) is (false, var eMessage):
+                        config.disableSSL,
+                        config.runHeadless) is (false, var eMessage):
                         Errors.WriteErrorAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, eMessage),
                           status: 1
@@ -889,9 +790,31 @@ namespace BrowserAutomationMaster.Compilation
                 lineNumber++;
             }
 
-            AddRequiredFunctions();
+            AddRequiredFunctions(config);
             SuppressUnneededWarnings();
             AddWatermark(); // Single comment watermark, completely nonintrusive and easily removable
+        }
+
+        public static void HandleDisabling(BAMConfig config)
+        {
+            if (config.disablePycache)
+            {
+                string[] statements = ["import sys", "sys.dont_write_byte_code = True"];
+                script.Imports.AddStatements(statements);
+            }
+
+            // Reminder to add back .Equals("brave"), if Brave support is reintroduced.
+            if (config.disableSSL && config.selectedBrowser.Equals("chrome", OIC))
+            {
+                var statement = "from selenium.webdriver.chrome.options import Options";
+                script.Imports.AddStatement(statement);
+            }
+
+            else if (config.disableSSL && config.selectedBrowser.Equals("firefox", OIC))
+            {
+                var statement = "from selenium.webdriver.firefox.options import Options";
+                script.Imports.AddStatement(statement);
+            }
         }
         public static void HandlePythonVersionSelection(Installations installations)
         {
@@ -1168,14 +1091,7 @@ namespace BrowserAutomationMaster.Compilation
         {
             desiredUrls.Clear();
             script.ResetInstanceState();
-            configLines.Clear();            // THIS NEEDS ITS OWN CLASS
-            featureLines.Clear();           // THIS NEEDS ITS OWN CLASS
-            browserPresent = false;
-            featurePresent = false;
-            otherPresent = false;
-            disablePycache = false;
             noBrowsersFound = false;
-            runHeadless = false;
             actionTimeout = 10;
             projectDirectoryName = DateTime.Now.ToString("MM-dd-yyyy_h-mm-tt");
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
@@ -1227,23 +1143,6 @@ namespace BrowserAutomationMaster.Compilation
                     status: 1
                 );
             }
-        }
-        public static void SetFileLines(string filePath)
-        {
-            string fileNotFoundMessage = 
-                $"BAM Manager (BAMM) was unable to find the file:\n\n{filePath}, " +
-                $"please ensure this file exists, then restart BAMM.\n\n" +
-                $"Press any key to exit...";
-
-            if (!File.Exists(filePath)) { 
-                Errors.WriteErrorAndExit(message: fileNotFoundMessage, status: 1); 
-            }
-            configLines = [.. 
-                File.ReadAllLines(filePath)
-                    .Select(line => line.Trim())
-                    .Where(line => !string.IsNullOrWhiteSpace(line))
-            ];
-            CheckConfigLines();
         }
         public static void SetScriptName(string filePath)
         {
