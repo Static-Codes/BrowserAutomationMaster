@@ -8,9 +8,11 @@ namespace BrowserAutomationMaster.Compilation
     public partial class BAMConfig(string filePath)
     {
         public string[] Lines = GetConfigLines(filePath);
-
+        
         // Lines containing feature commands
         public string[] featureLines = [];
+
+        public string Name = Path.GetFileName(filePath);
 
         // Not to be confused with noBrowsersFound, this is a flag only for the command 'browser'
         public bool browserPresent = false;
