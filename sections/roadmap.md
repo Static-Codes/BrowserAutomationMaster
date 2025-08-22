@@ -47,9 +47,27 @@ set-element-property "selector" "property" "value"
   set-element-property "#idp-month__selected" "data-selected-value" "02"
   ```
 
+## Feature Commands
+### 1. Set Python Version
+This command will tell the Compiler and Runtime Manager to use the specified version of Python 3.
+```
+feature "python-version==v"
+```
+Where `v` is the version (For example: 3.9)
+
 ## Script Commands
-- **`do-loop n`**: Start a loop n times, where n has to be atleast 2
-- **`end-loop`**: End of a loop command
+
+### 1. Create a Loop
+
+  Start a loop n times, where n has to be atleast 2
+  ```
+  do-loop n
+  ```
+
+  End of a loop command
+  ```
+  end-loop
+  ```
 
   **EXAMPLE:**
   
