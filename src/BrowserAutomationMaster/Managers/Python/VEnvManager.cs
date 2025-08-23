@@ -5,6 +5,7 @@ using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -127,7 +128,7 @@ namespace BrowserAutomationMaster.Managers.Python
             if (Linux.IsChromeOS)
                 { return true; } // Replace with BrowserStack
 
-            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            bool isWindows = PlatformName == OSPlatform.Windows;
             string executablePath;
             
             if (isWindows)

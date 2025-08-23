@@ -1,7 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager
 {
@@ -14,13 +16,13 @@ namespace BrowserAutomationMaster.Managers.AppManager
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         private static async Task<List<AppInfo>> GetInstalledApps()
         {
-            if (RuntimeManager.IsSupportedWindowsVersion()) // >= Windows 10 Build 10240 (First Public Windows 10 Build)
+            if (PlatformName == OSPlatform.Windows)
                 return await Task.Run(OS.Win.GetApps);
 
-            if (RuntimeManager.IsSupportedOSXVersion())
+            if (PlatformName == OSPlatform.OSX)
                 return await Task.Run(OS.MacOS.GetApps);
 
-            if (OperatingSystem.IsLinux())
+            if (PlatformName == OSPlatform.Linux)
                 return await Task.Run(OS.Linux.GetApps);
 
             Errors.ThrowUnsupportedPlatformException();

@@ -2,11 +2,11 @@
 using Windows.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using System.Runtime.Versioning;
 using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -18,9 +18,9 @@ namespace BrowserAutomationMaster.Managers
         {
             return true switch
             {
-                _ when RuntimeManager.IsSupportedWindowsVersion() => CheckForWindows(),
-                _ when RuntimeManager.IsSupportedOSXVersion() => CheckForOSX(),
-                _ when OperatingSystem.IsLinux() => CheckForLinux64(),
+                _ when PlatformName == OSPlatform.Windows => CheckForWindows(),
+                _ when PlatformName == OSPlatform.OSX => CheckForOSX(),
+                _ when PlatformName == OSPlatform.Linux => CheckForLinux64(),
                 _ => []
             };
         }

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -13,7 +14,6 @@ namespace BrowserAutomationMaster.Managers.Python
     public class RuntimeManager(string scriptFilePath)
     {
         private string SanitizedScriptPath { get; set; } = string.Empty;
-        public static OSPlatform Platform { get; } = GetPlatform();
         public string InterpreterPath { get; } = GetInterpreterFromPath();
 
         private static string BuildScriptMenu(List<string> scriptPaths)
@@ -55,10 +55,10 @@ namespace BrowserAutomationMaster.Managers.Python
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         private static string GetInterpreterFromPath()
         {
-            if (IsSupportedWindowsVersion())
+            if (PlatformName == OSPlatform.Windows)
                 return Win.GetInterpreterPath();
 
-            if (IsSupportedOSXVersion() || OperatingSystem.IsLinux() || Linux.IsChromeOS)
+            if (UnixLikePlatforms.Contains(PlatformName) || Linux.IsChromeOS)
                 return "python3";
 
             throw new PlatformNotSupportedException(
@@ -68,44 +68,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 "MacOS 11+\n"
             );
         }
-        private static OSPlatform GetPlatform()
-        {
-            if (!Environment.Is64BitOperatingSystem && !Linux.IsChromeOS)
-            {
-                Errors.WriteErrorAndExit(
-                    message: "Due to a variety of factors, BAM Manager (BAMM) is unable to run on x86 (32bit) CPUs.  Ensure your CPU supports 64 bit operating systems, and try again.",
-                    status: 1
-                );
-            }
-            if (RuntimeInformation.OSArchitecture == Architecture.Arm64)
-            {
-                Warning.Write(
-                    message:
-                        "BAM Manager (BAMM) supports ARM64 architecture, " +
-                        "but performance for browser automation can vary widely depending on your specific ARM processor. " +
-                        "Some lower-power ARM systems may experience degraded performance."
-                );
-            }
-
-            if (IsSupportedOSXVersion())
-                return OSPlatform.OSX;
-
-            if (IsSupportedWindowsVersion())
-                return OSPlatform.Windows;
-
-            if (OperatingSystem.IsLinux())
-                return OSPlatform.Linux;
-
-            else
-            {
-                throw new PlatformNotSupportedException(
-                    "Unsupported OS.\nBAM Manager (BAMM) currently supports:\n" +
-                    "Windows 10/11\n" +
-                    "Linux\n" +
-                    "MacOS 11+\n"
-                );
-            }
-        }
+        
         private static string GetUserScriptChoice(List<string> scriptPaths, string menu)
         {
             while (true)

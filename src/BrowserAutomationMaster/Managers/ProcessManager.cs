@@ -1,11 +1,12 @@
 ﻿
 using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -32,7 +33,7 @@ namespace BrowserAutomationMaster.Managers
                 var instances = Process.GetProcessesByName(curProc.ProcessName);
                 if (instances.Length > 1)
                 {
-                    if (RuntimeManager.IsSupportedWindowsVersion()) {
+                    if (PlatformName == OSPlatform.Windows) {
                         Win.HandleMultipleInstances(instances);  // Execution ends if this line is hit.
                     }
                     WriteMessage(

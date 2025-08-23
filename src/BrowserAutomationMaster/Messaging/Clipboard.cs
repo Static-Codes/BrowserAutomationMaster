@@ -7,6 +7,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -223,35 +224,25 @@ namespace BrowserAutomationMaster.Messaging
 
     public static class ClipboardHelper
     {
-        private static readonly List<(Func<bool> PlatformCheck, Action<string> SetText)> platformFuncMap =
-        [
-            (IsWindows, SetWindowsText),
-            (IsOSX, SetOSXText),
-            (IsLinux, SetLinuxText)
-        ];
-
-        // These need to return the correct delegate types
-        private static Func<bool> IsWindows => () => RuntimeManager.IsSupportedWindowsVersion();
-        private static Func<bool> IsOSX => () => RuntimeManager.IsSupportedOSXVersion();
-        private static Func<bool> IsLinux => () => OperatingSystem.IsLinux();
-
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
-        private static Action<string> SetWindowsText => text => Clipboard.Win.SetText(text);
-        private static Action<string> SetOSXText => text => Clipboard.OSX.SetText(text);
-        private static Action<string> SetLinuxText => text => Clipboard.Linux.SetText(text);
 
         public static bool TrySetText(string text)
         {
-            foreach (var (platformCheck, setTextFunc) in platformFuncMap)
-            {
-                if (platformCheck())
-                {
-                    setTextFunc(text);
-                    return true;
-                }
-            }
-            return false;
+            if (PlatformName == OSPlatform.Windows)
+                Clipboard.Win.SetText(text);
+
+            else if (PlatformName == OSPlatform.OSX)
+                Clipboard.OSX.SetText(text);
+
+            else if (PlatformName == OSPlatform.Linux)
+                Clipboard.Linux.SetText(text);
+
+            else
+                return false;
+
+            return true;
+
         }
     }
 }

@@ -24,14 +24,14 @@ namespace BrowserAutomationMaster.Compilation
         private readonly static string defaultScriptFileName = "untitled-script";
 
         private readonly static string desiredSaveDirectory = GetDesiredSaveDirectory();
-        private static string projectName = DateTime.Now.ToString("MM-dd-yyyy_HH-mm-ss-tt");
+        private static string projectName = GetProjectName();
         private readonly static string requirementsFileName = "requirements.txt";
         private static string projectDirectory = "";
 
 
         private static string pythonScriptFileName = "";  // Modified by SetScriptName();
 
-        private static string pythonVersion = "3.9"; // 3.9
+        private static string pythonVersion = "3.9";
 
         // Default value if inhouse function fails.
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
@@ -364,6 +364,12 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
 
+        public static string GetProjectName() 
+        { 
+            return DateTime.Now.ToString("MM-dd-yyyy_HH-mm-ss-tt"); 
+        }
+
+
         [Obsolete("Remove this in a future update, since chromeOS execution is handled by BrowserStack")]
         public static string GetSetupToolsVersion()
         {
@@ -373,6 +379,7 @@ namespace BrowserAutomationMaster.Compilation
                 false => "setuptools==80.9.0"
             };
         }
+        
         public static void HandleAutoCopy()
         {
             if (!GlobalConfig.AutoCopyPath)
@@ -1124,7 +1131,7 @@ namespace BrowserAutomationMaster.Compilation
             script.ResetInstanceState();
             noBrowsersFound = false;
             actionTimeout = 10;
-            projectName = DateTime.Now.ToString("MM-dd-yyyy_HH-mm-ss-tt");
+            projectName = GetProjectName();
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
         public static void SetCustomUserAgent(string[] args)

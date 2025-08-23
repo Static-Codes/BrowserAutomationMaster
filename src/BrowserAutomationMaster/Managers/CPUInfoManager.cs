@@ -3,10 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -146,15 +146,15 @@ namespace BrowserAutomationMaster.Managers
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static int GetCoreCount()
         {
-            if (RuntimeManager.IsSupportedWindowsVersion()) {
+            if (PlatformName == OSPlatform.Windows)
                 return Win.GetPhysicalCoreCount();
-            }
-            if (RuntimeManager.IsSupportedOSXVersion()) {
+            
+            if (PlatformName == OSPlatform.OSX) 
                 return GetPhysicalCoreCountMacOS(); 
-            }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) { 
+            
+            if (PlatformName == OSPlatform.Linux) 
                 return GetPhysicalCoreCountLinux(); 
-            }
+            
             Errors.ThrowUnsupportedPlatformException();
             return 0; // This wont be executed, roslyn has no idea an exception has been thrown, so this is required.
         }
