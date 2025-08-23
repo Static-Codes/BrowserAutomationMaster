@@ -120,9 +120,9 @@ namespace BrowserAutomationMaster.Compilation
 
 
             // This function will exit if a null value is reached so no worries about a null check here
-            string sVersion = PackageManager.New("selenium", pythonVersion);
-            string swVersion = PackageManager.New("selenium-wire", pythonVersion);
-            string wmVersion = PackageManager.New("webdriver_manager", pythonVersion);
+            string sVersion = PackageManager.Get("selenium", pythonVersion);
+            string swVersion = PackageManager.Get("selenium-wire", pythonVersion);
+            string wmVersion = PackageManager.Get("webdriver_manager", pythonVersion);
 
             string[] packages = [
                 GetSetupToolsVersion(), // Will be removed in the future so the warning can be ignored.

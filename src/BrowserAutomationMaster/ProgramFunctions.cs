@@ -28,6 +28,9 @@ namespace BrowserAutomationMaster
             // Sets PlatformManager.PlatformName to be used across the session duration.
             PlatformManager.SetPlatformName();
 
+            // Downloads a local copy of https://github.dev/Static-Codes/BrowserAutomationMaster/blob/main/src/BrowserAutomationMaster/AppData/packages.json
+            await PackageManager.Initalize();
+
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
 

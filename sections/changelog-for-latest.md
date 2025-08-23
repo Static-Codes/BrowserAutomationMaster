@@ -8,6 +8,23 @@
 
 ## Changelog
 
+### General Changes:
+
+- Added namespace `BrowserStack` in namespace `BrowserAutomationMaster.Managers.BrowserStack`
+- Added `BAMConfig` class in namespace `BrowserAutomationMaster.Compilation`
+- Added `BrowserFunctions` class in namespace `BrowserAutomationMaster.Compilation`
+- Added `PlatformManager` class in namespace `BrowserAutomationMaster.Managers`
+- Added `ProgramFunctions` class in namespace `BrowserAutomationMaster`
+- Added `Script`, `ScriptBody`, `ScriptImports`, `ScriptRequirements` classes in namespace `BrowserAutomationMaster.Compilation`
+- Added `BrowserVersionManager`, `DeviceManager` and `InstanceManager` inside namespace `BrowserAutomationMaster.Managers.BrowserStack`
+- Added BrowserStack related functions to class `BrowserAutomationMaster.Managers.DirectoryManager`
+- Refactored `BrowserAutomationMaster.Managers.PackageManager` to use externally hosted JSON, instead of embedded json.
+- Refactored `BrowserAutomationMaster.Compilation.Transpiler` to use the newly created classes
+  - `Script`
+  - `ScriptBody`
+  - `ScriptImports`
+  - `ScriptRequirements`
+
 ### New Action Commands:
 
 ### New Feature Command:
