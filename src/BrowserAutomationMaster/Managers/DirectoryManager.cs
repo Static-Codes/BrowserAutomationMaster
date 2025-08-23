@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -220,6 +221,7 @@ namespace BrowserAutomationMaster.Managers
         
         public static string GetGlobalVEnvPath() { return Path.Combine(AppDataDirectory, "globalVEnv"); }
         
+        //public static string MAKE A FUNCTION TO GET THE PIP PATH FOR GLOBALVENV
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
         
         public static string GetUserScriptDirectory() { return Path.Combine(AppDataDirectory, "userScripts"); }
@@ -339,13 +341,13 @@ namespace BrowserAutomationMaster.Managers
         {
             string appName = "BrowserAutomationMaster";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (PlatformName == OSPlatform.Windows)
                 return GetAppDataWindows(appName);
 
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            else if (PlatformName == OSPlatform.OSX)
                 return GetAppDataMacOS(appName);
 
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            else if (PlatformName == OSPlatform.Linux)
                 return GetAppDataLinux(appName);
             
             else

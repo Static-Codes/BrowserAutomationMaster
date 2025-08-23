@@ -140,7 +140,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             public string? OS { get; set; }
 
             [JsonPropertyName("os_version")]
+#pragma warning disable IDE1006 // Naming Styles
             public string osVersion { get; set; } = "latest";
+#pragma warning restore IDE1006 // Naming Styles
 
             [JsonPropertyName("os_display_name")]
             public string OSDisplayName { get; set; } = ""; // Not used in config
@@ -170,7 +172,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             public string DisplayName { get; set; } = ""; // Not used in config
 
             [JsonPropertyName("os_version")]
+#pragma warning disable IDE1006 // Naming Styles
             public string? osVersion { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
 
             [JsonPropertyName("real_mobile")]
             public bool RealMobile { get; set; }
@@ -221,7 +225,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     return [];
 
                 // OIC = OrdinalIgnoreCase (imported via ConstantManager)
-                return Devices.Mobile
+                return [.. Devices.Mobile
                     .Where(m => m.OS?.Equals("android", OIC) ?? false)
                     .SelectMany(m => m.Devices)
                     .Where(m => m.osVersion?.Equals(osVersion, OIC) ?? false)
@@ -232,8 +236,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     )
                     .Where(d => !string.IsNullOrEmpty(d.Device))
                     .Select(d => d.Device!)
-                    .Distinct()
-                    .ToArray();
+                    .Distinct()];
             }
 
             public static string[] GetiOSDeviceNames(string osVersion, string browserName)

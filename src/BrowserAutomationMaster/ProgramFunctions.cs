@@ -25,6 +25,9 @@ namespace BrowserAutomationMaster
         /// <param name="pArgs">Program Arguments (args)</param>
         public static async Task InitializeAsync(string[] args)
         {
+            // Sets PlatformManager.PlatformName to be used across the session duration.
+            PlatformManager.SetPlatformName();
+
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
 

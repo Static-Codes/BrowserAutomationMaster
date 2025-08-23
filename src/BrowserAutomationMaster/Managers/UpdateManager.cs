@@ -5,6 +5,7 @@ using BrowserAutomationMaster.Messaging;
 using System.Net;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -189,13 +190,13 @@ namespace BrowserAutomationMaster.Managers
             {
                 string currentReleaseUri = Path.Combine(RELEASES_DOWNLOAD_LINK, LatestVersion);
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (PlatformName == OSPlatform.Windows)
                     OpenLatestForWindows(currentReleaseUri);
 
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                else if (PlatformName == OSPlatform.OSX)
                     OpenLatestForMacOS(currentReleaseUri);
 
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                else if (PlatformName == OSPlatform.Linux)
                     OpenLatestForLinux(currentReleaseUri);
             }
             catch (Exception e) { Errors.Write(

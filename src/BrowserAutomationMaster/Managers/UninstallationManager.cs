@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -37,13 +38,13 @@ namespace BrowserAutomationMaster.Managers
                     DoAppDataDeletion();
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (PlatformName == OSPlatform.Windows)
                 DoWindowsUninstall();
             
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            else if (PlatformName == OSPlatform.OSX)
                 DoMacUninstall();
 
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            else if (PlatformName == OSPlatform.Linux)
                 DoLinuxUninstall();
             
             else 
