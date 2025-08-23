@@ -56,27 +56,22 @@ namespace BrowserAutomationMaster.Managers.Python
                 return;
 
             Warning.Write("Creating Global Virtual Environment, please wait up to 60 seconds for this process to complete.\n");
-            ProcessStartInfo psi;
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = InterpreterPath,
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
 
             // Global Virtual Environment
             if (global)
-                psi = new()
-                {
-                    FileName = InterpreterPath,
-                    Arguments = $"-m venv \"{GetGlobalVEnvPath()}\"",
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                };
+                psi.Arguments = $"-m venv \"{GetGlobalVEnvPath()}\"";
+            
 
             // Project Virtual Environment
             else
-                psi = new()
-                {
-                    FileName = InterpreterPath,
-                    Arguments = $"-m venv \"{VEnvPath}\"",
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                };
+                psi.Arguments = $"-m venv \"{VEnvPath}\"";
 
 
             try
@@ -112,9 +107,17 @@ namespace BrowserAutomationMaster.Managers.Python
             }
         }
 
-        public void InstallGlobalPackages()
+        public static void InstallGlobalPackages(string pipExecutablePath)
         {
-            
+            // ADD VAR TO GET VERSION OF BROWSERSTACK_SDK
+            var psi = new ProcessStartInfo
+            {
+                FileName = pipExecutablePath,
+                Arguments = $"install ",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+               
         }
 
         public async Task<bool> RunScriptInVEnv()
@@ -128,28 +131,20 @@ namespace BrowserAutomationMaster.Managers.Python
             if (Linux.IsChromeOS)
                 { return true; } // Replace with BrowserStack
 
-            bool isWindows = PlatformName == OSPlatform.Windows;
-            string executablePath;
-            
-            if (isWindows)
-                executablePath = Path.Combine(VEnvPath, "Scripts", "python.exe");
-
-            else
-                executablePath = Path.Combine(VEnvPath, "bin", InterpreterPath);
-
-            string scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
+            var pythonPath = GetGlobalVEnvPythonPath();
+            var scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
             
             if (string.IsNullOrEmpty(scriptFileName))
                 scriptFileName = ScriptFilePath; 
 
             try
             {
-                if (!File.Exists(executablePath))
+                if (!File.Exists(pythonPath))
                     Errors.WriteErrorAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
                             $"if this issue persists.please make a bug report at {ISSUES_LINK}\n\n" +
-                            $"Error log:\nUnable to find python executable in virtual environment.",
+                            $"Error log:\nUnable to find the python executable in virtual environment:\n{GetGlobalVEnvPath()}",
                         status: 1
                     );
 
@@ -165,9 +160,9 @@ namespace BrowserAutomationMaster.Managers.Python
                     WorkingDirectory = ParentDirectory,
                 };
 
-                if (isWindows)
+                if (PlatformName == OSPlatform.Windows)
                 {
-                    startVEnvStartInfo.FileName = $"\"{executablePath}\"";
+                    startVEnvStartInfo.FileName = $"\"{pythonPath}\"";
                     startVEnvStartInfo.Arguments = $"\"{ScriptFilePath}\"";
                     startVEnvStartInfo.StandardOutputEncoding = Encoding.UTF8; // Proactively preventing any encoding issues caused by crossplatform development
                     startVEnvStartInfo.StandardErrorEncoding = Encoding.UTF8;
@@ -175,7 +170,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 else
                 {
                     startVEnvStartInfo.FileName = "/bin/bash";
-                    startVEnvStartInfo.Arguments = $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{executablePath}\" \"{ScriptFilePath}\"";
+                    startVEnvStartInfo.Arguments = $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{pythonPath}\" \"{ScriptFilePath}\"";
                 }
 
                 using Process startVEnvProcess = new() { StartInfo = startVEnvStartInfo };
@@ -190,6 +185,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         Success.WriteSuccessMessage(args.Data + '\n');
                     }
                 };
+
                 startVEnvProcess.ErrorDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
@@ -215,7 +211,7 @@ namespace BrowserAutomationMaster.Managers.Python
                                               $"If this continues, please make a bug report at {ISSUES_LINK}";
 
                     var detailedLog = $"Error log:\n" +
-                                      $"Command: '\"{executablePath}\" \"{ScriptFilePath}\"' " +
+                                      $"Command: '\"{pythonPath}\" \"{ScriptFilePath}\"' " +
                                       $"failed with exit code {startVEnvProcess.ExitCode}\n\n" +
                                       $"Stack Trace:\n{fullStackTrace}\n\n";
 
@@ -227,7 +223,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 Errors.WriteErrorAndExit(
                     message: $"BAM Manager (BAMM) was unable to execute:\n{ScriptFilePath}\n\n" +
                              $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                             $"Error log:\nCommand: '{executablePath} {scriptFileName}' failed.\n\n" +
+                             $"Error log:\nCommand: '{InterpreterPath} {scriptFileName}' failed.\n\n" +
                              $"Interpreter Response:\n{e.Message}",
                     status: 1
                 );

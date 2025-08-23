@@ -8,6 +8,7 @@
         public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
         public const string RELEASES_DOWNLOAD_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/download";
         public const string BROWSER_STACK_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/browserstack.json";
+        public const string PACKAGES_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/packages.json";
         public const StringComparison CCIC = StringComparison.CurrentCultureIgnoreCase;
         public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
     }

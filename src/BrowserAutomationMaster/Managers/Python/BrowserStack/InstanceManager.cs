@@ -2,6 +2,7 @@
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using static BrowserAutomationMaster.Helpers.EnumHelper;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager.DeviceHelper;
@@ -66,6 +67,24 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
         }
 
+        public void EnsureSDKInstallation(string interpreterPath, string scriptFileName)
+        {
+            
+            var errorMessage =
+                    "Unable to install the Browserstack Python SDK.\n" +
+                    $"If this issue persists, please make a bug report at {ISSUES_LINK}\n" +
+                    "Error Log:\nGlobal Virtual Environment does not contain a pip executable.";
+
+            var pipExecutable = GetGlobalVEnvPath();
+            var globalVEnv = new VEnvManager(interpreterPath, scriptFileName);
+            globalVEnv.CreateVEnv(global: true);
+
+            if (!File.Exists(pipExecutable))
+                Errors.WriteErrorAndExit(errorMessage, 1);
+
+            VEnvManager.InstallGlobalPackages(pipExecutable);
+
+        }
         public static void WriteConfig(string userName, string accessKey, string projectName, string scriptName)
         {
             try

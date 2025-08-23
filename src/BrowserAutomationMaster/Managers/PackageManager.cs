@@ -1,8 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using BrowserAutomationMaster.Messaging;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.RequestManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -14,39 +17,110 @@ namespace BrowserAutomationMaster.Managers
         [GeneratedRegex(packageFormatPattern)]
         private static partial Regex PrecompiledPackageRegex();
 
+
         readonly private static string malformedJSONMessage = "$BAM Manager: (BAMM) Failed to parse package data from 'packages.json'. JSON is malformed.";
+        readonly private static string packagePath = GetPackagesPath();
+        readonly private static string baseURL = "https://pypi.org/project";
         private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];
         
 
-        public static string New(string packageName, string pythonVersion)
+        public static string Get(string packageName, string pythonVersion)
         {
-            if (packageName == null || !PrecompiledPackageRegex().IsMatch(packageName)) {
-                Errors.WriteErrorAndExit(
-                    message: "Invalid packageName provided to PackageManager(), please check your spelling and try again.",
-                    status: 1
-                );
-            }
-            if (string.IsNullOrEmpty(PackageJson.jsonString)) {
-                Errors.WriteErrorAndExit(
-                    message: 
-                        "BAM Manager (BAMM) was unable to parse the required package versions, " +
-                        "please try again and if this error persists it is likely a developmental flaw.",
-                    status: 1
-                );
-            }
-            try { 
-                packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(PackageJson.jsonString)!; 
-            }
-            catch { 
-                Errors.WriteErrorAndExit(malformedJSONMessage, 1); 
-            }
-
             // C# requires notice that the value is for certain not nullable, thus the !
             string packageVersion = GetSupportedPackageVersion(packageName!, pythonVersion) ?? "Not Found";
             return packageVersion; // "Not Found" should never be returned its purely to appease the compiler.
         }
 
-        readonly static string baseURL = "https://pypi.org/project";
+        private static async Task DownloadPackageJSON()
+        {
+            var baseMessage =
+                "Unable to download the required data to install the necessary Python Packages, please try again.\n" +
+                $"If this issue persists, please make a bug report at {ISSUES_LINK}\n" + 
+                "Error Log:\n";
+
+            var nullMessage = baseMessage + "response was null.";
+
+            try
+            {
+                var response = await NetworkClient.Instance.GetStringAsync(PACKAGES_LINK);
+                if (response == null)
+                    Errors.WriteErrorAndExit(nullMessage, 1);
+                File.WriteAllText(packagePath, response);
+                Success.WriteSuccessMessage("Successfully downloaded required Python package data!\n");
+            }
+            catch (Exception ex)
+            {
+                var exMessage = $"{baseMessage}{ex.Message}\n";
+                Errors.WriteErrorAndExit(exMessage, 1);
+            }
+        }
+
+
+        private static async Task SetPackageData()
+        {
+            var baseMessage =
+                $"Unable to get package data from:\n{packagePath}" +
+                $"If this error persists, please make a bug report at {ISSUES_LINK}\n" +
+                "Error Log:\n";
+            
+            try
+            {
+                var packageJson = await File.ReadAllTextAsync(packagePath);
+                packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(packageJson) ?? [];
+            }
+
+            catch (Exception ex)
+            {
+                var errMessage = $"{baseMessage}{ex.Message}";
+                Errors.WriteErrorAndExit(errMessage, 1);
+            }
+
+        }
+        public static string? GetSupportedPackageVersion(string packageName, string pythonVersion)
+        {
+            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
+            {
+                Errors.WriteErrorAndExit(
+                    message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
+                    status: 1
+                );
+            }
+
+            List<string> supportedPackageVersions = [.. packageVersionMappings
+                .Where(pair => pair.Value != null && pair.Value.Contains(pythonVersion))
+                .Select(pair => pair.Key)];
+
+            if (supportedPackageVersions.Count == 0)
+            {
+                Errors.WriteErrorAndExit(
+                    message: $"No versions of package '{packageName}' found that support Python {pythonVersion}.",
+                    status: 1
+                );
+                return null;
+            }
+            return supportedPackageVersions.First();
+        }
+
+        public static List<string> GetSupportedPyVersions(string packageName, string packageVersion)
+        {
+
+            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? selectedPackageData))
+            {
+                Errors.WriteErrorAndExit(
+                    message: "Invalid packageName provided, please check your spelling and try again.",
+                    status: 1
+                );
+            }
+
+            if (!selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || supportedPyVersions.Count == 0)
+            {
+                Errors.WriteErrorAndExit(
+                    message: $"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.",
+                    status: 1
+                );
+            }
+            return supportedPyVersions;
+        }
 
         public static async Task<bool> IsDeprecated(string packageName, string packageVersion)
         {
@@ -115,71 +189,13 @@ namespace BrowserAutomationMaster.Managers
 
         }
 
-        public static List<string> GetSupportedPyVersions(string packageName, string packageVersion)
+        public static async Task Initalize()
         {
+            if (!File.Exists(packagePath))
+                await DownloadPackageJSON();
 
-            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? selectedPackageData))
-            {
-                Errors.WriteErrorAndExit(
-                    message: "Invalid packageName provided, please check your spelling and try again.", 
-                    status: 1
-                );
-            }
-
-            if (!selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || supportedPyVersions.Count == 0)
-            {
-                Errors.WriteErrorAndExit(
-                    message: $"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.",
-                    status: 1
-                );
-            }
-            return supportedPyVersions;
+            await SetPackageData();
         }
 
-        public static string? GetSupportedPackageVersion(string packageName, string pythonVersion)
-        {
-            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
-            {
-                Errors.WriteErrorAndExit(
-                    message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
-                    status: 1
-                );
-            }
-
-            List<string> supportedPackageVersions = [.. packageVersionMappings
-                .Where(pair => pair.Value != null && pair.Value.Contains(pythonVersion))
-                .Select(pair => pair.Key)];
-
-            if (supportedPackageVersions.Count == 0)
-            {
-                Errors.WriteErrorAndExit(
-                    message: $"No versions of package '{packageName}' found that support Python {pythonVersion}.",
-                    status: 1
-                );
-                return null;
-            }
-            return supportedPackageVersions.First();
-        }
-
-
-    }
-
-    public class PackageJson
-    {
-        readonly public static string jsonString = """
-        {
-            "selenium": {
-                "4.32.0": [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ],
-                "4.27.1": [ "3.8" ]
-            },
-            "selenium-wire": {
-                "5.1.0": [ "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
-            },
-            "webdriver_manager": {
-                "4.0.2": [ "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
-            }
-        }
-        """;
-        
     }
 }

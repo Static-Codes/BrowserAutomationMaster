@@ -220,8 +220,33 @@ namespace BrowserAutomationMaster.Managers
         public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
         
         public static string GetGlobalVEnvPath() { return Path.Combine(AppDataDirectory, "globalVEnv"); }
-        
-        //public static string MAKE A FUNCTION TO GET THE PIP PATH FOR GLOBALVENV
+
+        public static string GetGlobalVEnvPythonPath()
+        {
+            if (PlatformName == OSPlatform.Windows)
+                return Path.Combine(GetGlobalVEnvPath(), "Scripts", "python.exe");
+
+            if (UnixLikePlatforms.Contains(PlatformName))
+                return Path.Combine(GetGlobalVEnvPath(), "bin", "python3");
+
+            Errors.ThrowUnsupportedPlatformException();
+            return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
+        }
+
+        public static string GetGlobalVEnvPipPath()
+        {
+            if (PlatformName == OSPlatform.Windows)
+                return Path.Combine(GetGlobalVEnvPath(), "Scripts", "pip");
+
+            if (UnixLikePlatforms.Contains(PlatformName))
+                return Path.Combine(GetGlobalVEnvPath(), "bin", "pip");
+
+            Errors.ThrowUnsupportedPlatformException();
+            return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
+        }
+
+        public static string GetPackagesPath() { return Path.Combine(AppDataDirectory, "packages.json"); }
+
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
         
         public static string GetUserScriptDirectory() { return Path.Combine(AppDataDirectory, "userScripts"); }
