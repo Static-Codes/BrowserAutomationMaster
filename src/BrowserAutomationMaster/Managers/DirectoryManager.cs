@@ -14,30 +14,30 @@ namespace BrowserAutomationMaster.Managers
             var backupPath = GetDefaultBackupPath();
             if (File.Exists(backupPath))
             {
-                var message = $"A backup of BAM Manager's AppData already exists at:\n{backupPath}\n";
+                var message = $"A backup of the AppData used by BAM Manager (BAMM) already exists at: {backupPath}\n";
                 Warning.Write(message);
                 
-                var response = Input.WriteTextAndReturnRawInput("Would you like to override it? [y/n]: ");
+                var response = Input.AskForInput("Would you like to overwrite it? [y/n]: ");
                 
                 if (Input.ConditionRejected(response))
                     Environment.Exit(0);
                 
                 DeleteFile(backupPath);
-                Success.WriteSuccessMessageAndExit("Backup successfully deleted!", 0);
             }
+
             try
             {
                 switch (compression)
                 {
                     case "zip" when outputPath == null:
                         if (!Directory.Exists(AppDataDirectory))
-                            Errors.WriteErrorAndExit($"Unable to create backup file, directory doesn't exist:\n{AppDataDirectory}", 1);
+                            Errors.WriteErrorAndExit($"Unable to create backup file, directory doesn't exist at: {AppDataDirectory}", 1);
 
                         
                         if (string.IsNullOrEmpty(backupPath))
                         {
                             var message = "Would you like to create a backup in the current directory? [y/n]: ";
-                            var response = Input.WriteTextAndReturnRawInput(message);
+                            var response = Input.AskForInput(message);
                             if (Input.ConditionRejected(response))
                                 Environment.Exit(0);
 
@@ -46,7 +46,7 @@ namespace BrowserAutomationMaster.Managers
 
 
                         ZipFile.CreateFromDirectory(AppDataDirectory, backupPath, CompressionLevel.Optimal, false);
-                        Success.WriteSuccessMessage($"Successfully created backup at:\n{backupPath}");
+                        Success.WriteSuccessMessage($"Successfully created backup at: {backupPath}");
                         break;
                 }
             }
@@ -215,7 +215,9 @@ namespace BrowserAutomationMaster.Managers
         
         public static string GetBrowserStackDirectory() { return Path.Combine(AppDataDirectory, "browserstack"); }
         
-        public static string GetConfigDirectory() { return Path.Combine(AppDataDirectory, "config"); }
+        public static string GetBrowserStackConfigPath() { return Path.Combine(GetBrowserStackDirectory(), "browserstack.yml"); }
+        
+        public static string GetBAMConfigDirectory() { return Path.Combine(AppDataDirectory, "config"); }
         
         public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
         
@@ -308,7 +310,7 @@ namespace BrowserAutomationMaster.Managers
                         message: "BAM Manager (BAMM) was also unable to determine the active user's username automatically."
                     );
 
-                    string response = Input.WriteTextAndReturnRawInput(
+                    string response = Input.AskForInput(
                         "Would you like to manually enter the username? [y/n]: "
                     );
 
@@ -316,7 +318,7 @@ namespace BrowserAutomationMaster.Managers
 
                     if (manuallyEntering)
                     {
-                        username = Input.WriteTextAndReturnRawInput(
+                        username = Input.AskForInput(
                             "Please enter the exact username of the current active user: "
                         );
 

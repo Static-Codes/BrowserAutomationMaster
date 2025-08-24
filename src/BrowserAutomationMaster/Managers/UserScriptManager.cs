@@ -86,7 +86,7 @@ namespace BrowserAutomationMaster.Managers
             bool overwrite = false;
 
             if (File.Exists(scriptPath)) {
-                string response = Input.WriteTextAndReturnRawInput(
+                string response = Input.AskForInput(
                     $"\nThe file '{fileName}' already exists in the userScript directory. Overwrite? [y/n]:\n"
                 );
 
@@ -157,10 +157,6 @@ namespace BrowserAutomationMaster.Managers
                             status: 1);
                     }
                     await Transpiler.New(filePath: scriptPath, args: []);
-                    break;
-
-                case "delete":
-                    DeleteFile(scriptPath);
                     break;
 
                 case "run":

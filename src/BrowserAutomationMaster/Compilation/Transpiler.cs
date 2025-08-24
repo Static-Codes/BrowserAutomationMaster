@@ -32,7 +32,7 @@ namespace BrowserAutomationMaster.Compilation
 
         private static string pythonScriptFileName = "";  // Modified by SetScriptName();
 
-        public static string pythonVersion = "3.9"; // Used in VEnvManager.InstallGlobalPackages
+        private static string pythonVersion = "3.9"; // Used in VEnvManager.InstallGlobalPackages
 
         // Default value if inhouse function fails.
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
@@ -51,6 +51,7 @@ namespace BrowserAutomationMaster.Compilation
 
         private static readonly Script script = new();
 
+        private static bool usingBrowserstack = false;
 
         // Used for --set-timeout==5 (or any desired timeout)
         private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
@@ -68,17 +69,17 @@ namespace BrowserAutomationMaster.Compilation
         {
             try
             {
-                // ADD use_browserstack to configmanager -> set to false by default and overruled if ChromeOS is present.
-                // ADD IF BROWSERSTACK HERE USING EITHER THE CONFIG OR Linux.IsChromeOS
 
-                await InstanceManager.EnsureSDKInstallation(GetGlobalVEnvPipPath(), filePath);
+                CheckBrowserStackStatus();
+
+                // Installs https://pypi.org/project/browserstack-sdk/ if not already installed in the Global Virtual Environment
+                await InstanceManager.EnsureSDKInstallation();
+
 
                 // Found it's more reliable to reset the state when a new Transpiler object is created.
                 ResetTranspilerState();
 
                 var config = new BAMConfig(filePath);
-
-
 
                 CreateProjectDirectory(); // Also sets this.projectDirectory
 
@@ -112,7 +113,7 @@ namespace BrowserAutomationMaster.Compilation
                 );
             }
         }
-        public static async Task AddBrowserImportsAndRequirements(BAMConfig config)
+        private static async Task AddBrowserImportsAndRequirements(BAMConfig config)
         {
             await HandleBrowserCmd(config);
 
@@ -195,7 +196,7 @@ namespace BrowserAutomationMaster.Compilation
                     "Expected: \"chrome\" or \"firefox\"");
             }
         }
-        public static void AddImportIfNotPresent(string import, bool addToReqs = false, string? reqText = null)
+        private static void AddImportIfNotPresent(string import, bool addToReqs = false, string? reqText = null)
         {
             bool validStatement = import.StartsWith("from") || import.StartsWith("import");
 
@@ -220,7 +221,7 @@ namespace BrowserAutomationMaster.Compilation
             if (addToReqs)
                 script.Requirements.AddPackage(reqText!);
         }
-        public static void AddWatermark()
+        private static void AddWatermark()
         {
             AddImportIfNotPresent(import: "from time import sleep", addToReqs: false, reqText: null);
 
@@ -231,7 +232,7 @@ namespace BrowserAutomationMaster.Compilation
 
             script.Body.AddLine(watermarkText, 0);
         }
-        public static void AddRequiredFunctions(BAMConfig config)
+        private static void AddRequiredFunctions(BAMConfig config)
         {
             Dictionary<string, bool> functionsPresent = [];
 
@@ -300,8 +301,17 @@ namespace BrowserAutomationMaster.Compilation
             else
                 Add(browserQuitCode);
         }
-
-        public static void CreateProjectDirectory()
+        private static void CheckBrowserStackStatus()
+        {
+            // If argument `--bs` is not provided, usingBrowserstack will be false.
+            // This functions checks if:
+            // 1. The user is running on ChromeOS, since Chromebooks are 99/100 times too underpowered for Selenium execution.
+            // 2. The user modified the `use_browserstack` property in config.ini
+            
+            if (!usingBrowserstack)
+                usingBrowserstack = Linux.IsChromeOS || GlobalConfig.UseBrowserstack;
+        }
+        private static void CreateProjectDirectory()
         {
             try
             {
@@ -341,7 +351,7 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
 
-        public static void GenerateBackupScriptName()
+        private static void GenerateBackupScriptName()
         {
             string potentialFileName = $"{defaultScriptFileName}.py";
             int index = 2;
@@ -357,7 +367,7 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
 
-        public static void GetDesiredUrls(string[] lines)
+        private static void GetDesiredUrls(string[] lines)
         {
             int lineNumber = 1;
             foreach (string line in lines)
@@ -377,9 +387,10 @@ namespace BrowserAutomationMaster.Compilation
             return DateTime.Now.ToString("MM-dd-yyyy_HH-mm-ss-tt"); 
         }
 
+        public static string GetPythonVersion() { return pythonVersion; }
 
         [Obsolete("Remove this in a future update, since chromeOS execution is handled by BrowserStack")]
-        public static string GetSetupToolsVersion()
+        private static string GetSetupToolsVersion()
         {
             return Linux.IsChromeOS switch
             {
@@ -387,8 +398,7 @@ namespace BrowserAutomationMaster.Compilation
                 false => "setuptools==80.9.0"
             };
         }
-        
-        public static void HandleAutoCopy()
+        private static void HandleAutoCopy()
         {
             if (!GlobalConfig.AutoCopyPath)
                 return;
@@ -403,7 +413,7 @@ namespace BrowserAutomationMaster.Compilation
 
             Success.WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
-        public static async Task HandleBrowserCmd(BAMConfig config)
+        private static async Task HandleBrowserCmd(BAMConfig config)
         {
             // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of the nullable operator
             if (config.browserPresent)
@@ -415,7 +425,7 @@ namespace BrowserAutomationMaster.Compilation
                 requestUserAgent = potentialUA!; // null check is done above.
             }
         }
-        public static void HandleCompilation(string fileName, string[] args, BAMConfig config)
+        private static void HandleCompilation(string fileName, string[] args, BAMConfig config)
         {
             SetCustomUserAgent(args);
             SetTimeout(args);
@@ -826,7 +836,6 @@ namespace BrowserAutomationMaster.Compilation
             SuppressUnneededWarnings();
             AddWatermark(); // Single comment watermark, completely nonintrusive and easily removable
         }
-
         public static void HandleDisabling(BAMConfig config)
         {
             if (config.disablePycache)
@@ -931,7 +940,7 @@ namespace BrowserAutomationMaster.Compilation
             await runtimeManager.RunScriptFromTranspiler();
             return true;
         }
-        public static bool HasUnclosedQuotes(string line)
+        private static bool HasUnclosedQuotes(string line)
         {
             bool inSingleQuote = false;
             bool inDoubleQuote = false;
@@ -991,7 +1000,7 @@ namespace BrowserAutomationMaster.Compilation
                 Enumerable.Repeat(pythonIndent, numberOfIndents)
             );
         }
-        public static bool IsValidPyVersion(string pyVersion)
+        private static bool IsValidPyVersion(string pyVersion)
         {
             if (string.IsNullOrWhiteSpace(pyVersion)) { return false; }
 
@@ -1107,7 +1116,7 @@ namespace BrowserAutomationMaster.Compilation
                             $"Exception:\n\n{ex.InnerException}"
                     );
                 }
-                string response = Input.WriteTextAndReturnRawInput("Would you like to continue compilation? [y/n]: ");
+                string response = Input.AskForInput("Would you like to continue compilation? [y/n]: ");
                 if (Input.ConditionRejected(response))
                 {
                     return false;
@@ -1115,7 +1124,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             return true;
         }
-        public static void PreprocessJSCodeBlock(string jsCodeBlock)
+        private static void PreprocessJSCodeBlock(string jsCodeBlock)
         {
             int lineNumber = 0;
             foreach (string line in jsCodeBlock.Split('\n'))
@@ -1133,7 +1142,7 @@ namespace BrowserAutomationMaster.Compilation
                 }
             }
         }
-        public static void ResetTranspilerState()
+        private static void ResetTranspilerState()
         {
             desiredUrls.Clear();
             script.ResetInstanceState();
@@ -1142,6 +1151,8 @@ namespace BrowserAutomationMaster.Compilation
             projectName = GetProjectName();
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
+
+        public static void SetBrowserStackStatus(bool status) { usingBrowserstack = status; }
         public static void SetCustomUserAgent(string[] args)
         {
             List<string> userAgentArgs = [.. args.Where(arg => arg.StartsWith("--set-custom-useragent=="))];
@@ -1192,7 +1203,7 @@ namespace BrowserAutomationMaster.Compilation
                 );
             }
         }
-        public static void SetScriptName(string filePath)
+        private static void SetScriptName(string filePath)
         {
             string failureMessage =
                 $"BAM Manager (BAMM) was unable to access:\n\n{filePath}\n\n" +

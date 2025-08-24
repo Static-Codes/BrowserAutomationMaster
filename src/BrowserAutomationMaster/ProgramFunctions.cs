@@ -12,6 +12,7 @@ using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.ProcessManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.BrowserVersionManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
+using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Parsing.Parser;
@@ -22,6 +23,7 @@ namespace BrowserAutomationMaster
 {
     public class ProgramFunctions
     {
+
         /// <summary>Handles all of the initial application setup and prerequisite checks.</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
         public static async Task InitializeAsync(string[] args)
@@ -34,8 +36,6 @@ namespace BrowserAutomationMaster
 
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
-
-
 
             // Populate DeviceManager.Devices
             if (!await PopulateDevices())
@@ -65,21 +65,9 @@ namespace BrowserAutomationMaster
             // The user will select the version of python they want to use
             Transpiler.HandlePythonVersionSelection(GetInstallations());
 
-            // Skip compatibility checks if the user is not attempting to compile or run scripts.
-            string[] nonUserScriptArgs = ["clear", "help", "uninstall", "validate"];
-            string[] bypassCLIArgs = ["--vlinux-bypass", "--use-browserstack"];
-            bool bypassCheck1 = args.Any(arg => nonUserScriptArgs.Contains(arg));
-            bool bypassCheck2 = args.Any(arg => bypassCLIArgs.Contains(arg));
-            bool doHardwareCheck = !bypassCheck1 && !bypassCheck2;
 
-            if (doHardwareCheck)
-            {
-                RuntimeManager.DoRuntimeCheck();
-                if (GlobalConfig.ShowUpdateCheck)
-                    await CheckForUpdate();
-            }
+            await HandleHardwareCheck(args);
         }
-
 
         /// <summary>Processes any CLI arguments and returns execution status.</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
@@ -91,17 +79,12 @@ namespace BrowserAutomationMaster
 
             // Defining the lowercase representation of pArgs[0] to save memory (Not that its required, but its a good practice)
             var lArg0 = pArgs[0].ToLower();
-
-            // These args will bypass hardware checks.
-            var noHWCheckArgs = new string[] {"backup", "clear", "help", "uninstall", "validate"};
             
-            // These args will be passed to an instance of UserScriptManager.
-            var scriptArgs = new string[] { "add", "backup", "compile", "delete", "run", "validate" };
-
-            var noHardwareCheck = pArgs.Length == 2 && !noHWCheckArgs.Contains(lArg0);
+            // These args will be passed to an instance of UserScriptManager. (These come from the main menu)
+            var scriptArgs = new string[] { "add", "compile", "run", };
             
             // Flag to ensure all arguments handled by UserScriptManager are processed. 
-            var usingUSM = noHardwareCheck && scriptArgs.Contains(lArg0);
+            var usingUSM = scriptArgs.Contains(lArg0);
 
             if (usingUSM)
             {
@@ -109,20 +92,35 @@ namespace BrowserAutomationMaster
                 return true;
             }
 
+            // Note: no-hwc is handled in HandleHardwareCheck()
+
             // Handles double-clicking a BAMC file (On Windows)
             if (pArgs.Length == 1 && lArg0.EndsWith(".bamc") && File.Exists(pArgs[0]))
             {
                 _ = new UserScriptManager(pArgs[0], "add");
-                var response = Input.WriteTextAndReturnRawInput("Would you like to continue? [y/n]: ");
+                var response = Input.AskForInput("Would you like to continue? [y/n]: ");
                 var wantsToContinue = Input.ConditionAccepted(response); // OIC = StringComparison.OrdinalIgnoreCase
                 return !wantsToContinue; // Exit if user doesn't want to continue
+            }
+
+            if (pArgs[0].Equals("--bs", CCIC))
+            {
+                SetBrowserStackStatus(status: true);
+                return false;
+            }
+
+            if (pArgs[0].Equals("--editbsconf"))
+            {
+                HandleBSOverwriteCommand();
+                return true;
             }
 
             // Handles 'backup' command
             if (pArgs[0].Equals("backup", CCIC))
             {
                 // ADD A CHECK HERE REGARDING THE USERS ARCHIVING CHOICE (ZIP, GZIP, TAR.GZ, etc)
-                ArchiveAppDataDirectory();
+                HandleBackupCommand(pArgs);
+                return true;
             }
 
             // Handles 'clear' command variations
@@ -132,8 +130,16 @@ namespace BrowserAutomationMaster
                 return true;
             }
 
+            if (pArgs[0].Equals("delete", CCIC))
+            {
+                if (pArgs.Length == 0)
+                    Errors.WriteErrorAndExit("Invalid delete command format please specify the path to the file you wish to delete.", 1);
+                DeleteFile(pArgs[1]);
+                return true;
+            }
+
             // Handles 'help' command variations
-            if (pArgs[0].Equals("help", CCIC))
+            else if (pArgs[0].Equals("help", CCIC))
             {
                 HandleHelpCommand(pArgs);
                 return true;
@@ -193,6 +199,15 @@ namespace BrowserAutomationMaster
         }
 
 
+        ///<summary>Handles 'bamm --editbsconf'</summary>
+        ///<param name="pArgs">Program Arguments</param>
+        private static void HandleBSOverwriteCommand()
+        {
+            if (InstanceManager.PromptConfigOverride())
+                InstanceManager.WriteConfig(fileNotFound: false);
+        }
+
+
         /// <summary>Handles variations of 'bamm clear'</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
         private static void HandleClearCommand(string[] pArgs)
@@ -210,7 +225,7 @@ namespace BrowserAutomationMaster
             {
                 "userscripts" => GetUserScriptDirectory(),
                 "compiled" => GetDesiredSaveDirectory(),
-                "config" => GetConfigDirectory(),
+                "config" => GetBAMConfigDirectory(),
                 _ => string.Empty
             };
 
@@ -221,7 +236,7 @@ namespace BrowserAutomationMaster
                 return;
             }
 
-            string input = Input.WriteTextAndReturnRawInput($"Are you sure you want to delete the '{targetDir}' directory? [y/n]:\n");
+            string input = Input.AskForInput($"Are you sure you want to delete the '{targetDir}' directory? [y/n]:\n");
             if (input.Equals("y", OIC))
                 DeleteDirectory(dirPath);
         }
@@ -265,7 +280,25 @@ namespace BrowserAutomationMaster
             return true;
         }
 
+        private static async Task HandleHardwareCheck(string[] pArgs)
+        {
+            // Skip compatibility checks if the user is not attempting to compile or run scripts.
+            string[] nonUserScriptArgs = ["backup", "clear", "help", "uninstall", "validate"];
+            
+            string[] bypassCLIArgs = ["--bs", "--nohwc",  "--editbsconf"];
 
+            bool bypassCheck1 = pArgs.Any(arg => nonUserScriptArgs.Contains(arg));
+            bool bypassCheck2 = pArgs.Any(arg => bypassCLIArgs.Contains(arg));
+
+            bool doHardwareCheck = !bypassCheck1 && !bypassCheck2;
+
+            if (doHardwareCheck)
+            {
+                RuntimeManager.DoRuntimeCheck();
+                if (GlobalConfig.ShowUpdateCheck)
+                    await CheckForUpdate();
+            }
+        }
         /// <summary>Runs the main menu loop for BAMM.</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
 
@@ -278,7 +311,7 @@ namespace BrowserAutomationMaster
                 switch (parserResult.Key)
                 {
                     case MenuOption.Add:
-                        string response = Input.WriteTextAndReturnRawInput("Would you like to compile the newly added file? [y/n]:");
+                        string response = Input.AskForInput("Would you like to compile the newly added file? [y/n]:");
                         if (Input.ConditionAccepted(response))
                             await Transpiler.New(parserResult.Value, args);
                         break;
@@ -302,12 +335,13 @@ namespace BrowserAutomationMaster
 
                 if (isRunning)
                 {
-                    string input = Input.WriteTextAndReturnRawInput("\nWould you like to exit BAM Manager (BAMM)? [y/n]:");
+                    string input = Input.AskForInput("\nWould you like to exit BAM Manager (BAMM)? [y/n]:");
                     if (Input.ConditionAccepted(input))
                         isRunning = false;
                 }
             }
         }
+
 
         /// <summary>Displays the final exit message and waits for user input.</summary>
         public static void ExitApplication()

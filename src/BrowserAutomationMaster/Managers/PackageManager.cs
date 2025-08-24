@@ -1,7 +1,6 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -16,9 +15,6 @@ namespace BrowserAutomationMaster.Managers
         const string packageFormatPattern = @"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9])$"; // Regex pulled from https://pypi.org/project/twine/
         [GeneratedRegex(packageFormatPattern)]
         private static partial Regex PrecompiledPackageRegex();
-
-
-        readonly private static string malformedJSONMessage = "$BAM Manager: (BAMM) Failed to parse package data from 'packages.json'. JSON is malformed.";
         readonly private static string packagePath = GetPackagesPath();
         readonly private static string baseURL = "https://pypi.org/project";
         private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];
@@ -78,6 +74,14 @@ namespace BrowserAutomationMaster.Managers
         }
         public static string? GetSupportedPackageVersion(string packageName, string pythonVersion)
         {
+            if (!PrecompiledPackageRegex().IsMatch(packageName))
+            {
+                Errors.WriteErrorAndExit(
+                    message: $"Invalid package name '{packageName}', this package name was not matched using PrecompiledPackageRegex()",
+                    status: 1
+                );
+                return null;
+            }
             if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
             {
                 Errors.WriteErrorAndExit(

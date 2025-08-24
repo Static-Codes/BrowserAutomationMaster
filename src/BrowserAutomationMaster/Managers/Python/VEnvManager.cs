@@ -2,12 +2,12 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Compilation.Transpiler;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -118,7 +118,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
             var pipExecutablePath = GetGlobalVEnvPipPath();
 
-            var version = PackageManager.Get("browserstack-sdk", Transpiler.pythonVersion);
+            var version = PackageManager.Get("browserstack-sdk", GetPythonVersion());
 
             var installCMD = $"install browserstack-sdk=={version}";
             var checkCMD = $"{pipExecutablePath} show browserstack-sdk";

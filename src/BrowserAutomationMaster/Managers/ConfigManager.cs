@@ -15,6 +15,7 @@ namespace BrowserAutomationMaster.Managers
         public bool ShowUpdateCheck { get; set; }
         public bool AutoCopyPath { get; set; }
         public bool RunOnCompile { get; set; }
+        public bool UseBrowserstack { get; set; }
     }
 
     public partial class ConfigParser
@@ -90,7 +91,8 @@ namespace BrowserAutomationMaster.Managers
             ShowCpuCheck = true,
             ShowMemoryCheck = true,
             ShowUpdateCheck = true,
-            ThemeType = ThemeManager.DefaultTheme
+            ThemeType = ThemeManager.DefaultTheme,
+            UseBrowserstack = false,
         };
 
         private static readonly Dictionary<string, List<KeyValuePair<string, string>>> rawSections = new()
@@ -114,6 +116,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     KeyValuePair.Create("auto_copy_path", "false"),
                     KeyValuePair.Create("run_on_compile", "false"),
+                    KeyValuePair.Create("use_browserstack", "false"),
                 }
             },
             {
@@ -122,7 +125,7 @@ namespace BrowserAutomationMaster.Managers
             },
         };
 
-        private static string ConfigDirectory { get; set; } = DirectoryManager.GetConfigDirectory();
+        private static string ConfigDirectory { get; set; } = DirectoryManager.GetBAMConfigDirectory();
         public static string ConfigFilePath { get; private set; } = Path.Combine(ConfigDirectory, "config.ini");
 
         public static readonly BindingFlags BindingAttr = BindingFlags.Instance | BindingFlags.Public;

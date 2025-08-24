@@ -24,7 +24,7 @@ namespace BrowserAutomationMaster.Managers
                     $"Latest Version: {LatestVersion}\n\n"
                 );
 
-                string response = Input.WriteTextAndReturnRawInput("Would you like to download the update now? [y/n]:\n");
+                string response = Input.AskForInput("Would you like to download the update now? [y/n]:\n");
 
                 if (response.ToLower().Equals("y")) {
                     OpenLatestVersionInBrowser();
@@ -220,7 +220,7 @@ namespace BrowserAutomationMaster.Managers
                         "this likely means your system doesn't currently have an internet connection."
                 );
 
-                string response = Input.WriteTextAndReturnRawInput("\nWould you like to continue? [y/n]:\n");
+                string response = Input.AskForInput("\nWould you like to continue? [y/n]:\n");
 
                 if (Input.ConditionRejected(response))
                     Environment.Exit(1); 

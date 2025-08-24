@@ -25,7 +25,7 @@ namespace BrowserAutomationMaster.Messaging
                     Errors.Write(
                         $"Invalid command '{command}' provided, for more information on valid commands, please type:\n\nbamm help --all"
                     );
-                    command = Input.WriteTextAndReturnRawInput("Please provide a valid command for more information.\n");
+                    command = Input.AskForInput("Please provide a valid command for more information.\n");
                 }
                 var exArray = GetExamples(command);
                 var examples = exArray.Length != 0 ? string.Join("\n", exArray) : "Not Found";

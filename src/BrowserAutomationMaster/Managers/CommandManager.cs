@@ -1,4 +1,6 @@
 ﻿using Spectre.Console;
+using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -22,6 +24,35 @@ namespace BrowserAutomationMaster.Managers
         {
             {
                 new Command(
+                    name: "--bs",
+                    description: $"Instructs BAMM to use BrowserStack, for more information see: {BASE_REPO_LINK}",
+                    examples: [ "bamm --bs" ],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
+                    name: "--editbsconf",
+                    description: $"Edit the Browserstack Config found at {GetBrowserStackConfigPath()}",
+                    examples: [ "bamm --editbsconf"],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
+                    name: "--nohwc",
+                    description: 
+                        "Instructs BAMM not to check your system's hardware for compatibility, " +
+                        "this should not be done unless you've already verified BAMM can run on your machine.",
+                    examples: [ "bamm --nohwc" ],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
                     name: "--set-custom-useragent",
                     description:
                         "Sets a custom user agent for the current script.\n" +
@@ -33,28 +64,27 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "--set-timeout",
                     description: "Sets the timeout for all actions in all scripts to 10 seconds",
-                    examples: [
-                        "bamm --set-timeout 10",
-                    ],
+                    examples: [ "bamm --set-timeout 10" ],
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "add",
                     description:
                         "Adds the specified file to the userScripts directory.\n" +
                         "The script cannot already exist in the userScript directory.",
-                    examples: [
-                        "bamm add \"path/to/external/file.bamc\"",
-                    ],
+                    examples: [ "bamm add \"path/to/external/file.bamc\"", ],
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "add-header",
@@ -66,6 +96,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "add-headers",
@@ -77,6 +108,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "browser",
@@ -88,6 +120,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "clear",
@@ -100,6 +133,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "click",
@@ -117,6 +151,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "click-at-position",
@@ -129,28 +164,27 @@ namespace BrowserAutomationMaster.Managers
                 )
 
             },
+
             {
                 new Command(
                     name: "click-exp",
                     description:
                         "Alternative to click; use this if click is causing issues.  " +
                         "Only supports CSS Selectors.",
-                    examples: [
-                        "click-exp 'css-selector.item_element'",
-                    ],
+                    examples: [ "click-exp 'css-selector.item_element'" ],
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "close-current-tab",
                     description: "Closes the currrent tab and will close the browser if there's only one open tab.",
-                    examples: [
-                        "close-current-tab",
-                    ],
+                    examples: [ "close-current-tab" ],
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "compile",
@@ -164,6 +198,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "delete",
@@ -175,29 +210,27 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "disable-pycache",
                     description:
                         "Instructs the compiler to disable the writing of the __pycache__ directory.\n" +
                         "This directory is written by Visual Studio Code and contains .pyc files.",
-                    examples: [
-                        "feature \"disable-pycache\"",
-                    ],
+                    examples: [ "feature \"disable-pycache\"" ],
                     type: CommandType.Feature
                 )
             },
+
             {
                 new Command(
                     name : "disable-ssl",
-                    description:
-                        "Instructs the compiler to disable SSL certificate authentication for the given session.",
-                    examples: [
-                        "feature \"disable-pycache\"",
-                    ],
+                    description: "Instructs the compiler to disable SSL certificate authentication for the given session.",
+                    examples: [ "feature \"disable-pycache\"" ],
                     type: CommandType.Feature
                 )
             },
+
             {
                 new Command(
                     name : "end-javascript",
@@ -205,12 +238,11 @@ namespace BrowserAutomationMaster.Managers
                         "Instructs the parser that the end of a JavaScript code block was reached. " +
                         "An error will be thrown if end-javascript is not found within the file " +
                         "(when a start-javascript is present). ",
-                    examples: [
-                        "end-javascript",
-                    ],
+                    examples: [ "end-javascript" ],
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name : "fill-text",
@@ -222,6 +254,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name : "fill-text-exp",
@@ -233,6 +266,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name : "get-text",
@@ -246,6 +280,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "help",
@@ -259,6 +294,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "open-new-tab",
@@ -270,6 +306,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "run",
@@ -283,38 +320,36 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
             {
                 new Command(
                     name: "run-headless",
                     description: "Instructs the compiler to allow headless execution for the duration of the current script.",
-                    examples: [
-                        "feature \"run-headless\"",
-                    ],
+                    examples: [ "feature \"run-headless\"" ],
                     type: CommandType.Feature
                 )
             },
+
             {
                 new Command(
                     name : "save-as-html",
                     description: "Saves the current page's HTML to a file with the specified filename.",
-                    examples: [
-                        "save-as-html \"filename.html\"",
-                    ],
+                    examples: [ "save-as-html \"filename.html\"" ],
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name : "save-as-html-exp",
                     description:
                         "Saves the current page's HTML to a file with the specified name but uses different logic.\n" +
                         "Use this if save-as-html doesn't fit your needs.",
-                    examples: [
-                        "save-as-html-exp \"filename.html\"",
-                    ],
+                    examples: [ "save-as-html-exp \"filename.html\"" ],
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name : "select-option",
@@ -327,6 +362,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name : "select-element",
@@ -334,12 +370,11 @@ namespace BrowserAutomationMaster.Managers
                         "Selects the element associated with the provided selector (if found).\n" +
                         "This currently works but, there's no logic to access the selected element.\n" +
                         "This should only be done if you're manually editing the compiled Python script. ",
-                    examples: [
-                        "select-element \"selector\"",
-                    ],
+                    examples: [ "select-element \"selector\"" ],
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name : "set-custom-useragent",
@@ -351,6 +386,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "start-javascript",
@@ -363,6 +399,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "take-screenshot",
@@ -375,6 +412,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "visit",
@@ -386,6 +424,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "wait-for-seconds",
@@ -398,6 +437,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Action
                 )
             },
+
             {
                 new Command(
                     name: "use-http-proxy",
@@ -412,6 +452,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Feature
                 )
             },
+
             {
                 new Command(
                     name: "use-https-proxy",
@@ -426,6 +467,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Feature
                 )
             },
+
             {
                 new Command(
                     name: "use-socks4-proxy",
@@ -440,6 +482,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Feature
                 )
             },
+
             {
                 new Command(
                     name: "use-socks5-proxy",
@@ -454,6 +497,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Feature
                 )
             },
+
             {
                 new Command(
                     name: "uninstall",
