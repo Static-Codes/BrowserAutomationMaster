@@ -1,4 +1,6 @@
 ﻿using BrowserAutomationMaster.Messaging;
+using Spectre.Console;
+using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using static BrowserAutomationMaster.Helpers.EnumHelper;
@@ -46,10 +48,10 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         public static BrowserStackConfig StackConfig { get; private set; }
 
 
-        private BrowserStackConfig? LoadConfig()
+        public static BrowserStackConfig? LoadConfig()
         {
             if (!File.Exists(browserStackConfig))
-                return null;
+                WriteConfig(fileNotFound: true);
 
             try 
             {
@@ -62,12 +64,40 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
                 return deserializer.Deserialize<BrowserStackConfig>(fileText);
             }
-            catch {
+            catch 
+            {
                 return null;
             }
         }
 
-        public static async Task EnsureSDKInstallation(string interpreterPath, string scriptFileName)
+        public static bool PromptConfigOverride()
+        {
+            if (!File.Exists(browserStackConfig))
+                return false;
+
+            var builder = new StringBuilder();
+            Warning.Write("The BrowserStack Config file already exists.\n");
+            try
+            {
+                foreach (var line in File.ReadLines(browserStackConfig))
+                    builder.AppendLine(line);
+            }
+
+            catch (Exception ex)
+            {
+                Errors.Write($"Unable to read BrowserStack Config.\n\nError Log:\n{ex.Message}");
+                return false;
+            }
+
+            Success.WriteSuccessMessage("Config Contents:\n");
+            AnsiManager.WriteMessage(builder.ToString());
+            var response = Input.AskForInput("Would you like to overwrite the config above? [y/n]: ");
+            if (Input.ConditionRejected(response))
+                return false;
+            return true;
+        }
+
+        public static async Task EnsureSDKInstallation() // used to include scriptFileName
         {
 
             var baseMessage =
@@ -78,19 +108,35 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             var notFoundMessage = baseMessage + "Global Virtual Environment does not contain a pip executable.";
 
             var pipExecutable = GetGlobalVEnvPath();
-            var globalVEnv = new VEnvManager(interpreterPath, scriptFileName);
+            var globalVEnv = new VEnvManager(pipExecutable, string.Empty); // was scriptFileName
             globalVEnv.CreateVEnv(global: true);
 
             if (!File.Exists(pipExecutable))
                 Errors.WriteErrorAndExit(notFoundMessage, 1);
 
             await VEnvManager.InstallGlobalPackages();
-
         }
-        public static void WriteConfig(string userName, string accessKey, string projectName, string scriptName)
+
+
+        /// <summary>
+        /// Writes (or overwrites) the BrowserStack Config (browserstack.yml)
+        /// </summary>
+        /// <param name="fileNotFound">Whether or not to display a message indicating the file was not found.</param>
+        public static void WriteConfig(bool fileNotFound)
         {
             try
             {
+                if (fileNotFound)
+                {
+                    Errors.Write("Unable to locate the BrowserStack Config.");
+                    Warning.Write("Creating browserstack.yml now.\n\n");
+                }
+
+                var userName = Input.AskForInput("BrowserStack Username: ");
+                var accessKey = Input.AskForInput("BrowserStack Access Key: ");
+                var projectName = Input.AskForInput("Project Name: ");
+                var scriptName = Input.AskForInput("Python Script Name: ");
+
                 var rawOSName = Input.WriteListFromOptions(OSNames, noun: "Operating System", pageSize: 4);
                 var osName = SanitizeOSName(rawOSName);
                 var browserName = GetDesiredBrowser(rawOSName);

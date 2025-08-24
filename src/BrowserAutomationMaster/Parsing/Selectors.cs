@@ -264,7 +264,7 @@ namespace BrowserAutomationMaster
                 $"BAM Manager (BAMM) was unable to parse selector:\n'{selectorTrimmed}\n\n"
             );
 
-            string isSelector = Input.WriteTextAndReturnRawInput("Is this a css selector? [y/n]: ");
+            string isSelector = Input.AskForInput("Is this a css selector? [y/n]: ");
             
             if (Input.ConditionRejected(isSelector))
                 Errors.Write(

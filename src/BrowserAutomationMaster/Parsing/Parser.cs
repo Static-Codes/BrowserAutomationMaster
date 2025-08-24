@@ -262,7 +262,7 @@ namespace BrowserAutomationMaster.Parsing
                 string command = Input.WriteListFromOptions([.. CommandList.Select(cmd => cmd.Name), "Exit App"]);
                 Help.ShowCommandDetails(command.Trim());
 
-                string choice = Input.WriteTextAndReturnRawInput(
+                string choice = Input.AskForInput(
                     "\nWould you like to continue learning more about BAM Manager (BAMM)? [y/n]:"
                 );
                 if (!choice.Equals("y")) {
@@ -972,7 +972,7 @@ namespace BrowserAutomationMaster.Parsing
                     if (input.Equals("Exit")) { 
                         Errors.WriteErrorAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
                     }
-                    string path = Input.WriteTextAndReturnRawInput("Path: ");
+                    string path = Input.AskForInput("Path: ");
                     if (!File.Exists(path))
                     {
                         Errors.WriteErrorAndExit(

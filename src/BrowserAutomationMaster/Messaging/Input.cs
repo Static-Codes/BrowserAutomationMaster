@@ -8,7 +8,7 @@ namespace BrowserAutomationMaster.Messaging
     {
         public static bool ConditionAccepted(string condition) { return condition.Trim().Equals("y", CCIC); }
         public static bool ConditionRejected(string condition) { return condition.Trim().Equals("n", CCIC); }
-        public static string WriteTextAndReturnRawInput(string inputMessage)
+        public static string AskForInput(string inputMessage)
         {
             TextPrompt<string>? prompt;
             if (inputMessage.Contains("[y/n]:"))

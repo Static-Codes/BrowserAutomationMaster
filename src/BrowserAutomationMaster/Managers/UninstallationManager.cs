@@ -14,7 +14,7 @@ namespace BrowserAutomationMaster.Managers
         {
             Errors.Write("This will delete BAM Manager (BAMM) from your system.\n");
 
-            var response = Input.WriteTextAndReturnRawInput("Would you like to continue with the uninstallation process? [y/n]: ");
+            var response = Input.AskForInput("Would you like to continue with the uninstallation process? [y/n]: ");
             var uninstallConfirmed = Input.ConditionAccepted(response);
             
             if (!uninstallConfirmed) 
@@ -27,13 +27,13 @@ namespace BrowserAutomationMaster.Managers
                 "bamm backup\n\n";
 
 
-            response = Input.WriteTextAndReturnRawInput("Do you want to remove all application data? [y/n]: ");
+            response = Input.AskForInput("Do you want to remove all application data? [y/n]: ");
             var removeAppData = Input.ConditionAccepted(response);
 
             if (removeAppData)
             {
                 Errors.Write(dataMessage);
-                response = Input.WriteTextAndReturnRawInput("Have you backed up your data? [y/n]: ");
+                response = Input.AskForInput("Have you backed up your data? [y/n]: ");
                 if (Input.ConditionAccepted(response))
                     DoAppDataDeletion();
             }
