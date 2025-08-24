@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
+using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Net;
@@ -12,8 +13,8 @@ using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -31,7 +32,7 @@ namespace BrowserAutomationMaster.Compilation
 
         private static string pythonScriptFileName = "";  // Modified by SetScriptName();
 
-        private static string pythonVersion = "3.9";
+        public static string pythonVersion = "3.9"; // Used in VEnvManager.InstallGlobalPackages
 
         // Default value if inhouse function fails.
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
@@ -67,10 +68,17 @@ namespace BrowserAutomationMaster.Compilation
         {
             try
             {
+                // ADD use_browserstack to configmanager -> set to false by default and overruled if ChromeOS is present.
+                // ADD IF BROWSERSTACK HERE USING EITHER THE CONFIG OR Linux.IsChromeOS
+
+                await InstanceManager.EnsureSDKInstallation(GetGlobalVEnvPipPath(), filePath);
+
                 // Found it's more reliable to reset the state when a new Transpiler object is created.
                 ResetTranspilerState();
 
                 var config = new BAMConfig(filePath);
+
+
 
                 CreateProjectDirectory(); // Also sets this.projectDirectory
 

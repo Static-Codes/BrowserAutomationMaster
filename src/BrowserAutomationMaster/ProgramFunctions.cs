@@ -15,6 +15,7 @@ using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Parsing.Parser;
+using BrowserAutomationMaster.Managers.Python.BrowserStack;
 
 
 namespace BrowserAutomationMaster
@@ -34,13 +35,7 @@ namespace BrowserAutomationMaster
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
 
-            // interpretterPath needs to be set dynamically
-            // VEnvManager.InstallGlobalPackages needs to implemented use CreateVenv(global: true)
-            // then write function to get if browserstack-sdk is installed.
 
-            var globalVEnv = new VEnvManager("python", "");
-            //var globalVEnv = new VEnvManager("interpreterPath", "ScriptFileName");
-            globalVEnv.CreateVEnv(global: true);
 
             // Populate DeviceManager.Devices
             if (!await PopulateDevices())

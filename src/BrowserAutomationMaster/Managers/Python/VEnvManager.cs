@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -107,16 +109,59 @@ namespace BrowserAutomationMaster.Managers.Python
             }
         }
 
-        public static void InstallGlobalPackages(string pipExecutablePath)
+        public static async Task InstallGlobalPackages()
         {
-            // ADD VAR TO GET VERSION OF BROWSERSTACK_SDK
+            var baseMessage =
+                    "Unable to install the Browserstack Python SDK.\n" +
+                    $"If this issue persists, please make a bug report at {ISSUES_LINK}\n" +
+                    "Error Log:\n";
+
+            var pipExecutablePath = GetGlobalVEnvPipPath();
+
+            var version = PackageManager.Get("browserstack-sdk", Transpiler.pythonVersion);
+
+            var installCMD = $"install browserstack-sdk=={version}";
+            var checkCMD = $"{pipExecutablePath} show browserstack-sdk";
+
+            var errMessage = baseMessage + $"Command:\n{installCMD} returned a non-zero status, indicating an unspecified error.";
+
             var psi = new ProcessStartInfo
             {
                 FileName = pipExecutablePath,
-                Arguments = $"install ",
+                Arguments = checkCMD,
                 CreateNoWindow = true,
                 UseShellExecute = false
             };
+            var process = new Process() { StartInfo = psi };
+
+            try
+            {
+                process.Start();
+                await process.WaitForExitAsync();
+                if (process.ExitCode == 0)
+                {
+
+                    Warning.Write("Browserstack's Python SDK is already installed, continuing.");
+                    return;
+                }
+
+                process.StartInfo.Arguments = installCMD;
+                process.Start();
+                await process.WaitForExitAsync();
+
+                if (process.ExitCode == 0)
+                    Success.WriteSuccessMessage("Successfully installed the Browserstack Python SDK to the Global Virtual Environment!");
+
+                else
+                    Errors.WriteErrorAndExit(errMessage, 1);
+
+                    
+            }
+            catch (Exception ex)
+            {
+                var message = baseMessage + ex.Message;
+                Errors.WriteErrorAndExit(message, 1);
+            }
                
         }
 
