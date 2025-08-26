@@ -3,7 +3,13 @@
 
 A custom scripting language that compiles into Python 3.9+ code.
 
-Selenium automation in Python can involve a lot of repetitive code and detailed setup. BAM Manager simplifies that process by allowing you to write automation scripts in a more concise, readable, and English-like language. This script is then passed to the compiler, which generates a Python file, effectively reducing the amount of boilerplate you need to manage.
+Selenium automation in Python can involve a lot of repetitive code and detailed setup.  
+
+BAM Manager simplifies that process by allowing you to write automation scripts in a more concise, readable, and English-like language.  
+
+This language is known as **BAMC** **(BAM Config)**. 
+
+Your **.BAMC** file is then passed to the compiler, which creates a Python file containing your desired workflow, effectively reducing the amount of boilerplate you need to manage.
 
 https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
