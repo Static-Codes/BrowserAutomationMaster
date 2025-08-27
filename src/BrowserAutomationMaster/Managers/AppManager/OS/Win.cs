@@ -31,7 +31,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 apps.AddRange(QueryRegistryForApps(RegistryHive.CurrentUser, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"));
             }
             catch { 
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: "BAM Manager was unable to query Windows Registry, please try again; if this issue persists, it's likely a bug.",
                     status: 1
                 );
@@ -78,7 +78,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 if (rootDrive == null || !rootDrive.StartsWith("C:"))
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message: 
                             "BAM Manager (BAMM) was developed to be ran on the C: drive.\n\n" +
                             "Running this application on a different drive caused too many unforseeable bugs.\n\n" +
@@ -147,7 +147,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 // Handle Python 3 paths found
                 if (discoveredPython3Paths.Count == 0) {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
                             $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -160,7 +160,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
                         $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -175,7 +175,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             if (python3Paths.Length == 0)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
@@ -259,7 +259,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
                         $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -294,7 +294,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 // 122 is the err code for ERROR_INSUFFICIENT_BUFFER (it wont import for some reason)
                 if (!firstResult && Marshal.GetLastWin32Error() != 122)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
                             $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\nError log:\n\n" +
@@ -307,7 +307,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 // If the buffer is empty, a fatal error has occured.
                 if (bufferSize == 0)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
                             $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -363,7 +363,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             catch (Exception ex) {
                 string errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         "BAM Manager (BAMM) was unable to determine the number of physical CPU cores present, if this issue persists, " +
                         $"please make a bug report at {ISSUES_LINK}\n\nError log:\n{errorMessage}.",

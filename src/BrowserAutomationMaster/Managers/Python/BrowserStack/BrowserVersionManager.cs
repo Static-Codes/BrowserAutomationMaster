@@ -40,7 +40,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     "Unable to get the latest browser versions for BrowserStack.\n" +
                     $"If this persists, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error Log:\n{ex.Message}",

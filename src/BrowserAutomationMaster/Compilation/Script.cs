@@ -48,7 +48,7 @@ namespace BrowserAutomationMaster.Compilation
                 "Error Log:\nUnable to reset the state of the current Script() object.";
 
             if (isNotEmpty)
-                Errors.WriteErrorAndExit(message, 1);
+                Errors.WriteAndExit(message, 1);
 
         }
     }

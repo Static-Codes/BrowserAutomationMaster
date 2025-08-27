@@ -29,7 +29,7 @@ namespace BrowserAutomationMaster
         public static async Task InitializeAsync(string[] args)
         {
             // Sets PlatformManager.PlatformName to be used across the session duration.
-            PlatformManager.SetPlatformName();
+            PlatformManager.SetPlatform();
 
             // Downloads a local copy of https://github.dev/Static-Codes/BrowserAutomationMaster/blob/main/src/BrowserAutomationMaster/AppData/packages.json
             await PackageManager.Initalize();
@@ -63,9 +63,8 @@ namespace BrowserAutomationMaster
             GlobalConfig = LoadConfig();
 
             // The user will select the version of python they want to use
-            Transpiler.HandlePythonVersionSelection(GetInstallations());
-
-
+            HandlePythonVersionSelection(GetInstallations());
+            
             await HandleHardwareCheck(args);
         }
 
@@ -133,7 +132,7 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("delete", CCIC))
             {
                 if (pArgs.Length == 0)
-                    Errors.WriteErrorAndExit("Invalid delete command format please specify the path to the file you wish to delete.", 1);
+                    Errors.WriteAndExit("Invalid delete command format please specify the path to the file you wish to delete.", 1);
                 DeleteFile(pArgs[1]);
                 return true;
             }
@@ -160,12 +159,12 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("validate", CCIC))
             {
                 if (pArgs.Length != 2)
-                    Errors.WriteErrorAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", 1);
+                    Errors.WriteAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", 1);
                 
                 if (IsValidFile(pArgs[1]))
                     Success.WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
                 else
-                    Errors.WriteErrorAndExit("Selected file has invalid syntax.", 1);
+                    Errors.WriteAndExit("Selected file has invalid syntax.", 1);
 
                 return true;
             }
@@ -275,7 +274,7 @@ namespace BrowserAutomationMaster
                 await runtimeManager.RunScript();
             }
 
-            else { Errors.WriteErrorAndExit(errorMessage, 1); }
+            else { Errors.WriteAndExit(errorMessage, 1); }
 
             return true;
         }
@@ -317,7 +316,7 @@ namespace BrowserAutomationMaster
                         break;
 
                     case MenuOption.Compile:
-                        await Transpiler.New(parserResult.Value, args);
+                        await New(parserResult.Value, args);
                         break;
 
                     case MenuOption.Run:
@@ -342,10 +341,11 @@ namespace BrowserAutomationMaster
             }
         }
 
-
         /// <summary>Displays the final exit message and waits for user input.</summary>
-        public static void ExitApplication()
+        public static void Terminate(string? selectedBrowser)
         {
+            PreventMemoryLeaks(selectedBrowser);
+            Thread.Sleep(300); // Timeout to prevent unexpected behavior
             WriteMessage("\nPress any key to exit...", isSuccess: true);
             ReadKey();
             Environment.Exit(0);

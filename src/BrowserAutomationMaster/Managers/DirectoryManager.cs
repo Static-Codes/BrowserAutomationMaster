@@ -31,7 +31,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     case "zip" when outputPath == null:
                         if (!Directory.Exists(AppDataDirectory))
-                            Errors.WriteErrorAndExit($"Unable to create backup file, directory doesn't exist at: {AppDataDirectory}", 1);
+                            Errors.WriteAndExit($"Unable to create backup file, directory doesn't exist at: {AppDataDirectory}", 1);
 
                         
                         if (string.IsNullOrEmpty(backupPath))
@@ -57,7 +57,7 @@ namespace BrowserAutomationMaster.Managers
                     $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}" +
                     $"Error Log:\n{ex.Message}";
 
-                Errors.WriteErrorAndExit(message, 1);
+                Errors.WriteAndExit(message, 1);
             }
         }
         
@@ -65,7 +65,7 @@ namespace BrowserAutomationMaster.Managers
         {
             if (string.IsNullOrWhiteSpace(directory)) { return; }
             if (!Directory.Exists(directory)) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"\nBAM Manager (BAMM) was unable to locate:\n{directory}\nPlease ensure this directory exists.", 
                     status: 1
                 );
@@ -77,14 +77,14 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
             catch (IOException e) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
                              $"File: {directory}\n\nException:\n\n{e.Message}", 
                     status: 1
                 );
             }
             catch (UnauthorizedAccessException e) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\n" +
                         $"File: {directory}\n\nException:\n\n{e.Message}", 
@@ -92,7 +92,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
             catch (System.Security.SecurityException e) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\n" +
                         $"File: {directory}\n\nException:\n\n{e.Message}", 
@@ -100,7 +100,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
             catch (ArgumentException e) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"Invalid argument for file path: '{directory}\n\n" +
                         $"Exception:\n\n {e.Message}", 
@@ -109,7 +109,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"An unexpected error of type: '{ex.GetType().Name}' occurred while trying to delete file: '{directory}'\n\n" +
                         $"Exception:\n\n{ex.Message}", 
@@ -123,7 +123,7 @@ namespace BrowserAutomationMaster.Managers
             if (string.IsNullOrWhiteSpace(path)) { return; }
             if (!File.Exists(path))
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to locate:\n" +
                         $"{path}\n" +
@@ -140,7 +140,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (IOException)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
                         $"File: {path}\n",
@@ -149,7 +149,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (UnauthorizedAccessException)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {path}\n",
                     status: 1
@@ -157,7 +157,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (System.Security.SecurityException)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {path}\n",
                     status: 1
@@ -165,14 +165,14 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (ArgumentException)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"Invalid argument for file path: '{path}'\n",
                     status: 1
                 );
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"An unexpected error of type: '{ex.GetType().Name}' " +
                         $"occurred while trying to delete file: '{path}'\n",
@@ -225,10 +225,10 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetGlobalVEnvPythonPath()
         {
-            if (PlatformName == OSPlatform.Windows)
+            if (IsWindows)
                 return Path.Combine(GetGlobalVEnvPath(), "Scripts", "python.exe");
 
-            if (UnixLikePlatforms.Contains(PlatformName))
+            if (IsUnixLike)
                 return Path.Combine(GetGlobalVEnvPath(), "bin", "python3");
 
             Errors.ThrowUnsupportedPlatformException();
@@ -237,10 +237,10 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetGlobalVEnvPipPath()
         {
-            if (PlatformName == OSPlatform.Windows)
+            if (IsWindows)
                 return Path.Combine(GetGlobalVEnvPath(), "Scripts", "pip");
 
-            if (UnixLikePlatforms.Contains(PlatformName))
+            if (IsUnixLike)
                 return Path.Combine(GetGlobalVEnvPath(), "bin", "pip");
 
             Errors.ThrowUnsupportedPlatformException();
@@ -262,7 +262,7 @@ namespace BrowserAutomationMaster.Managers
             // Fallback for second check
             if (string.IsNullOrEmpty(homeDirectory))
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         "BAM Manager (BAMM) could not determine home directory on Linux.\n" +
                         "Press any key to exit...",
@@ -324,7 +324,7 @@ namespace BrowserAutomationMaster.Managers
 
                         if (string.IsNullOrEmpty(username))
                         {
-                            Errors.WriteErrorAndExit(
+                            Errors.WriteAndExit(
                                 message:
                                     "Invalid username provided. " +
                                     "BAM Manager (BAMM) will now exit. " +
@@ -335,7 +335,7 @@ namespace BrowserAutomationMaster.Managers
                     }
                     else
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             message:
                                 "Username not provided. Press any key to exit...",
                             status: 1
@@ -368,13 +368,13 @@ namespace BrowserAutomationMaster.Managers
         {
             string appName = "BrowserAutomationMaster";
 
-            if (PlatformName == OSPlatform.Windows)
+            if (IsWindows)
                 return GetAppDataWindows(appName);
 
-            else if (PlatformName == OSPlatform.OSX)
+            else if (IsOSX)
                 return GetAppDataMacOS(appName);
 
-            else if (PlatformName == OSPlatform.Linux)
+            else if (IsLinux)
                 return GetAppDataLinux(appName);
             
             else

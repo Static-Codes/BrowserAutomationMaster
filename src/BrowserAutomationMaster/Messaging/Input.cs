@@ -54,7 +54,7 @@ namespace BrowserAutomationMaster.Messaging
             string rawInputString;
             if (desiredType == null)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"Invalid type provided to WriteTextAndReturnInputType(.., .., {desiredType}).\n" +
                         $"If you are seeing this there is invalid code written and it should be addressed immediately ",

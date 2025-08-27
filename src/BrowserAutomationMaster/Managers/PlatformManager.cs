@@ -1,23 +1,27 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Managers.Python;
+﻿using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using System.Runtime.InteropServices;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 
 namespace BrowserAutomationMaster.Managers
 {
     public static class PlatformManager
     {
-        public static OSPlatform PlatformName { get; private set; }
-        public readonly static OSPlatform[] UnixLikePlatforms = [ OSPlatform.Linux, OSPlatform.OSX ];
-        public static void SetPlatformName()
+        public static bool IsWindows { get; private set; }
+        public static bool IsOSX { get; private set; }
+        public static bool IsLinux { get; private set; }
+        public static bool IsUnixLike { get; private set; } // Linux + OSX
+        
+        public static void SetPlatform()
         {
-            if (!Environment.Is64BitOperatingSystem && !Linux.IsChromeOS)
+            if (!Environment.Is64BitOperatingSystem && !IsChromeOS)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: "Due to a variety of factors, BAM Manager (BAMM) is unable to run on x86 (32bit) CPUs.  Ensure your CPU supports 64 bit operating systems, and try again.",
                     status: 1
                 );
             }
+
             if (RuntimeInformation.OSArchitecture == Architecture.Arm64)
             {
                 Warning.Write(
@@ -30,14 +34,19 @@ namespace BrowserAutomationMaster.Managers
 
 
             if (RuntimeManager.IsSupportedWindowsVersion())
-                PlatformName = OSPlatform.Windows;
-
+                IsWindows = true;
 
             else if (RuntimeManager.IsSupportedOSXVersion())
-                PlatformName = OSPlatform.OSX;
+            {
+                IsOSX = true;
+                IsUnixLike = true;
+            }
 
             else if (OperatingSystem.IsLinux())
-                PlatformName = OSPlatform.Linux;
+            {
+                IsLinux = true;
+                IsUnixLike = true;
+            }
 
             else
             {

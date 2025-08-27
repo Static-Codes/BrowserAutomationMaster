@@ -38,13 +38,13 @@ namespace BrowserAutomationMaster.Managers
                     DoAppDataDeletion();
             }
 
-            if (PlatformName == OSPlatform.Windows)
+            if (IsWindows)
                 DoWindowsUninstall();
             
-            else if (PlatformName == OSPlatform.OSX)
+            else if (IsOSX)
                 DoMacUninstall();
 
-            else if (PlatformName == OSPlatform.Linux)
+            else if (IsLinux)
                 DoLinuxUninstall();
             
             else 
@@ -58,7 +58,7 @@ namespace BrowserAutomationMaster.Managers
             string installationDirectory = AppContext.BaseDirectory;
 
             if (!Path.Exists(installationDirectory))
-                Errors.WriteErrorAndExit(message: failureMessage, status: 1);
+                Errors.WriteAndExit(message: failureMessage, status: 1);
 
             string uninstallerPath = Path.Combine(installationDirectory, "unins000.exe");
             try
@@ -74,19 +74,19 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (FileNotFoundException notFound)
             {
-                Errors.WriteErrorAndExit(message: notFound.Message, status: 1);
+                Errors.WriteAndExit(message: notFound.Message, status: 1);
             }
             catch (Win32Exception w32e)
             {
-                Errors.WriteErrorAndExit(message: w32e.Message, status: 1);
+                Errors.WriteAndExit(message: w32e.Message, status: 1);
             }
             catch (ObjectDisposedException notDisposed)
             {
-                Errors.WriteErrorAndExit(message: notDisposed.Message, status: 1);
+                Errors.WriteAndExit(message: notDisposed.Message, status: 1);
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit(message: $"{ex.Message}", status: 1);
+                Errors.WriteAndExit(message: $"{ex.Message}", status: 1);
             }
         }
         private static void DoMacUninstall()

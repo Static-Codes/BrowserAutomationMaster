@@ -85,7 +85,7 @@ namespace BrowserAutomationMaster
         public static ParsedSelector Parse(string selectorString)
         {
             if (string.IsNullOrWhiteSpace(selectorString)) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to validate empty selector, please ensure it's properly formatted then try compiling again.", 
                     status: 1
@@ -94,7 +94,7 @@ namespace BrowserAutomationMaster
 
             string selectorTrimmed = selectorString.Trim();
             if (string.IsNullOrWhiteSpace(selectorTrimmed)) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to trim empty selector, " +
                         $"please ensure it's properly formatted then try compiling again.", 

@@ -40,7 +40,7 @@ namespace BrowserAutomationMaster.Messaging
             process.WaitForExit();
             string output = process.StandardOutput.ReadToEnd();
             if (string.IsNullOrEmpty(output)) { 
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         "Unable to query the total number of non whitespace code lines in the current project.", 
                     status: 1

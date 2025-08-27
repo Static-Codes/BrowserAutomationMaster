@@ -29,7 +29,7 @@ namespace BrowserAutomationMaster.Managers
                     var jsonString = await userAgentsObj.LoadJSONString();
                     if (jsonString == null)
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             message:
                                 $"BAM Manager (BAMM) was failed to user agent data, please try again." +
                                 $"If this error persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
@@ -41,7 +41,7 @@ namespace BrowserAutomationMaster.Managers
 
                     if (userAgentsData == null || userAgentsData.Count == 0)
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             message:
                                 $"BAM Manager (BAMM) was failed to user agent data, please try again." +
                                 $"If this error persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
@@ -52,18 +52,18 @@ namespace BrowserAutomationMaster.Managers
                 }
                 catch (JsonException)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to deserialize embedded user agent data, " +
                             $"please try again, if this error persists, " +
                             $"it is likely a network flaw not an issue with your machine.", 
                         status: 1
                     );
-                    //Errors.WriteErrorAndExit($"Error deserializing JSON from {UserAgentsFilePath}: {ex.Message}", 1);
+                    //Errors.WriteAndExit($"Error deserializing JSON from {UserAgentsFilePath}: {ex.Message}", 1);
                 }
                 catch (Exception)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to load embedded user agent data, " +
                             $"please try again, if this error persists, " +
@@ -81,14 +81,14 @@ namespace BrowserAutomationMaster.Managers
 
             if (userAgentsData == null || userAgentsData.Count == 0)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"BAM Manager (BAMM) was failed to parse embedded user agent data, " +
                         $"please try again, if this error persists, " +
                         $"it is likely a developmental flaw not an issue with your machine.", 
                     status: 1
                 );
-                return null; // This will never be reachable, as WriteErrorAndExit does exactly that.
+                return null; // This will never be reachable, as WriteAndExit does exactly that.
             }
 
             bool isLoaded = userAgentsData.TryGetValue(
@@ -101,7 +101,7 @@ namespace BrowserAutomationMaster.Managers
 
             else
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to compile the selected script.  " +
                         $"Supported values for 'browser' command include:\n\n" +
@@ -110,7 +110,7 @@ namespace BrowserAutomationMaster.Managers
                         $"Please check for typos and try again.", 
                     status: 1
                 );
-                return null; // This will never be reachable, as WriteErrorAndExit does exactly that.
+                return null; // This will never be reachable, as WriteAndExit does exactly that.
             }
         }
 
@@ -133,7 +133,7 @@ namespace BrowserAutomationMaster.Managers
                     $"This file can be downloaded from:\n{uri}\n\n" +
                     $"Error Log:\n\n{ex.Message}";
 
-                Errors.WriteErrorAndExit(message, 1);
+                Errors.WriteAndExit(message, 1);
                 return null;
             }
         }
@@ -164,7 +164,7 @@ namespace BrowserAutomationMaster.Managers
 
             var contents = await RetrieveJSON();
             if (contents == null)
-                Errors.WriteErrorAndExit(message, 1);
+                Errors.WriteAndExit(message, 1);
 
             try
             {
@@ -176,7 +176,7 @@ namespace BrowserAutomationMaster.Managers
                    $"This file should be placed in:\n{GetUserAgentsPath()}" +
                    $"This file can be downloaded from:\n{uri}\n\n" +
                    $"Error Log:\n\n{ex.Message}";
-                Errors.WriteErrorAndExit(message, 1);
+                Errors.WriteAndExit(message, 1);
             }
             return true;
         }
