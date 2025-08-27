@@ -190,13 +190,13 @@ namespace BrowserAutomationMaster.Managers
             {
                 string currentReleaseUri = Path.Combine(RELEASES_DOWNLOAD_LINK, LatestVersion);
 
-                if (PlatformName == OSPlatform.Windows)
+                if (IsWindows)
                     OpenLatestForWindows(currentReleaseUri);
 
-                else if (PlatformName == OSPlatform.OSX)
+                else if (IsOSX)
                     OpenLatestForMacOS(currentReleaseUri);
 
-                else if (PlatformName == OSPlatform.Linux)
+                else if (IsLinux)
                     OpenLatestForLinux(currentReleaseUri);
             }
             catch (Exception e) { Errors.Write(

@@ -32,7 +32,7 @@ namespace BrowserAutomationMaster.Messaging
         }
 
         [DoesNotReturn]
-        public static void WriteErrorAndExit(string message, int status)
+        public static void WriteAndExit(string message, int status)
         {
             WriteMessage(message, isError: true);
             ReadKey();

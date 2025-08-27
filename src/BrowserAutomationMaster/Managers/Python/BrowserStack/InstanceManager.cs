@@ -46,8 +46,14 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         public readonly static string browserStackConfig = Path.Combine(browserStackDirectory, "browserstack.yml");
         
         public static BrowserStackConfig StackConfig { get; private set; }
-
-
+        private readonly static string tutorialMessage = 
+            "Please follow the following steps to use BrowserStack:\n\n" +
+            "1. Visit https://www.browserstack.com/users/sign_up\n" +
+            "2. Sign up using an email you can receive a verification with.\n" +
+            "3. Click the verification link inside the email you receive.\n" +
+            "4. Go to: https://www.browserstack.com/accounts/profile/\n" +
+            "5. Click 'My profile'" +
+            "6. Copy and Paste both your username and access key when prompted. (This only has to be done once)";
         public static BrowserStackConfig? LoadConfig()
         {
             if (!File.Exists(browserStackConfig))
@@ -112,7 +118,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             globalVEnv.CreateVEnv(global: true);
 
             if (!File.Exists(pipExecutable))
-                Errors.WriteErrorAndExit(notFoundMessage, 1);
+                Errors.WriteAndExit(notFoundMessage, 1);
 
             await VEnvManager.InstallGlobalPackages();
         }
@@ -129,6 +135,11 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 if (fileNotFound)
                 {
                     Errors.Write("Unable to locate the BrowserStack Config.");
+                    string response = Input.AskForInput("Do you already have an account on https://browserstack.com [y/n]: ");
+                    
+                    if (Input.ConditionRejected(response))
+                        Errors.WriteAndExit(tutorialMessage, 1);
+
                     Warning.Write("Creating browserstack.yml now.\n\n");
                 }
 
@@ -149,7 +160,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
                 var description = $"version of {rawOSName} that supports {browserName}";
                 if (versions == null)
-                    Errors.WriteErrorAndExit($"Unable to find a {description}, please try a different combination.", 1);
+                    Errors.WriteAndExit($"Unable to find a {description}, please try a different combination.", 1);
 
                 // Will be used for defining DeviceName and DeviceOrientation if mobile
                 // If not mobile, browserVersion must be specified.
@@ -177,7 +188,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     };
 
                     if (devices.Length == 0)
-                        Errors.WriteErrorAndExit("Unable to find device supported by BrowserStack that fits your requirements.", status: 1);
+                        Errors.WriteAndExit("Unable to find device supported by BrowserStack that fits your requirements.", status: 1);
 
                     device = Input.WriteListFromOptions(devices, noun: "device");
 
@@ -206,7 +217,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     UserName = userName,
                     Platforms = platform,
                     Debug = true,
-                    BrowserStackLocal = true,
+                    BrowserStackLocal = false,
                     BuildName = scriptName,
                     ProjectName = projectName,
                     ConsoleLogs = "disabled",
@@ -219,7 +230,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 
                 var yaml = serializer.Serialize(config);
                 if (yaml == null)
-                    Errors.WriteErrorAndExit("Unable to generate browserstack.yml using the selected information, please try again.", 1);
+                    Errors.WriteAndExit("Unable to generate browserstack.yml using the selected information, please try again.", 1);
                 EnsureDirectoryExists(browserStackDirectory);
                 File.WriteAllText(browserStackConfig, yaml);
 
@@ -227,7 +238,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     "Unable to generate browserstack.yml using the selected information, please try again.\n\n" +
                     $"Error Log:\n{e.Message} in WriteConfig()", 
                     status: 1

@@ -244,7 +244,7 @@ namespace BrowserAutomationMaster.Parsing
             validFiles = [.. ValidateBAMCFiles(BAMCFiles)];
             if (validFiles.Count == 0)
             {
-                Errors.WriteErrorAndExit(noFilesFoundMessage, 1);
+                Errors.WriteAndExit(noFilesFoundMessage, 1);
             }
             if (validFilesMapping.Count != validFiles.Count)
             {
@@ -252,7 +252,7 @@ namespace BrowserAutomationMaster.Parsing
             }
             if (validFilesMapping.Count == 0)
             {
-                Errors.WriteErrorAndExit(noFilesFoundMessage, 1);
+                Errors.WriteAndExit(noFilesFoundMessage, 1);
             }
 
         }
@@ -630,7 +630,7 @@ namespace BrowserAutomationMaster.Parsing
 
             if (mapping.Count == 0)
             {
-                Errors.WriteErrorAndExit(noFilesFoundMessage, 1);
+                Errors.WriteAndExit(noFilesFoundMessage, 1);
             }
 
             int numberOfFilesFound = mapping.Count;
@@ -657,7 +657,7 @@ namespace BrowserAutomationMaster.Parsing
 
             if (menuOptions.Length == 0) 
             { 
-                Errors.WriteErrorAndExit(noFilesFoundMessage, 1); 
+                Errors.WriteAndExit(noFilesFoundMessage, 1); 
             }
 
             string panicText = 
@@ -668,17 +668,17 @@ namespace BrowserAutomationMaster.Parsing
             var input = GetFileNumber(rawInput);
             if (input == null)
             {
-                Errors.WriteErrorAndExit(panicText, 1);
+                Errors.WriteAndExit(panicText, 1);
             }
 
             if (!int.TryParse(input, out int fileNumber))
             {
-                Errors.WriteErrorAndExit(panicText, 1);
+                Errors.WriteAndExit(panicText, 1);
             }
 
             if (fileNumber < 1 || fileNumber > numberOfFilesFound)
             {
-                Errors.WriteErrorAndExit(panicText, 1);
+                Errors.WriteAndExit(panicText, 1);
             }
             return fileNumber - 1; // index = fileNumber - 1;
         }
@@ -858,7 +858,7 @@ namespace BrowserAutomationMaster.Parsing
 
                             if (invalidLines.Count > 0)
                             {
-                                Errors.WriteErrorAndExit(
+                                Errors.WriteAndExit(
                                     message:
                                         Errors.GenerateErrorMessage(fileName, line, i, 
                                             issueText:    
@@ -970,12 +970,12 @@ namespace BrowserAutomationMaster.Parsing
                     );
 
                     if (input.Equals("Exit")) { 
-                        Errors.WriteErrorAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
+                        Errors.WriteAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
                     }
                     string path = Input.AskForInput("Path: ");
                     if (!File.Exists(path))
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             message:
                                 "BAMM Manager (BAMM) was unable to find the provided file, " +
                                 $"please ensure the file below exists:\n{path}",

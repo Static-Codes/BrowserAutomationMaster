@@ -1,6 +1,5 @@
 ﻿using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
@@ -11,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Compilation.BrowserFunctions;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -53,6 +53,10 @@ namespace BrowserAutomationMaster.Compilation
 
         private static bool usingBrowserstack = false;
 
+        private static BAMConfig? bamConfig;
+
+
+
         // Used for --set-timeout==5 (or any desired timeout)
         private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
         [GeneratedRegex(@"^--set-timeout==(\d+)$", RegexOptions.Compiled)]
@@ -75,37 +79,35 @@ namespace BrowserAutomationMaster.Compilation
                 // Installs https://pypi.org/project/browserstack-sdk/ if not already installed in the Global Virtual Environment
                 await InstanceManager.EnsureSDKInstallation();
 
-
                 // Found it's more reliable to reset the state when a new Transpiler object is created.
                 ResetTranspilerState();
 
-                var config = new BAMConfig(filePath);
+                SetBAMConfig(filePath);
 
                 CreateProjectDirectory(); // Also sets this.projectDirectory
 
                 SetScriptName(filePath);
 
-                GetDesiredUrls(config.Lines);
+                GetDesiredUrls(bamConfig!.Lines); // Null forgiveness here because SetBAMConfig ensure's the config is not null.
 
-                await AddBrowserImportsAndRequirements(config);
+                await AddBrowserImportsAndRequirements(bamConfig);
 
-                HandleCompilation(filePath, args, config);
+                HandleCompilation(filePath, args, bamConfig);
 
                 WritePythonFile();
 
                 WriteRequirementsFile();
 
                 string path = Path.Combine(desiredSaveDirectory, projectName, pythonScriptFileName);
-                
-
-                Success.WriteSuccessMessage($"Compiled -> {config.Name}");
+                Success.WriteSuccessMessage($"Compiled -> {bamConfig.Name}");
                 Success.WriteSuccessMessage($"Location -> {path}\n");
 
                 HandleAutoCopy();
+                //HandleAutoRun here
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     "BAM Manager (BAMM) was unable to continue due to a fatal error.\n\n" +
                     $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error Log:\nUnhandled exception: {ex.Message}",
@@ -113,6 +115,7 @@ namespace BrowserAutomationMaster.Compilation
                 );
             }
         }
+
         private static async Task AddBrowserImportsAndRequirements(BAMConfig config)
         {
             await HandleBrowserCmd(config);
@@ -123,7 +126,7 @@ namespace BrowserAutomationMaster.Compilation
 
             if (desiredUrls.Count == 0)
             {
-                Errors.WriteErrorAndExit(noUrlsFound, 1);
+                Errors.WriteAndExit(noUrlsFound, 1);
                 return;
             }
 
@@ -156,6 +159,8 @@ namespace BrowserAutomationMaster.Compilation
             string selectedBrowser = config.selectedBrowser;
 
             string[] statements;
+
+            // Uncomment and remove this comment if Brave support is reintroduced.
             //if (selectedBrowser.Equals("brave", OIC))
             //{
             //    statements = [
@@ -185,7 +190,6 @@ namespace BrowserAutomationMaster.Compilation
                     "from selenium.webdriver.firefox.service import Service as FirefoxService",
                     "from webdriver_manager.firefox import GeckoDriverManager"
                 ];
-
                 script.Imports.AddStatements(statements);
             }
 
@@ -196,13 +200,14 @@ namespace BrowserAutomationMaster.Compilation
                     "Expected: \"chrome\" or \"firefox\"");
             }
         }
-        private static void AddImportIfNotPresent(string import, bool addToReqs = false, string? reqText = null)
+        
+        public static void AddImportIfNotPresent(string import, bool addToReqs = false, string? reqText = null)
         {
             bool validStatement = import.StartsWith("from") || import.StartsWith("import");
 
             if (!validStatement)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"Invalid import statement: {import}.",
                     status: 1
                 );
@@ -210,7 +215,7 @@ namespace BrowserAutomationMaster.Compilation
 
             if (addToReqs && !string.IsNullOrEmpty(reqText))
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"Invalid requirement statement: {reqText}.",
                     status: 1
                 );
@@ -221,6 +226,7 @@ namespace BrowserAutomationMaster.Compilation
             if (addToReqs)
                 script.Requirements.AddPackage(reqText!);
         }
+        
         private static void AddWatermark()
         {
             AddImportIfNotPresent(import: "from time import sleep", addToReqs: false, reqText: null);
@@ -232,6 +238,7 @@ namespace BrowserAutomationMaster.Compilation
 
             script.Body.AddLine(watermarkText, 0);
         }
+        
         private static void AddRequiredFunctions(BAMConfig config)
         {
             Dictionary<string, bool> functionsPresent = [];
@@ -301,6 +308,7 @@ namespace BrowserAutomationMaster.Compilation
             else
                 Add(browserQuitCode);
         }
+        
         private static void CheckBrowserStackStatus()
         {
             // If argument `--bs` is not provided, usingBrowserstack will be false.
@@ -309,7 +317,7 @@ namespace BrowserAutomationMaster.Compilation
             // 2. The user modified the `use_browserstack` property in config.ini
             
             if (!usingBrowserstack)
-                usingBrowserstack = Linux.IsChromeOS || GlobalConfig.UseBrowserstack;
+                usingBrowserstack = IsChromeOS || GlobalConfig.UseBrowserstack;
         }
         private static void CreateProjectDirectory()
         {
@@ -320,7 +328,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
                     status: 1
@@ -342,7 +350,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         "BAMM Manager (BAMM) was unable to create the desired project directory, " +
                         "please try again.",
@@ -366,6 +374,10 @@ namespace BrowserAutomationMaster.Compilation
                 index++;
             }
         }
+        
+        public static BAMConfig? GetBAMConfig() { return bamConfig; }
+
+        public static bool GetBrowserStackStatus() { return usingBrowserstack; }
 
         private static void GetDesiredUrls(string[] lines)
         {
@@ -392,12 +404,13 @@ namespace BrowserAutomationMaster.Compilation
         [Obsolete("Remove this in a future update, since chromeOS execution is handled by BrowserStack")]
         private static string GetSetupToolsVersion()
         {
-            return Linux.IsChromeOS switch
+            return IsChromeOS switch
             {
                 true => "setuptools==75.3.2",
                 false => "setuptools==80.9.0"
             };
         }
+        
         private static void HandleAutoCopy()
         {
             if (!GlobalConfig.AutoCopyPath)
@@ -413,6 +426,7 @@ namespace BrowserAutomationMaster.Compilation
 
             Success.WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
+        
         private static async Task HandleBrowserCmd(BAMConfig config)
         {
             // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of the nullable operator
@@ -425,6 +439,7 @@ namespace BrowserAutomationMaster.Compilation
                 requestUserAgent = potentialUA!; // null check is done above.
             }
         }
+        
         private static void HandleCompilation(string fileName, string[] args, BAMConfig config)
         {
             SetCustomUserAgent(args);
@@ -480,7 +495,7 @@ namespace BrowserAutomationMaster.Compilation
 
                     if (string.IsNullOrEmpty(requestLine))
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             message:
                                 "Unable to locate request logic in partially compiled script, " +
                                 "please attempt recompilation.",
@@ -491,7 +506,7 @@ namespace BrowserAutomationMaster.Compilation
                     int index = script.Body.scriptLines.IndexOf(requestLine);
 
                     if (index == -1)
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             message:
                                 "BAM Manager (BAMM) was unable to locate request logic in partially compiled script, " +
                                 "please attempt recompilation.",
@@ -566,7 +581,7 @@ namespace BrowserAutomationMaster.Compilation
                     continue;
 
                 if (normalLengthBypass)
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             Errors.GenerateErrorMessage(
                                 fileName,
@@ -580,7 +595,7 @@ namespace BrowserAutomationMaster.Compilation
 
                 // Handle case where user attempts to create another jsBlock before closing the previous one.
                 if (isJSBlock && line.StartsWith("start-javascript"))
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             Errors.GenerateErrorMessage(
                                 fileName,
@@ -607,7 +622,7 @@ namespace BrowserAutomationMaster.Compilation
                     PreprocessJSCodeBlock(jsBlockContent);
 
                     if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error))
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             message:
                                 Errors.GenerateErrorMessage(
                                     fileName,
@@ -630,7 +645,7 @@ namespace BrowserAutomationMaster.Compilation
                 bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
 
                 if (!canRunBrowserless && noBrowsersFound)
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             Errors.GenerateErrorMessage(
                                 fileName,
@@ -669,7 +684,7 @@ namespace BrowserAutomationMaster.Compilation
                         string issueText = $"Unable to parse selector: {splitLine[1]}\n" +
                                            $"If this is a CSS Selector, please use:\n" +
                                            $"click-exp '{sanitizedArg2}'";
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, issueText),
                           status: 1
                         );
@@ -683,7 +698,7 @@ namespace BrowserAutomationMaster.Compilation
                           sanitizedArg3,
                           actionTimeout
                         ) is (false, var eText):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, issueText: eText),
                           status: 1
                         );
@@ -697,7 +712,7 @@ namespace BrowserAutomationMaster.Compilation
                           actionTimeout,
                           ref isCE
                         ) is (false, var err):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, err),
                           status: 1
                         );
@@ -713,7 +728,7 @@ namespace BrowserAutomationMaster.Compilation
                          script.Body.scriptLines,
                          splitLine
                         ) is (false, var e):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, e),
                           status: 1
                         );
@@ -726,7 +741,7 @@ namespace BrowserAutomationMaster.Compilation
                         sanitizedArg2,
                         ref isFT
                         ) is (false, var issue):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, issue),
                           status: 1
                         );
@@ -740,7 +755,7 @@ namespace BrowserAutomationMaster.Compilation
                         sanitizedArg2,
                         ref isFT
                         ) is (false, var exceptionText):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, exceptionText),
                           status: 1
                         );
@@ -752,7 +767,7 @@ namespace BrowserAutomationMaster.Compilation
                         sanitizedArg2,
                         sanitizedArg3
                         ) is (false, var errorText):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, errorText),
                           status: 1
                         );
@@ -774,7 +789,7 @@ namespace BrowserAutomationMaster.Compilation
                         splitLine,
                         actionTimeout
                         ) is (false, var errMsg):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, errMsg),
                           status: 1
                         );
@@ -787,7 +802,7 @@ namespace BrowserAutomationMaster.Compilation
                         sanitizedArg3,
                         actionTimeout
                         ) is (false, var errorMsg):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, errorMsg),
                           status: 1
                         );
@@ -812,7 +827,7 @@ namespace BrowserAutomationMaster.Compilation
                         firstVisitFinished,
                         config.disableSSL,
                         config.runHeadless) is (false, var eMessage):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                           message: Errors.GenerateErrorMessage(fileName, line, lineNumber, eMessage),
                           status: 1
                         );
@@ -823,7 +838,7 @@ namespace BrowserAutomationMaster.Compilation
                         script.Body.scriptLines,
                         splitLine,
                         sanitizedArg2) is (false, var errMessage):
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             message: Errors.GenerateErrorMessage(fileName, line, lineNumber, errMessage),
                             status: 1
                         );
@@ -836,6 +851,7 @@ namespace BrowserAutomationMaster.Compilation
             SuppressUnneededWarnings();
             AddWatermark(); // Single comment watermark, completely nonintrusive and easily removable
         }
+        
         public static void HandleDisabling(BAMConfig config)
         {
             if (config.disablePycache)
@@ -857,6 +873,7 @@ namespace BrowserAutomationMaster.Compilation
                 script.Imports.AddStatement(statement);
             }
         }
+        
         public static void HandlePythonVersionSelection(Installations installations)
         {
             // Since there's 6 python versions supported the max number of found versions is 6.
@@ -893,7 +910,7 @@ namespace BrowserAutomationMaster.Compilation
 
             // Checks for valid contents since the array is initialized at the beginning of the function.
             if (!foundVersions.Any())
-                Errors.WriteErrorAndExit(errorMessage, 1);
+                Errors.WriteAndExit(errorMessage, 1);
 
 
             if (foundVersions.Count() == 1)
@@ -912,6 +929,7 @@ namespace BrowserAutomationMaster.Compilation
                 pythonVersion = version;
 
         }
+        
         public static async Task<bool> HandleRunOnCompile()
         {
             if (!GlobalConfig.RunOnCompile)
@@ -919,7 +937,7 @@ namespace BrowserAutomationMaster.Compilation
 
             if (!Directory.Exists(projectDirectory))
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     "Unable to run the newly compiled project, please ensure this directory still exists.",
                     status: 1
                 );
@@ -928,7 +946,7 @@ namespace BrowserAutomationMaster.Compilation
             var path = Path.Combine(projectDirectory, pythonScriptFileName);
             if (!File.Exists(path))
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     "Unable to run the newly compiled project, please ensure this file still exists.\\n\\n" +
                     $"Path: {path}",
                     status: 1
@@ -940,6 +958,7 @@ namespace BrowserAutomationMaster.Compilation
             await runtimeManager.RunScriptFromTranspiler();
             return true;
         }
+        
         private static bool HasUnclosedQuotes(string line)
         {
             bool inSingleQuote = false;
@@ -982,11 +1001,12 @@ namespace BrowserAutomationMaster.Compilation
             // If either flag is true at the end, a quote was left unclosed
             return inSingleQuote || inDoubleQuote;
         }
+        
         public static string Indent(int numberOfIndents)
         {
             if (numberOfIndents < 0)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: "Invalid value provided to Indent(), value must be >= 0.",
                     status: 1
                 );
@@ -1000,6 +1020,7 @@ namespace BrowserAutomationMaster.Compilation
                 Enumerable.Repeat(pythonIndent, numberOfIndents)
             );
         }
+        
         private static bool IsValidPyVersion(string pyVersion)
         {
             if (string.IsNullOrWhiteSpace(pyVersion)) { return false; }
@@ -1046,7 +1067,7 @@ namespace BrowserAutomationMaster.Compilation
                 bool isValidUri = Uri.TryCreate(link, UriKind.Absolute, out Uri? uriResult);
                 if (!isValidUri)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to resolve: '{link}'\n\n" +
                             $"Error log:\nUnable to create Uri object from provided link, returned a false boolean.",
@@ -1056,7 +1077,7 @@ namespace BrowserAutomationMaster.Compilation
                 }
                 if (uriResult == null)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to resolve: '{link}'\n\n" +
                             $"Error log:\nUnable to create Uri object from provided link, returned a null result.",
@@ -1124,6 +1145,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             return true;
         }
+        
         private static void PreprocessJSCodeBlock(string jsCodeBlock)
         {
             int lineNumber = 0;
@@ -1132,7 +1154,7 @@ namespace BrowserAutomationMaster.Compilation
                 lineNumber++;
                 if (HasUnclosedQuotes(line))
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\n" +
                             $"Line {lineNumber} contains an unescape quoted, please fix this and recompile.\n\n" +
@@ -1142,6 +1164,7 @@ namespace BrowserAutomationMaster.Compilation
                 }
             }
         }
+        
         private static void ResetTranspilerState()
         {
             desiredUrls.Clear();
@@ -1153,12 +1176,13 @@ namespace BrowserAutomationMaster.Compilation
         }
 
         public static void SetBrowserStackStatus(bool status) { usingBrowserstack = status; }
+        
         public static void SetCustomUserAgent(string[] args)
         {
             List<string> userAgentArgs = [.. args.Where(arg => arg.StartsWith("--set-custom-useragent=="))];
             if (userAgentArgs.Count > 1)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                      $"BAM Manager (BAMM) encountered a fatal error: '--set-custom-useragent' can only be specified once.\n" +
                      $"Found multiple instances:\n\n" +
                      $"1.'{userAgentArgs[0]}'\n\n" +
@@ -1185,7 +1209,7 @@ namespace BrowserAutomationMaster.Compilation
                         Warning.Write($"{newUserAgent}");
                         return;
                     }
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             "BAM Manager (BAMM) encountered a fatal error: " +
                             "Could not parse user agent string from the '--set-custom-useragent' argument.\n" +
@@ -1195,13 +1219,21 @@ namespace BrowserAutomationMaster.Compilation
                     );
 
                 }
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager encountered an error: Invalid format for '--set-custom-useragent' argument.\n\n" +
                         $"Expected Format: '--set-custom-useragent==\"UserAgentString\"",
                     status: 1
                 );
             }
+        }
+        
+        private static void SetBAMConfig(string filePath)
+        {
+            if (bamConfig != null)
+                bamConfig = null;
+
+            bamConfig = new BAMConfig(filePath);
         }
         private static void SetScriptName(string filePath)
         {
@@ -1215,7 +1247,7 @@ namespace BrowserAutomationMaster.Compilation
                 string fileName = Path.GetFileName(filePath);
                 if (fileName == null)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message: failureMessage,
                         status: 1
                     );
@@ -1228,7 +1260,7 @@ namespace BrowserAutomationMaster.Compilation
                         $"Please ensure this file was not deleted, and is not in use by any other program.\n\n" +
                         $"Press any key to exit...";
 
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message: failureMessage,
                         status: 1
                     );
@@ -1245,19 +1277,20 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: failureMessage,
                     status: 1
                 );
             }
         }
+        
         public static void SetTimeout(string[] args)
         {
             List<string> timeoutArgs = [.. args.Where(arg => arg.StartsWith("--set-timeout=="))];
 
             if (timeoutArgs.Count > 1)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) encountered a fatal error: '--set-timeout' can only be specified once.\n" +
                         $"Found multiple instances:\n\n" +
@@ -1278,7 +1311,7 @@ namespace BrowserAutomationMaster.Compilation
                     // Case for when the argument starts with --set-timeout==
                     // but doesn't match the expected format
                     // (For example '--set-timeout==X')
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAM Manager encountered an error: Invalid format for '--set-timeout' argument.\n\n" +
                             $"Expected Format: '--set-timeout==integer'" +
@@ -1291,7 +1324,7 @@ namespace BrowserAutomationMaster.Compilation
 
                 if (!valueParsed || parsedTimeout <= 0)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             "BAM Manager (BAMM) encountered a a fatal error: " +
                             "Could not parse integer value from '--set-timeout' argument.\n",
@@ -1305,6 +1338,9 @@ namespace BrowserAutomationMaster.Compilation
 
             }
         }
+        
+
+
         public static void SuppressUnneededWarnings()
         {
             // This function inserts the required code in reverse order so the output is consistent with whats desired.
@@ -1318,6 +1354,7 @@ namespace BrowserAutomationMaster.Compilation
             script.Imports.AddStatements(statements);
 
         }
+        
         public static void WriteRequirementsFile()
         {
             try
@@ -1340,7 +1377,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable write requirements.txt for '{pythonScriptFileName}'.\n\n" +
                         $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -1350,6 +1387,7 @@ namespace BrowserAutomationMaster.Compilation
                 );
             }
         }
+        
         public static void WritePythonFile()
         {
             try
@@ -1389,7 +1427,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable write '{pythonScriptFileName}' for the desired script.\n\n" +
                         $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +

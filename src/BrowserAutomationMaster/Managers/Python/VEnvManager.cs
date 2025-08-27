@@ -1,13 +1,11 @@
-﻿using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
 using System.Text;
-using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Compilation.Transpiler;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -41,7 +39,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 return Directory.Exists(VEnvPath);
             }
             catch (Exception e) { 
-                Errors.WriteErrorAndExit(e.Message, 1); 
+                Errors.WriteAndExit(e.Message, 1); 
                 return false; 
             }
         }
@@ -86,7 +84,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 if (createVEnvProcess.ExitCode != 0 || !VEnvExists(global)) 
                 { 
                     var path = !string.IsNullOrEmpty(VEnvPath) ? VEnvPath : GetGlobalVEnvPath();
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to create a virtual environment with the interpreter:\n" +
                             $"{InterpreterPath}.\n\nIf this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -98,7 +96,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 Success.WriteSuccessMessage("Successfully created Global Virtual Environment!\n");
             }
             catch (Exception e) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to create a virtual environment for the interpreter:\n{InterpreterPath}.\n\n" +
                         $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -153,14 +151,14 @@ namespace BrowserAutomationMaster.Managers.Python
                     Success.WriteSuccessMessage("Successfully installed the Browserstack Python SDK to the Global Virtual Environment!");
 
                 else
-                    Errors.WriteErrorAndExit(errMessage, 1);
+                    Errors.WriteAndExit(errMessage, 1);
 
                     
             }
             catch (Exception ex)
             {
                 var message = baseMessage + ex.Message;
-                Errors.WriteErrorAndExit(message, 1);
+                Errors.WriteAndExit(message, 1);
             }
                
         }
@@ -173,7 +171,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public async Task<bool> RunScript()
         {
-            if (Linux.IsChromeOS)
+            if (IsChromeOS)
                 { return true; } // Replace with BrowserStack
 
             var pythonPath = GetGlobalVEnvPythonPath();
@@ -185,7 +183,7 @@ namespace BrowserAutomationMaster.Managers.Python
             try
             {
                 if (!File.Exists(pythonPath))
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
                             $"if this issue persists.please make a bug report at {ISSUES_LINK}\n\n" +
@@ -205,7 +203,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     WorkingDirectory = ParentDirectory,
                 };
 
-                if (PlatformName == OSPlatform.Windows)
+                if (IsWindows)
                 {
                     startVEnvStartInfo.FileName = $"\"{pythonPath}\"";
                     startVEnvStartInfo.Arguments = $"\"{ScriptFilePath}\"";
@@ -260,12 +258,12 @@ namespace BrowserAutomationMaster.Managers.Python
                                       $"failed with exit code {startVEnvProcess.ExitCode}\n\n" +
                                       $"Stack Trace:\n{fullStackTrace}\n\n";
 
-                    Errors.WriteErrorAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
+                    Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
                 }
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"BAM Manager (BAMM) was unable to execute:\n{ScriptFilePath}\n\n" +
                              $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                              $"Error log:\nCommand: '{InterpreterPath} {scriptFileName}' failed.\n\n" +

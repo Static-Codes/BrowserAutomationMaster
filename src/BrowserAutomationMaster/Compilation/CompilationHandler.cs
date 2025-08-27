@@ -284,7 +284,7 @@ namespace BrowserAutomationMaster.Compilation
                 if (sanitizedArg2.EndsWith('/')) { sanitizedArg2 = sanitizedArg2[..^1]; }
                 if (!Transpiler.IsResolvableLink(sanitizedArg2))
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
                             $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
@@ -460,7 +460,7 @@ namespace BrowserAutomationMaster.Compilation
         {
             if (!Transpiler.IsResolvableLink(sanitizedArg2))
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
                         $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +

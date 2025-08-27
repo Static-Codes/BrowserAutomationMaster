@@ -45,13 +45,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 }
             }
             catch { 
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: "BAM Manager (BAMM) was unable to find any installed applications, exiting...", 
                     status: 1
                 ); 
             }
             if (apps.Count == 0) { 
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: "BAM Manager (BAMM) was unable to find any installed applications, exiting...", 
                     status: 1
                 ); 

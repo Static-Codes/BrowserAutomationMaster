@@ -20,7 +20,7 @@ namespace BrowserAutomationMaster.Managers.Python
         {
             if (string.IsNullOrEmpty(pythonExecutablePath))
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         "BAM Manager (BAMM) was unable to determine the path of the installed python instance, " +
                         "if this continues, please make an issue on github.", 

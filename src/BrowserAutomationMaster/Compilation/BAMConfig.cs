@@ -41,7 +41,7 @@ namespace BrowserAutomationMaster.Compilation
             int numberOfLines = Lines.Length;
             if (numberOfLines == 0)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         "BAM Manager (BAMM) encountered a fatal error, the selected file has no lines.\n\n" +
                         "Press any key to exit...",

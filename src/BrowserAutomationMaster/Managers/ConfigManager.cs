@@ -248,7 +248,7 @@ namespace BrowserAutomationMaster.Managers
                 }
                 catch (Exception ex)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         "Failed to create config directory.\n'" +
                         $"{ConfigDirectory}'\nError: {ex.Message}",
                         status: 1
@@ -267,7 +267,7 @@ namespace BrowserAutomationMaster.Managers
                 }
                 catch (Exception ex)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         "Failed to create config file.\n'" +
                         $"{ConfigFilePath}'\nError: {ex.Message}\n" +
                         $"Please make a bug report at {ISSUES_LINK}",
@@ -407,7 +407,7 @@ namespace BrowserAutomationMaster.Managers
 
             if (property == null)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     Errors.GenerateErrorMessage(
                         fileName: "config.ini",
                         originalLine,
@@ -423,7 +423,7 @@ namespace BrowserAutomationMaster.Managers
                 var castedValue = DoCast(propValue, property.PropertyType);
                 if (castedValue == null)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         Errors.GenerateErrorMessage(
                             fileName: "config.ini",
                             originalLine,
@@ -435,7 +435,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     Errors.GenerateErrorMessage(
                         "config.ini",
                         originalLine,
@@ -531,7 +531,7 @@ namespace BrowserAutomationMaster.Managers
 
                     if (!rawSections.ContainsKey(sectionName))
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
@@ -544,7 +544,7 @@ namespace BrowserAutomationMaster.Managers
 
                     if (encounteredSections.Contains(sectionName))
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
@@ -562,7 +562,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     if (currentSection == null)
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
@@ -582,7 +582,7 @@ namespace BrowserAutomationMaster.Managers
 
                     if (parts.Length != 2)
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
@@ -610,7 +610,7 @@ namespace BrowserAutomationMaster.Managers
                         
                         if (typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null) // Handles overrides
                         {
-                            Errors.WriteErrorAndExit(
+                            Errors.WriteAndExit(
                                 Errors.GenerateErrorMessage(
                                     fileName: "config.ini",
                                     originalLine,
@@ -626,7 +626,7 @@ namespace BrowserAutomationMaster.Managers
                     {
                         if (!ConfigParser.IsValidLine(trimmedLine, func))
                         {
-                            Errors.WriteErrorAndExit(
+                            Errors.WriteAndExit(
                                 Errors.GenerateErrorMessage(
                                     fileName: "config.ini",
                                     originalLine,
@@ -644,7 +644,7 @@ namespace BrowserAutomationMaster.Managers
                     
                     else
                     {
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,

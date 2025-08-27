@@ -40,14 +40,14 @@ namespace BrowserAutomationMaster.Managers
             {
                 var response = await NetworkClient.Instance.GetStringAsync(PACKAGES_LINK);
                 if (response == null)
-                    Errors.WriteErrorAndExit(nullMessage, 1);
+                    Errors.WriteAndExit(nullMessage, 1);
                 File.WriteAllText(packagePath, response);
                 Success.WriteSuccessMessage("Successfully downloaded required Python package data!\n");
             }
             catch (Exception ex)
             {
                 var exMessage = $"{baseMessage}{ex.Message}\n";
-                Errors.WriteErrorAndExit(exMessage, 1);
+                Errors.WriteAndExit(exMessage, 1);
             }
         }
 
@@ -68,7 +68,7 @@ namespace BrowserAutomationMaster.Managers
             catch (Exception ex)
             {
                 var errMessage = $"{baseMessage}{ex.Message}";
-                Errors.WriteErrorAndExit(errMessage, 1);
+                Errors.WriteAndExit(errMessage, 1);
             }
 
         }
@@ -76,7 +76,7 @@ namespace BrowserAutomationMaster.Managers
         {
             if (!PrecompiledPackageRegex().IsMatch(packageName))
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"Invalid package name '{packageName}', this package name was not matched using PrecompiledPackageRegex()",
                     status: 1
                 );
@@ -84,7 +84,7 @@ namespace BrowserAutomationMaster.Managers
             }
             if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
                     status: 1
                 );
@@ -96,7 +96,7 @@ namespace BrowserAutomationMaster.Managers
 
             if (supportedPackageVersions.Count == 0)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"No versions of package '{packageName}' found that support Python {pythonVersion}.",
                     status: 1
                 );
@@ -110,7 +110,7 @@ namespace BrowserAutomationMaster.Managers
 
             if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? selectedPackageData))
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: "Invalid packageName provided, please check your spelling and try again.",
                     status: 1
                 );
@@ -118,7 +118,7 @@ namespace BrowserAutomationMaster.Managers
 
             if (!selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || supportedPyVersions.Count == 0)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.",
                     status: 1
                 );

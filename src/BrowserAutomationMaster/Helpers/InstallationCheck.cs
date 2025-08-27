@@ -121,14 +121,14 @@ Supported versions include:
             }
 
             if (!AppNames.Intersect(validBrowsersApps).Any())
-                Errors.WriteErrorAndExit(NoBrowsersMessage, 1);
+                Errors.WriteAndExit(NoBrowsersMessage, 1);
 
             if (!AppNames.Intersect(validPythonVersions).Any()) 
-                Errors.WriteErrorAndExit(NoPythonMessage, 1);
+                Errors.WriteAndExit(NoPythonMessage, 1);
         }
         public Installations() // Empty constructor used as a fallback.
         {
-            Errors.WriteErrorAndExit(NoBrowsersMessage, 1);
+            Errors.WriteAndExit(NoBrowsersMessage, 1);
             AppNames = []; // This wont be reached, its purely to appease the compilers static nature.
         }
 

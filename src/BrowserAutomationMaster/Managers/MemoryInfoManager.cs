@@ -18,9 +18,9 @@ namespace BrowserAutomationMaster.Managers
         {
             return true switch
             {
-                _ when PlatformName == OSPlatform.Windows => CheckForWindows(),
-                _ when PlatformName == OSPlatform.OSX => CheckForOSX(),
-                _ when PlatformName == OSPlatform.Linux => CheckForLinux64(),
+                _ when IsWindows => CheckForWindows(),
+                _ when IsOSX => CheckForOSX(),
+                _ when IsLinux => CheckForLinux64(),
                 _ => []
             };
         }
@@ -36,7 +36,7 @@ namespace BrowserAutomationMaster.Managers
 
             // memStatus is passed as a reference type and is modified by the call to GlobalMemoryStatusEx
             if (!PInvoke.GlobalMemoryStatusEx(ref memStatus)) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                              $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                              $"Error log:\nGlobalMemoryStatusEx invoke inside MemoryInfoManager.CheckForWindows() returned false", 
@@ -112,7 +112,7 @@ namespace BrowserAutomationMaster.Managers
                 chmodProcess.WaitForExit();
 
                 if (chmodProcess.ExitCode != 0) {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message: $"BAM Manager (BAMM) was unable to give {scriptFileName} executable permissions.\n\n" +
                                  $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                                  $"Error log:\nchmod failed with exit code {chmodProcess.ExitCode}",
@@ -133,7 +133,7 @@ namespace BrowserAutomationMaster.Managers
                 sedProcess.WaitForExit();
 
                 if (sedProcess.ExitCode != 0) {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message: $"BAM Manager (BAMM) was unable to give {scriptFileName} executable permissions.\n\n" +
                                  $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                                  $"Error log:\nsed failed with exit code {sedProcess.ExitCode}", 
@@ -154,7 +154,7 @@ namespace BrowserAutomationMaster.Managers
                 Process? process = Process.Start(scriptRunInfo);
 
                 if (process == null) {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                                  $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                                  "Error log:\n" +
@@ -169,7 +169,7 @@ namespace BrowserAutomationMaster.Managers
                 process.WaitForExit();
 
                 if (process.ExitCode != 0) {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message: 
                             "BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                             $"If this continues, please make a bug report at {ISSUES_LINK}\n\nError log:\n" +
@@ -200,7 +200,7 @@ namespace BrowserAutomationMaster.Managers
                         { "freePercent", freePercent }
                     };
                 }
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                     $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error log:\n{scriptFileName} returned the following error:\n{errorOutput}\nExit Code: {process.ExitCode}",
@@ -209,7 +209,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                              $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                              $"Error log:\n{ex.Message}",
@@ -236,7 +236,7 @@ namespace BrowserAutomationMaster.Managers
                 Process? process = Process.Start(info);
                 using (process) {
                     if (process == null) { 
-                        Errors.WriteErrorAndExit(
+                        Errors.WriteAndExit(
                             message: 
                                 $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                                 $"If this issue persists please make a bug report at {ISSUES_LINK}\n\n" +
@@ -249,7 +249,7 @@ namespace BrowserAutomationMaster.Managers
 
                 var lines = output.Split("\n");
                 if (lines.Length == 0) {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message: 
                             $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
                             $"as the linux 'free' command returned nothing, please try again.\n\n" +
@@ -262,7 +262,7 @@ namespace BrowserAutomationMaster.Managers
 
                 var memory = lines[1].Split(" ", StringSplitOptions.RemoveEmptyEntries);
                 if (memory.Length == 0) {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
                             $"as the linux 'free' command returned nothing, please try again.\n\n" +
@@ -279,7 +279,7 @@ namespace BrowserAutomationMaster.Managers
 
                 if (invalidTotal || invalidUsed || invalidFree)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message: 
                             $"BAM Manager (BAMM) was unable to determine the amount of available system memory as the linux 'free' command returned " +
                             $"unexpected output for 'total', please try again.\n\n" +
@@ -303,7 +303,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again, " +
                         $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +

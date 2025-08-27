@@ -30,7 +30,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0)
                 {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to detect any of the following commands:\n\n" +
                             "dpkg\nflatpak\nrpm\n",
@@ -65,7 +65,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     $"BAM Manager (BAMM) was unable to parse installed system applications, " +
                     $"please see the error below:\n\n{ex}",
                     status: 1
@@ -237,7 +237,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             catch (Exception ex)
             {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to execute a necessary command, if this issue persists, " +
                         $"please make a bug report at {ISSUES_LINK}\nError log:\nUnable to execute\n" +

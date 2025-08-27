@@ -146,13 +146,13 @@ namespace BrowserAutomationMaster.Managers
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static int GetCoreCount()
         {
-            if (PlatformName == OSPlatform.Windows)
+            if (IsWindows)
                 return Win.GetPhysicalCoreCount();
             
-            if (PlatformName == OSPlatform.OSX) 
+            if (IsOSX) 
                 return GetPhysicalCoreCountMacOS(); 
             
-            if (PlatformName == OSPlatform.Linux) 
+            if (IsLinux) 
                 return GetPhysicalCoreCountLinux(); 
             
             Errors.ThrowUnsupportedPlatformException();
@@ -173,7 +173,7 @@ namespace BrowserAutomationMaster.Managers
                 };
                 using Process? process = Process.Start(coreCountProcessInfo);
                 if (process == null) {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         $"BAM Manager (BAMM) was unable to check the number of physical cores on the current machine, please make sure you are on an admin account.\n\nIf this continues, please make a bug report at {ISSUES_LINK}\n\nError log:\nprocess returned null\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
                     return -1; // This is purely to appease the compiler since -> process.StandardOutput has plausibility to be null according to the compiler, this is incorrect given that the function above kills the main thread.
                 }
@@ -185,7 +185,7 @@ namespace BrowserAutomationMaster.Managers
 
 
                 if (coreCountProcess.ExitCode != 0) {
-                    Errors.WriteErrorAndExit(
+                    Errors.WriteAndExit(
                         message:   
                             $"BAM Manager (BAMM) was unable to give corecheck.sh executable permissions.\n\n" +
                             $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -197,7 +197,7 @@ namespace BrowserAutomationMaster.Managers
               
                 if (int.TryParse(output, out int coreCount)) { return coreCount; }
 
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to determine the amount of physical CPU cores on your system.\n\n" +
                         $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -207,7 +207,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
             catch (Exception ex) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the amount of physical CPU cores on your system.\n\n" +
                         $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -238,7 +238,7 @@ namespace BrowserAutomationMaster.Managers
             string error = process.StandardError.ReadToEnd();
 
             if (string.IsNullOrEmpty(output) && !string.IsNullOrEmpty(error) || process.ExitCode != 0) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
                         $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -247,7 +247,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
             if (!int.TryParse(output, out int coreCount)) {
-                Errors.WriteErrorAndExit(
+                Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
                         $"if this issue persists, please make a bug report at {ISSUES_LINK}\n" +
