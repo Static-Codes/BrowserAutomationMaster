@@ -1,9 +1,8 @@
 ﻿using Esprima;
-using Esprima.Ast;
 
 internal class JavaScript
 {
-    public static bool IsValidSyntax(string jsCode, out string? error)
+    public static bool IsValidSyntax(string jsCode, out string error)
     {
         //string sanitizedCode = SanitizeJSForPython(jsCode);
         try
@@ -11,7 +10,7 @@ internal class JavaScript
             ParserOptions options = new() { Tolerant = false };
             JavaScriptParser parser = new(options);
             parser.ParseScript(jsCode);
-            error = null;
+            error = string.Empty;
             return true;
         }
         catch (ParserException ex)
@@ -20,6 +19,7 @@ internal class JavaScript
             return false;
         }
     }
+
     // Currently unused
     public static string SanitizeJSForPython(string jsCode)
     {

@@ -383,44 +383,43 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             if (PInvoke.AttachConsole((uint)instance.Id))
             {
                 var safeHandle = PInvoke.GetStdHandle_SafeHandle(STD_HANDLE.STD_ERROR_HANDLE);
-                using var fileStream = new FileStream(safeHandle, FileAccess.ReadWrite);
-                var standardOutput = new StreamWriter(fileStream, Encoding.UTF8)
-                {
-                    AutoFlush = true
-                };
 
-                var settings = new AnsiConsoleSettings
-                {
-                    Out = new AnsiConsoleOutput(standardOutput)
-                };
+                using var fileStream = new FileStream(safeHandle, FileAccess.ReadWrite);
+
+                var standardOutput = new StreamWriter(fileStream, Encoding.UTF8) { AutoFlush = true };
+
+                var settings = new AnsiConsoleSettings { Out = new AnsiConsoleOutput(standardOutput) };
 
                 AnsiConsole.Clear();
-                var console = AnsiConsole.Create(settings);
 
+                var console = AnsiConsole.Create(settings);
                 console.Write(
                     new Text(
                         "\n\nThere was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
                         new Style(foreground: ToSpectreColor(ThemeManager.DefaultTheme.ForegroundColor))
                     )
                 );
+
                 PInvoke.FreeConsole();
+
                 if (!PInvoke.AttachConsole((uint)instances[1].Id))
-                {
                     WriteMessage(
                         "Unable to switch window handles, please restart BAMM, " +
                         $"then make a bug report at {ISSUES_LINK}\n\n" +
                         $"Error log:\nUnable to attach to the console associated with instance.",
                         isError: true
                     );
-                }
+
                 Environment.Exit(1);
             }
+
             AnsiConsole.Write(
                 new Text(
                     "There was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
                     new Style(foreground: ToSpectreColor(ThemeManager.DefaultTheme.ForegroundColor))
                 )
             );
+
             Environment.Exit(1);
 
         }
