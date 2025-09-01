@@ -40,6 +40,7 @@ namespace BrowserAutomationMaster.Parsing
 
             return true;
         }
+
         public static bool BasicCommands(string fileName, string line, int lineNumber, string arg1, string[] lineArgs, ref string selectorString)
         {
             if (arg1.Contains("save-as-html"))
@@ -91,6 +92,51 @@ namespace BrowserAutomationMaster.Parsing
                 );
 
             return true;
+        }
+
+        public static void BuildJSBlock(string fileName, string line, List<string> lines, int index, ref string jsBlockContent, ref int jsBlockStartLine, ref bool jsBlockFinished, ref string jsError)
+        {
+            // At this point the following are true:
+            // There are atleast 3 lines in the file (visit, start-javascript, and end-javascript)
+            // Its also possible browser is defined at the top of the file.
+
+            if (line.StartsWith("end-javascript") && JavaScript.IsValidSyntax(jsBlockContent, out jsError))
+                jsBlockFinished = true;
+
+            else if (jsError != string.Empty)
+            {
+                string surroundingLines =
+                    $"Line {index - 2} -> {lines[index - 2]}\n" +
+                    $"Line {index - 1} -> {lines[index - 1]}\n" +
+                    $"Line {index} -> {line} <-- This is the line that's causing the issue.\n";
+
+                Errors.WriteErrorAndReturnBool(
+                    message:
+                        $"BAM Manager (BAMM) ran into a BAMC validation error on line {index} of '{fileName}'.\n\n" +
+                        $"Error log:\n{surroundingLines}\n" +
+                        $"Compiler error:\n" +
+                        $"In the current block, on {jsError}\n\n" +
+                        $"Please correct this and recompile.",
+                    returnBool: false
+                );
+            }
+
+            else if (line.StartsWith("start-javascript"))
+            {
+                jsBlockStartLine = index + 1;
+                Errors.WriteErrorAndReturnBool(
+                    message:
+                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                        $"File: \"{fileName}\"\n\n" +
+                        $"Error: Attempted to create a second JavaScript block on line {jsBlockStartLine} " +
+                        $"while the previous block has not been closed.\n\n" +
+                        $"Please ensure end-javascript is placed at or before line {index}.",
+                    returnBool: false
+                );
+            }
+
+            else
+                jsBlockContent += $"{line}\n";
         }
 
         public static bool ClickAtPosition(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
