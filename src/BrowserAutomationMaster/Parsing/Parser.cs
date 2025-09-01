@@ -7,6 +7,7 @@ using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Managers.CommandManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Parsing.LineValidation;
 
 
 namespace BrowserAutomationMaster.Parsing
@@ -21,23 +22,22 @@ namespace BrowserAutomationMaster.Parsing
             "save-as-html-exp", "select-element", "select-option", "set-custom-useragent", "start-javascript", 
             "take-screenshot", "wait-for-seconds", "visit"
         ];
-        readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
+        public readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
         readonly static string[] otherFeatureArgs = ["browser", "disable-pycache", "disable-ssl", "run-headless"];
         //readonly static string[] browserArgs = ["brave", "chrome", "firefox", "safari", ];
-        readonly static string[] browserArgs = ["chrome", "firefox", "safari", ];
+        public readonly static string[] browserArgs = ["chrome", "firefox", "safari", ];
 
-        readonly static string[] featureArgs = [.. proxyFeatureArgs, .. otherFeatureArgs];
-        //readonly static string[] validArgs = [.. actionArgs, .. featureArgs];
+        public readonly static string[] featureArgs = [.. proxyFeatureArgs, .. otherFeatureArgs];
+
+        public readonly static string[] validProtocols = ["http://", "https://", "file://"];
+
+        readonly static string userScriptsDirectory = DirectoryManager.GetUserScriptDirectory();
+
         static string selectedFile = string.Empty;
 
         static List<string> validFiles = [];
-        public readonly static string[] validProtocols = ["http://", "https://", "file://"];
 
         readonly static Dictionary<int, string> validFilesMapping = [];
-
-        // This needs to be modified to properly support cross platform file structures 
-        //readonly static string userScriptsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BrowserAutomationMaster",  "userScripts");
-        readonly static string userScriptsDirectory = DirectoryManager.GetUserScriptDirectory();
 
         static string noFilesFoundMessage = "";
         const string HeaderFormatPattern = @"^add-headers\s*(?<json>\{\s*(?:""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*""(?:\s*,\s*""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*"")*)?\s*\})$";
@@ -208,23 +208,35 @@ namespace BrowserAutomationMaster.Parsing
             }
             return builder.Length > 0 ? builder.ToString() : null;
         }
+
         public static string[] ValidateBAMCFiles(string[] BAMCFiles)
         {
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
         }
+
         public static bool IsValidHeaderFormat(string headerString) {
-            if (string.IsNullOrEmpty(headerString)) { return false; }
+            if (string.IsNullOrEmpty(headerString))
+                return false; 
+
             return PrecompiledHeaderRegex().IsMatch(headerString);
         }
         public static bool IsValidNumberFormat(string numberString) {
-            if (string.IsNullOrEmpty(numberString)) { return false; }
+            if (string.IsNullOrEmpty(numberString))
+                return false;
+
             return PrecompiledNumberRegex().IsMatch(numberString);
         }
+
         public static bool IsValidLinkFormat(string linkString) {
-            if (string.IsNullOrWhiteSpace(linkString)) { return false; }
+            if (string.IsNullOrWhiteSpace(linkString)) 
+                return false;
+
             bool hasValidProtocol = false;
-            foreach (string protocol in validProtocols){ 
-                if (linkString.StartsWith(protocol)) { 
+
+            foreach (string protocol in validProtocols)
+            { 
+                if (linkString.StartsWith(protocol)) 
+                { 
                     hasValidProtocol = true; 
                     break; 
                 }
@@ -274,364 +286,69 @@ namespace BrowserAutomationMaster.Parsing
         {
             string selectorString = "selector"; // Defaults to "selector" for selector based actions
             string trimmedLine = line.Trim();
-            if (line.StartsWith(" //") || line.StartsWith("//")) { return true; } // This is assumed as a comment
 
-            if (line.StartsWith("add-headers")) {
-                selectorString = $"{{\"header-name\": \"header-value\", \"header-name2\": \"header-value2\"}}";
-                if (!IsValidHeaderFormat(line)) {
-                    return Errors.WriteErrorAndReturnBool(
-                        message:
-                            $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                            $"File: \"{fileName}\"\n" +
-                            $"Invalid header format on line {lineNumber}\n" +
-                            $"Line: {line}\n" +
-                            $"Valid Syntax: add-headers {selectorString}\n", 
-                        returnBool: false
-                     );
-                }
-                return true;
-            }
+            if (line.StartsWith(" //") || line.StartsWith("//"))
+                return true; // This is assumed as a comment
+
+
+            if (line.StartsWith("add-headers"))
+                AddHeaders(fileName, line, lineNumber, ref selectorString);
 
             string[] lineArgs;
             string[] lineArgSpecialCases = ["add-header",  "fill-text", "fill-text-exp", "set-custom-useragent"];
 
             // Special case to handle lineArgSpecialCases
-            if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg))) { lineArgs = line.Split(" \""); } 
+            if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg)))
+                lineArgs = line.Split(" \"");
 
-            else { lineArgs = line.Split(" "); } // Handle all others
+            // Handle all others
+            else
+                lineArgs = line.Split(" ");
 
             string firstArg = lineArgs[0];
-            switch (firstArg)
+            return firstArg switch
             {
-                case "click":
-                case "get-text":
-                case "save-as-html":
-                case "save-as-html-exp":
-                case "select-element":
-                case "take-screenshot":
-                case "visit":
-                    if (firstArg.Contains("save-as-html")) { selectorString = "filename.html"; }
-                    if (firstArg.Equals("take-screenshot")) { selectorString = "filename.png"; }
-                    if (firstArg.Equals("select-option")) { selectorString = "option-selector"; }
+                "click" or "get-text" or "save-as-html" or "save-as-html-exp" or "select-element" or "take-screenshot" or "visit" => BasicCommands(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                    if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"')) { 
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\nValid Syntax: {firstArg} \"{selectorString}\"\n", 
-                            returnBool: false
-                        );
-                    }
-                    if (lineArgs[0].Equals("visit") && !IsValidLinkFormat(lineArgs[1].Replace('"', ' ').Trim())) {
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\nInvalid url format on line {lineNumber}\n" +
-                                $"Line: {line}\n", 
-                            returnBool: false
-                        );
-                    }
-                    return true;
+                "add-header" => AddHeader(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                case "add-header":
-                    selectorString = "\"header-name\" \"header-value\"";
-                    if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].EndsWith('"')) {
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} {selectorString}\n",
-                            returnBool: false
-                        );
-                    }
-                    return true;
+                "click-at-position" => ClickAtPosition(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                case "click-at-position":
-                    lineArgs = line.Trim().Split(" ");
-                    selectorString = "\"x-coordinate\" \"y-coordinate\"";
-                    if (lineArgs.Length != 3) { 
-                        return Errors.WriteErrorAndReturnBool(
-                            message: 
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} {selectorString}\n", 
-                            returnBool: false
-                        );
-                    }
-                    
-                    string[] positionArgs = [lineArgs[1], lineArgs[2]];
-                    foreach (var arg in positionArgs) 
-                    {
-                        bool notQuoted = !arg.StartsWith('"') || !arg.EndsWith('"');
-                        bool notParsable = !int.TryParse(
-                            arg.Replace('"', ' ').Trim(), 
-                            out int posArg
-                        );
-                        if (notQuoted || notParsable) {
-                            return Errors.WriteErrorAndReturnBool(
-                                message:
-                                    $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" + 
-                                    $"File: \"{fileName}\"\n" +
-                                    $"Invalid syntax on line {lineNumber}\n" +
-                                    $"Line: {line}\n" +
-                                    $"Valid Syntax: {firstArg} {selectorString}\n", 
-                                returnBool: false
-                            );
-                        }
-                    }
-                    return true;
+                "click-exp" => ClickExp(fileName, line, lineNumber, firstArg, ref lineArgs, ref selectorString),
 
-                case "click-exp":
-                    lineArgs = line.Trim().Split(" '");
-                    selectorString = "'selector'";
-                    if (lineArgs.Length != 2 || !lineArgs[1].EndsWith('\'')) {
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" + 
-                                $"File: \"{fileName}\"\n" + 
-                                $"Invalid syntax on line {lineNumber}\n" + 
-                                $"Line: {line}\n" + 
-                                $"Valid Syntax: {firstArg} {selectorString}\n", 
-                            returnBool: false
-                        );
-                    }
-                    return true;
+                "close-current-tab" => true,// No parsing is needed here
 
-                case "close-current-tab":
-                    // Add a check here ensuring theres only one element
-                    return true; // No parsing is needed here
+                "fill-text" => FillText(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                case "fill-text":
-                    selectorString = "\"selector\" \"Desired value to input\"";
-                    if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].Trim().EndsWith('"'))
-                    {
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} \"{selectorString}\" \"value\"\n", 
-                            returnBool: false
-                        );
-                    }
-                    return true;
+                "fill-text-exp" => FillTextExp(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                case "fill-text-exp":
-                    selectorString = "\"selector\" \"Desired value to input\"";
-                    if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].Trim().EndsWith('"'))
-                    {
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} \"{selectorString}\" \"value\"\n", 
-                            returnBool: false
-                        );
-                    }
-                    return true;
+                "open-new-tab" => OpenNewTab(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                case "open-new-tab":
-                    selectorString = "\"x-coordinate\" \"y-coordinate\"";
-                    if (lineArgs.Length != 3) { // Invalid # of args
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} {selectorString}\n", 
-                            returnBool: false
-                        );
-                    }
-                    for (int i = 0; i < lineArgs.Length; i++) { lineArgs[i] = lineArgs[i].Replace('"', ' ').Trim(); } // Removing double quotes.
-                    if (!IsValidLinkFormat(lineArgs[1])) { // Invalid url format
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Issue: Invalid link format for link: '{lineArgs[1]}'\n" +
-                                $"Valid Syntax: {firstArg} {selectorString}\n", 
-                            returnBool: false
-                        );
-                    }
+                "select-option" => SelectOption(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                    if (!int.TryParse(lineArgs[2], out int waitTime)) { // Invalid timeout
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Issue: Invalid timeout argument: '{lineArgs[2]}'\n" +
-                                $"Valid Syntax: {firstArg} {selectorString}\n", 
-                            returnBool: false
-                        );
-                    }
-                    return true;
+                "set-custom-useragent" => SetCustomUserAgent(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                case "select-option":
-                    if (lineArgs.Length != 3 || 
-                        !lineArgs[1].StartsWith('"') || 
-                        !lineArgs[1].Trim().EndsWith('"') || 
-                        !int.TryParse(lineArgs[2], out int parsedInt)) 
-                    {
-                        return Errors.WriteErrorAndReturnBool(
-                            message: 
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} \"{selectorString}\" index\n", 
-                            returnBool: false
-                        );
-                    }
-                    return true;
+                "wait-for-seconds" => WaitForSeconds(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                case "set-custom-useragent":
-                    selectorString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
-                    if (lineArgs.Length != 2 || 
-                        !lineArgs[1].Trim().EndsWith('"')) 
-                    {
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} \"{selectorString}\"\n", 
-                            returnBool: false
-                        );
-                    }
-                    else if (!IsValidUserAgentFormat(lineArgs[1].Trim())) {
-                        return Errors.WriteErrorAndReturnBool(
-                            message: 
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid useragent on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} \"{selectorString}\"\n", 
-                            returnBool: false
-                        );
-                    }
-                    return true;
+                "browser" => Browser(fileName, line, lineNumber, firstArg, lineArgs),
 
-                case "wait-for-seconds":
-                    selectorString = "5";
-                    if (!IsValidNumberFormat(lineArgs[1].Trim())) {
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid url format on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} {selectorString}\n", 
-                            returnBool: false
-                        );
-                    }
-                    return true;
-
-                case "browser":
-                    if (
-                        lineArgs.Length != 2 || 
-                        !browserArgs.Contains(lineArgs[1].Replace("\"", "")) || 
-                        !lineArgs[1].StartsWith('"') || 
-                        !lineArgs[1].EndsWith('"'))
-                    {
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid syntax on line {lineNumber}\n" +
-                                $"Line: {line}\n" +
-                                $"Valid Syntax: {firstArg} {"\"firefox\""}\n", 
-                            returnBool: false
-                        );
-                    }
-                    return true;
-
-                case "feature":
-                    if (lineArgs.Length != 2 && lineArgs.Length != 3 || 
-                        !featureArgs.Contains(lineArgs[1]) || 
-                        !lineArgs[1].StartsWith('"') || 
-                        !lineArgs[1].EndsWith('"'))
-                    {
-                        selectorString = "\"feature-name\"";
-                        return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" + 
-                                $"File: \"{fileName}\"\n" + 
-                                $"Invalid syntax on line {lineNumber}\n" + 
-                                $"Line: {line}\n" + 
-                                $"Valid Syntax: {firstArg} {selectorString}\n", 
-                            returnBool: false
-                        );
-                    }
-                    if (proxyFeatureArgs.Contains(lineArgs[1]))
-                    {
-                        selectorString = $"\"{lineArgs[1]}\"";
-                        if (lineArgs.Length != 3 || 
-                            lineArgs[2].Count(c => (c == ':')) != 2 || 
-                            lineArgs[2].Count(c => (c == '@')) != 1)
-                        {
-                            return Errors.WriteErrorAndReturnBool(
-                                message:
-                                    $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                    $"File: \"{fileName}\"\n" +
-                                    $"Invalid syntax on line {lineNumber}\n" +
-                                    $"Line: {line}\n" +
-                                    $"Valid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\n" +
-                                    $"If no authentication is required: NULL:NULL@IP:PORT\n", 
-                                returnBool: false
-                            );
-                        }
-
-                        lineArgs[2] = lineArgs[2].Replace('"', ' ').Trim();
-                        bool validProxy = IsValidProxyFormat(lineArgs[2]);
-                        if (!validProxy)
-                        {
-                            return Errors.WriteErrorAndReturnBool(
-                                message:
-                                    $"BAMC Validation Error:\n\n" +
-                                    $"File: \"{fileName}\"\n" +
-                                    $"Invalid syntax on line {lineNumber}\n" +
-                                    $"Line: {line}\n" +
-                                    $"Valid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\n" +
-                                    $"If no authentication is required: NULL:NULL@IP:PORT\n", 
-                                returnBool: false
-                            );
-                        }
-                    }
-                    return true;
-
-                default:
-                    return Errors.WriteErrorAndReturnBool(
+                _ => Errors.WriteErrorAndReturnBool(
                         message:
                             $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                             $"File: \"{fileName}\"\n" +
                             $"Invalid command on line {lineNumber}.\n" +
-                            $"Please check your spelling and try again.\n", 
+                            $"Please check your spelling and try again.\n",
                         returnBool: false
-                    );
+                    ),
+            };
 
-
-            }
+        
         }
         private static int HandleUserSelection(Dictionary<int, string> mapping)
         {
 
             if (mapping.Count == 0)
-            {
                 Errors.WriteAndExit(noFilesFoundMessage, 1);
-            }
 
             int numberOfFilesFound = mapping.Count;
            
@@ -649,16 +366,12 @@ namespace BrowserAutomationMaster.Parsing
                 {
                     continue; // Silent continue is the intended be
                 }
-                if (rawFileName != null) 
-                {
-                    menuOptions[i] = $"{i + 1}.  {rawFileName}"; 
-                }
+                if (rawFileName != null)
+                    menuOptions[i] = $"{i + 1}.  {rawFileName}";
             }
 
             if (menuOptions.Length == 0) 
-            { 
                 Errors.WriteAndExit(noFilesFoundMessage, 1); 
-            }
 
             string panicText = 
                 $"BAM Manager (BAMM) panicked due an invalid value provided as input.  " +
@@ -666,20 +379,16 @@ namespace BrowserAutomationMaster.Parsing
 
             var rawInput = Input.WriteListFromOptions(menuOptions, "file");
             var input = GetFileNumber(rawInput);
+
             if (input == null)
-            {
                 Errors.WriteAndExit(panicText, 1);
-            }
 
             if (!int.TryParse(input, out int fileNumber))
-            {
                 Errors.WriteAndExit(panicText, 1);
-            }
 
             if (fileNumber < 1 || fileNumber > numberOfFilesFound)
-            {
                 Errors.WriteAndExit(panicText, 1);
-            }
+
             return fileNumber - 1; // index = fileNumber - 1;
         }
         public static bool IsValidFile(string filePath)
@@ -693,25 +402,32 @@ namespace BrowserAutomationMaster.Parsing
                     .Select(line => DeleteCommentIfPresent(line.Trim()))
                     .Where(line => !string.IsNullOrWhiteSpace(line))
                 ];
-                string currentJSBlockContent = string.Empty;
-                int lineCurrentJSBlockStarts = 0; // Will be modified assuming a javascript block is provided.
+
                 bool browserBlockFinished = false;
                 bool featureBlockFinished = false;
                 bool visitBlockFinished = false;
                 bool jsBlockFinished = true; // Starts off as true and will change below
+
+                string currentJSBlockContent = string.Empty;
+
+                int lineCurrentJSBlockStarts = 0; // Will be modified assuming a javascript block is provided.
 
                 for (int i = 0; i < lines.Count; i++)
                 {
                     string selectorString = "value";
                     string line = lines[i];
 
-                    if (!jsBlockFinished) {
+                    if (!jsBlockFinished) 
+                    {
 
                         // At this point the following are true:
                         // There are atleast 3 lines in the file (visit, start-javascript, and end-javascript)
                         // Its also possible browser is defined at the top of the file.
-                        if (line.StartsWith("end-javascript")) {
-                            if (!JavaScript.IsValidSyntax(currentJSBlockContent, out string? jsError)) {
+
+                        if (line.StartsWith("end-javascript")) 
+                        {
+                            if (!JavaScript.IsValidSyntax(currentJSBlockContent, out string? jsError))
+                            {
                                 string surroundingLines = 
                                     $"Line {i-2} -> {lines[i - 2]}\n" +
                                     $"Line {i - 1} -> {lines[i - 1]}\n" +
@@ -727,10 +443,14 @@ namespace BrowserAutomationMaster.Parsing
                                     returnBool: false
                                 );
                             }
+
                             jsBlockFinished = true; 
                         }
-                        else if (line.StartsWith("start-javascript")) {
+
+                        else if (line.StartsWith("start-javascript")) 
+                        {
                             lineCurrentJSBlockStarts = i + 1;
+
                             return Errors.WriteErrorAndReturnBool(
                                 message:
                                     $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -741,19 +461,25 @@ namespace BrowserAutomationMaster.Parsing
                                 returnBool: false
                             );
                         }
-                        else {
+
+                        else
                             currentJSBlockContent += $"{line}\n";
-                        }
+                        
                     }
+
                     else
                     {
                         string[] lineArgs = line.Split(" ");
-                        if (lineArgs.Length == 0) { return false; }
+
+                        if (lineArgs.Length == 0) 
+                            return false;
+
                         string firstArg = lineArgs[0];
+
                         if (firstArg.Equals("browser"))
                         {
+
                             if (i != 0 || browserBlockFinished)
-                            {
                                 return Errors.WriteErrorAndReturnBool(
                                     message:
                                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -762,13 +488,13 @@ namespace BrowserAutomationMaster.Parsing
                                         $"'browser' command must be placed at the top of the file.\n",
                                     returnBool: false
                                 );
-                            }
+
                             browserBlockFinished = true;
                         }
+
                         else if (firstArg.Equals("feature"))
                         {
                             if (featureBlockFinished)
-                            {
                                 return Errors.WriteErrorAndReturnBool(
                                     message:
                                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -777,9 +503,8 @@ namespace BrowserAutomationMaster.Parsing
                                         $"All 'feature' commands must be placed before any other command, except 'browser'.\n", 
                                     returnBool: false
                                 );
-                            }
+
                             if (usedFeatures.Contains(line))
-                            {
                                 return Errors.WriteErrorAndReturnBool(
                                     message:
                                         "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -788,9 +513,8 @@ namespace BrowserAutomationMaster.Parsing
                                         "All 'feature' commands may only be defined once.\n", 
                                     returnBool: false
                                 );
-                            }
+
                             if (!featureArgs.Any(arg => line.Contains(arg)))
-                            {
                                 return Errors.WriteErrorAndReturnBool(
                                     message:
                                         "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -799,7 +523,6 @@ namespace BrowserAutomationMaster.Parsing
                                         $"For more information please see, {DOCUMENTATION_LINK}",
                                     returnBool: false
                                 );
-                            }
 
                             string[] proxyFeatures = [
                                 "\"use-http-proxy\"", 
@@ -807,6 +530,7 @@ namespace BrowserAutomationMaster.Parsing
                                 "\"use-socks4-proxy\"", 
                                 "\"use-socks5-proxy\""
                             ];
+
                             if (proxyFeatures.Contains(lineArgs[1]))
                             {
                                 if (lineArgs.Length != 3 || 
@@ -841,23 +565,25 @@ namespace BrowserAutomationMaster.Parsing
                             }
                             usedFeatures.Add(line);
                         }
+
                         else if (firstArg.Equals("visit"))
                         {
-                            if (visitBlockFinished) { return true; }
+                            if (visitBlockFinished)
+                                return true;
 
                             List<string> passedLines = [.. lines.Take(i + 1)];
-                            List<string> availableCommands = ["browser", "feature", "visit"];
+
+                            string[] availableCommands = ["browser", "feature", "visit"];
+
                             List<string> invalidLines = [..
-                            passedLines.Where(line =>
-                                !availableCommands.Any(prefix => 
-                                    line.Trim().StartsWith(prefix)) && 
+                                passedLines.Where(
+                                    line => !availableCommands.Any(prefix => line.Trim().StartsWith(prefix)) && 
                                     !line.Trim().StartsWith("//") // Ignores comments
                                 
                                 )
                             ];
 
                             if (invalidLines.Count > 0)
-                            {
                                 Errors.WriteAndExit(
                                     message:
                                         Errors.GenerateErrorMessage(fileName, line, i, 
@@ -871,20 +597,27 @@ namespace BrowserAutomationMaster.Parsing
                                         ), 
                                     status: 1
                                 );
-                            }
                         }
-                        else if (line.StartsWith("start-javascript")){ jsBlockFinished = false; }
-                        else if (line.StartsWith("end-javascript")) {
+
+                        else if (line.StartsWith("start-javascript"))
+                            jsBlockFinished = false;
+
+                        else if (line.StartsWith("end-javascript")) 
+                        {
                             jsBlockFinished = true;
                             currentJSBlockContent = string.Empty;
                         }
-                        else {
-                            bool validLine = HandleLineValidation(fileName, line, i + 1);
-                            if (!validLine) { return false; }
-                            if (!line.StartsWith("//")){ // Ignores comments
+
+                        else 
+                        {
+                            if (!HandleLineValidation(fileName, line, i + 1))
+                                return false;
+
+                            // Ignores comments
+                            if (!line.StartsWith("//"))
                                 // This flag will be used to ensure all 'feature' commands are placed before all other commands, excluding 'browser'.
                                 featureBlockFinished = true;
-                            }
+                            
                         }
                     }
                 }
@@ -892,7 +625,6 @@ namespace BrowserAutomationMaster.Parsing
                     usedFeatures.Any(x=>x.Contains("async")) && 
                     usedFeatures.Any(x=>x.Contains("bypass-cloudflare"))
                 ) 
-                {
                     return Errors.WriteErrorAndReturnBool(
                         message: 
                             $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -900,9 +632,9 @@ namespace BrowserAutomationMaster.Parsing
                             $"Error: Script cannot contain both \"async\" and \"bypass-cloudflare\"\n", 
                         returnBool: false
                     );
-                }
                 return true;
             }
+
             catch (FileNotFoundException) { 
                 return Errors.WriteErrorAndReturnBool(
                     message:
@@ -911,6 +643,7 @@ namespace BrowserAutomationMaster.Parsing
                     returnBool: false
                 );  
             }
+
             catch (UnauthorizedAccessException) {  
                 return Errors.WriteErrorAndReturnBool(
                     message:
@@ -942,6 +675,7 @@ namespace BrowserAutomationMaster.Parsing
                 ); 
             }
         }
+        
         public static KeyValuePair<MenuOption, string> New()
         {
             bool userScriptDirExists = CreateUserScriptsDirectory();
@@ -965,30 +699,32 @@ namespace BrowserAutomationMaster.Parsing
             switch (selection)
             {
                 case MenuOption.Add:
-                    string input = Input.WriteListFromOptions(
-                        options: ["Select a File", "Exit"]
-                    );
 
-                    if (input.Equals("Exit")) { 
+                    string input = Input.WriteListFromOptions(["Select a File", "Exit"]);
+
+                    if (input.Equals("Exit"))
                         Errors.WriteAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
-                    }
+                    
+
                     string path = Input.AskForInput("Path: ");
+                    
                     if (!File.Exists(path))
-                    {
                         Errors.WriteAndExit(
                             message:
                                 "BAMM Manager (BAMM) was unable to find the provided file, " +
                                 $"please ensure the file below exists:\n{path}",
                             status: 1
                         );
-                    }
+
                     UserScriptManager _ = new(path, "add");
                     return KeyValuePair.Create(MenuOption.Add, path);
 
                 case MenuOption.Compile:
                     HandleBAMCFileValidation(BAMCFiles);
+
                     index = HandleUserSelection(validFilesMapping);
                     selectedFile = BAMCFiles[index];
+                    
                     return KeyValuePair.Create(
                         MenuOption.Compile, 
                         Path.Combine(
