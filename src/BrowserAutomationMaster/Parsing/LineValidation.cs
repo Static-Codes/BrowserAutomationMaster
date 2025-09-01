@@ -4,6 +4,7 @@ using static BrowserAutomationMaster.Parsing.Parser;
 namespace BrowserAutomationMaster.Parsing
 {
     // Breakup Parser.HandleLineValidation() and Parser.IsValidLine() here
+
     public static class LineValidation
     {
         public static bool AddHeader(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
