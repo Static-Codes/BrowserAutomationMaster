@@ -202,55 +202,75 @@ namespace BrowserAutomationMaster.Parsing
 
         public static bool Feature(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
         {
+            
             selectorString = "\"feature-name\"";
+            var invalidSyntaxMessage =
+                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                $"File: \"{fileName}\"\n" +
+                $"Invalid syntax on line {lineNumber}\n" +
+                $"Line: {line}\n" +
+                $"Valid Syntax: {firstArg} {selectorString}\n";
 
-            if (lineArgs.Length != 2 && lineArgs.Length != 3 ||
-                !featureArgs.Contains(lineArgs[1]) ||
-                !lineArgs[1].StartsWith('"') ||
-                !lineArgs[1].EndsWith('"')
-            )
+            if (!lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
+                return Errors.WriteErrorAndReturnBool(invalidSyntaxMessage, returnBool: false);
+
+            // Sanitize args based on length
+            switch (lineArgs.Length)
+            {
+                case 2:
+                    lineArgs[1] = lineArgs[1].Replace('"', ' ').Trim();
+                    break;
+
+                case 3:
+                    lineArgs[1] = lineArgs[1].Replace('"', ' ').Trim();
+                    lineArgs[2] = lineArgs[2].Replace('"', ' ').Trim();
+                    break;
+
+                default:
+                    return Errors.WriteErrorAndReturnBool(invalidSyntaxMessage, returnBool: false);
+            }
+
+
+            bool invalidFeature =
+                lineArgs.Length != 2 &&
+                lineArgs.Length != 3 ||
+                !featureArgs.Contains(lineArgs[1].Replace('"', ' ').Trim());
+
+            if (invalidFeature)
+                return Errors.WriteErrorAndReturnBool(invalidSyntaxMessage, returnBool: false);
+
+            bool failedProxySoftCheck = 
+                lineArgs.Length != 3 ||
+                lineArgs[2].Count(c => (c == ':')) != 2 ||
+                lineArgs[2].Count(c => (c == '@')) != 1;
+
+            if (proxyFeatureArgs.Contains(lineArgs[1]) && failedProxySoftCheck)
+            {
+                selectorString = $"\"{lineArgs[1]}\"";
                 return Errors.WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
                         $"Invalid syntax on line {lineNumber}\n" +
                         $"Line: {line}\n" +
-                        $"Valid Syntax: {firstArg} {selectorString}\n",
+                        $"Valid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\n" +
+                        $"If no authentication is required: NULL:NULL@IP:PORT\n",
                     returnBool: false
                 );
-
-            if (proxyFeatureArgs.Contains(lineArgs[1]))
-            {
-                selectorString = $"\"{lineArgs[1]}\"";
-                if (lineArgs.Length != 3 ||
-                    lineArgs[2].Count(c => (c == ':')) != 2 ||
-                    lineArgs[2].Count(c => (c == '@')) != 1
-                )
-                    return Errors.WriteErrorAndReturnBool(
-                        message:
-                            $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                            $"File: \"{fileName}\"\n" +
-                            $"Invalid syntax on line {lineNumber}\n" +
-                            $"Line: {line}\n" +
-                            $"Valid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\n" +
-                            $"If no authentication is required: NULL:NULL@IP:PORT\n",
-                        returnBool: false
-                    );
-
-                lineArgs[2] = lineArgs[2].Replace('"', ' ').Trim();
-
-                if (!IsValidProxyFormat(lineArgs[2]))
-                    return Errors.WriteErrorAndReturnBool(
-                        message:
-                            $"BAMC Validation Error:\n\n" +
-                            $"File: \"{fileName}\"\n" +
-                            $"Invalid syntax on line {lineNumber}\n" +
-                            $"Line: {line}\n" +
-                            $"Valid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\n" +
-                            $"If no authentication is required: NULL:NULL@IP:PORT\n",
-                        returnBool: false
-                    );
             }
+
+            if (proxyFeatureArgs.Contains(lineArgs[1]) && !IsValidProxyFormat(lineArgs[2]))
+                return Errors.WriteErrorAndReturnBool(
+                    message:
+                        $"BAMC Validation Error:\n\n" +
+                        $"File: \"{fileName}\"\n" +
+                        $"Invalid syntax on line {lineNumber}\n" +
+                        $"Line: {line}\n" +
+                        $"Valid Syntax: {firstArg} {selectorString} USER:PASS@IP:PORT\n" +
+                        $"If no authentication is required: NULL:NULL@IP:PORT\n",
+                    returnBool: false
+                );
+            
             return true;
         }
         

@@ -19,6 +19,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         public required bool BrowserStackLocal;
         public required string BuildName; // Python script filename (without the extension)
         public required string ProjectName; // projectDirectory (Current timestamp)
+        public required string BuildIdentifier;
         public required bool Debug;
         public required string ConsoleLogs;
         public required string Framework;
@@ -26,7 +27,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
     public struct BrowserStackPlatform()
     {
-        public required string osName;
+        public required string os;
         public required string osVersion;
         public required string BrowserName;
         public required string BrowserVersion;
@@ -113,7 +114,8 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             var notFoundMessage = baseMessage + "Global Virtual Environment does not contain a pip executable.";
 
-            var pipExecutable = GetGlobalVEnvPath();
+            var pipExecutable = GetGlobalVEnvPipPath();
+
             var globalVEnv = new VEnvManager(pipExecutable, string.Empty); // was scriptFileName
             globalVEnv.CreateVEnv(global: true);
 
@@ -202,7 +204,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 {
                     new()
                     {
-                        osName = osName,
+                        os = osName,
                         osVersion = osVersion,
                         BrowserName = browserName,
                         BrowserVersion = browserVersion,
@@ -218,9 +220,10 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     Platforms = platform,
                     Debug = true,
                     BrowserStackLocal = false,
+                    BuildIdentifier = "'#${BUILD_NUMBER}'",
                     BuildName = scriptName,
                     ProjectName = projectName,
-                    ConsoleLogs = "disabled",
+                    ConsoleLogs = "disable",
                     Framework = "python",
                 };
 
