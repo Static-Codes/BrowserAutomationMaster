@@ -26,11 +26,17 @@
 
 - Refactored `PackageManager` class in namespace `BrowserAutomationMaster.Managers` to use externally hosted JSON, instead of embedded json.
 
-- Refactored `BrowserAutomationMaster.Compilation.Transpiler` to use the newly created classes
+- Refactored `Parser.HandleLineValidation` function in namespace `BrowserAutomationMaster.Compilation`
+
+  - Split into `Parser.LineValidation`
+
+- Refactored `Transpiler` class in namespace `BrowserAutomationMaster.Compilation` to use the newly created classes
+
   - `Script`
   - `ScriptBody`
   - `ScriptImports`
   - `ScriptRequirements`
+
 - Refactored `Transpiler` class in namespace `BrowserAutomationMaster.Managers` to use private modifiers on the majority of functions that were previously declared as public.
 
 - Refactored `UninstallationManager` class in namespace `BrowserAutomationMaster.Managers` to properly execute the uninstallation process on Linux (MacOS still has to manually uninstall)
