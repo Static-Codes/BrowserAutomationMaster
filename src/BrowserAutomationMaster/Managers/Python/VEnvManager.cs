@@ -109,6 +109,8 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public static async Task InstallGlobalPackages()
         {
+            Success.WriteSuccessMessage("Installing Browserstack Python SDK...");
+
             var baseMessage =
                     "Unable to install the Browserstack Python SDK.\n" +
                     $"If this issue persists, please make a bug report at {ISSUES_LINK}\n" +

@@ -15,8 +15,6 @@ namespace BrowserAutomationMaster.Parsing
 {
     public partial class Parser
     {
-
-
         public readonly static string[] actionArgs = [
             "add-header", "add-headers", "click", "click-at-position", "click-exp", "close-current-tab", 
             "end-javascript", "fill-text", "fill-text-exp", "get-text", "open-new-tab", "save-as-html", 
@@ -44,7 +42,7 @@ namespace BrowserAutomationMaster.Parsing
 
         static string noFilesFoundMessage = "";
         const string HeaderFormatPattern = @"^add-headers\s*(?<json>\{\s*(?:""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*""(?:\s*,\s*""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*"")*)?\s*\})$";
-        const string LinkFormatPattern = @"(?i)\b(https?://(?:(?:(?:[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?\.)*(?:[a-z\u00a1-\uffff]{2,}|[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)\.?)|(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|\[(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[a-zA-Z0-9._~%-]+|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d))\]))(?::\d{2,5})?(?:[/?#][^\s<>""']*)?\b";
+        const string LinkFormatPattern = @"(?i)\b(http|https|file|ftp?://(?:(?:(?:[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?\.)*(?:[a-z\u00a1-\uffff]{2,}|[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)\.?)|(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|\[(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[a-zA-Z0-9._~%-]+|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d))\]))(?::\d{2,5})?(?:[/?#][^\s<>""']*)?\b";
 
         const string ProxyFormatPattern = @"^([^:]+):([^@]+)@([^:]+):(\d+)$";
         const string NumberFormatPattern = @"^(?:\d+(?:\.\d{1,3})?|\.\d{1,3})$";
@@ -304,9 +302,11 @@ namespace BrowserAutomationMaster.Parsing
             if (line.StartsWith(" //") || line.StartsWith("//"))
                 return true; // This is assumed as a comment
 
-
             if (line.StartsWith("add-headers"))
+            {
                 AddHeaders(fileName, line, lineNumber, ref selectorString);
+                return true;
+            }
 
             string[] lineArgs;
             string[] lineArgSpecialCases = ["add-header",  "fill-text", "fill-text-exp", "set-custom-useragent"];
@@ -320,6 +320,7 @@ namespace BrowserAutomationMaster.Parsing
                 lineArgs = line.Split(" ");
 
             string firstArg = lineArgs[0];
+
             return firstArg switch
             {
                 "click" or "get-text" or "save-as-html" or "save-as-html-exp" or "select-element" or "take-screenshot" or "visit" => BasicCommands(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
@@ -345,6 +346,8 @@ namespace BrowserAutomationMaster.Parsing
                 "wait-for-seconds" => WaitForSeconds(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
                 "browser" => Browser(fileName, line, lineNumber, firstArg, lineArgs),
+
+                "feature" => Feature(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
                 _ => Errors.WriteErrorAndReturnBool(
                         message:
@@ -410,8 +413,6 @@ namespace BrowserAutomationMaster.Parsing
             List<string> usedFeatures = [];
             var fileName = Path.GetFileName(filePath);
 
-            
-
             try
             {
                 List<string> lines = [..
@@ -440,13 +441,15 @@ namespace BrowserAutomationMaster.Parsing
                         continue;
                     }
 
-
                     string[] lineArgs = line.Split(" ");
 
                     if (lineArgs.Length == 0)
                         return false;
 
                     var firstArg = lineArgs[0];
+
+
+                    #region Start of Browser Feature Check
 
                     // If a browser command is present in any line but the first line that contains characters.
                     if (firstArg.Equals("browser") && i != 0 && browserBlockFinished)
@@ -466,6 +469,10 @@ namespace BrowserAutomationMaster.Parsing
                         continue;
                     }
 
+                    #endregion End of Browser Feature Check
+
+
+                    #region Start of Invalid Feature Check
 
                     // If a feature name is provided after defining non feature actions
                     else if (firstArg.Equals("feature") && featureBlockFinished)
@@ -494,7 +501,10 @@ namespace BrowserAutomationMaster.Parsing
                             returnBool: false
                         );
 
-                    // Start of Proxy Feature Check
+                    #endregion Start of Invalid Feature Check
+
+
+                    # region Start of Proxy Feature Check
 
                     var invalidProxyFeatureMessage =
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -559,13 +569,11 @@ namespace BrowserAutomationMaster.Parsing
                         continue;
                     }
 
-                    // End of Proxy Feature Check
+                    #endregion End of Proxy Feature Check
 
 
-
-
-
-
+                    #region Start of Visit Feature Check
+                    
                     if (firstArg.Equals("visit") && visitBlockFinished)
                         return true;
 
@@ -600,6 +608,10 @@ namespace BrowserAutomationMaster.Parsing
                             status: 1
                         );
 
+                    #endregion End of Visit Feature Check
+
+
+                    #region Start of JS Feature Check
 
                     else if (line.StartsWith("start-javascript"))
                         jsBlockFinished = false;
@@ -610,7 +622,7 @@ namespace BrowserAutomationMaster.Parsing
                         currentJSBlockContent = string.Empty;
                     }
 
-                    if (!HandleLineValidation(fileName, line, i + 1))
+                    else if (!HandleLineValidation(fileName, line, i + 1))
                         return false;
 
                     // Ignores comments
@@ -618,23 +630,25 @@ namespace BrowserAutomationMaster.Parsing
                         // This flag will be used to ensure all 'feature' commands are placed before all other commands, excluding 'browser'.
                         featureBlockFinished = true;
 
+                    #endregion End of JS Feature Check
 
                 }
 
                 // Leaving this outside the for loop saves 1 execution cycle per valid line within a .BAMC file
                 // Support for async and bypass-cloudflare were removed in BAMM v1.0.0A3
                 // This will be uncommented if support is reintroduced.
-                if (
-                    usedFeatures.Any(x => x.Contains("async")) &&
-                    usedFeatures.Any(x => x.Contains("bypass-cloudflare"))
-                )
-                    return Errors.WriteErrorAndReturnBool(
-                        message:
-                            $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                            $"File: \"{fileName}\"\n\n" +
-                            $"Error: Script cannot contain both \"async\" and \"bypass-cloudflare\"\n",
-                        returnBool: false
-                    );
+
+                //if (
+                //    usedFeatures.Any(x => x.Contains("async")) &&
+                //    usedFeatures.Any(x => x.Contains("bypass-cloudflare"))
+                //)
+                //    return Errors.WriteErrorAndReturnBool(
+                //        message:
+                //            $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                //            $"File: \"{fileName}\"\n\n" +
+                //            $"Error: Script cannot contain both \"async\" and \"bypass-cloudflare\"\n",
+                //        returnBool: false
+                //    );
 
                 return true;
             }
@@ -678,13 +692,11 @@ namespace BrowserAutomationMaster.Parsing
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"A fatal error occurred while validating:'{fileName}'\n" +
-                        $"Error: {ex.Message}\n",
+                        $"Error: {ex}\n",
                     returnBool: false
                 );
             }
         }
-
-
         public static KeyValuePair<MenuOption, string> New()
         {
             bool userScriptDirExists = CreateUserScriptsDirectory();
@@ -769,8 +781,5 @@ namespace BrowserAutomationMaster.Parsing
                 $"Please make a bug report {ISSUES_LINK}"
             );
         }
-        
     }
-
-    
 }

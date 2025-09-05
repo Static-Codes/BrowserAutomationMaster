@@ -263,9 +263,6 @@ namespace BrowserAutomationMaster.Compilation
                 { "install_packages()", 5 },
             };
 
-            script.Imports.AddStatement(checkImportFunction, 3);
-            script.Imports.AddStatement(installPackagesFunction, 4);
-            script.Body.AddLine("install_packages()", 5);
             script.Imports.AddStatements(statements);
 
             Action Add(string func) => () => script.Body.AddLine(func, index);

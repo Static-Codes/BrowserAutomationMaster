@@ -238,7 +238,7 @@ namespace BrowserAutomationMaster.Managers
         public static string GetGlobalVEnvPipPath()
         {
             if (IsWindows)
-                return Path.Combine(GetGlobalVEnvPath(), "Scripts", "pip");
+                return Path.Combine(GetGlobalVEnvPath(), "Scripts", "pip3.exe");
 
             if (IsUnixLike)
                 return Path.Combine(GetGlobalVEnvPath(), "bin", "pip");
