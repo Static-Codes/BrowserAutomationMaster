@@ -95,6 +95,8 @@ namespace BrowserAutomationMaster.Managers.Python
                 }
                 Success.WriteSuccessMessage("Successfully created Global Virtual Environment!\n");
             }
+
+
             catch (Exception e) {
                 Errors.WriteAndExit(
                     message:
@@ -107,6 +109,33 @@ namespace BrowserAutomationMaster.Managers.Python
             }
         }
 
+        private string GetVEnvStartArgs(string pythonPath)
+        {
+            if (IsUnixLike)
+                return $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{pythonPath}\" \"{ScriptFilePath}\"";
+
+            if (IsWindows)
+                return $"\"{ScriptFilePath}\"";
+
+            Errors.ThrowUnsupportedPlatformException();
+            return string.Empty; // Will not be executed.
+        }
+
+        /// <summary>
+        /// Returns /c on windows and -c on unix like
+        /// </summary>
+        /// <returns></returns>
+        private static string GetCmdArg()
+        {
+            if (IsWindows)
+                return "/c";
+
+            if (IsUnixLike)
+                return "-c";
+
+            Errors.ThrowUnsupportedPlatformException();
+            return string.Empty;
+        }
         public static async Task InstallGlobalPackages()
         {
             Success.WriteSuccessMessage("Installing Browserstack Python SDK...");
@@ -132,148 +161,183 @@ namespace BrowserAutomationMaster.Managers.Python
                 CreateNoWindow = true,
                 UseShellExecute = false
             };
-            var process = new Process() { StartInfo = psi };
 
-            try
+            var process = await ProcessFactory.SpawnProcess(psi, "install the BrowserStack Python SDK", timeout: 10);
+            
+            // the discards are STDOut and STDErr
+            (var ExitCode, List<string> _, List<string> _) = await ProcessFactory.GetProcessResponse(process);
+
+
+            switch (ExitCode)
             {
-                process.Start();
-                await process.WaitForExitAsync();
-                if (process.ExitCode == 0)
-                {
+                case 0:
+                    Warning.Write("Browserstack's Python SDK is installed in the Global Virtual Environment, continuing...");
+                    break;
 
-                    Warning.Write("Browserstack's Python SDK is already installed, continuing.");
-                    return;
-                }
-
-                process.StartInfo.Arguments = installCMD;
-                process.Start();
-                await process.WaitForExitAsync();
-
-                if (process.ExitCode == 0)
-                    Success.WriteSuccessMessage("Successfully installed the Browserstack Python SDK to the Global Virtual Environment!");
-
-                else
+                default:
                     Errors.WriteAndExit(errMessage, 1);
+                    break;
+            }
 
-                    
-            }
-            catch (Exception ex)
+        }
+
+        public async Task InstallProjectPackages()
+        {
+            Success.WriteSuccessMessage("Installing required project packages, please wait..");
+            await Task.Delay(200);
+
+            if (ParentDirectory == null)
+                Errors.WriteAndExit(
+                    message:
+                        "Unable to install the required Python packages for the current project, please try again.\n" +
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
+                        "Error log:\nParentDirectory is null in InstallProjectPackages()",
+                    status: 1
+                );
+
+            var pipExecutable = GetProjectVEnvPipPath(ParentDirectory);
+            var requirementsFilePath = GetProjectRequirementsPath(ParentDirectory);
+
+            // Will add -c on unix
+            var installCMD = $"{(IsUnixLike ? $"-c {pipExecutable}" : "")} install -r {requirementsFilePath}";
+
+            
+
+            ProcessStartInfo psi = new()
             {
-                var message = baseMessage + ex.Message;
-                Errors.WriteAndExit(message, 1);
+                Arguments = $"{installCMD}",
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = ParentDirectory,
+            };
+            SetProcessFileName(ref psi, useCMD: false, fileName: pipExecutable);
+
+            using Process proc = await ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime");
+            (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(proc);
+
+            if (ExitCode != 0)
+            {
+                var fullStackTrace = string.Join("\n", STDErr);
+                // string[] last5Lines = errorLines.Count >= 5 ? [.. errorLines.TakeLast(5)] : [.. errorLines.TakeLast(errorLines.Count)];
+
+                var userFriendlyMessage = $"BAM Manager (BAMM) was unable to start the virtual environment for runtime.\n\n" +
+                                          $"If this continues, please make a bug report at {ISSUES_LINK}";
+
+                var detailedLog = "Error log:\n" +
+                                  $"Command: {installCMD} failed with exit code {ExitCode}\n\n" +
+                                  $"Stack Trace:\n{fullStackTrace}\n\n";
+
+                Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
             }
-               
         }
 
         public async Task<bool> RunScriptInVEnv()
         {
             CreateVEnv();
+            await InstallProjectPackages();
             return await RunScript(); // By this point there have been many checks regarding the user's OS, it's safe to proceed.
         }
 
         public async Task<bool> RunScript()
         {
-            if (IsChromeOS)
-                { return true; } // Replace with BrowserStack
-
-            var pythonPath = GetGlobalVEnvPythonPath();
-            var scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
+            if (IsChromeOS || GetBrowserStackStatus())
+                // Replace with BrowserStack
+                return true;
             
-            if (string.IsNullOrEmpty(scriptFileName))
-                scriptFileName = ScriptFilePath; 
 
-            try
-            {
-                if (!File.Exists(pythonPath))
-                    Errors.WriteAndExit(
-                        message:
-                            $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
-                            $"if this issue persists.please make a bug report at {ISSUES_LINK}\n\n" +
-                            $"Error log:\nUnable to find the python executable in virtual environment:\n{GetGlobalVEnvPath()}",
-                        status: 1
-                    );
-
-                var outputLines = new List<string>();
-                var errorLines = new List<string>();
-
-                ProcessStartInfo startVEnvStartInfo = new()
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    WorkingDirectory = ParentDirectory,
-                };
-
-                if (IsWindows)
-                {
-                    startVEnvStartInfo.FileName = $"\"{pythonPath}\"";
-                    startVEnvStartInfo.Arguments = $"\"{ScriptFilePath}\"";
-                    startVEnvStartInfo.StandardOutputEncoding = Encoding.UTF8; // Proactively preventing any encoding issues caused by crossplatform development
-                    startVEnvStartInfo.StandardErrorEncoding = Encoding.UTF8;
-                }
-                else
-                {
-                    startVEnvStartInfo.FileName = "/bin/bash";
-                    startVEnvStartInfo.Arguments = $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{pythonPath}\" \"{ScriptFilePath}\"";
-                }
-
-                using Process startVEnvProcess = new() { StartInfo = startVEnvStartInfo };
-                startVEnvProcess.EnableRaisingEvents = true; // Enabling events to be reported to the handlers below.
-
-                // Declaring required event handlers
-                startVEnvProcess.OutputDataReceived += (sender, args) =>
-                {
-                    if (args.Data != null)
-                    {
-                        outputLines.Add(args.Data);
-                        Success.WriteSuccessMessage(args.Data + '\n');
-                    }
-                };
-
-                startVEnvProcess.ErrorDataReceived += (sender, args) =>
-                {
-                    if (args.Data != null)
-                    {
-                        errorLines.Add(args.Data);
-                        Errors.Write(args.Data + '\n');
-                    }
-                };
-
-
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
-                startVEnvProcess.Start();
-                startVEnvProcess.BeginOutputReadLine();
-                startVEnvProcess.BeginErrorReadLine();
-                await startVEnvProcess.WaitForExitAsync(cts.Token);
-
-                if (startVEnvProcess.ExitCode != 0)
-                {
-                    var fullStackTrace = string.Join("\n", errorLines);
-                    // string[] last5Lines = errorLines.Count >= 5 ? [.. errorLines.TakeLast(5)] : [.. errorLines.TakeLast(errorLines.Count)];
-
-                    var userFriendlyMessage = $"BAM Manager (BAMM) was unable to start the virtual environment for runtime.\n\n" +
-                                              $"If this continues, please make a bug report at {ISSUES_LINK}";
-
-                    var detailedLog = $"Error log:\n" +
-                                      $"Command: '\"{pythonPath}\" \"{ScriptFilePath}\"' " +
-                                      $"failed with exit code {startVEnvProcess.ExitCode}\n\n" +
-                                      $"Stack Trace:\n{fullStackTrace}\n\n";
-
-                    Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
-                }
-            }
-            catch (Exception e)
-            {
+            if (ParentDirectory == null)
                 Errors.WriteAndExit(
-                    message: $"BAM Manager (BAMM) was unable to execute:\n{ScriptFilePath}\n\n" +
-                             $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                             $"Error log:\nCommand: '{InterpreterPath} {scriptFileName}' failed.\n\n" +
-                             $"Interpreter Response:\n{e.Message}",
+                    message:
+                        "Unable to install the required Python packages for the current project, please try again.\n" +
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
+                        "Error log:\nParentDirectory is null in InstallProjectPackages()",
                     status: 1
                 );
+
+            var pythonPath = GetProjectVEnvPythonPath(ParentDirectory);
+            var scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
+
+            if (string.IsNullOrEmpty(scriptFileName))
+                scriptFileName = ScriptFilePath;
+
+            if (!File.Exists(pythonPath))
+                Errors.WriteAndExit(
+                    message:
+                        $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
+                        $"if this issue persists.please make a bug report at {ISSUES_LINK}\n\n" +
+                        $"Error log:\nUnable to find the python executable in virtual environment:\n{GetGlobalVEnvPath()}",
+                    status: 1
+                );
+
+            var outputLines = new List<string>();
+            var errorLines = new List<string>();
+
+            ProcessStartInfo psi = new()
+            {
+                Arguments = GetVEnvStartArgs(pythonPath),
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = ParentDirectory,
+            };
+            SetProcessFileName(ref psi, useCMD: false, fileName: pythonPath);
+
+            using Process proc = await ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime");
+
+            (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(proc);
+
+            if (ExitCode != 0)
+            {
+                var fullStackTrace = string.Join("\n", STDErr);
+                // string[] last5Lines = errorLines.Count >= 5 ? [.. errorLines.TakeLast(5)] : [.. errorLines.TakeLast(errorLines.Count)];
+
+                var userFriendlyMessage = $"BAM Manager (BAMM) was unable to start the virtual environment for runtime.\n\n" +
+                                          $"If this continues, please make a bug report at {ISSUES_LINK}";
+
+                var detailedLog = "Error log:\n" +
+                                  $"Command: {psi.FileName} {psi.Arguments} failed with exit code {ExitCode}\n\n" +
+                                  $"Stack Trace:\n{fullStackTrace}\n\n";
+
+                Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
             }
+
+
             return true;
+        }
+
+        /// <summary>
+        /// Sets the FileName argument with the associated ProcessStartInfo
+        /// </summary>
+        /// <param name="psi">The ProcessStartInfo object.</param>
+        /// <param name="useCMD">(Windows Only) Whether or not to use cmd.exe for the execution of the command, defaults to true.</param>
+        /// <param name="fileName">The FileName you wish to execute as a string, defaults to null. (Must be provided if you specify useCMD=false) </param>
+        private static void SetProcessFileName(ref ProcessStartInfo psi, bool useCMD = true, string? fileName = null)
+        {
+            if (!useCMD && string.IsNullOrEmpty(fileName))
+                Errors.WriteAndExit("A filename param must be specified for SetProcessFileName when useShell = false", 1);
+
+            // Set for Windows regardless of global status
+            if (IsWindows && useCMD)
+            {
+                psi.FileName = "cmd.exe";
+                // Proactively preventing any encoding issues caused by crossplatform development
+                psi.StandardOutputEncoding = Encoding.UTF8;
+                psi.StandardErrorEncoding = Encoding.UTF8;
+            }
+
+
+            else if (IsWindows && !useCMD)
+            {
+                psi.FileName = fileName;
+                psi.StandardOutputEncoding = Encoding.UTF8;
+                psi.StandardErrorEncoding = Encoding.UTF8;
+            }
+
+            else if (IsUnixLike)
+                psi.FileName = "/bin/bash";
         }
     }
 }
