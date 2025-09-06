@@ -8,6 +8,9 @@
 
 ## Changelog
 
+<details>
+  <summary> Click to see direct source changes </summary>
+
 ### General Changes:
 
 - Added namespace `BrowserStack` in namespace `BrowserAutomationMaster.Managers.BrowserStack`
@@ -18,6 +21,10 @@
 
 - Added `PlatformManager` class in namespace `BrowserAutomationMaster.Managers`
 
+- Added `ProcessManager.ProcessFactory` class in namespace `BrowserAutomationMaster.Managers`
+
+- Added `ProcessManager.ProcessFactory.ProcessResponse` struct in namespace class `BrowserAutomationMaster.Managers`
+
 - Added `ProgramFunctions` class in namespace `BrowserAutomationMaster`
 
 - Added `BrowserVersionManager`, `DeviceManager` and `InstanceManager` inside namespace `BrowserAutomationMaster.Managers.BrowserStack`
@@ -26,9 +33,7 @@
 
 - Refactored `PackageManager` class in namespace `BrowserAutomationMaster.Managers` to use externally hosted JSON, instead of embedded json.
 
-- Refactored `Parser.HandleLineValidation` function in namespace `BrowserAutomationMaster.Compilation`
-
-  - Split into `Parser.LineValidation`
+- Refactored `Parser.HandleLineValidation` function in namespace `BrowserAutomationMaster.Compilation` by splitting it into `Parser.LineValidation`
 
 - Refactored `Transpiler` class in namespace `BrowserAutomationMaster.Compilation` to use the newly created classes
 
@@ -40,6 +45,8 @@
 - Refactored `Transpiler` class in namespace `BrowserAutomationMaster.Managers` to use private modifiers on the majority of functions that were previously declared as public.
 
 - Refactored `UninstallationManager` class in namespace `BrowserAutomationMaster.Managers` to properly execute the uninstallation process on Linux (MacOS still has to manually uninstall)
+
+</details>
 
 ### New Action Commands:
 
