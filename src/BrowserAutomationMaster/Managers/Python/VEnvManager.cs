@@ -121,21 +121,6 @@ namespace BrowserAutomationMaster.Managers.Python
             return string.Empty; // Will not be executed.
         }
 
-        /// <summary>
-        /// Returns /c on windows and -c on unix like
-        /// </summary>
-        /// <returns></returns>
-        private static string GetCmdArg()
-        {
-            if (IsWindows)
-                return "/c";
-
-            if (IsUnixLike)
-                return "-c";
-
-            Errors.ThrowUnsupportedPlatformException();
-            return string.Empty;
-        }
         public static async Task InstallGlobalPackages()
         {
             Success.WriteSuccessMessage("Installing Browserstack Python SDK...");
@@ -270,9 +255,6 @@ namespace BrowserAutomationMaster.Managers.Python
                         $"Error log:\nUnable to find the python executable in virtual environment:\n{GetGlobalVEnvPath()}",
                     status: 1
                 );
-
-            var outputLines = new List<string>();
-            var errorLines = new List<string>();
 
             ProcessStartInfo psi = new()
             {

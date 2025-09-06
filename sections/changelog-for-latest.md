@@ -19,6 +19,15 @@
 
 - Added `BrowserFunctions` class in namespace `BrowserAutomationMaster.Compilation`
 
+- Added `BrowserVersionManager`, `DeviceManager` and `InstanceManager` inside namespace `BrowserAutomationMaster.Managers.BrowserStack`
+
+- Added functions to class `DirectoryManager` in namespace `BrowserAutomationMaster`
+
+  - `GetProjectRequirementsPath`
+  - `GetProjectVEnvPath`
+  - `GetProjectVEnvPythonPath`
+  - `GetProjectVEnvPipPath`
+
 - Added `PlatformManager` class in namespace `BrowserAutomationMaster.Managers`
 
 - Added `ProcessManager.ProcessFactory` class in namespace `BrowserAutomationMaster.Managers`
@@ -26,8 +35,6 @@
 - Added `ProcessManager.ProcessFactory.ProcessResponse` struct in namespace class `BrowserAutomationMaster.Managers`
 
 - Added `ProgramFunctions` class in namespace `BrowserAutomationMaster`
-
-- Added `BrowserVersionManager`, `DeviceManager` and `InstanceManager` inside namespace `BrowserAutomationMaster.Managers.BrowserStack`
 
 - Added BrowserStack related functions to class `BrowserAutomationMaster.Managers.DirectoryManager`
 
