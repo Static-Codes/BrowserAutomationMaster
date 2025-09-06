@@ -243,22 +243,27 @@ namespace BrowserAutomationMaster.Managers.Python
         }
         public async Task<bool> RunScript()
         {
-            try
-            {
-                ValidateScript();
-                VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);
-                await vEnvManager.RunScriptInVEnv();
-            }
-            catch (Exception ex)
-            {
-                Errors.WriteAndExit(
-                    message:
-                        $"BAM Manager (BAMM) was unable finish execution of the selected file.\n" +
-                        $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\n{ex.Message}'",
-                    status: 1
-                );
-            }
+            // For the current commit this is intentionall unwrapped from the try catch block to invoke an Exception and have its StackTrace automatically output for debugging purposes.
+            ValidateScript();
+            VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);
+            await vEnvManager.RunScriptInVEnv();
+
+            //try
+            //{
+            //    ValidateScript();
+            //    VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);
+            //    await vEnvManager.RunScriptInVEnv();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Errors.WriteAndExit(
+            //        message:
+            //            $"BAM Manager (BAMM) was unable finish execution of the selected file.\n" +
+            //            $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
+            //            $"Error log:\n{ex.Message}'",
+            //        status: 1
+            //    );
+            //}
 
             return true;
         }
@@ -268,7 +273,7 @@ namespace BrowserAutomationMaster.Managers.Python
             
             var vEnvManager = Transpiler.GetBrowserStackStatus() switch
             {
-                true => new VEnvManager("browserstack-sdk", scriptFilePath),
+                true => new VEnvManager("browserstack-sdk python", scriptFilePath),
                 false => new VEnvManager(InterpreterPath, scriptFilePath),
             };
             

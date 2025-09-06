@@ -77,7 +77,8 @@ namespace BrowserAutomationMaster.Compilation
                 CheckBrowserStackStatus();
 
                 // Installs https://pypi.org/project/browserstack-sdk/ if not already installed in the Global Virtual Environment
-                await InstanceManager.EnsureSDKInstallation();
+                if (usingBrowserstack)
+                    await InstanceManager.EnsureSDKInstallation();
 
                 // Found it's more reliable to reset the state when a new Transpiler object is created.
                 ResetTranspilerState();
@@ -1336,8 +1337,6 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
         
-
-
         public static void SuppressUnneededWarnings()
         {
             // This function inserts the required code in reverse order so the output is consistent with whats desired.

@@ -154,13 +154,13 @@ namespace BrowserAutomationMaster.Compilation
 
         public void AddStatement(string statement)
         {
-            if (statement != null)
+            if (statement != null && !statement.Contains(statement))
                 statementList.Add(statement);
         }
 
         public void AddStatement(string statement, int index)
         {
-            if (statement != null)
+            if (statement != null && !statement.Contains(statement))
                 statementList.Insert(index, statement);
         }
 

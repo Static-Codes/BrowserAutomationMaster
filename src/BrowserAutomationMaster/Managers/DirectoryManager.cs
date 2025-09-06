@@ -249,6 +249,37 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetPackagesPath() { return Path.Combine(AppDataDirectory, "packages.json"); }
 
+        public static string GetProjectRequirementsPath(string ParentDirectory)
+        {
+            return Path.Combine(ParentDirectory, "requirements.txt");
+        }
+
+        public static string GetProjectVEnvPath(string ParentDirectory) { return Path.Combine(ParentDirectory, "venv"); }
+
+        public static string GetProjectVEnvPythonPath(string ParentDirectory)
+        {
+            if (IsWindows)
+                return Path.Combine(GetProjectVEnvPath(ParentDirectory), "Scripts", "python.exe");
+
+            if (IsUnixLike)
+                return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "python3");
+
+            Errors.ThrowUnsupportedPlatformException();
+            return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
+        }
+
+        public static string GetProjectVEnvPipPath(string ParentDirectory)
+        {
+            if (IsWindows)
+                return Path.Combine(GetProjectVEnvPath(ParentDirectory), "Scripts", "pip.exe");
+
+            if (IsUnixLike)
+                return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "pip");
+
+            Errors.ThrowUnsupportedPlatformException();
+            return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
+        }
+
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
         
         public static string GetUserScriptDirectory() { return Path.Combine(AppDataDirectory, "userScripts"); }
