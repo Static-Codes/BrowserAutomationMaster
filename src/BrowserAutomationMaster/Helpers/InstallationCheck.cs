@@ -1,6 +1,10 @@
-﻿using BrowserAutomationMaster.Managers.AppManager;
+﻿using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers.AppManager;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
+using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Helpers
 {
@@ -52,80 +56,105 @@ Supported versions include:
 
         public Installations(List<AppInfo> detectedApplications)
         {
-            AppNames = [];
-            foreach (AppInfo app in detectedApplications)
+            var pythonVerMap = new Dictionary<string, ApplicationNames>
             {
-                if (app == null || app.Name == null || app.Name.Length == 0) 
-                    continue;
+                { "Python 3.9", ApplicationNames.Python3_9 },
+                { "Python 3.10", ApplicationNames.Python3_10 },
+                { "Python 3.11", ApplicationNames.Python3_11 },
+                { "Python 3.12", ApplicationNames.Python3_12 },
+                { "Python 3.13", ApplicationNames.Python3_13 },
+                { "Python 3.14", ApplicationNames.Python3_14 }
+            };
 
-                //if (app.Name.Contains("brave", CCIC)) {
-                //    if (!AppNames.Contains(ApplicationNames.Brave)) {
-                //        AppNames.Add(ApplicationNames.Brave);
-                //    }
-                //}
+            AppNames = [];
 
-                else if (app.Name.Contains("chrome", CCIC)) {
-                    if (!AppNames.Contains(ApplicationNames.Chrome)) {
-                        AppNames.Add(ApplicationNames.Chrome);
-                    }
-                }
 
-                else if (app.Name.Contains("firefox", CCIC)) {
-                    if (!AppNames.Contains(ApplicationNames.Firefox)) {
-                        AppNames.Add(ApplicationNames.Firefox);
-                    }
-                }
+            void Add(ApplicationNames app) 
+            {
+                if (!AppNames.Contains(app))
+                    AppNames.Add(app);
+            }
 
-                else if (app.Name.StartsWith("Python 3.9")) {
-                    if (!AppNames.Contains(ApplicationNames.Python3_9)) {
-                        AppNames.Add(ApplicationNames.Python3_9);
-                    }
-                }
+            string GetMissingPyVersion()
+            {
+                if (!IsUnixLike)
+                    return string.Empty;
 
-                else if (app.Name.StartsWith("Python 3.10")) {
-                    if (!AppNames.Contains(ApplicationNames.Python3_10)) {
-                        AppNames.Add(ApplicationNames.Python3_10);
-                    }
-                }
+                var whichPyResp = Linux.RunCommand("which", "python3");
+                
+                if (string.IsNullOrEmpty(whichPyResp))
+                    return string.Empty;
 
-                else if (app.Name.StartsWith("Python 3.11")) {
-                    if (!AppNames.Contains(ApplicationNames.Python3_11)) {
-                        AppNames.Add(ApplicationNames.Python3_11);
-                    }
-                }
+                var pyVersionResp = Linux.RunCommand("python3", "--version");
 
-                else if (app.Name.StartsWith("Python 3.12")) {
-                    if (!AppNames.Contains(ApplicationNames.Python3_12)) {
-                        AppNames.Add(ApplicationNames.Python3_12);
-                    }
-                }
+                Match pyVersionMatch = RegexManager.PyVersionRegex.Match(pyVersionResp);
 
-                else if (app.Name.StartsWith("Python 3.13")) {
-                    if (!AppNames.Contains(ApplicationNames.Python3_13)) {
-                        AppNames.Add(ApplicationNames.Python3_13);
-                    }
-                }
+                if (!pyVersionMatch.Success)
+                    return string.Empty;
 
-                else if (app.Name.StartsWith("Python 3.14")) {
-                    if (!AppNames.Contains(ApplicationNames.Python3_14)) {
-                        AppNames.Add(ApplicationNames.Python3_14);
-                    }
-                }
+                return pyVersionMatch.Value;
 
-                // Mac Specific Case
-                else if (app.Name.StartsWith("python3")) { 
-                    if (!AppNames.Contains(ApplicationNames.Python3_X)) {
-                        AppNames.Add(ApplicationNames.Python3_X);
-                    }
+            }
+
+            /// <summary>Attempts to get the enum member associated with the python version string <summary>
+            /// <param name="name">The string representation of the Python version.</param>
+            /// <param name="app">The returned enum member</param>
+            /// <returns>Either the ApplicationNames member associated or ApplicationNames.Python3_X which will throw an exception later down the stack.</returns>
+            bool GetEnumMemberFromString(string name, out ApplicationNames app)
+            {
+                app = pythonVerMap.GetValueOrDefault(name, ApplicationNames.Python3_X);
+                return app != ApplicationNames.Python3_X;
+            }
+
+            void CheckApp(AppInfo app, bool pythonOnly, string? version = null)
+            {
+                if (app == null || app.Name == null || app.Name.Length == 0)
+                    return;
+
+                //if (app.Name.Contains("brave", CCIC))
+                //Add(ApplicationNames.Brave);
+
+                else if (!pythonOnly && app.Name.Contains("chrome", CCIC))
+                    Add(ApplicationNames.Chrome);
+
+                else if (!pythonOnly && app.Name.Contains("firefox", CCIC))
+                    Add(ApplicationNames.Firefox);
+
+                else if (version == null && GetEnumMemberFromString(app.Name, out ApplicationNames appName))
+                    Add(appName);
+
+                // Unix Specific Recursive Case
+                // To prevent an infinite loop, version must have a value to continue
+                else if (IsUnixLike && version != null && GetEnumMemberFromString(version, out ApplicationNames appName2))
+                    Add(appName2);
+
+                else if (app.Name.StartsWith("python3"))
+                {
+                    var foundVersion = GetMissingPyVersion();
+
+                    if (string.IsNullOrEmpty(foundVersion))
+                        Add(ApplicationNames.Python3_X); // This will raise an error once Transpiler.New is executed.
+
+                    else if (GetEnumMemberFromString(foundVersion, out ApplicationNames appNameNested))
+                        CheckApp(app, pythonOnly: true, version: foundVersion);
+
                 }
             }
+            void CheckAndAdd(List<AppInfo> appsInfo, string? verNum = null, bool pythonOnly = false)
+            {
+                foreach (AppInfo app in detectedApplications)
+                    CheckApp(app, pythonOnly: false);
+            }
+
+            CheckAndAdd(detectedApplications);
 
             if (!AppNames.Intersect(validBrowsersApps).Any())
                 Errors.WriteAndExit(NoBrowsersMessage, 1);
 
-            if (!AppNames.Intersect(validPythonVersions).Any()) 
+            if (!AppNames.Intersect(validPythonVersions).Any())
                 Errors.WriteAndExit(NoPythonMessage, 1);
         }
+
         public Installations() // Empty constructor used as a fallback.
         {
             Errors.WriteAndExit(NoBrowsersMessage, 1);

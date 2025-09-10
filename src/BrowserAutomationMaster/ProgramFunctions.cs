@@ -34,6 +34,10 @@ namespace BrowserAutomationMaster
             // Downloads a local copy of https://github.dev/Static-Codes/BrowserAutomationMaster/blob/main/src/BrowserAutomationMaster/AppData/packages.json
             await PackageManager.Initalize();
 
+            // BUG FIXXED: DO NOT CHANGE POSITION
+            // If GlobalConfig is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
+            GlobalConfig = LoadConfig();
+
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
 
@@ -47,20 +51,16 @@ namespace BrowserAutomationMaster
 
             // Null check on BrowserVersionManager.browserVersions
             if (versions == null)
-            {
                 Warning.Write(
                     "Unable to get most browser versions, please ensure you have an active internet connection.\n" +
                     $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n"
                 );
-            }
 
             Linux.ChromeOSCheck();
             CheckForMultipleInstances();
 
             if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
                 Win.VerifyRootDrive(args);
-
-            GlobalConfig = LoadConfig();
 
             // The user will select the version of python they want to use
             HandlePythonVersionSelection(GetInstallations());
@@ -312,7 +312,7 @@ namespace BrowserAutomationMaster
                     case MenuOption.Add:
                         string response = Input.AskForInput("Would you like to compile the newly added file? [y/n]:");
                         if (Input.ConditionAccepted(response))
-                            await Transpiler.New(parserResult.Value, args);
+                            await New(parserResult.Value, args);
                         break;
 
                     case MenuOption.Compile:

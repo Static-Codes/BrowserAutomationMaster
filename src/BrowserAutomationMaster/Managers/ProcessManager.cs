@@ -179,7 +179,7 @@ namespace BrowserAutomationMaster.Managers
         /// <param name="writeSTDInOut">If the process should write I/O, defaults to true.</param>
         /// <param name="timeout">The timeout in seconds after which the process will automatically exit, defaults to 200.</param>
         /// <returns>The newly spawned process (assuming an error doesn't cause the application to exit</returns>
-        public static async Task<Process> SpawnProcess(ProcessStartInfo psi, string processAction, bool raiseEvents = true, bool writeSTDInOut = true, bool justSpawn = false, int timeout = 200)
+        public static async Task<Process> SpawnProcess(ProcessStartInfo psi, string processAction, bool raiseEvents = true, bool writeSTDInOut = true, bool justSpawn = false, bool runSync = false, int timeout = 200)
         {
             var outputLines = new List<string>();
             var errorLines = new List<string>();
@@ -215,8 +215,6 @@ namespace BrowserAutomationMaster.Managers
                 }
 
 
-                // 200 Seconds = 3 Minutes 20 Seconds
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
 
                 // This struct will be populated 25 or so lines below.
                 var newProcResponse = new ProcessResponse();
@@ -233,7 +231,16 @@ namespace BrowserAutomationMaster.Managers
                 newProc.BeginErrorReadLine();
 
 
-                await newProc.WaitForExitAsync(cts.Token);
+                if (runSync)
+                    newProc.WaitForExit();
+                
+                else
+                {
+                    // 200 Seconds = 3 Minutes 20 Seconds
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
+                    await newProc.WaitForExitAsync(cts.Token);
+                }
+
                 ActiveProcesses.Remove(newProc); // Remove new process from ActiveProcesses upon exit.
 
                 if (!Processes.TryGetValue(newProc, out var _))
