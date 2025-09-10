@@ -81,32 +81,33 @@ namespace BrowserAutomationMaster.Managers
             return unsupportedInstructions.Count == 0; // The application will exit if this returns false
         }
 
+        // Used for syntax purposes 
+        // if (IsMissingInstructions) is more clear
         public static bool IsMissingInstructions() {
-            if (!ContainsNeededInstructions()) { return true; }
+            if (!ContainsNeededInstructions()) 
+                return true;
+
             return false;
         }
 
         public bool HasEnoughCores()
         {
-            if (Cores < 2) { return false; }
-            if (Cores <= 4) {
-                if (GlobalConfig.ShowCpuCheck) {
-                    Warning.Write(
-                        message:
-                            $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
-                            $"this might impact your performance slightly if your CPU is older.\n"
-                    );
-                }
-            }
-            else {
-                if (GlobalConfig.ShowCpuCheck)
-                {
-                    Success.WriteSuccessMessage(message:
+            if (Cores < 2)
+                return false;
+
+            if (Cores <= 4 && GlobalConfig.ShowCpuCheck)
+                Warning.Write(
+                    $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
+                    $"this might impact your performance slightly if your CPU is older.\n"
+                );
+
+            else if (GlobalConfig.ShowCpuCheck)
+                Success.WriteSuccessMessage(
                     $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
                     $"you should not experience any performance issues directly related to your CPU.\n"
-                    );
-                }
-            }
+                );
+                
+            
             return true;
         }
 
@@ -117,6 +118,7 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
+        
         private static string GetExplanationForInstruction(X64Instructions instruction)
         {
             return instruction switch
@@ -140,7 +142,7 @@ namespace BrowserAutomationMaster.Managers
         }
     }
 
-    public class CPUCoreManager() // This doesn't need to be public
+    public class CPUCoreManager() 
     {
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
@@ -149,113 +151,77 @@ namespace BrowserAutomationMaster.Managers
             if (IsWindows)
                 return Win.GetPhysicalCoreCount();
             
-            if (IsOSX) 
-                return GetPhysicalCoreCountMacOS(); 
-            
-            if (IsLinux) 
-                return GetPhysicalCoreCountLinux(); 
+            if (IsUnixLike) 
+                return GetPhysicalCoreCountUnixLike();  
             
             Errors.ThrowUnsupportedPlatformException();
             return 0; // This wont be executed, roslyn has no idea an exception has been thrown, so this is required.
         }
-
-        private static int GetPhysicalCoreCountMacOS()
+        private static int GetPhysicalCoreCountUnixLike()
         {
-            try
+            string actionString = "determine the amount of physical CPU cores on your system";
+
+            var psi = (IsLinux) switch
             {
-                ProcessStartInfo coreCountProcessInfo = new() {
+                true => new ProcessStartInfo()
+                {
+                    FileName = "/bin/bash",
+                    Arguments = $"-c \"lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l\"", // lscpu doesnt require sudo privileges on linux but sysctl does since it handles linux kernel data.
+                },
+
+                false => new ProcessStartInfo()
+                {
                     FileName = "/usr/sbin/sysctl",
                     Arguments = "-n hw.physicalcpu",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                };
-                using Process? process = Process.Start(coreCountProcessInfo);
-                if (process == null) {
-                    Errors.WriteAndExit(
-                        $"BAM Manager (BAMM) was unable to check the number of physical cores on the current machine, please make sure you are on an admin account.\n\nIf this continues, please make a bug report at {ISSUES_LINK}\n\nError log:\nprocess returned null\n\n{Messaging.Debug.GetPlatformInfoForErrorLog()}", 1);
-                    return -1; // This is purely to appease the compiler since -> process.StandardOutput has plausibility to be null according to the compiler, this is incorrect given that the function above kills the main thread.
                 }
-                Process coreCountProcess = new() { StartInfo = coreCountProcessInfo };
-                coreCountProcess.Start();
-                coreCountProcess.WaitForExit();
-                string output = process.StandardOutput.ReadToEnd();
-                string errorOutput = process.StandardError.ReadToEnd();
-
-
-                if (coreCountProcess.ExitCode != 0) {
-                    Errors.WriteAndExit(
-                        message:   
-                            $"BAM Manager (BAMM) was unable to give corecheck.sh executable permissions.\n\n" +
-                            $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                            $"Error log:\nchmod failed with exit code {coreCountProcess.ExitCode}", 
-                        status: 1
-                    );
-                }
-
-              
-                if (int.TryParse(output, out int coreCount)) { return coreCount; }
-
-                Errors.WriteAndExit(
-                    message:
-                        $"BAM Manager (BAMM) was unable to determine the amount of physical CPU cores on your system.\n\n" +
-                        $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\ncorecheck.sh returned the following error:\n{errorOutput}\n" +
-                        $"Exit Code: {coreCountProcess.ExitCode}",
-                    status: 1
-                );
-            }
-            catch (Exception ex) {
-                Errors.WriteAndExit(
-                    message: 
-                        $"BAM Manager (BAMM) was unable to determine the amount of physical CPU cores on your system.\n\n" +
-                        $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\n{ex}\n\n{ex.InnerException}",
-                    status: 1
-                );
-            }
-            return -1;
-        }
-
-        private static int GetPhysicalCoreCountLinux()
-        {
-            ProcessStartInfo startInfo = new()
-            {
-                FileName = "/bin/bash",
-                Arguments = $"-c \"lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l\"", // lscpu doesnt require sudo privileges on linux but sysctl does since it handles linux kernel data.
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
             };
 
-            using Process process = new() { StartInfo = startInfo };
-            process.Start();
-            process.WaitForExit();
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardError = true;
+            psi.UseShellExecute = false;
+            psi.CreateNoWindow = true;
 
-            string output = process.StandardOutput.ReadToEnd();
-            string error = process.StandardError.ReadToEnd();
+            using Process process = ProcessFactory.SpawnProcess(psi, actionString, writeSTDInOut: false, runSync: true, timeout: 10).Result;
+            (var ExitCode, var STDOut, var STDErr) = ProcessFactory.GetProcessResponse(process).Result;
 
-            if (string.IsNullOrEmpty(output) && !string.IsNullOrEmpty(error) || process.ExitCode != 0) {
-                Errors.WriteAndExit(
-                    message:
-                        $"BAM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                        $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\n{error}", 
-                    status: 1
-                );
+            var response = ProcessFactory.GetProcessResponse(process).Result;
+
+            return (int)HandleSingleLineProcessOutput(actionString, STDOut, typeof(int));
+
+        }
+
+        public static object HandleSingleLineProcessOutput(string actionString, List<string> STDOut, Type returnType)
+        {
+            string failureMessage =
+            $"BAM Manager (BAMM) was unable to {actionString}, " +
+            $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
+            "Error log:\n";
+
+            switch (STDOut.Count)
+            {
+                case 0:
+                    failureMessage += "Command returned no output.";
+                    Errors.WriteAndExit(failureMessage, 1);
+                    break;
+
+                case 1 when returnType.Equals(typeof(int)):
+                    return int.TryParse(STDOut[0], out int res) ? res : 0;
+
+                case 1 when returnType.Equals(typeof(string)):
+                    return !string.IsNullOrEmpty(STDOut[0]) ? STDOut[0] : string.Empty;
+
+                // Fallback for cases where an unsupported returnType is provided.
+                case 1:
+                    failureMessage += "Invalid returnType passed to HandleSingleLineProcessOutput()";
+                    Errors.WriteAndExit(failureMessage, 1);
+                    break;
+
+                default:
+                    failureMessage += $"Command returned invalid output.\n\nOutput:\n{string.Join("\n", STDOut)}";
+                    Errors.WriteAndExit(failureMessage, 1);
+                    break;
             }
-            if (!int.TryParse(output, out int coreCount)) {
-                Errors.WriteAndExit(
-                    message:
-                        $"BAM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                        $"if this issue persists, please make a bug report at {ISSUES_LINK}\n" +
-                        $"Error log:\nManagers.CPUInfoManager.GetPhysicalCoreCountLinux() returned an invalid input.", 
-                    status: 1
-                );
-            }
-            return coreCount;
+            return -1;
         }
     }
 }

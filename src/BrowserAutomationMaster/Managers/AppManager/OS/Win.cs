@@ -293,7 +293,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 // 122 is the err code for ERROR_INSUFFICIENT_BUFFER (it wont import for some reason)
                 if (!firstResult && Marshal.GetLastWin32Error() != 122)
-                {
                     Errors.WriteAndExit(
                         message:
                             $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
@@ -302,11 +301,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                             $" the last Win32 Error was:\n{Marshal.GetLastWin32Error()}",
                         status: 1
                     );
-                }
 
                 // If the buffer is empty, a fatal error has occured.
                 if (bufferSize == 0)
-                {
                     Errors.WriteAndExit(
                         message:
                             $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
@@ -314,7 +311,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                             $"Error log:\nAppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0.",
                         status: 1
                     );
-                }
 
                 var buffer = Marshal.AllocHGlobal((int)bufferSize); // Allocates N bytes from bufferSize
 
@@ -325,9 +321,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 );
 
                 if (!secondResult)
-                {
                     throw new Exception($"Failed to get logical processor information. Win32 Error: {Marshal.GetLastWin32Error()}");
-                }
 
                 int physicalCoreCount = 0;
                 uint bytesParsed = 0;
@@ -350,9 +344,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     // Spectre.Console.AnsiConsole.Write($"    Entry Size: {currentInfoExHeader.Size}");
 
                     if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore)
-                    {
                         physicalCoreCount++;
-                    }
 
                     // Move to the next structure in the buffer
                     currentPtr += (nint)currentInfoExHeader.Size; // I SPENT 10 minutes before I realized wasn't being incremented.

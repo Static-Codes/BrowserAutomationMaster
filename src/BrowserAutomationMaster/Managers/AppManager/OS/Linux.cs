@@ -97,19 +97,21 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return false;
             }
         }
+
         public static string? GetTerminalBackgroundColor()
         {
             try
             {
                 string black = "0000/0000/0000";
-                if (IsChromeOS) 
-                {
+                
+                if (IsChromeOS)
                     return black; 
-                }
+                
                 string tempFile = Path.GetTempFileName();
 
                 string command = "bash";
                 string args = $"-c \"printf '\\e]11;?\\e\\\\' >/dev/tty; read -rs -t 3 -d $'\\\\' response </dev/tty; echo \\\"$response\\\" | xxd > {tempFile}\"";
+                
                 string response = RunCommand(command, args);
                 Thread.Sleep(300);
 
@@ -122,10 +124,10 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     {
                         var match = ForegroundMatch.Match(hexDump);
                         var groups = match.Groups;
+                        
                         if (groups.Count == 3) // groups[0] is the whole match
-                        {
                             return groups[1].Value + groups[2].Value;
-                        }
+                        
                         return hexDump;
                     }
                 }
@@ -168,14 +170,21 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 foreach (var line in output.Split('\n'))
                 {
                     var parts = line.Trim('\'').Split("\t");
+                    
                     if (parts.Length >= 2)
-                    {
-                        apps.Add(new AppInfo { Name = parts[0], Version = parts[1] });
-                    }
+                        apps.Add(
+                            new AppInfo { 
+                                Name = parts[0], 
+                                Version = parts[1] 
+                            }
+                        );
                 }
                 return apps;
             }
-            catch { Errors.Write("DPKG not found, checking another method."); return []; }
+            catch { 
+                Errors.Write("DPKG not found, checking another method."); 
+                return []; 
+            }
         }
 
         // Parses apps installed via RPM (Red Hat Package Manager) (only for CentOS, Fedora, Oracle Linux, etc.)
@@ -183,13 +192,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             var apps = new List<AppInfo>();
             var output = RunCommand("rpm", "-qa");
+            
             foreach (var line in output.Split('\n'))
             {
                 if (!string.IsNullOrWhiteSpace(line))
-                {
                     apps.Add(new AppInfo { Name = line });
-                }
             }
+
             return apps;
         }
 
@@ -198,14 +207,15 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             var apps = new List<AppInfo>();
             var output = RunCommand("flatpak", "list");
+
             foreach (var line in output.Split('\n'))
             {
                 var parts = line.Split('\t');
+                
                 if (parts.Length >= 2)
-                {
                     apps.Add(new AppInfo { Name = parts[0], Version = parts[1] });
-                }
             }
+
             return apps;
         }
         public static string RunCommand(string cmd, string args)
