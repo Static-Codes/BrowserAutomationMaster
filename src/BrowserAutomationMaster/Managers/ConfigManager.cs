@@ -499,7 +499,6 @@ namespace BrowserAutomationMaster.Managers
                     string sectionName = trimmedLine;
 
                     if (!rawSections.ContainsKey(sectionName))
-                    {
                         Errors.WriteAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
@@ -509,10 +508,8 @@ namespace BrowserAutomationMaster.Managers
                             ),
                             status: 1
                         );
-                    }
 
                     if (encounteredSections.Contains(sectionName))
-                    {
                         Errors.WriteAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
@@ -522,7 +519,6 @@ namespace BrowserAutomationMaster.Managers
                             ),
                             status: 1
                         );
-                    }
 
                     currentSection = sectionName;
                     encounteredSections.Add(sectionName);
@@ -544,13 +540,12 @@ namespace BrowserAutomationMaster.Managers
 
                     var parts = GetPartsOfLine(trimmedLine, originalLine);
 
-                    if (parts == null) {
+                    if (parts == null)
                         continue; // Returning null means the line was skipped this is intended.
-                    }
+                    
 
 
                     if (parts.Length != 2)
-                    {
                         Errors.WriteAndExit(
                             Errors.GenerateErrorMessage(
                                 fileName: "config.ini",
@@ -561,8 +556,6 @@ namespace BrowserAutomationMaster.Managers
                             ),
                             status: 1
                         );
-
-                    }
 
 
                     string propName = parts[0].Trim();
