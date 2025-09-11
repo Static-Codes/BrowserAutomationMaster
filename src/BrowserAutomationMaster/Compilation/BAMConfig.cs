@@ -1,7 +1,7 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.RegexManager;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -31,11 +31,6 @@ namespace BrowserAutomationMaster.Compilation
         public string selectedBrowser = "firefox"; // Defaults to firefox, will be changed if needbe. Accepted Values: "chrome" or "firefox"
 
 
-        // Used for browserPresent
-        private readonly static Regex BrowserRegex = BrowserRegexCompilation();
-        [GeneratedRegex(@"^browser\s""(chrome|firefox)""$", RegexOptions.Compiled)]
-        private static partial Regex BrowserRegexCompilation();
-
         public void CheckConfigLines()
         {
             int numberOfLines = Lines.Length;
@@ -55,11 +50,11 @@ namespace BrowserAutomationMaster.Compilation
                 selectedBrowser = Lines[0].Split(' ')[1].Replace('"', ' ').Trim();
 
             featureLines = [.. Lines
-            .Select(line => line.Trim())
-            .Where(line =>
-                !string.IsNullOrWhiteSpace(line)
-                && line.StartsWith("feature")
-            )
+                .Select(line => line.Trim())
+                .Where(line =>
+                    !string.IsNullOrWhiteSpace(line)
+                    && line.StartsWith("feature")
+                )
             ];
 
             featurePresent = featureLines.Length > 0;
@@ -71,13 +66,11 @@ namespace BrowserAutomationMaster.Compilation
             otherPresent = OtherPresentFound();
 
             if (!otherPresent)
-            {
                 Warning.Write(
                     message:
                         "BAM Manager (BAMM) was unable to find any requests logic, " +
                         "if this is intentional, you can safely ignore this warning."
                 );
-            }
         }
 
         private static string[] GetConfigLines(string filePath)

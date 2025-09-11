@@ -1,18 +1,16 @@
 using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.RegexManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     public static partial class Linux
     {
         public static bool IsChromeOS { get; set; } = false;
-        private static readonly Regex ForegroundMatch = ForegroundColorRegex();
-        [GeneratedRegex("rgb:([0-9a-fA-F]+/[0-9a-fA-F]+).*?\n.{51}([0-9a-fA-F]+/[0-9a-fA-F]+)", RegexOptions.Compiled)]
-        private static partial Regex ForegroundColorRegex();
+
         public static List<AppInfo> GetApps()
         {
             try

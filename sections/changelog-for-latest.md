@@ -21,6 +21,8 @@
 
 - Added `BrowserVersionManager`, `DeviceManager` and `InstanceManager` inside namespace `BrowserAutomationMaster.Managers.BrowserStack`
 
+- Added class `RegexManager` in namespace `BrowserAutomationMaster.Managers` and moved all Regex functions to this new class.
+
 - Added functions to class `DirectoryManager` in namespace `BrowserAutomationMaster`
 
   - `GetProjectRequirementsPath`
@@ -30,13 +32,17 @@
 
 - Added `PlatformManager` class in namespace `BrowserAutomationMaster.Managers`
 
-- Added `ProcessManager.ProcessFactory` class in namespace `BrowserAutomationMaster.Managers`
+- Added `ProcessFactory` class in namespace `BrowserAutomationMaster.Managers`
 
-- Added `ProcessManager.ProcessFactory.ProcessResponse` struct in namespace class `BrowserAutomationMaster.Managers`
+- Added `ProcessFactory.ProcessResponse` struct in namespace class `BrowserAutomationMaster.Managers`
 
 - Added `ProgramFunctions` class in namespace `BrowserAutomationMaster`
 
 - Added BrowserStack related functions to class `BrowserAutomationMaster.Managers.DirectoryManager`
+
+- Improved Physical CPU Core count logic in class `CPUCoreManager` in namespace `BrowserAutomationMaster.Managers`
+
+- Improved Python version detection in class `InstallationCheck` in namespace `BrowserAutomationMaster.Helpers`
 
 - Refactored `PackageManager` class in namespace `BrowserAutomationMaster.Managers` to use externally hosted JSON, instead of embedded json.
 

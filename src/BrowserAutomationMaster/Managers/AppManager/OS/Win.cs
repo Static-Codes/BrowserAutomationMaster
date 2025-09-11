@@ -12,6 +12,7 @@ using Windows.Win32.System.Console;
 using Windows.Win32.System.SystemInformation;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.RegexManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
@@ -96,10 +97,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         #region Python Version Functions for Windows Users
 
-        // Regex to find paths starting with a drive letter, containing path separators, and ending with python.exe
-        // Example: "-V:3.12 * C:\Users\UserName\AppData\Local\Programs\Python\Python312\python.exe" -> "C:\Users\UserName\AppData\Local\Programs\Python\Python312\python.exe"
-        [GeneratedRegex(@"[a-zA-Z]:\\(?:[^\\/:*?""<>|\r\n]+\\)*python\.exe", RegexOptions.IgnoreCase)]
-        private static partial Regex PrecompiledPythonPathRegex();
+        
         public static string GetInterpreterPath()
         {
             try
