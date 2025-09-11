@@ -1,20 +1,16 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using System.Net;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.RequestManager;
 
 namespace BrowserAutomationMaster.Managers
 {
     public partial class PackageManager
     {
-        // Researched from: https://blog.nimblepros.com/blogs/using-generated-regex-attribute/
-        // Source generation is used here at build time to create an optimized regex code block, which is then converted into MSIL prior to runtime; reducing overhead and improving efficiency.
-        const string packageFormatPattern = @"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9])$"; // Regex pulled from https://pypi.org/project/twine/
-        [GeneratedRegex(packageFormatPattern)]
-        private static partial Regex PrecompiledPackageRegex();
+        
         readonly private static string packagePath = GetPackagesPath();
         readonly private static string baseURL = "https://pypi.org/project";
         private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];

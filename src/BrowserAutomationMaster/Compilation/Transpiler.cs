@@ -15,6 +15,7 @@ using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
+using static BrowserAutomationMaster.Managers.RegexManager;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -54,19 +55,6 @@ namespace BrowserAutomationMaster.Compilation
         private static bool usingBrowserstack = false;
 
         private static BAMConfig? bamConfig;
-
-
-
-        // Used for --set-timeout==5 (or any desired timeout)
-        private static readonly Regex ActionTimeoutRegex = TimeoutRegex();
-        [GeneratedRegex(@"^--set-timeout==(\d+)$", RegexOptions.Compiled)]
-        private static partial Regex TimeoutRegex();
-
-
-        // Used for --set-custom-useragent=="user-agent-string-here"
-        private static readonly Regex CustomUserAgentRegex = CLIUserAgentRegex();
-        [GeneratedRegex(@"^--set-custom-useragent==(.+?)$", RegexOptions.Compiled)]
-        private static partial Regex CLIUserAgentRegex();
 
 
         public static async Task New(string filePath, string[] args)
@@ -485,7 +473,7 @@ namespace BrowserAutomationMaster.Compilation
 
                 // Handling 'add-headers' before 'visit' is processed would be an issue if it weren't for Parser
                 // Parser ensures 'browser' first (or defaults to firefox) then features and finally any other logic.
-                Match match = Parser.PrecompiledHeaderRegex().Match(line);
+                Match match = PrecompiledHeaderRegex().Match(line);
                 if (match.Success)
                 {
 

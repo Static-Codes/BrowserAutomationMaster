@@ -1,15 +1,14 @@
 ﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Managers.CommandManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Parsing.LineValidation;
-using System.Diagnostics.CodeAnalysis;
-
 
 namespace BrowserAutomationMaster.Parsing
 {
@@ -41,31 +40,7 @@ namespace BrowserAutomationMaster.Parsing
         readonly static Dictionary<int, string> validFilesMapping = [];
 
         static string noFilesFoundMessage = "";
-        const string HeaderFormatPattern = @"^add-headers\s*(?<json>\{\s*(?:""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*""(?:\s*,\s*""(?:[^""\\]|\\.)+"":\s*""(?:[^""\\]|\\.)*"")*)?\s*\})$";
-        const string LinkFormatPattern = @"(?i)\b(http|https|file|ftp?://(?:(?:(?:[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?\.)*(?:[a-z\u00a1-\uffff]{2,}|[a-z0-9\u00a1-\uffff](?:[a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)\.?)|(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|\[(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[a-zA-Z0-9._~%-]+|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d))\]))(?::\d{2,5})?(?:[/?#][^\s<>""']*)?\b";
-
-        const string ProxyFormatPattern = @"^([^:]+):([^@]+)@([^:]+):(\d+)$";
-        const string NumberFormatPattern = @"^(?:\d+(?:\.\d{1,3})?|\.\d{1,3})$";
-        const string UserAgentFormatPattern = "^[^\\s\\/]+(?:\\/[^\\s]+)?(?:[ ]\\(.*?\\))?(?:[ ][^\\s\\/]+(?:\\/[^\\s]+)?(?:[ ]\\(.*?\\))?)*$";
-
-
-        // Researched from: https://blog.nimblepros.com/blogs/using-generated-regex-attribute/
-        // Source generation is used here at build time to create an optimized regex code block, which is then converted into MSIL prior to runtime; reducing overhead and improving efficiency.
-
-        [GeneratedRegex(HeaderFormatPattern)]
-        public static partial Regex PrecompiledHeaderRegex(); // Public declaration required for usage in Transpiler.HandleCompilation
-
-        [GeneratedRegex(LinkFormatPattern)]
-        private static partial Regex PrecompiledLinkRegex();
         
-        [GeneratedRegex(NumberFormatPattern)]
-        private static partial Regex PrecompiledNumberRegex();
-
-        [GeneratedRegex(ProxyFormatPattern)]
-        private static partial Regex PrecompiledProxyRegex();
-
-        [GeneratedRegex(UserAgentFormatPattern)]
-        private static partial Regex PrecompiledUserAgentRegex();
 
         public static bool CreateUserScriptsDirectory() // Write more detailed error handling.
         {
@@ -131,6 +106,7 @@ namespace BrowserAutomationMaster.Parsing
                 }
             }
         }
+        
         public static void CreateValidFilesMapping(List<string> validFiles)
         {
             if (validFiles.Count != 0)
@@ -143,6 +119,7 @@ namespace BrowserAutomationMaster.Parsing
                 }
             }
         }
+        
         public static string DeleteCommentIfPresent(string line)
         {
             if (string.IsNullOrEmpty(line)) {
@@ -162,6 +139,7 @@ namespace BrowserAutomationMaster.Parsing
             // Trim whitespace from the code part and return it
             return codePart.Trim();
         }
+        
         public static void DisplayValidFiles()
         {
             Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -180,6 +158,7 @@ namespace BrowserAutomationMaster.Parsing
             Spectre.Console.AnsiConsole.Write("\n\nPress any key to exit...");
             ReadKey();
         }
+        
         public static string[] GetBAMCFiles()
         {
             try
@@ -194,6 +173,7 @@ namespace BrowserAutomationMaster.Parsing
                 return [];
             }
         }
+        
         public static string? GetFileNumber(string rawInput)
         {
             var builder = new StringBuilder();
@@ -221,6 +201,7 @@ namespace BrowserAutomationMaster.Parsing
                 status: 1
             );
         }
+        
         public static string[] ValidateBAMCFiles(string[] BAMCFiles)
         {
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
@@ -232,6 +213,7 @@ namespace BrowserAutomationMaster.Parsing
 
             return PrecompiledHeaderRegex().IsMatch(headerString);
         }
+        
         public static bool IsValidNumberFormat(string numberString) {
             if (string.IsNullOrEmpty(numberString))
                 return false;
@@ -255,14 +237,17 @@ namespace BrowserAutomationMaster.Parsing
             }
             return hasValidProtocol && PrecompiledLinkRegex().IsMatch(linkString);
         }
+        
         public static bool IsValidProxyFormat(string proxyString) {
             if (string.IsNullOrWhiteSpace(proxyString)) { return false; }
             return PrecompiledProxyRegex().IsMatch(proxyString);
         }
+        
         public static bool IsValidUserAgentFormat(string userAgentString) {
             if (string.IsNullOrEmpty(userAgentString)) { return false; }
             return PrecompiledUserAgentRegex().IsMatch(userAgentString);
         }
+        
         public static void HandleBAMCFileValidation(string[] BAMCFiles)
         {
             validFiles = [.. ValidateBAMCFiles(BAMCFiles)];
@@ -280,6 +265,7 @@ namespace BrowserAutomationMaster.Parsing
             }
 
         }
+        
         public static void HandleHelpSelection()
         {
             while (true) {
@@ -294,6 +280,7 @@ namespace BrowserAutomationMaster.Parsing
                 }
             }
         }
+        
         private static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
             string selectorString = "selector"; // Defaults to "selector" for selector based actions
@@ -361,6 +348,7 @@ namespace BrowserAutomationMaster.Parsing
 
         
         }
+        
         private static int HandleUserSelection(Dictionary<int, string> mapping)
         {
 
@@ -408,6 +396,7 @@ namespace BrowserAutomationMaster.Parsing
 
             return fileNumber - 1; // index = fileNumber - 1;
         }
+        
         public static bool IsValidFile(string filePath)
         {
             List<string> usedFeatures = [];
@@ -697,6 +686,7 @@ namespace BrowserAutomationMaster.Parsing
                 );
             }
         }
+        
         public static KeyValuePair<MenuOption, string> New()
         {
             bool userScriptDirExists = CreateUserScriptsDirectory();

@@ -20,36 +20,7 @@ namespace BrowserAutomationMaster.Managers
 
     public partial class ConfigParser
     {
-        [GeneratedRegex("^.*=.*(true|false)$")]
-        public static partial Regex BoolRegex();
-
-        [GeneratedRegex("^.*=.*(dark|light)$")]
-        public static partial Regex ThemeRegex();
-
-        [GeneratedRegex("^.*=.*(\\d+)$")]
-        public static partial Regex IntRegex();
-
-
-        //[GeneratedRegex("^@Override\\s+(?<PropertyName>ForegroundColor|SuccessColor|WarningColor|ErrorColor|HighlightBackground|HighlightForeground|AccentColor)\\s*=\\s*(?:(?<Hex>#[A-Fa-f0-9]+)|(?<RGB>RGB\\((?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d),\\s*(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d),\\s*(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\))|(?<XTerm>[0-9A-Fa-f]{1,4}/[0-9A-Fa-f]{1,4}/[0-9A-Fa-f]{1,4}))$")]
-        [GeneratedRegex(
-            "^@Override\\s+" +
-            "(?<PropertyName>" +
-                "ForegroundColor|SuccessColor|WarningColor|ErrorColor|" +
-                "HighlightBackground|HighlightForeground|AccentColor" +
-            ")\\s*=\\s*" +
-            "(?:" +
-                "(?<Hex>#[A-Fa-f0-9]+)" +
-                "|" +
-                "(?<RGB>RGB\\(" +
-                    "(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d),\\s*" +
-                    "(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d),\\s*" +
-                    "(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)" +
-                "\\))" +
-                "|" +
-                "(?<XTerm>[0-9A-Fa-f]{1,4}/[0-9A-Fa-f]{1,4}/[0-9A-Fa-f]{1,4})" +
-            ")$"
-        )]
-        public static partial Regex OverrideRegex();
+        
 
         public static string ConvertSnakeToPascal(string snake_case)
         {
@@ -325,18 +296,14 @@ namespace BrowserAutomationMaster.Managers
                 foreach (var propKvp in rawSections[sectionName])
                 {
                     if (propKvp.Key.Equals("theme_type"))
-                    {
-                        propsAndFuncs.Add(propKvp.Key, ConfigParser.ThemeRegex());
-                    }
+                        propsAndFuncs.Add(propKvp.Key, RegexManager.ThemeRegex());
+
                     else if (bool.TryParse(propKvp.Value, out bool _))
-                    {
-                        propsAndFuncs.Add(propKvp.Key, ConfigParser.BoolRegex());
-                    }
+                        propsAndFuncs.Add(propKvp.Key, RegexManager.BoolRegex());
+
                     // Add support for integer properties if needed
                     else if (int.TryParse(propKvp.Value, out int _))
-                    {
-                        propsAndFuncs.Add(propKvp.Key, ConfigParser.IntRegex());
-                    }
+                        propsAndFuncs.Add(propKvp.Key, RegexManager.IntRegex());
                 }
             }
             return propsAndFuncs;
@@ -373,9 +340,9 @@ namespace BrowserAutomationMaster.Managers
                 }
 
                 // Handles regular config properties
-                else {
+                else
                     ProcessConfigProperty(trimmedLine, originalLine, splitLines);
-                }
+                
             }
             return GlobalConfig;
         }
@@ -468,7 +435,9 @@ namespace BrowserAutomationMaster.Managers
             if (line == null) { return true; } // If a line is null returning true will have it skipped.
             foreach (char c in line)
             {
-                if (char.IsWhiteSpace(c)) { continue; }
+                if (char.IsWhiteSpace(c))
+                    continue;
+
                 if (c.Equals(commentChar)) {
                     hasComment = true;
                     break;
@@ -478,7 +447,7 @@ namespace BrowserAutomationMaster.Managers
         } 
         private static ConfigOverrideResult? ParseOverrideLine(string line)
         {
-            var match = ConfigParser.OverrideRegex().Match(line); // Will fail if a line has a comment (This is expected)
+            var match = RegexManager.OverrideRegex().Match(line); // Will fail if a line has a comment (This is expected)
             if (!match.Success)
                 return null;
 
@@ -521,9 +490,9 @@ namespace BrowserAutomationMaster.Managers
                     originalLine.Replace('\r', ' ').Trim()
                 );
 
-                if (string.IsNullOrWhiteSpace(trimmedLine)) { 
+                if (string.IsNullOrWhiteSpace(trimmedLine))
                     continue; 
-                }
+                
 
                 if (trimmedLine.StartsWith('[') && trimmedLine.EndsWith(']'))
                 {
@@ -609,7 +578,6 @@ namespace BrowserAutomationMaster.Managers
                     {
                         
                         if (typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null) // Handles overrides
-                        {
                             Errors.WriteAndExit(
                                 Errors.GenerateErrorMessage(
                                     fileName: "config.ini",
@@ -619,28 +587,22 @@ namespace BrowserAutomationMaster.Managers
                                 ),
                                 status: 1
                             );
-                        }
                     }
 
-                    if (propsAndFuncs.TryGetValue(propName, out Regex? func))
-                    {
-                        if (!ConfigParser.IsValidLine(trimmedLine, func))
-                        {
-                            Errors.WriteAndExit(
-                                Errors.GenerateErrorMessage(
-                                    fileName: "config.ini",
-                                    originalLine,
-                                    lineNumber: i + 1,
-                                    issueText: $"Invalid value '{propValue}' for property `{propName}`."
-                                ),
-                                status: 1
-                            );
-                        }
-                    }
+                    if (propsAndFuncs.TryGetValue(propName, out Regex? func) && !ConfigParser.IsValidLine(trimmedLine, func))
+                        Errors.WriteAndExit(
+                            Errors.GenerateErrorMessage(
+                                fileName: "config.ini",
+                                originalLine,
+                                lineNumber: i + 1,
+                                issueText: $"Invalid value '{propValue}' for property `{propName}`."
+                            ),
+                            status: 1
+                        );
 
-                    else if (currentSection == "[overrides]") { 
+                    else if (currentSection == "[overrides]")
                         continue; 
-                    }
+                    
                     
                     else
                     {

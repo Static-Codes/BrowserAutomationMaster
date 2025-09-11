@@ -1,8 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.RegexManager;
 
-namespace BrowserAutomationMaster
+namespace BrowserAutomationMaster.Parsing
 {
     public enum SelectorCategory
     {
@@ -31,57 +32,12 @@ namespace BrowserAutomationMaster
 
     public static partial class SelectorParser
     {
-        // Used an LLM to help fix formatting on these regexes, I need to take the time to learn regex properly and not rely on a crutch.
-        [GeneratedRegex(@"^(?:#(?<id>[\w-]+)|\.(?<class>[\w-]+)|\[\s*name\s*=\s*(?:\""(?<nameValDQ>[^\""]*)\""|'(?<nameValSQ>[^']*)'|(?<nameValUQ>[^\]\s'\""]+))\s*\]|(?<xpath>(?:\B\/|\.\/|\(\/).*)|(?<tag>[a-zA-Z][\w:-]*))$", RegexOptions.ExplicitCapture | RegexOptions.Compiled)]
-        private static partial Regex CompileMainSelectorRegex();
-        readonly static Regex SelectorRegex = CompileMainSelectorRegex();
-        [GeneratedRegex(
-        @"^
-        (?:
-            # ID Selector: #my-id
-            \#(?<cssId>[\w-]+) 
-        |
-            # Class Selector: .my-class
-            \.(?<cssClass>[\w-]+) 
-        |
-            # Attribute Selector: [attr], [attr=val], [attr~=val], etc.
-            \[\s*
-                (?<attributeName>[\w-]+) # Attribute name
-                \s*
-                (?: # Optional operator and value
-                    (?<attributeOperator>[*^$|~]?=) # Operator: =, *=, ^=, $=, |=, ~=
-                    \s*
-                    (?: # Value, quoted or unquoted
-                        ""(?<attributeDQValue>(?:\\.|[^\\""])*)"" # Double-quoted value
-                    |
-                        '(?<attributeSQValue>(?:\\.|[^\\'])*)' # Single-quoted value
-                    |
-                        (?<attributeUQValue>[^\]\s'""]+) # Unquoted value 
-                    )
-                )? # End optional operator and value
-            \s*\]
-        |
-            # Pseudo-class Selector: :hover, :nth-child(2n+1)
-            :(?<pseudoClass>[\w-]+) 
-            (?:\( # Optional arguments
-                \s*(?<pseudoClassArgs> (?: [^()""'] | ""(?:\\.|[^\\""])*"" | '(?:\\.|[^\\'])*' | \( (?: [^()""'] | ""(?:\\.|[^\\""])*"" | '(?:\\.|[^\\'])*' )* \) )*? ) \s* 
-            \))?
-        |
-            # Pseudo-element Selector: ::before, ::after
-            ::(?<pseudoElement>[\w-]+)
-        |
-            # Tag Name or Universal Selector: div, span, my-element, *
-            (?<cssTagName>(?:[a-zA-Z_][\w-]*|\*))
-        )
-        $",
-        RegexOptions.ExplicitCapture | RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace
-    )]
-        private static partial Regex CompileCssComponentRegex();
-        private static readonly Regex CssComponentRegex = CompileCssComponentRegex();
 
-        // Parses the provided selectorString
-        // returns a ParsedSelector if successful
-        // exits if not; thus no need for a null check.
+        /// <summary>
+        /// Parses the provided selectorString
+        /// </summary>
+        /// <param name="selectorString"></param>
+        /// <returns>returns a ParsedSelector if successful, exits if not; thus no need for a null check.</returns>
         public static ParsedSelector Parse(string selectorString)
         {
             if (string.IsNullOrWhiteSpace(selectorString)) {
@@ -288,7 +244,7 @@ namespace BrowserAutomationMaster
         }
 
         // Unused (only for debugging)
-        private static void TestSelectors()
+        private static void UnitTestSelectors()
         {
             string[] selectors = [
                 "//div[@class='ql-editor ql-blank textarea new-input-ui']//p",
