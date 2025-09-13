@@ -15,6 +15,7 @@ namespace BrowserAutomationMaster.Managers.Python
     public class RuntimeManager(string scriptFilePath)
     {
         private string SanitizedScriptPath { get; set; } = string.Empty;
+        
         public string InterpreterPath { get; } = GetInterpreterFromPath();
 
         private static string BuildScriptMenu(List<string> scriptPaths)
@@ -27,6 +28,7 @@ namespace BrowserAutomationMaster.Managers.Python
             }
             return menu.ToString();
         }
+        
         public static void DoRuntimeCheck()
         {
             HasEnoughMemory();
@@ -43,6 +45,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 );
             }
         }
+        
         private static List<string> GetCompiledScriptPaths(string saveDirectory)
         {
             return [.. Directory.GetDirectories(saveDirectory)
@@ -94,6 +97,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 Errors.Write($"Invalid option, please choose a number between 1 and {scriptPaths.Count}\n");
             }
         }
+        
         public static string HandleUserScriptChoice()
         {
             string saveDirectory = DirectoryManager.GetDesiredSaveDirectory();
@@ -133,6 +137,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 return string.Empty; // This won't execute due to WriteAndExit, but satisfies compiler
             }
         }
+        
         public static bool HasEnoughMemory()
         {
             Dictionary<string, double> memoryInfo = MemoryInfoManager.RunCheck();
@@ -209,6 +214,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
             return true;
         }
+        
         public static bool IsSupportedWindowsVersion()
         {
             return OperatingSystem.IsWindows() && 
@@ -216,11 +222,13 @@ namespace BrowserAutomationMaster.Managers.Python
                        10, 0, 10240
                    );
         }
+        
         public static bool IsSupportedOSXVersion() { return OperatingSystem.IsMacOSVersionAtLeast(11); }
+        
         private void ValidateScript()
         {
             SanitizedScriptPath = scriptFilePath.EndsWith(".py") ? scriptFilePath : string.Empty;
-            if (string.IsNullOrEmpty(SanitizedScriptPath)) { 
+            if (string.IsNullOrEmpty(SanitizedScriptPath))
                 Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to run the file provided as it isn't a python file.\n" +
@@ -228,10 +236,11 @@ namespace BrowserAutomationMaster.Managers.Python
                         $"Error log:\n: Raw script file path provided for 'bamm run' was: '{scriptFilePath}'\n\n", 
                     status: 1
                 ); 
-            }
+            
             PythonValidationResult result = ScriptValidationManager.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
             Spectre.Console.AnsiConsole.Write($"{result.Output}\n");
-            if (!result.IsValid) {
+
+            if (!result.IsValid)
                 Errors.WriteAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable run the specified file as it contains syntax errors.\n" +
@@ -239,8 +248,9 @@ namespace BrowserAutomationMaster.Managers.Python
                         $"Error log:\n{result.Errors}'", 
                     status: 1
                 );
-            }
         }
+
+        // Readd error handling
         public async Task<bool> RunScript()
         {
             // For the current commit this is intentionall unwrapped from the try catch block to invoke an Exception and have its StackTrace automatically output for debugging purposes.
@@ -267,13 +277,16 @@ namespace BrowserAutomationMaster.Managers.Python
 
             return true;
         }
+
+        // Run unit tests on true => VEnv.CheckBSConfigAtRuntime();
+        // Add error handling
         public async Task<bool> RunScriptFromTranspiler()
         {
             ValidateScript();
             
             var vEnvManager = Transpiler.GetBrowserStackStatus() switch
             {
-                true => new VEnvManager("browserstack-sdk python", scriptFilePath),
+                true => VEnvManager.CheckBSConfigAtRuntime(scriptFilePath),
                 false => new VEnvManager(InterpreterPath, scriptFilePath),
             };
             

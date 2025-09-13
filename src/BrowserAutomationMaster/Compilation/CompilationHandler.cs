@@ -1,5 +1,6 @@
 ﻿using System.Net.NetworkInformation;
 using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Compilation

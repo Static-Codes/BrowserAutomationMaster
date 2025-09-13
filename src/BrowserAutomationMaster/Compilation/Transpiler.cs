@@ -431,7 +431,7 @@ namespace BrowserAutomationMaster.Compilation
             SetCustomUserAgent(args);
             SetTimeout(args);
 
-            // Handles disablePycache and disableSSL
+            // Handles cases where features are requested but unsupported for the given test.
             HandleDisabling(config);
 
             int lineNumber = 1;
@@ -480,14 +480,13 @@ namespace BrowserAutomationMaster.Compilation
                     string requestLine = script.Body.GetMakeRequestLine();
 
                     if (string.IsNullOrEmpty(requestLine))
-                    {
                         Errors.WriteAndExit(
                             message:
                                 "Unable to locate request logic in partially compiled script, " +
                                 "please attempt recompilation.",
                             status: 1
                         );
-                    }
+                    
 
                     int index = script.Body.scriptLines.IndexOf(requestLine);
 
@@ -840,6 +839,22 @@ namespace BrowserAutomationMaster.Compilation
         
         public static void HandleDisabling(BAMConfig config)
         {
+            var headlessMessage =
+                "Headless Mode is not supported while using BrowserStack.\n\n" + 
+                "Solution:\n" +
+                "   - ChromeOS:" +
+                "       - No current resolution.\n\n" + 
+                "   - Other OS:" +
+                $"      - Stop using BrowserStack, Disable 'using_browserstack' in:\n{GetBrowserStackConfigPath()}";
+
+            // Headless Mode is disabled when BrowserStack is selected.
+            // This is due to the number of complexities introduced by supporting 2 additional platforms via BrowserStack
+            if (config.runHeadless && GetBrowserStackStatus())
+            {
+                Warning.Write(headlessMessage);
+                config.runHeadless = false;
+            }
+
             if (config.disablePycache)
             {
                 string[] statements = ["import sys", "sys.dont_write_byte_code = True"];
@@ -858,6 +873,7 @@ namespace BrowserAutomationMaster.Compilation
                 var statement = "from selenium.webdriver.firefox.options import Options";
                 script.Imports.AddStatement(statement);
             }
+        
         }
         
         public static void HandlePythonVersionSelection(Installations installations)
@@ -867,6 +883,7 @@ namespace BrowserAutomationMaster.Compilation
             var versionArray = new string[maxVersions];
 
             var versionMapping = new Dictionary<ApplicationNames, string>() {
+                {ApplicationNames.Python3_X, "3." },
                 {ApplicationNames.Python3_9, "3.9" },
                 {ApplicationNames.Python3_10, "3.10" },
                 {ApplicationNames.Python3_11, "3.11" },

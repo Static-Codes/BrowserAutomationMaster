@@ -6,6 +6,7 @@ using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using BrowserAutomationMaster.Managers.Python.BrowserStack;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -43,7 +44,16 @@ namespace BrowserAutomationMaster.Managers.Python
                 return false; 
             }
         }
-
+        /// <summary>
+        /// Ensure the browser
+        /// </summary>
+        public static VEnvManager CheckBSConfigAtRuntime(string scriptFilePath)
+        {
+            var config = InstanceManager.LoadConfig();
+            if (config == null)
+                Errors.WriteAndExit($"Unable to load BrowserStack Config from:\n{GetBrowserStackConfigPath()}", 1);
+            return new VEnvManager("browserstack-sdk python", scriptFilePath);
+        }
 
         /// <summary>
         /// Creates a Virtual Environment used for project packages.
@@ -54,6 +64,10 @@ namespace BrowserAutomationMaster.Managers.Python
         {
             if (VEnvExists(global))
                 return;
+
+
+            Console.WriteLine(VEnvPath);
+            Console.WriteLine(GetGlobalVEnvPath());
 
             Warning.Write("Creating Global Virtual Environment, please wait up to 60 seconds for this process to complete.\n");
 
@@ -67,21 +81,22 @@ namespace BrowserAutomationMaster.Managers.Python
             // Global Virtual Environment
             if (global)
                 psi.Arguments = $"-m venv \"{GetGlobalVEnvPath()}\"";
-            
+
 
             // Project Virtual Environment
             else
+            {
+                if (string.IsNullOrEmpty(VEnvPath)) { }
                 psi.Arguments = $"-m venv \"{VEnvPath}\"";
-
+            }
 
             try
             {
-                Process createVEnvProcess = new() { StartInfo = psi };
-                createVEnvProcess.Start();
-                createVEnvProcess.WaitForExit();
-
+                using Process process = ProcessFactory.SpawnProcess(psi, "create a virtual environment with the interpreter", writeSTDInOut: false, runSync: true).Result;
+                (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(process).Result;
+                
                 // If the process returned an error or the venv is not able to be accessed.
-                if (createVEnvProcess.ExitCode != 0 || !VEnvExists(global)) 
+                if (ExitCode != 0 || !VEnvExists(global)) 
                 { 
                     var path = !string.IsNullOrEmpty(VEnvPath) ? VEnvPath : GetGlobalVEnvPath();
                     Errors.WriteAndExit(
@@ -89,7 +104,7 @@ namespace BrowserAutomationMaster.Managers.Python
                             "BAM Manager (BAMM) was unable to create a virtual environment with the interpreter:\n" +
                             $"{InterpreterPath}.\n\nIf this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                             $"Error log:\nCommand: '{InterpreterPath} -m venv {path}' " +
-                            $"failed with exit code {createVEnvProcess.ExitCode}",
+                            $"failed with exit code {ExitCode}",
                         status: 1
                     ); 
                 }
@@ -97,7 +112,8 @@ namespace BrowserAutomationMaster.Managers.Python
             }
 
 
-            catch (Exception e) {
+            catch (Exception e) 
+            {
                 Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to create a virtual environment for the interpreter:\n{InterpreterPath}.\n\n" +
@@ -120,6 +136,8 @@ namespace BrowserAutomationMaster.Managers.Python
             Errors.ThrowUnsupportedPlatformException();
             return string.Empty; // Will not be executed.
         }
+
+        
 
         public static async Task InstallGlobalPackages()
         {
@@ -227,6 +245,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public async Task<bool> RunScript()
         {
+
             if (IsChromeOS || GetBrowserStackStatus())
                 // Replace with BrowserStack
                 return true;
