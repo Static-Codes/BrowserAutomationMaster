@@ -1,3 +1,4 @@
+using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
 using System.Diagnostics;
@@ -11,30 +12,32 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
     {
         public static bool IsChromeOS { get; set; } = false;
 
+        // Debian Package Manager
+        readonly public static bool HasDPKG = CommandExists("dpkg");
+
+        // Flatpak Package Manager
+        readonly public static bool HasFlatpak = CommandExists("flatpak");
+
+        // Red Hat Package Manager
+        readonly public static bool HasRPM = CommandExists("rpm");
+
+        readonly public static List<AppInfo> dpkgApps = HasDPKG ? ParseDpkgList() : [];
+
+        readonly public static List<AppInfo> flatpakApps = HasFlatpak ? ParseFlatpakList() : [];
+
+        readonly public static List<AppInfo> rpmApps = HasRPM ? ParseRpmList() : [];
+
         public static List<AppInfo> GetApps()
         {
             try
             {
-                List<AppInfo> dpkgApps = [];
-                List<AppInfo> flatpakApps = [];
-                List<AppInfo> rpmApps = [];
-
-                if (CommandExists("dpkg"))
-                    dpkgApps.AddRange(ParseDpkgList());
-                if (CommandExists("flatpak"))
-                    flatpakApps.AddRange(ParseFlatpakList());
-                if (CommandExists("rpm"))
-                    rpmApps.AddRange(ParseRpmList());
-
                 if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0)
-                {
                     Errors.WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to detect any of the following commands:\n\n" +
                             "dpkg\nflatpak\nrpm\n",
                         status: 1
                     );
-                }
 
                 var appSources = new List<(string Name, List<AppInfo> Apps)>
                 {
@@ -69,6 +72,26 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     status: 1
                 );
                 return [];
+            }
+        }
+
+        public static void ChromeOSCheck()
+        {
+
+            if (!OperatingSystem.IsLinux())
+            {
+                IsChromeOS = false;
+                return;
+            }
+
+            try
+            {
+                string cmdline = File.ReadAllText("/proc/cmdline");
+                IsChromeOS = cmdline.Contains("cros_");
+            }
+            catch
+            {
+                IsChromeOS = false;
             }
         }
 
@@ -138,23 +161,91 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
-        public static void ChromeOSCheck()
+        public static void InstallRequiredLinuxPackages(List<AppInfo> appsInfo)
         {
 
-            if (!OperatingSystem.IsLinux())
+            Warning.Write("Installing the Required Linux Packages, please wait up to 60 seconds");
+
+            var inputMessage = @"Supported versions include:
+- Python 3.9.X
+- Python 3.10.X
+- Python 3.11.X
+- Python 3.12.X
+- Python 3.13.X
+- Python 3.14.X
+
+Examples:
+Python 3.9
+Python 3.12.7
+Python 3.9.8
+
+Version: ";
+
+            var PKM_CMD = (HasDPKG, HasRPM) switch
             {
-                IsChromeOS = false;
-                return;
+                (true, _) => "apt-get", // Debian-Based
+                (_, true) => "dnf",     // Fedora-Based
+                (_, _) => null
+            };
+
+            if (PKM_CMD == null)
+            {
+                Warning.Write("An error occured while attempting to retrieve the Package Manager associated with your Distribution.");
+                var response = Input.WriteListFromOptions(["Debian-Based", "Fedora-Based"], "operating system");
+                PKM_CMD = response switch
+                {
+                    "Debian-Based" => "apt-get", // Debian-Based
+                    "Fedora-Based" => "dnf",     // Fedora Based
+                    _ => "UNSELECTED DISTO"
+                };
+
+                if (PKM_CMD == "UNSELECTED DISTRO")
+                    Errors.WriteAndExit("An error occured while attempting to access your Distribution's Package Manager, please try again.", 1);
             }
 
-            try
+
+
+            var installPrefix = (HasDPKG, HasRPM) switch
             {
-                string cmdline = File.ReadAllText("/proc/cmdline");
-                IsChromeOS = cmdline.Contains("cros_");
+                (true, _) => $"DEBIAN_FRONTEND=noninteractive {PKM_CMD} install -y",
+                (_, true) => $"{PKM_CMD} install -y",
+                (_, _) => null
+            };
+
+            var installCMD = $"-c \"sudo {installPrefix}";
+
+            var potentialVersion = Installations.GetMissingPyVersion();
+            while (potentialVersion == null || !PyVersionRegex.IsMatch(potentialVersion))
+            {
+                Warning.Write("Unable to detect the installed version of Python.");
+                potentialVersion = Input.AskForInput(inputMessage);
             }
-            catch 
+
+
+            string[] packages = [
+                "xclip", // Used for auto_copy_path
+                $"python{potentialVersion.Replace("Python ", "")}-venv"  // Used for majority of BAMM to create vEnv(s)
+            ];
+
+            if (installPrefix == null)
+                Errors.WriteAndExit($"Unable to install the following required Linux Packages:\n{string.Join('\n', packages)}", 1);
+
+
+            string[] commands = new string[packages.Length];
+
+            var actionString = $"to install the following required Linux Packages:\n{string.Join('\n', packages)}";
+
+            for (int i = 0; i < packages.Length; i++)
             {
-                IsChromeOS = false;
+                commands[i] = $"{installCMD} {packages[i]}\"";
+                var appInfo = new AppInfo() { Name = packages[i] };
+
+                // Skips pre-existing installations
+                if (appsInfo.Contains(appInfo))
+                    continue;
+
+                WriteMessage($"Installing package: {packages[i]}");
+                Console.WriteLine(RunCommand("/bin/bash", $"{commands[i]}", installingPackages: true));
             }
         }
 
@@ -216,14 +307,18 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             return apps;
         }
-        public static string RunCommand(string cmd, string args)
+        public static string RunCommand(string cmd, string args, bool installingPackages = false)
         {
             try
             {
+
+                //if (installingPackages)
+                //    Console.WriteLine($"{cmd} {args}");
+
                 ProcessStartInfo procStartInfo = new()
                 {
                     FileName = cmd,
-                    Arguments = args,
+                    Arguments = args, 
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,

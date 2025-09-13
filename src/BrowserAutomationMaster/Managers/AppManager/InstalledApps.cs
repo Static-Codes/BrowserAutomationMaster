@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Helpers;
-using BrowserAutomationMaster.Managers.Python;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 
@@ -9,7 +8,7 @@ namespace BrowserAutomationMaster.Managers.AppManager
 {
     public static class InstalledApps
     {
-        private static List<AppInfo> AppInfoList = [];
+        public readonly static List<AppInfo> AppInfoList = [];
         private static Installations? InstallationsList;
 
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
@@ -30,12 +29,21 @@ namespace BrowserAutomationMaster.Managers.AppManager
         }
 
 
-        private static async Task PopulateAppInfoList() { AppInfoList = await GetInstalledApps(); }
+        private static async Task PopulateAppInfoList() { 
+            AppInfoList.AddRange(await GetInstalledApps()); 
+        }
 
         public static async Task PopulateInstallations()
         {
+
+            static void install() { Linux.InstallRequiredLinuxPackages(AppInfoList); }
+
             await PopulateAppInfoList();
             InstallationsList = new Installations(AppInfoList);
+
+
+            if (IsLinux)
+                await Task.Run(install);
         }
 
         public static Installations GetInstallations() { return InstallationsList ?? new Installations(); }

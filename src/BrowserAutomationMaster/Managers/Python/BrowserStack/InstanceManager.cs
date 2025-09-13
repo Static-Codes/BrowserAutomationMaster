@@ -1,11 +1,13 @@
-﻿using BrowserAutomationMaster.Messaging;
-using Spectre.Console;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS;
+using BrowserAutomationMaster.Messaging;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using static BrowserAutomationMaster.Helpers.EnumHelper;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager.DeviceHelper;
 
@@ -104,6 +106,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             return true;
         }
 
+
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "PlatformManager.IsWindows handles checks.")]
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "PlatformManager.IsWindows handles checks.")]
         public static async Task EnsureSDKInstallation() // used to include scriptFileName
         {
 
@@ -114,12 +119,11 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             var notFoundMessage = baseMessage + "Global Virtual Environment does not contain a pip executable.";
 
-            var pipExecutable = GetGlobalVEnvPipPath();
-
-            var globalVEnv = new VEnvManager(pipExecutable, string.Empty); // was scriptFileName
+            var InterpretterPath = IsWindows ? Win.GetInterpreterPath() : "python3"; 
+            var globalVEnv = new VEnvManager(InterpretterPath, string.Empty); // was scriptFileName
             globalVEnv.CreateVEnv(global: true);
 
-            if (!File.Exists(pipExecutable))
+            if (!File.Exists(GetGlobalVEnvPath()))
                 Errors.WriteAndExit(notFoundMessage, 1);
 
             await VEnvManager.InstallGlobalPackages();

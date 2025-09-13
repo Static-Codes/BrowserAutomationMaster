@@ -24,9 +24,12 @@ namespace BrowserAutomationMaster.Helpers
 
     public partial class Installations
     {
+
+        
+
         public List<ApplicationNames> AppNames { get; set; }
         
-        readonly List<ApplicationNames> validPythonVersions = [
+        public static readonly List<ApplicationNames> validPythonVersions = [
             ApplicationNames.Python3_X, ApplicationNames.Python3_9, ApplicationNames.Python3_10, 
             ApplicationNames.Python3_11, ApplicationNames.Python3_12, ApplicationNames.Python3_13, 
             ApplicationNames.Python3_14
@@ -75,26 +78,6 @@ Supported versions include:
                     AppNames.Add(app);
             }
 
-            string GetMissingPyVersion()
-            {
-                if (!IsUnixLike)
-                    return string.Empty;
-
-                var whichPyResp = Linux.RunCommand("which", "python3");
-                
-                if (string.IsNullOrEmpty(whichPyResp))
-                    return string.Empty;
-
-                var pyVersionResp = Linux.RunCommand("python3", "--version");
-
-                Match pyVersionMatch = RegexManager.PyVersionRegex.Match(pyVersionResp);
-
-                if (!pyVersionMatch.Success)
-                    return string.Empty;
-
-                return pyVersionMatch.Value;
-
-            }
 
             /// <summary>Attempts to get the enum member associated with the python version string <summary>
             /// <param name="name">The string representation of the Python version.</param>
@@ -140,6 +123,7 @@ Supported versions include:
 
                 }
             }
+            
             void CheckAndAdd(List<AppInfo> appsInfo, string? verNum = null, bool pythonOnly = false)
             {
                 foreach (AppInfo app in detectedApplications)
@@ -159,6 +143,24 @@ Supported versions include:
         {
             Errors.WriteAndExit(NoBrowsersMessage, 1);
             AppNames = []; // This wont be reached, its purely to appease the compilers static nature.
+        }
+
+        public static string GetMissingPyVersion()
+        {
+            if (!IsUnixLike)
+                return string.Empty;
+
+            var whichPyResp = Linux.RunCommand("which", "python3");
+
+            if (string.IsNullOrEmpty(whichPyResp))
+                return string.Empty;
+
+            var pyVersionResp = Linux.RunCommand("python3", "--version");
+
+            Match pyVersionMatch = RegexManager.PyVersionRegex.Match(pyVersionResp);
+
+            return pyVersionMatch.Success ? pyVersionMatch.Value : string.Empty;
+
         }
 
     }

@@ -582,21 +582,24 @@ namespace BrowserAutomationMaster.Managers
                             );
                     }
 
-                    if (propsAndFuncs.TryGetValue(propName, out Regex? func) && !ConfigParser.IsValidLine(trimmedLine, func))
-                        Errors.WriteAndExit(
-                            Errors.GenerateErrorMessage(
-                                fileName: "config.ini",
-                                originalLine,
-                                lineNumber: i + 1,
-                                issueText: $"Invalid value '{propValue}' for property `{propName}`."
-                            ),
-                            status: 1
-                        );
-
+                    if (propsAndFuncs.TryGetValue(propName, out Regex? func))
+                    {
+                        // The nested if statement is ideal but it allows for the application to fallthrough safely in the case no validation rule is provided
+                        if (!ConfigParser.IsValidLine(trimmedLine, func))
+                            Errors.WriteAndExit(
+                                Errors.GenerateErrorMessage(
+                                    fileName: "config.ini",
+                                    originalLine,
+                                    lineNumber: i + 1,
+                                    issueText: $"Invalid value '{propValue}' for property `{propName}`."
+                                ),
+                                status: 1
+                            );
+                    }
                     else if (currentSection == "[overrides]")
-                        continue; 
-                    
-                    
+                        continue;
+
+
                     else
                     {
                         Errors.WriteAndExit(
