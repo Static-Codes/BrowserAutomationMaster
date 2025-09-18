@@ -121,7 +121,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             var InterpretterPath = IsWindows ? Win.GetInterpreterPath() : "python3"; 
             var globalVEnv = new VEnvManager(InterpretterPath, string.Empty); // was scriptFileName
-            globalVEnv.CreateVEnv(global: true);
+            await globalVEnv.CreateVEnv(global: true);
 
             if (!File.Exists(GetGlobalVEnvPath()))
                 Errors.WriteAndExit(notFoundMessage, 1);

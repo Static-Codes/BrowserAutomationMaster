@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Compilation.Transpiler;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Compilation.Transpiler;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 
 namespace BrowserAutomationMaster.Managers.Python
@@ -33,15 +33,19 @@ namespace BrowserAutomationMaster.Managers.Python
             try
             {
                 ParentDirectory = Path.GetDirectoryName(ScriptFilePath);
+
                 if (ParentDirectory == null)
                     return false;
 
                 VEnvPath = Path.Combine(ParentDirectory, "venv");
+
                 return Directory.Exists(VEnvPath);
             }
-            catch (Exception e) { 
-                Errors.WriteAndExit(e.Message, 1); 
-                return false; 
+            
+            catch (Exception e)
+            {
+                Errors.WriteAndExit(e.Message, 1);
+                return false;
             }
         }
         /// <summary>
@@ -60,16 +64,11 @@ namespace BrowserAutomationMaster.Managers.Python
         /// </summary>
         /// <param name="global">If you wish to create the global config.  | If false a Virtual Environment is created in the current project directory.</param>
         /// <returns>True if the VEnv exists | False if not.</returns>
-        public void CreateVEnv(bool global = false)
+        public async Task CreateVEnv(bool global = false)
         {
             if (VEnvExists(global))
                 return;
-
-
-            Console.WriteLine(VEnvPath);
-            Console.WriteLine(GetGlobalVEnvPath());
-
-            Warning.Write("Creating Global Virtual Environment, please wait up to 60 seconds for this process to complete.\n");
+                
 
             var psi = new ProcessStartInfo
             {
@@ -80,45 +79,47 @@ namespace BrowserAutomationMaster.Managers.Python
 
             // Global Virtual Environment
             if (global)
+            {
+                Warning.Write("Creating Global Virtual Environment, please wait up to 60 seconds for this process to complete.\n");
                 psi.Arguments = $"-m venv \"{GetGlobalVEnvPath()}\"";
-
+            }
 
             // Project Virtual Environment
             else
             {
-                if (string.IsNullOrEmpty(VEnvPath)) { }
                 psi.Arguments = $"-m venv \"{VEnvPath}\"";
             }
 
             try
             {
-                using Process process = ProcessFactory.SpawnProcess(psi, "create a virtual environment with the interpreter", writeSTDInOut: false, runSync: true).Result;
-                (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(process).Result;
+                using Process process = await ProcessFactory.SpawnProcess(psi, "create a virtual environment with the interpreter", writeSTDInOut: false, runSync: true);
+                (int ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(process);
                 
                 // If the process returned an error or the venv is not able to be accessed.
-                if (ExitCode != 0 || !VEnvExists(global)) 
-                { 
+                if (ExitCode != 0 || !VEnvExists(global))
+                {
                     var path = !string.IsNullOrEmpty(VEnvPath) ? VEnvPath : GetGlobalVEnvPath();
                     Errors.WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to create a virtual environment with the interpreter:\n" +
                             $"{InterpreterPath}.\n\nIf this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                            $"Error log:\nCommand: '{InterpreterPath} -m venv {path}' " +
+                            $"Error log:\nCommand: {psi.FileName} {psi.Arguments} " +
                             $"failed with exit code {ExitCode}",
                         status: 1
-                    ); 
+                    );
                 }
                 Success.WriteSuccessMessage("Successfully created Global Virtual Environment!\n");
             }
 
 
-            catch (Exception e) 
+            catch (Exception e)
             {
+
                 Errors.WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to create a virtual environment for the interpreter:\n{InterpreterPath}.\n\n" +
                         $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\nCommand: '{InterpreterPath} -m venv {VEnvPath}' failed.\n\n" +
+                        $"Error log:\nCommand: {psi.FileName} {psi.Arguments} failed.\n\n" +
                         $"Interpreter Response:\n{e.Message}",
                     status: 1
                 );
@@ -127,8 +128,11 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private string GetVEnvStartArgs(string pythonPath)
         {
-            if (IsUnixLike)
+            if (IsLinux)
                 return $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{pythonPath}\" \"{ScriptFilePath}\"";
+
+            if (IsOSX)
+                return $"-c \"source '{ParentDirectory}/venv/bin/activate' && '{pythonPath}' '{ScriptFilePath}'";
 
             if (IsWindows)
                 return $"\"{ScriptFilePath}\"";
@@ -186,8 +190,8 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public async Task InstallProjectPackages()
         {
-            Success.WriteSuccessMessage("Installing required project packages, please wait..");
-            await Task.Delay(200);
+            Success.WriteSuccessMessage("Installing required project packages in the project's virtual environment, please wait..");
+            await Task.Delay(1000);
 
             if (ParentDirectory == null)
                 Errors.WriteAndExit(
@@ -198,27 +202,27 @@ namespace BrowserAutomationMaster.Managers.Python
                     status: 1
                 );
 
+
             var pipExecutable = GetProjectVEnvPipPath(ParentDirectory);
             var requirementsFilePath = GetProjectRequirementsPath(ParentDirectory);
 
-            // Will add -c on unix
-            var installCMD = $"{(IsUnixLike ? $"-c {pipExecutable}" : "")} install -r {requirementsFilePath}";
-
+            var installCMD = $"install -r \"{requirementsFilePath}\"";
             
 
             ProcessStartInfo psi = new()
             {
-                Arguments = $"{installCMD}",
+                Arguments = installCMD,
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                WorkingDirectory = ParentDirectory,
             };
             SetProcessFileName(ref psi, useCMD: false, fileName: pipExecutable);
 
-            using Process proc = await ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime");
-            (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(proc);
+            Console.WriteLine($"{psi.FileName} {psi.Arguments}");
+
+            using Process proc = ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime").Result;
+            (var ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(proc).Result;
 
             if (ExitCode != 0)
             {
@@ -238,7 +242,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public async Task<bool> RunScriptInVEnv()
         {
-            CreateVEnv();
+            await CreateVEnv();
             await InstallProjectPackages();
             return await RunScript(); // By this point there have been many checks regarding the user's OS, it's safe to proceed.
         }
@@ -260,6 +264,8 @@ namespace BrowserAutomationMaster.Managers.Python
                     status: 1
                 );
 
+            // Special case where OSX needs to be difficult for developers in the pursuit of ease of access for its users.
+            // Runs from /bin/bash instead of the VEnv's path.
             var pythonPath = GetProjectVEnvPythonPath(ParentDirectory);
             var scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
 
@@ -275,15 +281,21 @@ namespace BrowserAutomationMaster.Managers.Python
                     status: 1
                 );
 
+            //var args = IsOSX ? GetVEnvStartArgs(pythonPath).Replace("Application Support/", "Application\\ Support/") : GetVEnvStartArgs(pythonPath);
+            var args = GetVEnvStartArgs(pythonPath);
+
             ProcessStartInfo psi = new()
             {
-                Arguments = GetVEnvStartArgs(pythonPath),
+                Arguments = args,
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WorkingDirectory = ParentDirectory,
             };
+
+            pythonPath = IsOSX ? "/bin/bash" : pythonPath;
+
             SetProcessFileName(ref psi, useCMD: false, fileName: pythonPath);
 
             using Process proc = await ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime");
@@ -305,7 +317,6 @@ namespace BrowserAutomationMaster.Managers.Python
                 Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
             }
 
-
             return true;
         }
 
@@ -315,7 +326,7 @@ namespace BrowserAutomationMaster.Managers.Python
         /// <param name="psi">The ProcessStartInfo object.</param>
         /// <param name="useCMD">(Windows Only) Whether or not to use cmd.exe for the execution of the command, defaults to true.</param>
         /// <param name="fileName">The FileName you wish to execute as a string, defaults to null. (Must be provided if you specify useCMD=false) </param>
-        private static void SetProcessFileName(ref ProcessStartInfo psi, bool useCMD = true, string? fileName = null)
+        public static void SetProcessFileName(ref ProcessStartInfo psi, bool useCMD = true, string? fileName = null)
         {
             if (!useCMD && string.IsNullOrEmpty(fileName))
                 Errors.WriteAndExit("A filename param must be specified for SetProcessFileName when useShell = false", 1);
@@ -336,6 +347,10 @@ namespace BrowserAutomationMaster.Managers.Python
                 psi.StandardOutputEncoding = Encoding.UTF8;
                 psi.StandardErrorEncoding = Encoding.UTF8;
             }
+
+            else if (IsUnixLike && !useCMD)
+                psi.FileName = fileName;
+
 
             else if (IsUnixLike)
                 psi.FileName = "/bin/bash";

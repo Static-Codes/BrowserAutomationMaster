@@ -59,6 +59,21 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             return apps;
         }
 
+
+        public static void HandleVEnvExceptions(string exMessage)
+        {
+            if (exMessage.StartsWith("xcode-select: note: no developer tools were found at '/Applications/Xcode.app'"))
+            {
+                Errors.WriteAndExit(
+                    message:
+                        "Python requires a package installation prior to working with virtual environments for the first time.\n" +
+                        "Please click the 'install' button on the popup window, then restart BAMM.",
+                    status: 1
+                );
+            }
+        }
+
+
         [Obsolete("Unused but left for future references")]
         public static void HandleMultipleInstances(string procName)
         {

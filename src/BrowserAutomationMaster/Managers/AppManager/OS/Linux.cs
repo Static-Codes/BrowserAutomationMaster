@@ -5,6 +5,7 @@ using System.Diagnostics;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
@@ -125,7 +126,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             {
                 string black = "0000/0000/0000";
                 
-                if (IsChromeOS)
+                if (IsChromeOS || IsOSX)
                     return black; 
                 
                 string tempFile = Path.GetTempFileName();

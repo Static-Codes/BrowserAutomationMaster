@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Compilation.Transpiler;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -525,17 +526,18 @@ namespace BrowserAutomationMaster.Compilation
                         $"://{splitProxyLine[2].Replace("\"", " ").Trim()}'\n   }}\n}}"
                     );
                 }
+
                 else
-                {
                     Warning.Write(
                         message:
                             "Unable to add proxy to script, if you reading this, " +
                             "there is a huge bug in the use-proxyType-proxy feature.\n" +
                             $"Please make a bug report at {ISSUES_LINK}."
                     );
-                }
             }
-            else { scriptBody.Add("sw_options = { 'enable_har': True }\n"); }
+            else
+                scriptBody.Add("sw_options = { 'enable_har': True }\n");
+            
             switch (selectedBrowser)
             {
                 //case "brave":
@@ -600,7 +602,15 @@ namespace BrowserAutomationMaster.Compilation
                     }
                     break;
             }
-            scriptBody.Add("driver.maximize_window()");
+            
+            scriptBody.AddRange([
+                "# Silently pass through since a maximized window isnt necessary",
+                "try:",
+                $"{Indent(1)}driver.maximize_window()",
+                "except:",
+                $"{Indent(1)}pass\n"
+            ]);
+
             if (runHeadless)
             {
                 // Runs browser in headless mode
@@ -608,9 +618,9 @@ namespace BrowserAutomationMaster.Compilation
                     "driver.set_window_position(-5000, 0) # Sets the browser off the left of the primary display",
                     "print('Driver initialized.')\n\n"
                 ]);
-                scriptBody.Add("make_request(url)");
             }
-            else { scriptBody.Add("make_request(url)"); }
+
+            scriptBody.Add("make_request(url)");
 
 
             return (true, string.Empty);
@@ -626,7 +636,8 @@ namespace BrowserAutomationMaster.Compilation
 
             if (float.TryParse(rawTimeArg, out float waitTime))
             {
-                Transpiler.AddImportIfNotPresent("from time import sleep", addToReqs: false, reqText: null);
+                // Already added will be removed in a later commit
+                //AddImportIfNotPresent("from time import sleep", addToReqs: false, reqText: null);
                 scriptBody.AddRange([
                         @$"stdout.write('Pausing execution for: {waitTime} seconds.\n')",
                                     $"sleep({waitTime})"
