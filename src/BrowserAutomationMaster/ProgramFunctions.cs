@@ -30,7 +30,7 @@ namespace BrowserAutomationMaster
         public static async Task InitializeAsync(string[] args)
         {
             // Sets PlatformManager.PlatformName to be used across the session duration.
-            PlatformManager.SetPlatform();
+            SetPlatform();
 
             // Downloads a local copy of https://github.dev/Static-Codes/BrowserAutomationMaster/blob/main/src/BrowserAutomationMaster/AppData/packages.json
             await PackageManager.Initalize();

@@ -8,6 +8,7 @@ using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using static BrowserAutomationMaster.Managers.AppManager.OS.MacOS;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -62,6 +63,7 @@ namespace BrowserAutomationMaster.Managers.Python
             if (IsWindows)
                 return Win.GetInterpreterPath();
 
+            // Path to full executable is required to replicate the expected behavior due to OSX being built off BSD 
             if (IsUnixLike || IsChromeOS)
                 return "python3";
 
@@ -238,16 +240,21 @@ namespace BrowserAutomationMaster.Managers.Python
                 ); 
             
             PythonValidationResult result = ScriptValidationManager.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
-            Spectre.Console.AnsiConsole.Write($"{result.Output}\n");
 
-            if (!result.IsValid)
-                Errors.WriteAndExit(
-                    message: 
-                        $"BAM Manager (BAMM) was unable run the specified file as it contains syntax errors.\n" +
-                        $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\n{result.Errors}'", 
-                    status: 1
-                );
+            if (result.IsValid)
+                return;
+                
+            if (IsOSX)
+                HandleVEnvExceptions(result.Errors);  // Will exit if an exception is found.
+
+            Errors.WriteAndExit(
+                message:
+                    $"BAM Manager (BAMM) was unable run the specified file as it contains syntax errors.\n" +
+                    $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
+                    $"Error log:\n{result.Errors}'",
+                status: 1
+            );
+            
         }
 
         // Readd error handling

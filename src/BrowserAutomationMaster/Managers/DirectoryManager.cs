@@ -1,5 +1,4 @@
 ﻿using System.IO.Compression;
-using System.Runtime.InteropServices;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 

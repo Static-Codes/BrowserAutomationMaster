@@ -16,13 +16,13 @@ namespace BrowserAutomationMaster.Managers.AppManager
         private static async Task<List<AppInfo>> GetInstalledApps()
         {
             if (IsWindows)
-                return await Task.Run(OS.Win.GetApps);
+                return await Task.Run(Win.GetApps);
 
             if (IsOSX)
-                return await Task.Run(OS.MacOS.GetApps);
+                return await Task.Run(MacOS.GetApps);
 
             if (IsLinux)
-                return await Task.Run(OS.Linux.GetApps);
+                return await Task.Run(Linux.GetApps);
 
             Errors.ThrowUnsupportedPlatformException();
             return [];

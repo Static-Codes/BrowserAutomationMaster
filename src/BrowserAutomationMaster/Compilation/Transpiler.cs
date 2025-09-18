@@ -218,9 +218,12 @@ namespace BrowserAutomationMaster.Compilation
         
         private static void AddWatermark()
         {
+            // Does not appear to be working
             AddImportIfNotPresent(import: "from time import sleep", addToReqs: false, reqText: null);
 
+            // Remove the import from this text once the function above is fixed.
             var watermarkText =
+                "from time import sleep\n" + 
                 "stdout.write('''Made using BAM Manager (BAMM!)\n" +
                 $"{BASE_REPO_LINK}\n''')\n" +
                 $"sleep(3)\n\n";
@@ -1310,7 +1313,6 @@ namespace BrowserAutomationMaster.Compilation
                 Match match = ActionTimeoutRegex.Match(timeoutArg);
 
                 if (!match.Success)
-                {
                     // Case for when the argument starts with --set-timeout==
                     // but doesn't match the expected format
                     // (For example '--set-timeout==X')
@@ -1321,7 +1323,7 @@ namespace BrowserAutomationMaster.Compilation
                             $"Received: '{timeoutArg}'",
                         status: 1
                     );
-                }
+                    
                 string valueString = match.Groups[1].Value;
                 bool valueParsed = int.TryParse(valueString, out int parsedTimeout);
 
@@ -1365,6 +1367,7 @@ namespace BrowserAutomationMaster.Compilation
                     projectName,
                     requirementsFileName
                 );
+                
                 using StreamWriter writer = new(
                     path: filePath,
                     append: false,
@@ -1372,9 +1375,8 @@ namespace BrowserAutomationMaster.Compilation
                 );
 
                 foreach (string requirement in script.Requirements.packageList)
-                {
                     writer.WriteLine(requirement);
-                }
+
             }
             catch (Exception e)
             {

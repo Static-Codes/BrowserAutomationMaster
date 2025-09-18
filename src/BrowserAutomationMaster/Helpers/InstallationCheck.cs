@@ -25,8 +25,6 @@ namespace BrowserAutomationMaster.Helpers
     public partial class Installations
     {
 
-        
-
         public List<ApplicationNames> AppNames { get; set; }
         
         public static readonly List<ApplicationNames> validPythonVersions = [
@@ -57,78 +55,86 @@ Supported versions include:
 - Python 3.13.X
 - Python 3.14.X".Replace("\r", ""); // Carriage returns cause issues with Spectre Console on Windows... odd?
 
-        public Installations(List<AppInfo> detectedApplications)
+        readonly Dictionary<string, ApplicationNames> pythonVerMap = new()
         {
-            var pythonVerMap = new Dictionary<string, ApplicationNames>
-            {
                 { "Python 3.9", ApplicationNames.Python3_9 },
                 { "Python 3.10", ApplicationNames.Python3_10 },
                 { "Python 3.11", ApplicationNames.Python3_11 },
                 { "Python 3.12", ApplicationNames.Python3_12 },
                 { "Python 3.13", ApplicationNames.Python3_13 },
                 { "Python 3.14", ApplicationNames.Python3_14 }
-            };
+        };
+
+        void Add(ApplicationNames app)
+        {
+            if (!AppNames.Contains(app))
+                AppNames.Add(app);
+        }
+
+
+        /// <summary>Attempts to get the enum member associated with the python version string <summary>
+        /// <param name="name">The string representation of the Python version.</param>
+        /// <param name="app">The returned enum member</param>
+        /// <returns>Either the ApplicationNames member associated or ApplicationNames.Python3_X which will throw an exception later down the stack.</returns>
+        bool GetEnumMemberFromString(string name, out ApplicationNames app)
+        {
+            var collection = pythonVerMap.Where(map => name.StartsWith(map.Key));
+            
+            if (!collection.Any())
+            {
+                app = ApplicationNames.Python3_X;
+                return false;
+            }
+
+            app = collection.First().Value;
+            return app != ApplicationNames.Python3_X;
+        }
+
+        void CheckApp(AppInfo app, bool pythonOnly, string? version = null)
+        {
+            if (app == null || app.Name == null || app.Name.Length == 0)
+                return;
+
+            //if (app.Name.Contains("brave", CCIC))
+            //Add(ApplicationNames.Brave);
+
+            else if (!pythonOnly && app.Name.Contains("chrome", CCIC))
+                Add(ApplicationNames.Chrome);
+
+            else if (!pythonOnly && app.Name.Contains("firefox", CCIC))
+                Add(ApplicationNames.Firefox);
+
+            else if (version == null && GetEnumMemberFromString(app.Name, out ApplicationNames appName))
+                Add(appName);
+
+            // Unix Specific Recursive Case
+            // To prevent an infinite loop, version must have a value to continue
+            else if (IsUnixLike && version != null && GetEnumMemberFromString(version, out ApplicationNames appName2))
+                Add(appName2);
+
+            else if (app.Name.StartsWith("python3"))
+            {
+                var foundVersion = GetMissingPyVersion();
+
+                if (string.IsNullOrEmpty(foundVersion))
+                    Add(ApplicationNames.Python3_X); // This will raise an error once Transpiler.New is executed.
+
+                else if (GetEnumMemberFromString(foundVersion, out ApplicationNames appNameNested))
+                    CheckApp(app, pythonOnly: true, version: foundVersion);
+
+            }
+        }
+            
+        void CheckAndAdd(List<AppInfo> detectedApplications, string? verNum = null, bool pythonOnly = false)
+        {
+            foreach (AppInfo app in detectedApplications)
+                CheckApp(app, pythonOnly: pythonOnly, version: verNum);
+        }
+
+        public Installations(List<AppInfo> detectedApplications)
+        {
 
             AppNames = [];
-
-
-            void Add(ApplicationNames app) 
-            {
-                if (!AppNames.Contains(app))
-                    AppNames.Add(app);
-            }
-
-
-            /// <summary>Attempts to get the enum member associated with the python version string <summary>
-            /// <param name="name">The string representation of the Python version.</param>
-            /// <param name="app">The returned enum member</param>
-            /// <returns>Either the ApplicationNames member associated or ApplicationNames.Python3_X which will throw an exception later down the stack.</returns>
-            bool GetEnumMemberFromString(string name, out ApplicationNames app)
-            {
-                app = pythonVerMap.GetValueOrDefault(name, ApplicationNames.Python3_X);
-                return app != ApplicationNames.Python3_X;
-            }
-
-            void CheckApp(AppInfo app, bool pythonOnly, string? version = null)
-            {
-                if (app == null || app.Name == null || app.Name.Length == 0)
-                    return;
-
-                //if (app.Name.Contains("brave", CCIC))
-                //Add(ApplicationNames.Brave);
-
-                else if (!pythonOnly && app.Name.Contains("chrome", CCIC))
-                    Add(ApplicationNames.Chrome);
-
-                else if (!pythonOnly && app.Name.Contains("firefox", CCIC))
-                    Add(ApplicationNames.Firefox);
-
-                else if (version == null && GetEnumMemberFromString(app.Name, out ApplicationNames appName))
-                    Add(appName);
-
-                // Unix Specific Recursive Case
-                // To prevent an infinite loop, version must have a value to continue
-                else if (IsUnixLike && version != null && GetEnumMemberFromString(version, out ApplicationNames appName2))
-                    Add(appName2);
-
-                else if (app.Name.StartsWith("python3"))
-                {
-                    var foundVersion = GetMissingPyVersion();
-
-                    if (string.IsNullOrEmpty(foundVersion))
-                        Add(ApplicationNames.Python3_X); // This will raise an error once Transpiler.New is executed.
-
-                    else if (GetEnumMemberFromString(foundVersion, out ApplicationNames appNameNested))
-                        CheckApp(app, pythonOnly: true, version: foundVersion);
-
-                }
-            }
-            
-            void CheckAndAdd(List<AppInfo> appsInfo, string? verNum = null, bool pythonOnly = false)
-            {
-                foreach (AppInfo app in detectedApplications)
-                    CheckApp(app, pythonOnly: false);
-            }
 
             CheckAndAdd(detectedApplications);
 

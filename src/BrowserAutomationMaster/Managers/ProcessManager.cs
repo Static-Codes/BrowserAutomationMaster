@@ -1,11 +1,8 @@
-﻿using BrowserAutomationMaster.Compilation;
-using BrowserAutomationMaster.Managers.AppManager.OS;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using Windows.Win32.Foundation;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
@@ -179,7 +176,7 @@ namespace BrowserAutomationMaster.Managers
         /// <param name="writeSTDInOut">If the process should write I/O, defaults to true.</param>
         /// <param name="timeout">The timeout in seconds after which the process will automatically exit, defaults to 200.</param>
         /// <returns>The newly spawned process (assuming an error doesn't cause the application to exit</returns>
-        public static async Task<Process> SpawnProcess(ProcessStartInfo psi, string processAction, bool raiseEvents = true, bool writeSTDInOut = true, bool justSpawn = false, bool runSync = false, int timeout = 200)
+        public static async Task<Process> SpawnProcess(ProcessStartInfo psi, string processAction, bool raiseEvents = true, bool readSTDInOut = true, bool writeSTDInOut = true, bool justSpawn = false, bool runSync = false, int timeout = 200)
         {
             var outputLines = new List<string>();
             var errorLines = new List<string>();
@@ -227,13 +224,24 @@ namespace BrowserAutomationMaster.Managers
                 newProc.Start();
                 ActiveProcesses.Add(newProc, newProcResponse); // Add new process to ActiveProcess upon invoke of Start().
 
-                newProc.BeginOutputReadLine();
-                newProc.BeginErrorReadLine();
 
+                if (readSTDInOut)
+                {
+                    try
+                    {
+                        newProc.BeginOutputReadLine();
+                        newProc.BeginErrorReadLine();
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Warning.Write($"A non fatal error has occured while starting the requested process:\n{ex.Message}");
+                        //Console.WriteLine(ex.Message);
+                    }
+                }
 
                 if (runSync)
                     newProc.WaitForExit();
-                
+
                 else
                 {
                     // 200 Seconds = 3 Minutes 20 Seconds
