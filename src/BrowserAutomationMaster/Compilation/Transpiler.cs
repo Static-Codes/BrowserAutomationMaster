@@ -219,7 +219,6 @@ namespace BrowserAutomationMaster.Compilation
 
             // Remove the import from this text once the function above is fixed.
             var watermarkText =
-                "from time import sleep\n" + 
                 "stdout.write('''Made using BAM Manager (BAMM!)\n" +
                 $"{BASE_REPO_LINK}\n''')\n" +
                 $"sleep(3)\n\n";

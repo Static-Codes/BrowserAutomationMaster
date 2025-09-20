@@ -129,18 +129,17 @@ namespace BrowserAutomationMaster.Compilation
 
     public class ScriptImports
     {
-        private static readonly string[] DefaultImports = {
-            "from importlib import import_module",
-            "from subprocess import run",
-            "from sys import modules, stderr, stdout\n"
-        };
+        private static readonly string[] DefaultImports = [
+            "from sys import stderr, stdout\n"
+        ];
+
         public static readonly int DefaultImportCount = DefaultImports.Length;
 
         public readonly List<string> statementList;
 
         public ScriptImports()
         {
-            statementList = new List<string>(DefaultImports);
+            statementList = [.. DefaultImports];
         }
 
         public ScriptImports(IEnumerable<string> imports)

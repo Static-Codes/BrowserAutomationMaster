@@ -636,12 +636,10 @@ namespace BrowserAutomationMaster.Compilation
 
             if (float.TryParse(rawTimeArg, out float waitTime))
             {
-                // Already added will be removed in a later commit
-                //AddImportIfNotPresent("from time import sleep", addToReqs: false, reqText: null);
                 scriptBody.AddRange([
-                        @$"stdout.write('Pausing execution for: {waitTime} seconds.\n')",
-                                    $"sleep({waitTime})"
-                    ]);
+                    @$"stdout.write('Pausing execution for: {waitTime} seconds.\n')",
+                    $"sleep({waitTime})"
+                ]);
                 waitTimeValidated = true;
             }
             if (!waitTimeValidated)
