@@ -1,7 +1,6 @@
 ﻿using BrowserAutomationMaster.Managers;
 using System.Diagnostics;
 using System.Runtime.Versioning;
-using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -27,6 +26,7 @@ namespace BrowserAutomationMaster.Messaging
         {
             
             string cmd = @"(Get-ChildItem -Path ""C:\Users\Nerdy\Documents\GitHub\BrowserAutomationMaster\BrowserAutomationMaster\src"" -Include *.cs -Recurse | Where-Object { $_.FullName -notmatch '\\(bin|obj|Properties|My Project|Designer\.cs|g\.cs|AssemblyInfo\.cs|TemporaryGeneratedFile_.*\.cs|Resources\.Designer\.cs|Settings\.Designer\.cs)\\' } | Get-Content | Measure-Object -Line | Select-Object -ExpandProperty Lines)";
+       
             ProcessStartInfo processStartInfo = new()
             {
                 FileName = "powershell.exe",

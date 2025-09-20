@@ -132,7 +132,7 @@ namespace BrowserAutomationMaster.Compilation
                         break;
                 }
                 scriptBody.Add(
-                    $"if text == None:\n{Transpiler.Indent(1)}" +
+                    $"if text == None:\n{Indent(1)}" +
                     $"stderr.write('The element: {parsedTextSelector.Value} did not return any text.')\n"
                 );
                 return (true, string.Empty);
@@ -193,12 +193,12 @@ namespace BrowserAutomationMaster.Compilation
                         break;
                 }
                 scriptBody.Add($"if isFilled:\n" +
-                               $"{Transpiler.Indent(1)}" +
+                               $"{Indent(1)}" +
                                $"print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")");
 
                 scriptBody.Add($"else:\n" +
-                               $"{Transpiler.Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
-                               $"{Transpiler.Indent(1)}exit(1)\n");
+                               $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
+                               $"{Indent(1)}exit(1)\n");
 
                 return (true, string.Empty);
             }
@@ -262,13 +262,13 @@ namespace BrowserAutomationMaster.Compilation
                 }
                 scriptBody.Add(
                     $"if isFilled:\n" +
-                    $"{Transpiler.Indent(1)}" +
+                    $"{Indent(1)}" +
                     $"print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")"
                 );
                 scriptBody.Add(
                     $"else:\n" +
-                    $"{Transpiler.Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
-                    $"{Transpiler.Indent(1)}exit(1)\n"
+                    $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
+                    $"{Indent(1)}exit(1)\n"
                 );
                 return (true, string.Empty);
             }
@@ -312,9 +312,9 @@ namespace BrowserAutomationMaster.Compilation
             scriptBody.AddRange([
                 $"isSaved = save_as_html('{sanitizedArg2}')\n",
                 "if isSaved:\n",
-                $"{Transpiler.Indent(1)}print('Saved page source to: {sanitizedArg2}')\n",
+                $"{Indent(1)}print('Saved page source to: {sanitizedArg2}')\n",
                 "else:",
-                $"\n{Transpiler.Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n"
+                $"\n{Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n"
             ]);
         }
         public static void SaveAsHTMLExp(List<string> scriptBody, string sanitizedArg2)
@@ -322,9 +322,9 @@ namespace BrowserAutomationMaster.Compilation
             scriptBody.AddRange([
                 $"isSaved = save_as_html('{sanitizedArg2}')\n",
                 "if isSaved:\n",
-                $"{Transpiler.Indent(1)}print('Saved page source to: {sanitizedArg2}')\n",
+                $"{Indent(1)}print('Saved page source to: {sanitizedArg2}')\n",
                 "else:",
-                $"\n{Transpiler.Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n"
+                $"\n{Indent(1)}print('Unable to save page source, please ensure the page was fully loaded.')\n"
             ]);
         }
         public static (bool, string) SelectElement(List<string> scriptBody, string[] splitLine, int actionTimeout)
@@ -374,10 +374,10 @@ namespace BrowserAutomationMaster.Compilation
                         );
                         break;
                 }
-                scriptBody.Add($"if not element:\n{Transpiler.Indent(1)}" +
+                scriptBody.Add($"if not element:\n{Indent(1)}" +
                                $"stderr.write('The element: {parsedSelectSelector.Value} could not be selected, " +
                                $"please try again or use a different selector.')" +
-                               $"\n{Transpiler.Indent(1)}exit(1)\n");
+                               $"\n{Indent(1)}exit(1)\n");
                 return (true, string.Empty);
             }
             catch (Exception ex)
@@ -434,8 +434,8 @@ namespace BrowserAutomationMaster.Compilation
 
                 }
                 scriptBody.Add($"if not isSelected:\n" +
-                               $"{Transpiler.Indent(1)}stderr.write('Could not select the element: {sanitizedArg2}')" +
-                               $"\n{Transpiler.Indent(1)}exit(1)\n");
+                               $"{Indent(1)}stderr.write('Could not select the element: {sanitizedArg2}')" +
+                               $"\n{Indent(1)}exit(1)\n");
                 return (true, string.Empty);
             }
             catch (Exception ex)
@@ -460,7 +460,7 @@ namespace BrowserAutomationMaster.Compilation
             bool firstVisitFinished, bool disableSSL, bool runHeadless
         )
         {
-            if (!Transpiler.IsResolvableLink(sanitizedArg2))
+            if (!IsResolvableLink(sanitizedArg2))
             {
                 Errors.WriteAndExit(
                     message:
@@ -551,22 +551,22 @@ namespace BrowserAutomationMaster.Compilation
                             "options = Options()",
                                 "options.add_argument('--ignore-certificate-errors')",
                                 "try:",
-                                $"{Transpiler.Indent(1)}",
+                                $"{Indent(1)}",
                                 "driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options, seleniumwire_options=sw_options)",
                                 "except Exception as e:",
-                                $"{Transpiler.Indent(1)}if 'cannot find Chrome binary' in str(e):",
-                                $"{Transpiler.Indent(2)}stderr.write('Please install chrome and try compiling again.')",
-                                $"{Transpiler.Indent(2)}exit(1)\n"
+                                $"{Indent(1)}if 'cannot find Chrome binary' in str(e):",
+                                $"{Indent(2)}stderr.write('Please install chrome and try compiling again.')",
+                                $"{Indent(2)}exit(1)\n"
                         ]);
                         break;
                     }
                     scriptBody.AddRange([
                             "try:",
-                            $"{Transpiler.Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)",
+                            $"{Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)",
                             "except Exception as e:",
-                            $"{Transpiler.Indent(1)}if 'cannot find Chrome binary' in str(e):",
-                            $"{Transpiler.Indent(2)}stderr.write('Please install chrome and try compiling again.')",
-                            $"{Transpiler.Indent(2)}exit(1)\n"
+                            $"{Indent(1)}if 'cannot find Chrome binary' in str(e):",
+                            $"{Indent(2)}stderr.write('Please install chrome and try compiling again.')",
+                            $"{Indent(2)}exit(1)\n"
                     ]);
                     break;
 
@@ -577,27 +577,27 @@ namespace BrowserAutomationMaster.Compilation
                              "options = Options()",
                              "options.accept_insecure_certs = True",
                              "try:",
-                            //$"{Transpiler.Indent(1)}",
+                            //$"{Indent(1)}",
                             // "driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options, seleniumwire_options=sw_options)",
                             // "except Exception as e:",
-                            $"{Transpiler.Indent(1)}driver = webdriver.Firefox(",
-                            $"{Transpiler.Indent(2)}service=FirefoxService(GeckoDriverManager().install())",
-                            $"{Transpiler.Indent(2)}seleniumwire_options=sw_options,",
-                            $"{Transpiler.Indent(1)})",
-                            $"{Transpiler.Indent(1)}if 'cannot find Firefox binary' in str(e):\n",
-                            $"{Transpiler.Indent(2)}stderr.write('Please install firefox and try running again.')",
-                            $"{Transpiler.Indent(2)}exit(1)",
+                            $"{Indent(1)}driver = webdriver.Firefox(",
+                            $"{Indent(2)}service=FirefoxService(GeckoDriverManager().install())",
+                            $"{Indent(2)}seleniumwire_options=sw_options,",
+                            $"{Indent(1)})",
+                            $"{Indent(1)}if 'cannot find Firefox binary' in str(e):\n",
+                            $"{Indent(2)}stderr.write('Please install firefox and try running again.')",
+                            $"{Indent(2)}exit(1)",
                         ]);
                     }
                     else
                     { // Uses SSL
                         scriptBody.AddRange([
                              "try:",
-                            $"{Transpiler.Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)",
+                            $"{Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)",
                              "except Exception as e:",
-                            $"{Transpiler.Indent(1)}if 'cannot find Firefox binary' in str(e):",
-                            $"{Transpiler.Indent(2)}stderr.write('Please install firefox and try running again.')",
-                            $"{Transpiler.Indent(2)}exit(1)\n",
+                            $"{Indent(1)}if 'cannot find Firefox binary' in str(e):",
+                            $"{Indent(2)}stderr.write('Please install firefox and try running again.')",
+                            $"{Indent(2)}exit(1)\n",
                         ]);
                     }
                     break;
