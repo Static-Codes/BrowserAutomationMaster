@@ -136,7 +136,7 @@ namespace BrowserAutomationMaster.Compilation
             Indent(3) + "setTimeout(() => {{timeout*1000}});" + "\n" +
             Indent(2) + "'''" + "\n" +
             Indent(1) + ")" + "\n" +
-            Indent(1) + "sleep(timeout)" + "\n\n\n";
+            Indent(1) + "sleep(timeout)" + '\n';
 
 
 
