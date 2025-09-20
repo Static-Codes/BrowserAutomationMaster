@@ -195,20 +195,16 @@ namespace BrowserAutomationMaster.Compilation
             bool validStatement = import.StartsWith("from") || import.StartsWith("import");
 
             if (!validStatement)
-            {
                 Errors.WriteAndExit(
                     message: $"Invalid import statement: {import}.",
                     status: 1
                 );
-            }
 
             if (addToReqs && !string.IsNullOrEmpty(reqText))
-            {
                 Errors.WriteAndExit(
                     message: $"Invalid requirement statement: {reqText}.",
                     status: 1
                 );
-            }
 
             script.Imports.AddStatement(import);
 
@@ -248,14 +244,14 @@ namespace BrowserAutomationMaster.Compilation
             script.Body.AddLine(MakeRequestFunction(requestUserAgent), 0);
 
             // Starts at line 4 (index 3) to account for imports required by check_imports
-            var statements = new Dictionary<string, int>()
-            {
-                { checkImportFunction, 3 },
-                { installPackagesFunction, 4 },
-                { "install_packages()", 5 },
-            };
+            //var statements = new Dictionary<string, int>()
+            //{
+            //    { checkImportFunction, 3 },
+            //    { installPackagesFunction, 4 },
+            //    { "install_packages()", 5 },
+            //};
 
-            script.Imports.AddStatements(statements);
+            //script.Imports.AddStatements(statements);
 
             Action Add(string func) => () => script.Body.AddLine(func, index);
             Action AddRange(string[] lines) => () => script.Body.AddLines(lines);
@@ -839,7 +835,7 @@ namespace BrowserAutomationMaster.Compilation
             SuppressUnneededWarnings();
             AddWatermark(); // Single comment watermark, completely nonintrusive and easily removable
         }
-        
+
         public static void HandleDisabling(BAMConfig config)
         {
             var headlessMessage =
@@ -1403,7 +1399,7 @@ namespace BrowserAutomationMaster.Compilation
                 var sanitizedImportStatements = script.Imports.statementList.Select(line => line.TrimStart('\uFEFF'));
 
                 // Removing Byte Order Mark (BOM)
-                var sanitizedScriptBody = script.Imports.statementList.Select(line => line.TrimStart('\uFEFF'));
+                var sanitizedScriptBody = script.Body.scriptLines.Select(line => line.TrimStart('\uFEFF'));
 
                 string filePath = Path.Combine(
                     desiredSaveDirectory,

@@ -8,9 +8,9 @@ namespace BrowserAutomationMaster.Compilation
         public readonly ScriptImports Imports;
         public readonly ScriptBody Body;
         public readonly ScriptRequirements Requirements;
-        
+
         public Script()
-        { 
+        {
             Body = new ScriptBody();
             Requirements = new ScriptRequirements();
             Imports = new ScriptImports();
@@ -19,7 +19,7 @@ namespace BrowserAutomationMaster.Compilation
         public void AddBodyLine(string line) { Body.AddLine(line); }
         public void AddBodyLines(string[] lines) { Body.AddLines(lines); }
         public void AddBodyLines(Dictionary<string, int> lines) { Body.AddLines(lines); }
-        
+
 
         public void AddImportStatement(string statement) { Imports.AddStatement(statement); }
         public void AddImportStatements(string[] statement) { Imports.AddStatements(statement); }
@@ -27,9 +27,6 @@ namespace BrowserAutomationMaster.Compilation
 
         public void AddRequirementPackage(string package) { Requirements.AddPackage(package); }
         public void AddRequirementPackages(string package) { Requirements.AddPackage(package); }
-
-
-
 
         public void ResetInstanceState()
         {
@@ -40,10 +37,10 @@ namespace BrowserAutomationMaster.Compilation
             var isNotEmpty =
                 Body.scriptLines.Count != 0 ||
                 Requirements.packageList.Count != 0 ||
-                Imports.statementList.Count != 3; // The imports are added here
-            
-            var message = 
-                "BAM Manager (BAMM) was unable to clean up data from the previous session.\n" + 
+                Imports.statementList.Count != ScriptImports.DefaultImportCount;
+
+            var message =
+                "BAM Manager (BAMM) was unable to clean up data from the previous session.\n" +
                 $"If this issue persists, please make a bug report at {ISSUES_LINK}\n" +
                 "Error Log:\nUnable to reset the state of the current Script() object.";
 
@@ -85,19 +82,17 @@ namespace BrowserAutomationMaster.Compilation
         }
 
         public int GetLineCount() { return scriptLines.Count; }
-        
-        public string GetMakeRequestLine() 
-        { 
+
+        public string GetMakeRequestLine()
+        {
             return scriptLines
                 .Where(line => line.Equals("make_request(url)"))
-                .First() ?? string.Empty; 
+                .First() ?? string.Empty;
         }
 
         public void ResetLines() { scriptLines.Clear(); }
-        
+
     }
-
-
 
     public class ScriptRequirements
     {
@@ -130,37 +125,38 @@ namespace BrowserAutomationMaster.Compilation
         }
 
         public void ResetPackages() { packageList.Clear(); }
-
     }
-
 
     public class ScriptImports
     {
+        private static readonly string[] DefaultImports = {
+            "from importlib import import_module",
+            "from subprocess import run",
+            "from sys import modules, stderr, stdout\n"
+        };
+        public static readonly int DefaultImportCount = DefaultImports.Length;
+
         public readonly List<string> statementList;
+
         public ScriptImports()
         {
-            // This is the default list of import statements used by BAMM
-            statementList = [
-                "from importlib import import_module",
-                "from subprocess import run",
-                "from sys import modules, stderr, stdout\n"
-            ];
+            statementList = new List<string>(DefaultImports);
         }
 
-        public ScriptImports(IEnumerable<string> imports) 
+        public ScriptImports(IEnumerable<string> imports)
         {
             statementList = [.. imports];
         }
 
         public void AddStatement(string statement)
         {
-            if (statement != null && !statement.Contains(statement))
+            if (statement != null && !statementList.Contains(statement))
                 statementList.Add(statement);
         }
 
         public void AddStatement(string statement, int index)
         {
-            if (statement != null && !statement.Contains(statement))
+            if (statement != null && !statementList.Contains(statement))
                 statementList.Insert(index, statement);
         }
 
@@ -176,15 +172,10 @@ namespace BrowserAutomationMaster.Compilation
                 AddStatement(line, index);
         }
 
-        public void ResetStatements() 
-        { 
+        public void ResetStatements()
+        {
             statementList.Clear();
-            statementList.AddRange([
-                "from importlib import import_module",
-                "from subprocess import run",
-                "from sys import modules, stderr, stdout\n"
-            ]);
+            statementList.AddRange(DefaultImports);
         }
     }
-
 }

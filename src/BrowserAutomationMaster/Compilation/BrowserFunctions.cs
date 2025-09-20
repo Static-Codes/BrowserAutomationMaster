@@ -82,21 +82,6 @@ namespace BrowserAutomationMaster.Compilation
 
 
 
-        public static string checkImportFunction = @"def check_import(name: str):
-    module_name = name.split('==')[0].split('>=')[0].split('<=')[0].split('!=')[0].split('<')[0].split('>')[0].split('[')[0].strip()
-    error_msg = f'Unable to find package: {module_name}, please ensure you its installed via:\npip install {name}'
-    if module_name in modules:
-        return True
-        
-    try:
-        import_module(module_name)
-        return True
-    except:
-        stderr.write(error_msg + '\n')
-        return False" + "\n\n\n";
-
-
-
         // Forked from https://pypi.org/project/a-selenium-click-on-coords/ under the MIT License.
         public static string clickAtPositionFunction = @$"def click_at_position(x: int, y: int, script_timeout=10):
     isClicked = False
@@ -140,17 +125,6 @@ namespace BrowserAutomationMaster.Compilation
 
 
 
-        //        public static string clickElementExperimentalFunction = $@"def click_element_experimental(selector: str, timeout: int = 10):
-        //    driver.execute_script(f""""""let selector = '{{selector}}';
-        //let element = document.querySelector(selector);
-        //if (element) {{{{
-        //  element.click();
-        //}}}}
-        //setTimeout(() => {{timeout*1000}});
-        //""""""
-        //)
-        //    sleep(timeout)
-        //";
         public static string clickElementExperimentalFunction = 
             "def click_element_experimental(selector: str, timeout: int = 10):" + "\n" +
             Indent(1) + "driver.execute_script(" + "\n" +
@@ -474,73 +448,6 @@ namespace BrowserAutomationMaster.Compilation
     except Exception as e:
         stderr.write(f""An error occurred while attempting to fill:\n{selector}\nError:\n{e}\n"")
         return False" + '\n';
-
-
-
-        public static string installPackagesFunction = @"def install_packages():
-    try:
-        from pathlib import Path
-        import platform
-        current_file_directory = Path(__file__).parent.resolve()
-        
-        if platform.system() == ""Windows"":
-            pip_executable = str(current_file_directory / ""venv"" / ""Scripts"" / ""pip.exe"")
-
-        else:
-            pip_executable = str(current_file_directory / ""venv"" / ""bin"" / ""pip"")
-
-        requirements_filepath = str(current_file_directory / ""requirements.txt"")
-
-    except:
-        stderr.write(f'Unable to determine required values for package installation\n')
-        exit(1)
-
-    raw_package_names = []
-
-    try:
-        with open(requirements_filepath, 'r') as file:
-            raw_package_names = file.read().splitlines()
-    except:
-        stderr.write(f'Unable to parse requirements.txt file, please ensure the following file is not actively being used:\n{requirements_filepath}\n')
-        exit(1)
-    
-    package_names = [name.strip() for name in raw_package_names if name.strip() and not name.strip().startswith('#')]
-    missing_packages = any(not check_import(package) for package in package_names)
-
-    if not missing_packages:
-        return True
-
-    command = [
-        pip_executable,
-        ""install"",
-        ""-r"",
-        requirements_filepath,
-    ]
-
-
-    try:
-        process = run(command, cwd=current_file_directory, capture_output=False, text=True, check=False)
-
-        if process.returncode == 0:
-            stdout.write('Required packages installed successfully.\n')
-            if process.stderr:
-                stderr.write(f'pip response:\n{process.stderr}\n')
-            return True
-
-        else:
-            stderr.write(f'Error installing packages.\n')
-            if process.stderr:
-                stderr.write('Error:\n' + process.stderr)
-            return False
-
-    except FileNotFoundError: # This exception occurs if 'pip' itself is not found
-        stderr.write('pip command not found, Please make sure Python and pip are installed and in your system PATH.\n')
-        return False
-
-    except Exception as e:
-        stderr.write(f'An unexpected error occurred while trying to run pip:\n{e}\n')
-        return False" + '\n';
-
 
 
         public static string MakeRequestFunction(string userAgent)
