@@ -15,12 +15,12 @@ namespace BrowserAutomationMaster.Managers
             {
                 var message = $"A backup of the AppData used by BAM Manager (BAMM) already exists at: {backupPath}\n";
                 Warning.Write(message);
-                
+
                 var response = Input.AskForInput("Would you like to overwrite it? [y/n]: ");
-                
+
                 if (Input.ConditionRejected(response))
                     Environment.Exit(0);
-                
+
                 DeleteFile(backupPath);
             }
 
@@ -32,7 +32,7 @@ namespace BrowserAutomationMaster.Managers
                         if (!Directory.Exists(AppDataDirectory))
                             Errors.WriteAndExit($"Unable to create backup file, directory doesn't exist at: {AppDataDirectory}", 1);
 
-                        
+
                         if (string.IsNullOrEmpty(backupPath))
                         {
                             var message = "Would you like to create a backup in the current directory? [y/n]: ";
@@ -59,64 +59,70 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteAndExit(message, 1);
             }
         }
-        
+
         public static void DeleteDirectory(string directory)
         {
             if (string.IsNullOrWhiteSpace(directory)) { return; }
-            if (!Directory.Exists(directory)) {
+            if (!Directory.Exists(directory))
+            {
                 Errors.WriteAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to locate:\n{directory}\nPlease ensure this directory exists.", 
+                    message: $"\nBAM Manager (BAMM) was unable to locate:\n{directory}\nPlease ensure this directory exists.",
                     status: 1
                 );
             }
-            try {
+            try
+            {
                 Directory.Delete(directory, true);
                 Success.WriteSuccessMessage(
                     message: $"BAM Manager (BAMM) successfully deleted directory:\n{directory}\n"
                 );
             }
-            catch (IOException e) {
+            catch (IOException e)
+            {
                 Errors.WriteAndExit(
                     message: $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
-                             $"File: {directory}\n\nException:\n\n{e.Message}", 
+                             $"File: {directory}\n\nException:\n\n{e.Message}",
                     status: 1
                 );
             }
-            catch (UnauthorizedAccessException e) {
+            catch (UnauthorizedAccessException e)
+            {
                 Errors.WriteAndExit(
-                    message: 
+                    message:
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\n" +
-                        $"File: {directory}\n\nException:\n\n{e.Message}", 
+                        $"File: {directory}\n\nException:\n\n{e.Message}",
                     status: 1
                 );
             }
-            catch (System.Security.SecurityException e) {
+            catch (System.Security.SecurityException e)
+            {
                 Errors.WriteAndExit(
-                    message: 
+                    message:
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\n" +
-                        $"File: {directory}\n\nException:\n\n{e.Message}", 
+                        $"File: {directory}\n\nException:\n\n{e.Message}",
                     status: 1
                 );
             }
-            catch (ArgumentException e) {
+            catch (ArgumentException e)
+            {
                 Errors.WriteAndExit(
-                    message: 
+                    message:
                         $"Invalid argument for file path: '{directory}\n\n" +
-                        $"Exception:\n\n {e.Message}", 
+                        $"Exception:\n\n {e.Message}",
                     status: 1
                 );
             }
             catch (Exception ex)
             {
                 Errors.WriteAndExit(
-                    message: 
+                    message:
                         $"An unexpected error of type: '{ex.GetType().Name}' occurred while trying to delete file: '{directory}'\n\n" +
-                        $"Exception:\n\n{ex.Message}", 
+                        $"Exception:\n\n{ex.Message}",
                     status: 1
                 );
             }
         }
-        
+
         public static void DeleteFile(string path)
         {
             if (string.IsNullOrWhiteSpace(path)) { return; }
@@ -179,7 +185,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
         }
-        
+
         public static void EnsureDirectoryExists(string path)
         {
             if (!Directory.Exists(path))
@@ -193,7 +199,7 @@ namespace BrowserAutomationMaster.Managers
                 }
             }
         }
-        
+
         private static string GetDefaultBackupPath(string compression = "zip")
         {
             try
@@ -211,41 +217,14 @@ namespace BrowserAutomationMaster.Managers
                 return Errors.WriteErrorAndReturnEmptyString(message);
             }
         }
-        
+
         public static string GetBrowserStackDirectory() { return Path.Combine(AppDataDirectory, "browserstack"); }
-        
+
         public static string GetBrowserStackConfigPath() { return Path.Combine(GetBrowserStackDirectory(), "browserstack.yml"); }
-        
+
         public static string GetBAMConfigDirectory() { return Path.Combine(AppDataDirectory, "config"); }
-        
+
         public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
-        
-        public static string GetGlobalVEnvPath() { return Path.Combine(AppDataDirectory, "globalVEnv"); }
-
-        public static string GetGlobalVEnvPythonPath()
-        {
-            if (IsWindows)
-                return Path.Combine(GetGlobalVEnvPath(), "Scripts", "python.exe");
-
-            if (IsUnixLike)
-                return Path.Combine(GetGlobalVEnvPath(), "bin", "python3");
-
-            Errors.ThrowUnsupportedPlatformException();
-            return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
-        }
-
-        public static string GetGlobalVEnvPipPath()
-        {
-            if (IsWindows)
-                return Path.Combine(GetGlobalVEnvPath(), "Scripts", "pip3.exe");
-
-            if (IsUnixLike)
-                return Path.Combine(GetGlobalVEnvPath(), "bin", "pip");
-
-            Errors.ThrowUnsupportedPlatformException();
-            return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
-        }
-
         public static string GetPackagesPath() { return Path.Combine(AppDataDirectory, "packages.json"); }
 
         public static string GetProjectRequirementsPath(string ParentDirectory)
@@ -280,9 +259,9 @@ namespace BrowserAutomationMaster.Managers
         }
 
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
-        
+
         public static string GetUserScriptDirectory() { return Path.Combine(AppDataDirectory, "userScripts"); }
-        
+
         private static string GetAppDataLinux(string appName)
         {
             string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -309,7 +288,7 @@ namespace BrowserAutomationMaster.Managers
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
-        
+
         private static string GetAppDataMacOS(string appName)
         {
             string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -385,7 +364,7 @@ namespace BrowserAutomationMaster.Managers
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
-        
+
         private static string GetAppDataWindows(string appName)
         {
             string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -393,7 +372,7 @@ namespace BrowserAutomationMaster.Managers
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
-        
+
         public static string GetAppDataDirectory()
         {
             string appName = "BrowserAutomationMaster";
@@ -406,9 +385,14 @@ namespace BrowserAutomationMaster.Managers
 
             else if (IsLinux)
                 return GetAppDataLinux(appName);
-            
+
             else
                 throw new PlatformNotSupportedException($"Unsupported OS");
+        }
+
+        public static string GetLinuxPackageFile()
+        {
+            return Path.Combine(AppDataDirectory, "PKGS_INSTALLED");
         }
     }
 }

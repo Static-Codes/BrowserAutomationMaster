@@ -176,7 +176,8 @@ namespace BrowserAutomationMaster.Managers
         /// <param name="writeSTDInOut">If the process should write I/O, defaults to true.</param>
         /// <param name="timeout">The timeout in seconds after which the process will automatically exit, defaults to 200.</param>
         /// <returns>The newly spawned process (assuming an error doesn't cause the application to exit</returns>
-        public static async Task<Process> SpawnProcess(ProcessStartInfo psi, string processAction, bool raiseEvents = true, bool readSTDInOut = true, bool writeSTDInOut = true, bool justSpawn = false, bool runSync = false, int timeout = 200)
+        public static async Task<Process> SpawnProcess(ProcessStartInfo psi, string processAction,
+            bool raiseEvents = true, bool readSTDInOut = true, bool writeSTDInOut = true, bool whiteOutput = false, bool justSpawn = false, bool runSync = false, int timeout = 200)
         {
             var outputLines = new List<string>();
             var errorLines = new List<string>();
@@ -191,27 +192,32 @@ namespace BrowserAutomationMaster.Managers
                     // Declaring required event handlers -> STDOut, STDErr
                     newProc.OutputDataReceived += (sender, args) =>
                     {
-                        if (args.Data != null)
-                        {
-                            outputLines.Add(args.Data);
-                            if (writeSTDInOut)
-                                Success.WriteSuccessMessage(args.Data + '\n');
-                        }
+                        if (args.Data == null)
+                            return;
+                            
+                        outputLines.Add(args.Data);
+
+                        if (writeSTDInOut && !whiteOutput)
+                            Success.WriteSuccessMessage(args.Data + '\n');
+
+                        else if (writeSTDInOut && whiteOutput)
+                            Console.WriteLine(args.Data + '\n');
+                        
                     };
 
 
                     newProc.ErrorDataReceived += (sender, args) =>
                     {
-                        if (args.Data != null)
-                        {
-                            errorLines.Add(args.Data);
-                            if (writeSTDInOut)
-                                Errors.Write(args.Data + '\n');
-                        }
+                        if (args.Data == null)
+                            return;
+                        
+                        errorLines.Add(args.Data);
+
+                        if (writeSTDInOut)
+                            Errors.Write(args.Data + '\n');
+                            
                     };
                 }
-
-
 
                 // This struct will be populated 25 or so lines below.
                 var newProcResponse = new ProcessResponse();

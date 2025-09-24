@@ -9,10 +9,13 @@ namespace BrowserAutomationMaster.Managers
 
     public static partial class RegexManager
     {
+        public static readonly Regex ValidDirectoryRegex = ValidDirRegex();
+        [GeneratedRegex(@"^[0-9a-zA-Z_\-.]+$", RegexOptions.Compiled)]
+        private static partial Regex ValidDirRegex();
 
-        public static readonly Regex PyVersionRegex = PyVersionExpression();
+        public static readonly Regex PyVersionRegex = PyVerRegex();
         [GeneratedRegex("^Python\\s(3.[0-9]{1,2})", RegexOptions.Compiled)]
-        private static partial Regex PyVersionExpression();
+        private static partial Regex PyVerRegex();
 
 
         // Used for --set-timeout==5 (or any desired timeout)

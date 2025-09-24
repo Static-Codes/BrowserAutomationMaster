@@ -26,7 +26,7 @@ namespace BrowserAutomationMaster.Compilation
         private readonly static string defaultScriptFileName = "untitled-script";
 
         private readonly static string desiredSaveDirectory = GetDesiredSaveDirectory();
-        private static string projectName = GetProjectName();
+        private static string projectName = "";
         private readonly static string requirementsFileName = "requirements.txt";
         private static string projectDirectory = "";
 
@@ -66,8 +66,10 @@ namespace BrowserAutomationMaster.Compilation
 
                 // Installs https://pypi.org/project/browserstack-sdk/ if not already installed in the Global Virtual Environment
                 if (usingBrowserstack)
-                    await InstanceManager.EnsureSDKInstallation();
+                {
 
+                }
+                
                 // Found it's more reliable to reset the state when a new Transpiler object is created.
                 ResetTranspilerState();
 
@@ -124,13 +126,19 @@ namespace BrowserAutomationMaster.Compilation
             string sVersion = PackageManager.Get("selenium", pythonVersion);
             string swVersion = PackageManager.Get("selenium-wire", pythonVersion);
             string wmVersion = PackageManager.Get("webdriver_manager", pythonVersion);
+            var bsVersion = PackageManager.Get("browserstack-sdk", pythonVersion);
+
+            var sdkPackage = usingBrowserstack ? $"browserstack-sdk=={bsVersion}" : string.Empty;
+            var sdkLocalPackage = usingBrowserstack ? $"browserstack-local >= 1.2.3" : string.Empty;
 
             string[] packages = [
-                GetSetupToolsVersion(), // Will be removed in the future so the warning can be ignored.
+                "setuptools==80.9.0",
                 $"selenium=={sVersion}",
                 $"selenium-wire=={swVersion}",
                 $"webdriver_manager=={wmVersion}",
-                $"blinker==1.4", // This fixes the mess that selenium-wire causes by installing blinker >=1.9
+                "blinker==1.4", // This fixes the mess that selenium-wire causes by installing blinker >=1.9
+                sdkPackage,
+                sdkLocalPackage
             ];
 
             script.Requirements.AddPackages(packages);
@@ -378,21 +386,22 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
 
-        public static string GetProjectName() 
-        { 
-            return DateTime.Now.ToString("MM-dd-yyyy_HH-mm-ss-tt"); 
-        }
-
-        public static string GetPythonVersion() { return pythonVersion; }
-
-        [Obsolete("Remove this in a future update, since chromeOS execution is handled by BrowserStack")]
-        private static string GetSetupToolsVersion()
+        public static string GetProjectName()
         {
-            return IsChromeOS switch
+            while (true)
             {
-                true => "setuptools==75.3.2",
-                false => "setuptools==80.9.0"
-            };
+                var customName = Input.AskForInput("Please enter a name for this project: ");
+
+                if (string.IsNullOrEmpty(customName))
+                    continue;
+                    
+                if (ValidDirectoryRegex.IsMatch(customName))
+                    return customName;
+
+                Errors.Write("Invalid name, a project name can contain only alphanumeric characters, dashes, and periods.\nPlease try again.");
+                Thread.Sleep(2000);
+                
+            }
         }
         
         private static void HandleAutoCopy()
@@ -937,26 +946,22 @@ namespace BrowserAutomationMaster.Compilation
                 return false;
 
             if (!Directory.Exists(projectDirectory))
-            {
                 Errors.WriteAndExit(
                     "Unable to run the newly compiled project, please ensure this directory still exists.",
                     status: 1
                 );
-            }
 
             var path = Path.Combine(projectDirectory, pythonScriptFileName);
+
             if (!File.Exists(path))
-            {
                 Errors.WriteAndExit(
                     "Unable to run the newly compiled project, please ensure this file still exists.\\n\\n" +
                     $"Path: {path}",
                     status: 1
                 );
-            }
 
             var runtimeManager = new RuntimeManager(path);
-
-            await runtimeManager.RunScriptFromTranspiler();
+            await runtimeManager.RunScript(usingBrowserstack);
             return true;
         }
         
@@ -1192,7 +1197,8 @@ namespace BrowserAutomationMaster.Compilation
                      1);
             }
 
-            if (userAgentArgs.Count == 0) { return; }
+            if (userAgentArgs.Count == 0)
+                return;
 
             else
             {

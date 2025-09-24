@@ -3,10 +3,10 @@ using System.Text;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.InstanceManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
-using BrowserAutomationMaster.Managers.Python.BrowserStack;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -25,10 +25,8 @@ namespace BrowserAutomationMaster.Managers.Python
         /// </summary>
         /// <param name="global">If you wish to check the global config.  | If false the current project directory is checked for a Virtual Environment.</param>
         /// <returns>True if the VEnv exists | False if not.</returns>
-        private bool VEnvExists(bool global = false)
+        private bool VEnvExists()
         {
-            if (global)
-                return Directory.Exists(GetGlobalVEnvPath());
 
             try
             {
@@ -49,11 +47,12 @@ namespace BrowserAutomationMaster.Managers.Python
             }
         }
         /// <summary>
-        /// Ensure the browser
+        /// Returns a VEnvManager to run the specified script using BrowserStack
         /// </summary>
+        /// <param name="scriptFilePath">The desired script to be ran.</param>
         public static VEnvManager CheckBSConfigAtRuntime(string scriptFilePath)
         {
-            var config = InstanceManager.LoadConfig();
+            var config = LoadConfig();
             if (config == null)
                 Errors.WriteAndExit($"Unable to load BrowserStack Config from:\n{GetBrowserStackConfigPath()}", 1);
             return new VEnvManager("browserstack-sdk python", scriptFilePath);
@@ -64,31 +63,18 @@ namespace BrowserAutomationMaster.Managers.Python
         /// </summary>
         /// <param name="global">If you wish to create the global config.  | If false a Virtual Environment is created in the current project directory.</param>
         /// <returns>True if the VEnv exists | False if not.</returns>
-        public async Task CreateVEnv(bool global = false)
+        public async Task CreateVEnv()
         {
-            if (VEnvExists(global))
+            if (VEnvExists())
                 return;
-                
 
             var psi = new ProcessStartInfo
             {
                 FileName = InterpreterPath,
+                Arguments = $"-m venv \"{VEnvPath}\"",
                 CreateNoWindow = true,
                 UseShellExecute = false
             };
-
-            // Global Virtual Environment
-            if (global)
-            {
-                Warning.Write("Creating Global Virtual Environment, please wait up to 60 seconds for this process to complete.\n");
-                psi.Arguments = $"-m venv \"{GetGlobalVEnvPath()}\"";
-            }
-
-            // Project Virtual Environment
-            else
-            {
-                psi.Arguments = $"-m venv \"{VEnvPath}\"";
-            }
 
             try
             {
@@ -96,9 +82,8 @@ namespace BrowserAutomationMaster.Managers.Python
                 (int ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(process);
                 
                 // If the process returned an error or the venv is not able to be accessed.
-                if (ExitCode != 0 || !VEnvExists(global))
+                if (ExitCode != 0 || !VEnvExists())
                 {
-                    var path = !string.IsNullOrEmpty(VEnvPath) ? VEnvPath : GetGlobalVEnvPath();
                     Errors.WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to create a virtual environment with the interpreter:\n" +
@@ -108,7 +93,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         status: 1
                     );
                 }
-                Success.WriteSuccessMessage("Successfully created Global Virtual Environment!\n");
+                Success.WriteSuccessMessage("Successfully created Project Virtual Environment!\n");
             }
 
 
@@ -139,53 +124,6 @@ namespace BrowserAutomationMaster.Managers.Python
 
             Errors.ThrowUnsupportedPlatformException();
             return string.Empty; // Will not be executed.
-        }
-
-        
-
-        public static async Task InstallGlobalPackages()
-        {
-            Success.WriteSuccessMessage("Installing Browserstack Python SDK...");
-
-            var baseMessage =
-                    "Unable to install the Browserstack Python SDK.\n" +
-                    $"If this issue persists, please make a bug report at {ISSUES_LINK}\n" +
-                    "Error Log:\n";
-
-            var pipExecutablePath = GetGlobalVEnvPipPath();
-
-            var version = PackageManager.Get("browserstack-sdk", GetPythonVersion());
-
-            var installCMD = $"install browserstack-sdk=={version}";
-            var checkCMD = $"{pipExecutablePath} show browserstack-sdk";
-
-            var errMessage = baseMessage + $"Command:\n{installCMD} returned a non-zero status, indicating an unspecified error.";
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = pipExecutablePath,
-                Arguments = checkCMD,
-                CreateNoWindow = true,
-                UseShellExecute = false
-            };
-
-            var process = await ProcessFactory.SpawnProcess(psi, "install the BrowserStack Python SDK", timeout: 10);
-            
-            // the discards are STDOut and STDErr
-            (var ExitCode, List<string> _, List<string> _) = await ProcessFactory.GetProcessResponse(process);
-
-
-            switch (ExitCode)
-            {
-                case 0:
-                    Warning.Write("Browserstack's Python SDK is installed in the Global Virtual Environment, continuing...");
-                    break;
-
-                default:
-                    Errors.WriteAndExit(errMessage, 1);
-                    break;
-            }
-
         }
 
         public async Task InstallProjectPackages()
@@ -219,9 +157,9 @@ namespace BrowserAutomationMaster.Managers.Python
             };
             SetProcessFileName(ref psi, useCMD: false, fileName: pipExecutable);
 
-            Console.WriteLine($"{psi.FileName} {psi.Arguments}");
+            using Process proc = ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime", whiteOutput: true).Result;
+            await Task.Delay(1000);
 
-            using Process proc = ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime").Result;
             (var ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(proc).Result;
 
             if (ExitCode != 0)
@@ -240,21 +178,21 @@ namespace BrowserAutomationMaster.Managers.Python
             }
         }
 
-        public async Task<bool> RunScriptInVEnv()
+        public async Task RunScriptInVEnv(bool usingBrowserStack = false)
         {
             await CreateVEnv();
             await InstallProjectPackages();
-            return await RunScript(); // By this point there have been many checks regarding the user's OS, it's safe to proceed.
+            await Task.Delay(1000);
+
+            if (IsChromeOS || GetBrowserStackStatus() || usingBrowserStack)
+                await RunScriptWithBrowserStack();
+
+            else
+                await StartScriptExecution(); // By this point there have been many checks regarding the user's OS, it's safe to proceed.
         }
 
-        public async Task<bool> RunScript()
+        private async Task StartScriptExecution()
         {
-
-            if (IsChromeOS || GetBrowserStackStatus())
-                // Replace with BrowserStack
-                return true;
-            
-
             if (ParentDirectory == null)
                 Errors.WriteAndExit(
                     message:
@@ -277,7 +215,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     message:
                         $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
                         $"if this issue persists.please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\nUnable to find the python executable in virtual environment:\n{GetGlobalVEnvPath()}",
+                        $"Error log:\nUnable to find the python executable in virtual environment:\n{GetProjectVEnvPath(ParentDirectory)}",
                     status: 1
                 );
 
@@ -316,15 +254,101 @@ namespace BrowserAutomationMaster.Managers.Python
 
                 Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
             }
+        }
 
-            return true;
+        public async Task RunScriptWithBrowserStack()
+        {
+            if (string.IsNullOrEmpty(ParentDirectory))
+                Errors.WriteAndExit
+                (
+                    message:
+                        "Unable to run the requested test, please try again.\n" +
+                       $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
+                        "Error log:\nParentDirectory is null in VEnvManager.RunScript()",
+                    status: 1
+                );
+
+            var ProjectName = $"{Path.GetDirectoryName(ParentDirectory)}/" ?? "latest/";
+            AnsiManager.WriteBrowserStackHeader(ProjectName, ScriptFilePath);
+
+            StackConfig = LoadConfig();
+
+            if (StackConfig == null)
+                Errors.WriteAndExit
+                (
+                    message:
+                        "Unable to run the requested test, please try again.\n" +
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
+                        "Error log:\nStackConfig is null in VEnvManager.RunScript()",
+                    status: 1
+                );
+
+            Success.WriteSuccessMessage($"A valid BrowserStack Config file was found at: {browserStackConfig}\n");
+            await Task.Delay(1000);
+            
+            Success.WriteSuccessMessage("Config Info:");
+            Console.WriteLine($"{StackConfig}\n");
+            await Task.Delay(1000);
+
+            var userChoice = Input.AskForInput("Would you like to use this config for the current test? (y/n): ");
+            await Task.Delay(1000);
+
+            if (Input.ConditionRejected(userChoice))
+                StackConfig = BuildConfig();
+
+            var projectConfigPath = Path.Combine(ParentDirectory, "browserstack.yml");
+
+            // This is either a copy of browserStackConfig's contents or the newly built config above.
+            File.WriteAllText(projectConfigPath, StackConfig.ToString());
+
+            // UnixLike: bin/browserstack-sdk
+            // Windows: Scripts/browserstack-sdk.exe
+            var browserStackExecutable = Path.Combine(
+                GetProjectVEnvPath(ParentDirectory),
+                IsUnixLike ? "bin" : "Scripts",
+                IsUnixLike ? "browserstack-sdk" : "browserstack-sdk.exe"
+            );
+
+            var args = $"python \"{ScriptFilePath}\"";
+            Console.WriteLine(args);
+
+
+            ProcessStartInfo psi = new()
+            {
+                Arguments = args,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = VEnvPath,
+            };
+
+            psi.Environment.Add("GIT_PYTHON_REFRESH", "quiet");
+
+            SetProcessFileName(ref psi, useCMD: false, fileName: browserStackExecutable); 
+
+            using Process proc = await ProcessFactory.SpawnProcess(psi, "start browserstack script execution");
+
+            (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(proc);
+
+            if (ExitCode != 0)
+            {
+                var fullStackTrace = string.Join("\n", STDErr);
+                var userFriendlyMessage = $"BAM Manager (BAMM) was unable to run the BrowserStack script.\n\n" +
+                                          $"If this continues, please make a bug report at {ISSUES_LINK}";
+
+                var detailedLog = "Error log:\n" +
+                                  $"Command: {psi.FileName} {psi.Arguments} failed with exit code {ExitCode}\n\n" +
+                                  $"Stack Trace:\n{fullStackTrace}\n\n";
+                Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
+            }
         }
 
         /// <summary>
         /// Sets the FileName argument with the associated ProcessStartInfo
         /// </summary>
         /// <param name="psi">The ProcessStartInfo object.</param>
-        /// <param name="useCMD">(Windows Only) Whether or not to use cmd.exe for the execution of the command, defaults to true.</param>
+        /// <param name="useCMD">Whether or not to use (cmd.exe or bin/bash) for the execution of the command, defaults to true.</param>
         /// <param name="fileName">The FileName you wish to execute as a string, defaults to null. (Must be provided if you specify useCMD=false) </param>
         public static void SetProcessFileName(ref ProcessStartInfo psi, bool useCMD = true, string? fileName = null)
         {

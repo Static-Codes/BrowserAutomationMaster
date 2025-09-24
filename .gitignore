@@ -3,3 +3,5 @@
 *.cache
 bin/
 obj/
+src/BrowserAutomationMaster/.vscode/launch.json
+src/BrowserAutomationMaster/.vscode/tasks.json

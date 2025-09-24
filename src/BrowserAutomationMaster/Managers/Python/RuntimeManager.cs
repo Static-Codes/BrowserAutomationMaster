@@ -258,12 +258,16 @@ namespace BrowserAutomationMaster.Managers.Python
         }
 
         // Readd error handling
-        public async Task<bool> RunScript()
+        public async Task<bool> RunScript(bool usingBrowserstack = false)
         {
-            // For the current commit this is intentionall unwrapped from the try catch block to invoke an Exception and have its StackTrace automatically output for debugging purposes.
+            // For the current commit this is intentionally unwrapped from the try catch block to invoke an Exception and have its StackTrace automatically output for debugging purposes.
             ValidateScript();
-            VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);
-            await vEnvManager.RunScriptInVEnv();
+            var vEnvManager = usingBrowserstack switch
+            {
+                true => VEnvManager.CheckBSConfigAtRuntime(scriptFilePath),
+                false => new VEnvManager(InterpreterPath, scriptFilePath),
+            };
+            await vEnvManager.RunScriptInVEnv(usingBrowserStack: usingBrowserstack);
 
             //try
             //{
@@ -282,22 +286,6 @@ namespace BrowserAutomationMaster.Managers.Python
             //    );
             //}
 
-            return true;
-        }
-
-        // Run unit tests on true => VEnv.CheckBSConfigAtRuntime();
-        // Add error handling
-        public async Task<bool> RunScriptFromTranspiler()
-        {
-            ValidateScript();
-            
-            var vEnvManager = Transpiler.GetBrowserStackStatus() switch
-            {
-                true => VEnvManager.CheckBSConfigAtRuntime(scriptFilePath),
-                false => new VEnvManager(InterpreterPath, scriptFilePath),
-            };
-            
-            await vEnvManager.RunScriptInVEnv();
             return true;
         }
     }
