@@ -22,22 +22,25 @@ namespace BrowserAutomationMaster.Managers
         }
         public static Color? FromRGB(string rgbString)
         {
-            if (string.IsNullOrEmpty(rgbString)) { 
-                return null; 
+            if (string.IsNullOrEmpty(rgbString))
+            {
+                return null;
             }
 
             rgbString = rgbString.Replace("RGB(", "").Replace(')', ' ').Trim();
             var parts = rgbString.Split(", ");
-            
-            if (parts.Length != 3){
+
+            if (parts.Length != 3)
+            {
                 return null;
             }
 
             var bytes = new byte[parts.Length];
-            
+
             for (int i = 0; i < parts.Length; i++)
             {
-                if (!byte.TryParse(parts[i], out var byteRes)){
+                if (!byte.TryParse(parts[i], out var byteRes))
+                {
                     return null;
                 }
                 bytes[i] = byteRes;
@@ -45,7 +48,8 @@ namespace BrowserAutomationMaster.Managers
 
             return new Color(bytes[0], bytes[1], bytes[2]);
         }
-        public static Color GetAccentColor() {
+        public static Color GetAccentColor()
+        {
             return ToSpectreColor(GlobalConfig.ThemeType.AccentColor);
         }
         public static Color GetForeground(bool isSuccess = false, bool isWarning = false, bool isError = false)
@@ -61,7 +65,7 @@ namespace BrowserAutomationMaster.Managers
         public static (Color HighlightBackground, Color HighlightForeground) GetHighlights()
         {
             return (
-                ToSpectreColor(GlobalConfig.ThemeType.HighlightBackground), 
+                ToSpectreColor(GlobalConfig.ThemeType.HighlightBackground),
                 ToSpectreColor(GlobalConfig.ThemeType.HighlightForeground)
             );
         }
@@ -91,11 +95,12 @@ namespace BrowserAutomationMaster.Managers
                 }
                 result.Append(value[i]);
                 i++;
-                
+
             }
 
             return result.Length > 0 ? result.ToString() : value;
         }
+
         public static void SetAnsiColors(bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
             Color oldFG = AnsiConsole.Foreground;
@@ -105,19 +110,23 @@ namespace BrowserAutomationMaster.Managers
                 AnsiConsole.Foreground = newFG;
             }
         }
+
         public static System.Drawing.Color ToColor(Color color)
         {
             return System.Drawing.Color.FromArgb(color.R, color.G, color.B);
         }
 
-        public static Color ToSpectreColor(byte r, byte g, byte b) { 
-            return new Color(r, g, b); 
+        public static Color ToSpectreColor(byte r, byte g, byte b)
+        {
+            return new Color(r, g, b);
         }
-        public static Color ToSpectreColor(System.Drawing.Color color) { 
-            return new Color(color.R, color.G, color.B); 
+        public static Color ToSpectreColor(System.Drawing.Color color)
+        {
+            return new Color(color.R, color.G, color.B);
         }
-        public static Color ToSpectreColor((int r, int g, int b) color) { 
-            return new Color((byte) color.r, (byte) color.g, (byte) color.b); 
+        public static Color ToSpectreColor((int r, int g, int b) color)
+        {
+            return new Color((byte)color.r, (byte)color.g, (byte)color.b);
         }
         public static Color? ToSpectreColor(string colorType, string colorValue)
         {
@@ -129,6 +138,86 @@ namespace BrowserAutomationMaster.Managers
                 _ => null
             };
         }
+
+        public static void WriteBrowserStackHeader(string projectName, string scriptName)
+        {
+
+            #region Reference Notes
+            // While System.Console provides varying levels of cross platform support with 
+            // the (BufferHeight, BufferWidth) and (WindowHeight, WindowWidth) properties
+            // AnsiConsole.Profile provides a reliable abstraction from the System.Console class due years of targetted cross platform development. 
+            // Making (AnsiConsole.Profile.Height, AnsiConsole.Profile.Width)
+
+
+            // Header Size Information
+            // =================================================
+
+            // Minimum Size: 50 Chars
+            // -------------------------------------------------
+            // Breakdown: 
+            // - 2 Tabs (8 Spaces) | 8 Chars
+            // - Text "Running script using BrowserStack." | 34 Chars
+            // - 2 Tabs (8 Spaces) | 8 Chars
+            // -------------------------------------------------
+
+            // Maximum Size: 102 Chars (Assuming)
+            // -------------------------------------------------
+            // Breakdown: 
+            // - <PROJECTNAME> | 1-20 Chars
+            // - <SCRIPTNAME>  | 1-20 Chars
+            // - 2 Tabs (8 Spaces) | 8 Chars
+            // - "Running Test using BrowserStack :: Location: <PROJECTNAME>/<SCRIPTNAME>" | 96 Chars (Max)
+            // - 2 Tabs (8 Spaces) | 8 Chars
+
+            // =================================================
+
+
+            #endregion
+
+            // 2 sets of tabs is 8 spaces
+            var tabs = string.Concat(Enumerable.Repeat(' ', 8));
+            var actionText = "Running script using BrowserStack";
+            var basicHeader = $"{tabs}{actionText}{tabs}";
+
+            var minimumWidthRequired = basicHeader.Length;
+
+            var fullHeader = $"{actionText} :: Location: {projectName}/{scriptName}";
+            var seperator = new StringBuilder();
+
+
+
+            var currentWidth = AnsiConsole.Profile.Width;
+            var currentHeight = AnsiConsole.Profile.Height;
+
+            // No header will be displayed to the user if the console size is less than the minimum.
+            if (currentWidth < minimumWidthRequired || currentHeight == 0)
+                return;
+
+
+            seperator.Append(string.Concat(Enumerable.Repeat('=', currentWidth)));
+            seperator.AppendLine();
+
+            // CALCUlATE REMAINING WIDTH and split it in 2 then create spaces for the input.
+            if (currentWidth >= fullHeader.Length)
+            {
+                var remainder = (currentWidth - fullHeader.Length) / 2;
+                var padding = string.Concat(Enumerable.Repeat(' ', remainder));
+                seperator.Append($"{padding}{fullHeader}{padding}");
+            }
+
+            else if (currentWidth >= minimumWidthRequired)
+            {
+                var remainder = (currentWidth - basicHeader.Length) / 2;
+                var padding = string.Concat(Enumerable.Repeat(' ', remainder));
+                seperator.Append($"{padding}{basicHeader}{padding}");
+
+            }
+
+            seperator.Append(string.Concat(Enumerable.Repeat('=', currentWidth)));
+            seperator.AppendLine();
+                
+        }
+
         public static void WriteMessage(string message, bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
             SetAnsiColors(isSuccess, isWarning, isError);
@@ -149,6 +238,7 @@ namespace BrowserAutomationMaster.Managers
                 }
             }
         }
+        
 
 
     }

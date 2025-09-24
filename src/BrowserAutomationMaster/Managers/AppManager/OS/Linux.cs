@@ -4,6 +4,7 @@ using Spectre.Console;
 using System.Diagnostics;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 
@@ -48,6 +49,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 };
 
                 AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
+
 
                 foreach (var (Name, Apps) in appSources)
                 {
@@ -164,90 +166,104 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static void InstallRequiredLinuxPackages(List<AppInfo> appsInfo)
         {
-
-            Warning.Write("Installing the Required Linux Packages, please wait up to 60 seconds");
-
-            var inputMessage = @"Supported versions include:
-- Python 3.9.X
-- Python 3.10.X
-- Python 3.11.X
-- Python 3.12.X
-- Python 3.13.X
-- Python 3.14.X
-
-Examples:
-Python 3.9
-Python 3.12.7
-Python 3.9.8
-
-Version: ";
-
-            var PKM_CMD = (HasDPKG, HasRPM) switch
+            try
             {
-                (true, _) => "apt-get", // Debian-Based
-                (_, true) => "dnf",     // Fedora-Based
-                (_, _) => null
-            };
+                // This empty file will be written once the packages are installed, then checked in subsequent runtimes.
+                var linuxPackageFile = GetLinuxPackageFile();
 
-            if (PKM_CMD == null)
-            {
-                Warning.Write("An error occured while attempting to retrieve the Package Manager associated with your Distribution.");
-                var response = Input.WriteListFromOptions(["Debian-Based", "Fedora-Based"], "operating system");
-                PKM_CMD = response switch
+                if (File.Exists(linuxPackageFile))
+                    return;
+
+                Warning.Write("Installing the Required Linux Packages (if not already installed.), please wait up to 60 seconds");
+
+                var inputMessage = @"Supported versions include:
+                    - Python 3.9.X
+                    - Python 3.10.X
+                    - Python 3.11.X
+                    - Python 3.12.X
+                    - Python 3.13.X
+                    - Python 3.14.X
+
+                    Examples:
+                    Python 3.9
+                    Python 3.12.7
+                    Python 3.9.8
+
+                    Version: ".Replace("                    ", "");
+
+                var PKM_CMD = (HasDPKG, HasRPM) switch
                 {
-                    "Debian-Based" => "apt-get", // Debian-Based
-                    "Fedora-Based" => "dnf",     // Fedora Based
-                    _ => "UNSELECTED DISTO"
+                    (true, _) => "apt-get", // Debian-Based
+                    (_, true) => "dnf",     // Fedora-Based
+                    (_, _) => null
                 };
 
-                if (PKM_CMD == "UNSELECTED DISTRO")
-                    Errors.WriteAndExit("An error occured while attempting to access your Distribution's Package Manager, please try again.", 1);
+                if (PKM_CMD == null)
+                {
+                    Warning.Write("An error occured while attempting to retrieve the Package Manager associated with your Distribution.");
+                    var response = Input.WriteListFromOptions(["Debian-Based", "Fedora-Based"], "operating system");
+                    PKM_CMD = response switch
+                    {
+                        "Debian-Based" => "apt-get", // Debian-Based
+                        "Fedora-Based" => "dnf",     // Fedora Based
+                        _ => "UNSELECTED DISTO"
+                    };
+
+                    if (PKM_CMD == "UNSELECTED DISTRO")
+                        Errors.WriteAndExit("An error occured while attempting to access your Distribution's Package Manager, please try again.", 1);
+                }
+
+
+
+                var installPrefix = (HasDPKG, HasRPM) switch
+                {
+                    (true, _) => $"DEBIAN_FRONTEND=noninteractive {PKM_CMD} install -y",
+                    (_, true) => $"{PKM_CMD} install -y",
+                    (_, _) => null
+                };
+
+                var installCMD = $"-c \"sudo {installPrefix}";
+
+                var potentialVersion = Installations.GetMissingPyVersion();
+                while (potentialVersion == null || !PyVersionRegex.IsMatch(potentialVersion))
+                {
+                    Warning.Write("Unable to detect the installed version of Python.");
+                    potentialVersion = Input.AskForInput(inputMessage);
+                }
+
+
+                string[] packages = [
+                    "xclip", // Used for auto_copy_path
+                    $"python{potentialVersion.Replace("Python ", "")}-venv"  // Used for majority of BAMM to create vEnv(s)
+                ];
+
+                if (installPrefix == null)
+                    Errors.WriteAndExit($"Unable to install the following required Linux Packages:\n{string.Join('\n', packages)}", 1);
+
+
+                string[] commands = new string[packages.Length];
+
+                for (int i = 0; i < packages.Length; i++)
+                {
+                    commands[i] = $"{installCMD} {packages[i]}\"";
+                    var appInfo = new AppInfo() { Name = packages[i] };
+
+                    // Skips pre-existing installations
+                    if (appsInfo.Contains(appInfo))
+                        continue;
+
+                    Warning.Write($"Installing package: {packages[i]}");
+                    Success.WriteSuccessMessage(RunCommand("/bin/bash", $"{commands[i]}", installingPackages: true));
+                }
+
+                File.Create(linuxPackageFile);
+            }
+            catch (Exception e)
+            {
+                Errors.WriteAndExit($"Unable to install the required Linux Packages.\n\nError Log:\n{e}", 1);
             }
 
 
-
-            var installPrefix = (HasDPKG, HasRPM) switch
-            {
-                (true, _) => $"DEBIAN_FRONTEND=noninteractive {PKM_CMD} install -y",
-                (_, true) => $"{PKM_CMD} install -y",
-                (_, _) => null
-            };
-
-            var installCMD = $"-c \"sudo {installPrefix}";
-
-            var potentialVersion = Installations.GetMissingPyVersion();
-            while (potentialVersion == null || !PyVersionRegex.IsMatch(potentialVersion))
-            {
-                Warning.Write("Unable to detect the installed version of Python.");
-                potentialVersion = Input.AskForInput(inputMessage);
-            }
-
-
-            string[] packages = [
-                "xclip", // Used for auto_copy_path
-                $"python{potentialVersion.Replace("Python ", "")}-venv"  // Used for majority of BAMM to create vEnv(s)
-            ];
-
-            if (installPrefix == null)
-                Errors.WriteAndExit($"Unable to install the following required Linux Packages:\n{string.Join('\n', packages)}", 1);
-
-
-            string[] commands = new string[packages.Length];
-
-            var actionString = $"to install the following required Linux Packages:\n{string.Join('\n', packages)}";
-
-            for (int i = 0; i < packages.Length; i++)
-            {
-                commands[i] = $"{installCMD} {packages[i]}\"";
-                var appInfo = new AppInfo() { Name = packages[i] };
-
-                // Skips pre-existing installations
-                if (appsInfo.Contains(appInfo))
-                    continue;
-
-                WriteMessage($"Installing package: {packages[i]}");
-                Console.WriteLine(RunCommand("/bin/bash", $"{commands[i]}", installingPackages: true));
-            }
         }
 
         // Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.)
