@@ -1,5 +1,6 @@
 ﻿using BrowserAutomationMaster.Managers.AppManager.OS;
 using System.Drawing;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -38,6 +39,9 @@ namespace BrowserAutomationMaster.Managers
 
         private static Theme GetDefaultTheme()
         {
+            if (!IsLinux)
+                return DarkTheme;
+            
             var Ansi24BitColor = Linux.GetTerminalBackgroundColor();
 
             if (Ansi24BitColor == null) {
