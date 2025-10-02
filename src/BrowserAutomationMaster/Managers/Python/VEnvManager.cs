@@ -310,7 +310,6 @@ namespace BrowserAutomationMaster.Managers.Python
             );
 
             var args = $"python \"{ScriptFilePath}\"";
-            Console.WriteLine(args);
 
 
             ProcessStartInfo psi = new()
@@ -330,7 +329,7 @@ namespace BrowserAutomationMaster.Managers.Python
             using Process proc = await ProcessFactory.SpawnProcess(psi, "start browserstack script execution");
 
             (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(proc);
-
+             
             if (ExitCode != 0)
             {
                 var fullStackTrace = string.Join("\n", STDErr);
@@ -342,6 +341,17 @@ namespace BrowserAutomationMaster.Managers.Python
                                   $"Stack Trace:\n{fullStackTrace}\n\n";
                 Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
             }
+
+            var baseProjectLink = $"https://automate.browserstack.com/projects";
+            var baseMessage = $"To view a recording of this test, please visit:\n{baseProjectLink}";
+
+            var projectName = Path.GetFileNameWithoutExtension(ScriptFilePath);
+            string fullMessage = baseMessage;
+
+            if (projectName != null)
+                fullMessage += $"/project/{projectName}/builds";
+
+            Success.WriteSuccessMessage(fullMessage);
         }
 
         /// <summary>

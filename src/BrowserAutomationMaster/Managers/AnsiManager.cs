@@ -227,15 +227,20 @@ namespace BrowserAutomationMaster.Managers
             // Handles line breaks by padding each line to fill the background
             for (int i = 0; i < lines.Length; i++)
             {
-                var line = lines[i];
-                if (line.Equals("\n")) { continue; }
+                var line = lines[i].Replace("||", "");
+
+                if (line.Equals("\n"))
+                    continue; 
+                
                 var paddedLine = line.PadRight(Console.WindowWidth);
 
-                AnsiConsole.Write(paddedLine);
+                foreach (char c in escapedLine)
+                    AnsiConsole.Write(c);
+                
+                AnsiConsole.WriteLine();
+
                 if (i < lines.Length)
-                {
                     AnsiConsole.WriteLine();
-                }
             }
         }
         
