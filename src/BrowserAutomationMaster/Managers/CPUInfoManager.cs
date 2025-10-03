@@ -7,10 +7,11 @@ using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.RequiredCPUInstruction;
 
 namespace BrowserAutomationMaster.Managers
 {
-    public enum X64Instructions
+    public enum RequiredCPUInstruction
     {
         X64,
         AES,
@@ -31,6 +32,7 @@ namespace BrowserAutomationMaster.Managers
     public class CPUInfoManager()
     {
         public int Cores { get; set; } = CPUCoreManager.GetCoreCount();
+        public Architecture Architecture { get; init; } = RuntimeInformation.OSArchitecture;
 
         // Minimum cores supported: 2
         // Minimum cores recommended: 4
@@ -39,7 +41,7 @@ namespace BrowserAutomationMaster.Managers
         // string[] requiredInstructions = ["x64", "AVX", "SSE2", "SSE3", "SSSE3", "SSE4.1", "SSE4.2"];
         // string[] recommendedInstructions = ["AES", "AVX2", "BMI1", "BMI2", "FMA3", "LZCNT", "PopCnt", "PCLMULQDQ", "TZCNT"];
 
-        public const string X64_EXPLANATION = "X86-64, commonly referred to as x64, is the modern implementation of CPU architecture, it's the reason our system's aren't limited to 4GiB of RAM.";
+        public const string X64_EXPLANATION = "X86-64, commonly referred to as x64, is the modern implementation of the x86 CPU architecture, it's the reason our system's aren't limited to 4GB of RAM.";
         public const string AES_EXPLANATION = "Accelerates encryption/decryption, important for HTTPS and secure web communication.";
         public const string AVX_EXPLANATION = "Advanced Vector Extensions introduced a major advancement in SIMD capabilities, by introducing 256bit registers.\nFor modern browser automation, especially with complex pages, WebGL, or video, AVX support is critical.";
         public const string AVX2_EXPLANATION = "Advanced Vector Extensions 2 expanded greatly on AVX and remains the backbone of the modern internet regarding displaying and rendering web content.\nChrome versions starting from 142 are explicitly requiring AVX2 support for full compatibility. ";
@@ -52,31 +54,46 @@ namespace BrowserAutomationMaster.Managers
         public const string SSE3_EXPLANATION = "Streaming SIMD Extensions 3 is the next iteration of SSE2, it provides additional instructions that are still used today in modern CPUs.";
         public const string SSSE3_EXPLANATION = "Supplemental Streaming SIMD Extensions 3 much like SSE3 is yet another instruction set responsible for integer processing, data manipulation, and general codec operations.";
         public const string SSE4_EXPLANATION = "Streaming SIMD Extensions 4.X include instructions for string processing, dot products, and other operations that speed up many common tasks. Modern JavaScript engines (V8, SpiderMonkey) and rendering engines can leverage these for performance.";
-        readonly private static List<X64Instructions> unsupportedInstructions = [];
+        readonly private static List<RequiredCPUInstruction> unsupportedInstructions = [];
 
         private static bool ContainsNeededInstructions()
         {
-            if (!X86Base.X64.IsSupported) { unsupportedInstructions.Add(X64Instructions.X64); }
-            if (!Avx.IsSupported) { unsupportedInstructions.Add(X64Instructions.AVX); }
-            if (!Sse2.IsSupported) { unsupportedInstructions.Add(X64Instructions.SSE2); }
-            if (!Sse3.IsSupported) { unsupportedInstructions.Add(X64Instructions.SSE3); }
-            if (!Ssse3.IsSupported) { unsupportedInstructions.Add(X64Instructions.SSSE3); }
-            if (!Sse41.IsSupported) { unsupportedInstructions.Add(X64Instructions.SSE4); }
-            if (!Sse42.IsSupported) {
-                if (!unsupportedInstructions.Contains(X64Instructions.SSE4)) {
-                    unsupportedInstructions.Add(X64Instructions.SSE4);  // Prevents any issues with a duplicates on SSE4
-                }
-            }
+            Action Add(RequiredCPUInstruction instruction) => () => 
+            {
+                var needsAttention = instruction.Equals(SSE3) || instruction.Equals(SSE4);
 
-            // Originally ContainsRecommendedInstructions()
-            if (!Aes.IsSupported) { unsupportedInstructions.Add(X64Instructions.AES); }
-            if (!Avx2.IsSupported) { unsupportedInstructions.Add(X64Instructions.AVX2); }
-            if (!Bmi1.IsSupported) { unsupportedInstructions.Add(X64Instructions.BMI1); } // TZCNT is a part of Bmi1 for some reason whereas Lzcnt isn't
-            if (!Bmi2.IsSupported) { unsupportedInstructions.Add(X64Instructions.BMI2); }
-            if (!Fma.IsSupported) { unsupportedInstructions.Add(X64Instructions.FMA); }
-            if (!Lzcnt.IsSupported) { unsupportedInstructions.Add(X64Instructions.LZCNT); }
-            if (!Popcnt.IsSupported) { unsupportedInstructions.Add(X64Instructions.POPCNT); }
-            if (!Pclmulqdq.IsSupported) { unsupportedInstructions.Add(X64Instructions.PCLMULQDQ); }
+                if (!needsAttention)
+                    unsupportedInstructions.Add(instruction);
+
+                // Prevents duplicates
+                else if (needsAttention && !unsupportedInstructions.Contains(instruction))
+                    unsupportedInstructions.Add(instruction);
+            };
+
+            var conditionPairs = new Dictionary<bool, RequiredCPUInstruction>() 
+            {
+                { X86Base.X64.IsSupported, X64 },
+                { Avx.IsSupported, AVX },
+                { Sse2.IsSupported, SSE2 },
+                { Sse3.IsSupported, SSE3 },
+                { Ssse3.IsSupported, SSE3 },
+                { Sse41.IsSupported, SSE4 },
+                { Sse42.IsSupported, SSE4 },
+                { Aes.IsSupported, AES },
+                { Avx2.IsSupported, AVX2 },
+                { Bmi1.IsSupported, BMI1 },
+                { Bmi2.IsSupported, BMI2 },
+                { Fma.IsSupported, FMA },
+                { Lzcnt.IsSupported, LZCNT },
+                { Popcnt.IsSupported, POPCNT },
+                { Pclmulqdq.IsSupported, PCLMULQDQ },
+            };
+
+            foreach (var conditionPair in conditionPairs)
+            {
+                if (!conditionPair.Key)
+                    Add(conditionPair.Value);
+            }
 
             return unsupportedInstructions.Count == 0; // The application will exit if this returns false
         }
@@ -113,30 +130,30 @@ namespace BrowserAutomationMaster.Managers
 
         public static void DisplayMissingInstructions()
         {
-            foreach (X64Instructions instruction in unsupportedInstructions) {
+            foreach (RequiredCPUInstruction instruction in unsupportedInstructions) {
                 Spectre.Console.AnsiConsole.Write($"{instruction} is unsupported on the current CPU.");
             }
         }
 
         
-        private static string GetExplanationForInstruction(X64Instructions instruction)
+        private static string GetExplanationForInstruction(RequiredCPUInstruction instruction)
         {
             return instruction switch
             {
-                X64Instructions.X64 => X64_EXPLANATION,
-                X64Instructions.AES => AES_EXPLANATION,
-                X64Instructions.AVX => AVX_EXPLANATION,
-                X64Instructions.AVX2 => AVX2_EXPLANATION,
-                X64Instructions.BMI1 => BMI_EXPLANATION,
-                X64Instructions.BMI2 => BMI_EXPLANATION,
-                X64Instructions.FMA => FMA_EXPLANATION,
-                X64Instructions.LZCNT => LZCNT_EXPLANATION,
-                X64Instructions.PCLMULQDQ => PCLMULQDQ_EXPLANATION,
-                X64Instructions.POPCNT => POPCNT_EXPLANATION,
-                X64Instructions.SSE2 => SSE2_EXPLANATION,
-                X64Instructions.SSE3 => SSE3_EXPLANATION,
-                X64Instructions.SSSE3 => SSE3_EXPLANATION,
-                X64Instructions.SSE4 => SSE4_EXPLANATION,
+                RequiredCPUInstruction.X64 => X64_EXPLANATION,
+                RequiredCPUInstruction.AES => AES_EXPLANATION,
+                RequiredCPUInstruction.AVX => AVX_EXPLANATION,
+                RequiredCPUInstruction.AVX2 => AVX2_EXPLANATION,
+                RequiredCPUInstruction.BMI1 => BMI_EXPLANATION,
+                RequiredCPUInstruction.BMI2 => BMI_EXPLANATION,
+                RequiredCPUInstruction.FMA => FMA_EXPLANATION,
+                RequiredCPUInstruction.LZCNT => LZCNT_EXPLANATION,
+                RequiredCPUInstruction.PCLMULQDQ => PCLMULQDQ_EXPLANATION,
+                RequiredCPUInstruction.POPCNT => POPCNT_EXPLANATION,
+                RequiredCPUInstruction.SSE2 => SSE2_EXPLANATION,
+                RequiredCPUInstruction.SSE3 => SSE3_EXPLANATION,
+                RequiredCPUInstruction.SSSE3 => SSE3_EXPLANATION,
+                RequiredCPUInstruction.SSE4 => SSE4_EXPLANATION,
                 _ => "Invalid instruction provided, this shouldn't be trigger unless there is a bug in CPUInfoManager.GetExplanationForInstruction()",
             };
         }

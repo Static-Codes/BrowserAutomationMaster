@@ -1,13 +1,10 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Messaging;
-using System.Diagnostics.CodeAnalysis;
+﻿using BrowserAutomationMaster.Messaging;
 using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using static BrowserAutomationMaster.Helpers.EnumHelper;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
-using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager.DeviceHelper;
 
@@ -27,16 +24,17 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         public required string Framework;
         public readonly override string ToString()
         {
-            return
-                $"UserName: {UserName}\n" +
-                $"AccessKey: {AccessKey}\n" +
-                $"BrowserStackLocal: {BrowserStackLocal}\n" +
-                $"BuildName: {BuildName}\n" +
-                $"ProjectName: {ProjectName}\n" +
+            return string.Join(NLC, [
+                $"UserName: {UserName}",
+                $"AccessKey: {AccessKey}",
+                $"BrowserStackLocal: {BrowserStackLocal}",
+                $"BuildName: {BuildName}",
+                $"ProjectName: {ProjectName}",
                 // $"BuildIdentifier: {BuildIdentifier}\n" +
-                $"Debug: {Debug}\n" +
-                $"ConsoleLogs: {ConsoleLogs}\n" +
-                $"Framework: {Framework}";
+                $"Debug: {Debug}",
+                $"ConsoleLogs: {ConsoleLogs}",
+                $"Framework: {Framework}"
+            ]);
         }
     }
 

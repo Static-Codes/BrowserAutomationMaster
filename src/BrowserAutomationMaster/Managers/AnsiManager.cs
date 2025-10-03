@@ -220,6 +220,7 @@ namespace BrowserAutomationMaster.Managers
 
         public static void WriteMessage(string message, bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
+            
             SetAnsiColors(isSuccess, isWarning, isError);
 
             var lines = message.Split('\n');
@@ -227,14 +228,22 @@ namespace BrowserAutomationMaster.Managers
             // Handles line breaks by padding each line to fill the background
             for (int i = 0; i < lines.Length; i++)
             {
-                var line = lines[i].Replace("||", "");
+                // Sanitizing line contents
+                string[] replacements = ["\r",  "\n", "||"];
 
-                if (line.Equals("\n"))
+
+                var line = lines[i];
+                foreach (var replacement in replacements)
+                    line = line.Replace(replacement, "");
+
+                if (line.Equals("\n") || string.IsNullOrEmpty(line))
                     continue; 
                 
                 var paddedLine = line.PadRight(Console.WindowWidth);
 
-                foreach (char c in escapedLine)
+               
+                // Writing char by char to avoid FormatException
+                foreach (char c in paddedLine)
                     AnsiConsole.Write(c);
                 
                 AnsiConsole.WriteLine();
