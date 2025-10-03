@@ -1,113 +1,161 @@
-from os import getcwd, system
+from os import getcwd
 from subprocess import CalledProcessError, run
 
+class Platform:
+    def __init__(self, name, architecture, package_type=None):
+        self.name = name
+        self.architecture = architecture
+        self.package_type = package_type
 
-menuOptions: dict = {
-    1: "All Platforms",
-    2: "Win-x64",
-    3: "Win-ARM64",
-    4: "Linux-x64 (.deb)",
-    5: "Linux-x64 (.rpm)",
-    6: "Linux-ARM64 (.deb)",
-    7: "Linux-ARM64 (.rpm)",
-    8: "OSX-x64",
-    9: "OSX-ARM64",
-    10: "Linux-ARM32 (.deb)",
-}
+    def get_commands(self):
+        if self.name in ["Win", "OSX"]:
+            return [
+                f"dotnet publish -c Release -r {self.name.lower()}-"
+                f"{self.architecture} --self-contained true"
+            ]
 
-print("Welcome to the BAMM Publisher!\n\n")
-menuText = ""
+        elif self.name == "Linux":
+            rid_map = {
+                "x64": "linux-x64",
+                "ARM": "linux-arm",
+                "ARM64": "linux-arm64",
+                "x86": "linux-x86"
+            }
 
-for index, optionName in menuOptions.items():
-    menuText += f"{index}. {optionName}\n"
+            rid = rid_map.get(self.architecture)
 
+            if not rid:
+                return []
 
-choiceIndex: int
-choiceText: str
-while True:
-    raw_choice: str = input(
-        f"Please choose an option between 1 and {len(menuOptions)} from the menu below.\n\n{menuText}\n"
+            return [
+                f"dotnet {self.package_type.lower()} --runtime {rid} "
+                f"--configuration Release -- "
+                f"-p:Build{self.package_type.capitalize()}Package=true"
+            ]
+
+        return []
+
+def main():
+
+    error = (
+        "Please ensure the .NET 8.X SDK is installed.\n"
+        "Download link:\n"
+        "https://dotnet.microsoft.com/en-us/download/dotnet/8.0"
     )
-    try:
-        choiceIndex = int(raw_choice)
-        if 0 < choiceIndex <= len(menuOptions):
-            break
-        print()
-    except Exception:
-        print("Invalid choice.\n")
+    
+    platform_options = [
+        ("All Platforms", None),
+        ("Win", "x64"),
+        ("Win", "ARM64"),
+        ("Linux", "x64", "deb"),
+        ("Linux", "x64", "rpm"),
+        ("Linux", "ARM", "deb"),
+        ("Linux", "ARM", "rpm"),
+        ("Linux", "ARM64", "deb"),
+        ("Linux", "ARM64", "rpm"),
+        ("OSX", "x64"),
+        ("OSX", "ARM64")
+    ]
 
-commands = []
-if choiceIndex == 1:
-    commands.append("dotnet deb --runtime linux-x64 --configuration Release -- -p:BuildDebPackage=true")   # Linux x64 (Deb)
-    commands.append("dotnet deb --runtime linux-arm64 --configuration Release -- -p:BuildDebPackage=true") # Linux ARM64 (Deb)
-    commands.append("dotnet rpm --runtime linux-x64 --configuration Release -- -p:BuildRpmPackage=true")   # Linux x64 (Rpm)
-    commands.append("dotnet rpm --runtime linux-arm64 --configuration Release -- -p:BuildRpmPackage=true") # Linux ARM64 (Rpm)
-    commands.append("dotnet publish -c Release -r osx-x64 --self-contained true")                       # OSX x64
-    commands.append("dotnet publish -c Release -r osx-arm64 --self-contained true")                     # OSX ARM64
-    commands.append("dotnet publish -c Release -r win-x64 --self-contained true")                       # Win x64
-    commands.append("dotnet publish -c Release -r win-arm64 --self-contained true")                     # Win ARM64
+    platforms = []
+    for option in platform_options:
 
-elif choiceIndex == 2:
-    commands.append("dotnet publish -c Release -r win-x64 --self-contained true")                       # Win x64
+        if len(option) == 3:
+            platforms.append(Platform(option[0], option[1], option[2]))
 
-elif choiceIndex == 3:
-    commands.append("dotnet publish -c Release -r win-arm64 --self-contained true")                     # Win ARM64
+        elif len(option) == 2:
+            platforms.append(Platform(option[0], option[1]))
 
-elif choiceIndex == 4:
-    commands.append("dotnet deb --runtime linux-x64 --configuration Release -- -p:BuildDebPackage=true")   # Linux x64 (Deb)
+    print("Welcome to the BAMM Publisher!\n")
+    menu_text = ""
 
-elif choiceIndex == 5:
-    commands.append("dotnet rpm --runtime linux-x64 --configuration Release -- -p:BuildRpmPackage=true")   # Linux x64 (Rpm)
+    # Building the menu
+    for index, option in enumerate(platform_options):
+        if option[0] == "All Platforms":
+            menu_text += f"{index+1}. All Platforms\n"
 
-elif choiceIndex == 6:
-    commands.append("dotnet deb --runtime linux-arm64 --configuration Release -- -p:BuildDebPackage=true") # Linux ARM64 (Deb)
+        else:
+            package_info = f" ({option[2]})" if len(option) == 3 else ""
+            menu_text += (
+                f"{index+1}. {option[0]}-{option[1]}"
+                f"{package_info}\n"
+            )
 
-elif choiceIndex == 7:
-    commands.append("dotnet rpm --runtime linux-arm64 --configuration Release -- -p:BuildRpmPackage=true") # Linux ARM64 (Rpm)
-
-elif choiceIndex == 8:
-    commands.append("dotnet publish -c Release -r osx-x64 --self-contained true")                       # OSX x64
-
-elif choiceIndex == 9:
-    commands.append("dotnet publish -c Release -r osx-arm64 --self-contained true")                     # OSX ARM64
-
-elif choiceIndex == 10:
-    commands.append("dotnet deb --runtime linux-arm --configuration Release -- -p:BuildDebPackage=true")
-
-
-targetDirectory = getcwd() #input("Please enter the path containing your .csproj file:\n")
-for cmd in commands:
-    print(
-        f"\nExecuting: {cmd}\nTarget Directory: {targetDirectory})"
-    )
-    try:
-        # The 'cwd' parameter is the key here
-        process = run(
-            cmd,
-            shell=True,  # Allows shell features like 'dir' or 'ls'
-            check=True,  # Raises CalledProcessError on non-zero exit codes
-            text=True,  # Capture output as string
-            capture_output=True,  # Capture stdout and stderr
-            cwd=targetDirectory,  # THIS IS WHERE WE TELL IT TO 'CD'
+    # Choosing a menu option
+    choice_index: int
+    while True:
+        raw_choice = input(
+            f"Please choose an option from 1 to {len(platform_options)} "
+            f"from the menu below.\n\n{menu_text}\n"
         )
-        if process.stdout.strip != "":
-            print(f"StdOut:\n{process.stdout.strip()}\n")
-        if process.stderr.strip != "":
-            print(f"StdErr:\n{process.stderr.strip()}\n")
-    except CalledProcessError as e:
-        print(f"Error executing command: {cmd}")
-        print(f"Return Code: {e.returncode}")
-        if e.stdout.strip != "":
-            print(f"StdOut:\n{e.stdout.strip()}")
-        if e.stderr.strip != "":
-            print(f"StdErr:\n{e.stderr.strip()}")
-        print("Please ensure the .NET 8.X SDK is installed.\n")
-        print("Download link:\nhttps://dotnet.microsoft.com/en-us/download/dotnet/8.0")
-    except FileNotFoundError:
-        print(f"Error: Command '{cmd.split()[0]}' not found.")
-        print("Please ensure the .NET 8.X SDK is installed.\n")
-        print("Download link:\nhttps://dotnet.microsoft.com/en-us/download/dotnet/8.0")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        print("Please ensure the .NET 8.X SDK is installed.\n")
-        print("Download link:\nhttps://dotnet.microsoft.com/en-us/download/dotnet/8.0")
+
+        try:
+            choice_index = int(raw_choice)
+            if 0 < choice_index <= len(platform_options):
+                break
+            print()
+
+        except ValueError:
+            print("Invalid choice. Please enter a number.\n")
+
+    commands = []
+
+    if choice_index == 1:
+        for p in platforms[1:]:
+            commands.extend(p.get_commands())
+
+    else:
+        selected_platform = platforms[choice_index - 1]
+        commands = selected_platform.get_commands()
+
+    target_directory = getcwd()
+
+    for cmd in commands:
+        print(f"\nExecuting: {cmd}\nTarget Directory: {target_directory}")
+
+        try:
+            process = run(
+                cmd,
+                shell=True,
+                check=True,
+                text=True,
+                capture_output=True,
+                cwd=target_directory,
+            )
+
+            if process.stdout.strip():
+                print(f"StdOut:\n{process.stdout.strip()}\n")
+
+            if process.stderr.strip():
+                print(f"StdErr:\n{process.stderr.strip()}\n")
+
+        except CalledProcessError as e:
+            print(f"Error executing command: {cmd}")
+            print(f"Return Code: {e.returncode}\n")
+
+            if e.stdout.strip():
+                print(f"StdOut:\n{e.stdout.strip()}\n")
+
+            if e.stderr.strip():
+                print(f"StdErr:\n{e.stderr.strip()}\n")
+
+            if "linux" in cmd:
+                error += (
+                    "\nIf you are compiling for a Debian based Linux, please ensure dotnet-deb is installed by running.\n"
+                    "dotnet tool install --global dotnet-deb --version 0.1.232"
+                    
+                    "\nIf you are compiling for a Fedora based Linux, please ensure dotnet-deb is installed by running.\n"
+                    "dotnet tool install --global dotnet-rpm --version 0.1.232"
+                )
+            print(error)
+
+        except FileNotFoundError:
+            print(f"Error: Command '{cmd.split()[0]}' not found.")
+            print(error)
+
+        except Exception as e:
+            print(f"An unexpected error occurred:\n{e}\n")
+            print(error)
+
+if __name__ == "__main__":
+    main()
