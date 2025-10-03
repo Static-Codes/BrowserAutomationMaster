@@ -63,12 +63,6 @@ namespace BrowserAutomationMaster.Compilation
             {
 
                 CheckBrowserStackStatus();
-
-                // Installs https://pypi.org/project/browserstack-sdk/ if not already installed in the Global Virtual Environment
-                if (usingBrowserstack)
-                {
-
-                }
                 
                 // Found it's more reliable to reset the state when a new Transpiler object is created.
                 ResetTranspilerState();

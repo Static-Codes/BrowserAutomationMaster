@@ -7,6 +7,7 @@ using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Compilation.Transpiler;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
@@ -234,7 +235,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 string[] packages = [
                     "xclip", // Used for auto_copy_path
-                    $"python{potentialVersion.Replace("Python ", "")}-venv"  // Used for majority of BAMM to create vEnv(s)
+                    $"python{potentialVersion.Replace("Python ", "")}-venv",  // Used for majority of BAMM to create vEnv(s)
+                    GetBrowserStackStatus() ? "libffi-dev build-essential python3-dev" : string.Empty
                 ];
 
                 if (installPrefix == null)
@@ -245,7 +247,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 for (int i = 0; i < packages.Length; i++)
                 {
+                    // Skips installation of additional packages if browserstack isn't used.
+                    if (string.IsNullOrEmpty(packages[i]))
+                        continue;
+
                     commands[i] = $"{installCMD} {packages[i]}\"";
+
                     var appInfo = new AppInfo() { Name = packages[i] };
 
                     // Skips pre-existing installations
@@ -253,7 +260,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         continue;
 
                     Warning.Write($"Installing package: {packages[i]}");
-                    Success.WriteSuccessMessage(RunCommand("/bin/bash", $"{commands[i]}", installingPackages: true));
+                    Success.WriteSuccessMessage(RunCommand("/bin/bash", $"{commands[i]}"));
                 }
 
                 File.Create(linuxPackageFile);
@@ -324,13 +331,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             return apps;
         }
-        public static string RunCommand(string cmd, string args, bool installingPackages = false)
+        public static string RunCommand(string cmd, string args)
         {
             try
             {
 
-                //if (installingPackages)
-                //    Console.WriteLine($"{cmd} {args}");
 
                 ProcessStartInfo procStartInfo = new()
                 {
