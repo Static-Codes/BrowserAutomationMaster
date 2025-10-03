@@ -146,13 +146,18 @@ namespace BrowserAutomationMaster.Parsing
             foreach (KeyValuePair<int, string> pair in validFilesMapping)
             {
                 int index = pair.Key + 1;
-                string? rawFileName;
-                try { rawFileName = Path.GetFileName(pair.Value); }
-                catch { rawFileName = null; }
-                if (rawFileName != null)
-                {
-                    Spectre.Console.AnsiConsole.Write($"File {index} ----> {rawFileName}\n");
+                string? rawFileName = null;
+
+                try { 
+                    rawFileName = Path.GetFileName(pair.Value); 
                 }
+                catch { 
+
+                }
+                
+                if (rawFileName != null)
+                    Spectre.Console.AnsiConsole.Write($"File {index} ----> {rawFileName}\n");
+                
             }
             Console.ForegroundColor = ConsoleColor.White;
             Spectre.Console.AnsiConsole.Write("\n\nPress any key to exit...");

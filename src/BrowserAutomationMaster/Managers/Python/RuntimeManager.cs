@@ -19,15 +19,22 @@ namespace BrowserAutomationMaster.Managers.Python
         
         public string InterpreterPath { get; } = GetInterpreterFromPath();
 
-        private static string BuildScriptMenu(List<string> scriptPaths)
+        private static string[] BuildScriptMenu(List<string> scriptPaths)
         {
-            var menu = new StringBuilder();
+            string[] menu = new string[scriptPaths.Count];
             for (int i = 0; i < scriptPaths.Count; i++)
             {
-                string fileName = Path.GetFileName(scriptPaths[i]);
-                menu.AppendLine($"{i + 1}. {fileName} -> {scriptPaths[i]}");
+                string? fileName = null;
+                try { 
+                    fileName = Path.GetFileName(scriptPaths[i]); 
+                }
+                catch (Exception ex) { 
+                    Errors.Write(ex.Message); 
+                    continue; 
+                }
+                menu[i] = $"{i + 1}. {fileName} -> {scriptPaths[i]}";
             }
-            return menu.ToString();
+            return [.. menu.Where(a => a != null)];
         }
         
         public static void DoRuntimeCheck()
@@ -55,7 +62,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 .Where(File.Exists)
                 .Distinct()];
         }
-        
+
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         private static string GetInterpreterFromPath()
@@ -68,14 +75,17 @@ namespace BrowserAutomationMaster.Managers.Python
                 return "python3";
 
             throw new PlatformNotSupportedException(
-                "Unsupported OS.\nBAM Manager (BAMM) currently supports:\n" +
-                "Windows 10/11\n" +
-                "Linux\n" +
-                "MacOS 11+\n"
+                string.Join(NLC, [
+                    "Unsupported OS.\n" +
+                    "BAM Manager (BAMM) currently supports:\n" +
+                    "Windows 10/11\n" +
+                    "Linux\n" +
+                    "MacOS 11+\n"
+                ])
             );
         }
         
-        private static string GetUserScriptChoice(List<string> scriptPaths, string menu)
+        private static string GetUserScriptChoice(List<string> scriptPaths, string[] menu)
         {
             while (true)
             {
@@ -83,18 +93,14 @@ namespace BrowserAutomationMaster.Managers.Python
                               $"If this continues please make a bug report at {ISSUES_LINK}" +
                               "Error Log:\nchoice returned null.";
 
-                string rawChoice = Input.WriteListFromOptions(menu.Split('\n'));
+                string rawChoice = Input.WriteListFromOptions(menu);
                 string? choice = Parser.GetFileNumber(rawChoice);
 
                 if (choice == null)
-                {
                     Errors.WriteAndExit(message, 1);
-                }
 
                 if (int.TryParse(choice, out int result) && result >= 1 && result <= scriptPaths.Count)
-                {
                     return scriptPaths[result - 1];
-                }
 
                 Errors.Write($"Invalid option, please choose a number between 1 and {scriptPaths.Count}\n");
             }
@@ -109,7 +115,6 @@ namespace BrowserAutomationMaster.Managers.Python
                 var scriptPaths = GetCompiledScriptPaths(saveDirectory);
 
                 if (scriptPaths.Count == 0)
-                {
                     Errors.WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
@@ -118,11 +123,10 @@ namespace BrowserAutomationMaster.Managers.Python
                             $"Error log:\nNo compiled scripts found in {saveDirectory}",
                         status: 1
                     );
-                }
 
                 Success.WriteSuccessMessage($"BAM Manager (BAMM) successfully detected {scriptPaths.Count} scripts.\n");
 
-                string menu = BuildScriptMenu(scriptPaths);
+                string[] menu = BuildScriptMenu(scriptPaths);
 
                 return GetUserScriptChoice(scriptPaths, menu);
             }
@@ -143,15 +147,15 @@ namespace BrowserAutomationMaster.Managers.Python
         public static bool HasEnoughMemory()
         {
             Dictionary<string, double> memoryInfo = MemoryInfoManager.RunCheck();
+            
             if (memoryInfo.Count != 5)
-            {
                 Errors.WriteAndExit(
                     $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                     $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary.",
                     status: 1
                 );
-            }
+            
             memoryInfo.TryGetValue("totalMemoryMB", out double totalMemoryMB);
             //memoryInfo.TryGetValue("usedMemoryMB", out double usedMemoryMB); // Will be used in a later update to display various info.
             memoryInfo.TryGetValue("freeMemoryMB", out double freeMemoryMB);
@@ -205,13 +209,12 @@ namespace BrowserAutomationMaster.Managers.Python
             // 4GiB Total and 1GiB free.
             else if (totalMemoryMB == 4096 && freeMemoryMB >= 1024)
             {
+                // I hate nested conditionals, but this allows for a graceful passthrough
                 if (GlobalConfig.ShowMemoryCheck)
-                {
                     Success.WriteSuccessMessage(
                         "BAM Manager (BAMM) determined you running on the minimum RAM requirements, " +
                         "but you have enough free RAM (1GB) for most automation tasks."
                     );
-                }
             }
 
             return true;
@@ -219,10 +222,9 @@ namespace BrowserAutomationMaster.Managers.Python
         
         public static bool IsSupportedWindowsVersion()
         {
-            return OperatingSystem.IsWindows() && 
-                   OperatingSystem.IsWindowsVersionAtLeast(
-                       10, 0, 10240
-                   );
+            return 
+                OperatingSystem.IsWindows() && 
+                OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240);
         }
         
         public static bool IsSupportedOSXVersion() { return OperatingSystem.IsMacOSVersionAtLeast(11); }

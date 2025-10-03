@@ -292,12 +292,11 @@ namespace BrowserAutomationMaster
 
             bool doHardwareCheck = !bypassCheck1 && !bypassCheck2;
 
+            if (GlobalConfig.ShowUpdateCheck)
+                await CheckForUpdate();
+
             if (doHardwareCheck)
-            {
                 RuntimeManager.DoRuntimeCheck();
-                if (GlobalConfig.ShowUpdateCheck)
-                    await CheckForUpdate();
-            }
         }
         /// <summary>Runs the main menu loop for BAMM.</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
