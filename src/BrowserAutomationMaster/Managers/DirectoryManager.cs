@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
@@ -383,7 +384,7 @@ namespace BrowserAutomationMaster.Managers
             else if (IsOSX)
                 return GetAppDataMacOS(appName);
 
-            else if (IsLinux)
+            else if (IsLinux || IsChromeOS)
                 return GetAppDataLinux(appName);
 
             else

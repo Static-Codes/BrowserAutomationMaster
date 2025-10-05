@@ -191,6 +191,8 @@ namespace BrowserAutomationMaster.Managers
 
         public static async Task Initalize()
         {
+            EnsureDirectoryExists(AppDataDirectory);
+
             if (!File.Exists(packagePath))
                 await DownloadPackageJSON();
 

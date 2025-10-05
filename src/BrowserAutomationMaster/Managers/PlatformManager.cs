@@ -21,7 +21,6 @@ namespace BrowserAutomationMaster.Managers
         public static bool IsOSX { get; private set; }
         public static bool IsLinux { get; private set; }
         public static bool IsUnixLike { get; private set; } // Linux + OSX
-        public static bool IsArmHF { get; private set; }
         public static Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
 
         
