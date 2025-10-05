@@ -37,13 +37,13 @@ namespace BrowserAutomationMaster.Managers
                     DoAppDataDeletion();
             }
 
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 DoWindowsUninstall();
             
-            else if (IsOSX)
+            else if (Platforms.IsOSX)
                 DoMacUninstall();
 
-            else if (IsLinux)
+            else if (Platforms.IsLinux)
                 DoLinuxUninstall();
             
             else 

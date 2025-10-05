@@ -41,15 +41,13 @@ namespace BrowserAutomationMaster.Managers
         {
             try
             {
-                if (!IsLinux || Linux.IsChromeOS)
+                if (!Platforms.IsLinux || Platforms.IsChromeOS)
                     return DarkTheme;
 
                 var Ansi24BitColor = Linux.GetTerminalBackgroundColor();
 
                 if (Ansi24BitColor == null)
-                {
                     return DarkTheme;
-                }
 
                 (int r, int g, int b) = AnsiManager.FromXTerm(Ansi24BitColor);
                 var color = Color.FromArgb(r, g, b);

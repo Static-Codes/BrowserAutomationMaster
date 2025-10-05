@@ -164,10 +164,10 @@ namespace BrowserAutomationMaster.Managers
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static int GetCoreCount()
         {
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 return Win.GetPhysicalCoreCount();
             
-            if (IsUnixLike) 
+            if (Platforms.IsUnixLike) 
                 return GetPhysicalCoreCountUnixLike();  
             
             Errors.ThrowUnsupportedPlatformException();
@@ -177,7 +177,7 @@ namespace BrowserAutomationMaster.Managers
         {
             string actionString = "determine the amount of physical CPU cores on your system";
 
-            var psi = (IsLinux) switch
+            var psi = Platforms.IsLinux switch
             {
                 true => new ProcessStartInfo()
                 {

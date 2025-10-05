@@ -284,7 +284,7 @@ namespace BrowserAutomationMaster.Compilation
             {
                 using Ping pinger = new();
                 if (sanitizedArg2.EndsWith('/')) { sanitizedArg2 = sanitizedArg2[..^1]; }
-                if (!Transpiler.IsResolvableLink(sanitizedArg2))
+                if (!IsResolvableLink(sanitizedArg2))
                 {
                     Errors.WriteAndExit(
                         message:

@@ -9,10 +9,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Compilation.BrowserFunctions;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 
@@ -302,7 +302,7 @@ namespace BrowserAutomationMaster.Compilation
             // 2. The user modified the `use_browserstack` property in config.ini
             
             if (!usingBrowserstack)
-                usingBrowserstack = IsChromeOS || GlobalConfig.UseBrowserstack;
+                usingBrowserstack = Platforms.IsChromeOS || GlobalConfig.UseBrowserstack;
         }
         private static void CreateProjectDirectory()
         {
@@ -399,7 +399,7 @@ namespace BrowserAutomationMaster.Compilation
         
         private static string GetSetupToolsVersion()
         {
-            return IsChromeOS switch
+            return Platforms.IsChromeOS switch
             {
                 true => "setuptools==75.3.2",
                 false => "setuptools==80.9.0"

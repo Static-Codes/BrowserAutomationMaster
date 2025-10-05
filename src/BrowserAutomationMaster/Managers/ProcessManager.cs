@@ -35,7 +35,7 @@ namespace BrowserAutomationMaster.Managers
                 var instances = Process.GetProcessesByName(curProc.ProcessName);
                 if (instances.Length > 1)
                 {
-                    if (IsWindows)
+                    if (Platforms.IsWindows)
                         Win.HandleMultipleInstances(instances);  // Execution ends if this line is hit.
 
                     WriteMessage(
@@ -79,7 +79,7 @@ namespace BrowserAutomationMaster.Managers
             if (dBuilder.Length == 0)
                 Errors.WriteAndExit(errMessage, 1);
 
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 dBuilder.Append(".exe");
 
             string driverName = dBuilder.ToString();

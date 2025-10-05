@@ -112,7 +112,7 @@ Supported versions include:
 
             // Unix Specific Recursive Case
             // To prevent an infinite loop, version must have a value to continue
-            else if (IsUnixLike && version != null && GetEnumMemberFromString(version, out ApplicationNames appName2))
+            else if (Platforms.IsUnixLike && version != null && GetEnumMemberFromString(version, out ApplicationNames appName2))
                 Add(appName2);
 
             else if (app.Name.StartsWith("python3"))
@@ -144,7 +144,7 @@ Supported versions include:
             if (!AppNames.Intersect(validBrowsersApps).Any())
                 Errors.WriteAndExit(NoBrowsersMessage, 1);
 
-            if (!AppNames.Intersect(validPythonVersions).Any() && !Linux.IsChromeOS)
+            if (!AppNames.Intersect(validPythonVersions).Any() && !Platforms.IsChromeOS)
                 Errors.WriteAndExit(NoPythonMessage, 1);
         }
 
@@ -156,7 +156,7 @@ Supported versions include:
 
         public static string GetMissingPyVersion()
         {
-            if (!IsUnixLike)
+            if (!Platforms.IsUnixLike)
                 return string.Empty;
 
             var whichPyResp = Linux.RunCommand("which", "python3");

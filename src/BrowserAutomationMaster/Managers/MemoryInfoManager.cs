@@ -18,9 +18,9 @@ namespace BrowserAutomationMaster.Managers
         {
             return true switch
             {
-                _ when IsWindows => CheckForWindows(),
-                _ when IsOSX => CheckForOSX(),
-                _ when IsLinux => CheckForLinux64(),
+                _ when Platforms.IsWindows => CheckForWindows(),
+                _ when Platforms.IsOSX => CheckForOSX(),
+                _ when Platforms.IsLinux => CheckForLinux64(),
                 _ => []
             };
         }

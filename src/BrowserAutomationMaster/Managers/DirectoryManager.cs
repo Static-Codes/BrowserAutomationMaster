@@ -237,10 +237,10 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetProjectVEnvPythonPath(string ParentDirectory)
         {
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "Scripts", "python.exe");
 
-            if (IsUnixLike)
+            if (Platforms.IsUnixLike)
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "python3");
 
             Errors.ThrowUnsupportedPlatformException();
@@ -249,10 +249,10 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetProjectVEnvPipPath(string ParentDirectory)
         {
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "Scripts", "pip.exe");
 
-            if (IsUnixLike)
+            if (Platforms.IsUnixLike)
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "pip");
 
             Errors.ThrowUnsupportedPlatformException();
@@ -378,13 +378,13 @@ namespace BrowserAutomationMaster.Managers
         {
             string appName = "BrowserAutomationMaster";
 
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 return GetAppDataWindows(appName);
 
-            else if (IsOSX)
+            else if (Platforms.IsOSX)
                 return GetAppDataMacOS(appName);
 
-            else if (IsLinux || IsChromeOS)
+            else if (Platforms.IsLinux || Platforms.IsChromeOS)
                 return GetAppDataLinux(appName);
 
             else

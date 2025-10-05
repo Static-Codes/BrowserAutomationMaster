@@ -3,13 +3,29 @@ using BrowserAutomationMaster.Messaging;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.InternalPlatforms;
 using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Managers
 {
+    public class InternalPlatforms()
+    {
+        public bool IsARMEL { get; set; }
+        public bool IsARMHF { get; set; }
+        public bool IsChromeOS { get; set; }
+        public bool IsWindows { get; set; }
+        public bool IsOSX { get; set; }
+        public bool IsLinux { get; set; }
+        public bool IsUnixLike { get; set; } // Linux + OSX
+        public Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
+
+    }
+
+
     public static class PlatformManager
     {
-        private static Architecture[] ValidArchitectures { get; set; } =
+
+        public static Architecture[] ValidArchitectures { get; private set; } =
         [
             Arm,   // ARMv7 (32 bit)
             Arm64, // ARMv8 (64 bit)
@@ -17,12 +33,7 @@ namespace BrowserAutomationMaster.Managers
             X64, // x86-64 (64 bit)
         ];
 
-        public static bool IsWindows { get; private set; }
-        public static bool IsOSX { get; private set; }
-        public static bool IsLinux { get; private set; }
-        public static bool IsUnixLike { get; private set; } // Linux + OSX
-        public static Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
-
+        public static InternalPlatforms Platforms { get; private set; } = new InternalPlatforms();
         
         public static void SetPlatform()
         {
@@ -33,19 +44,19 @@ namespace BrowserAutomationMaster.Managers
             // Checks if ARMHF is in use, as it requires cross-compiled wheels.
             ARMHFCheck();
 
-            if (!ValidArchitectures.Contains(CurrentArchitecture))
+            if (!ValidArchitectures.Contains(Platforms.CurrentArchitecture))
                 Errors.WriteAndExit(
                     message:
                         string.Join(NLC, [
                             "You're attempting to run BAM Manager (BAMM) on an unsupported CPU Architecture.",
-                            $"Current Architecture:{CurrentArchitecture}{NLC}",
+                            $"Current Architecture:{Platforms.CurrentArchitecture}{NLC}",
                             "Supported Architecture:",
                             $"{string.Join(NLC, ValidArchitectures)}"
                         ]),
                     status: 1
                 );
 
-            if (CurrentArchitecture == Arm64)
+            if (Platforms.CurrentArchitecture == Arm64)
                 Warning.Write(
                     string.Format("{0}{1}{2}", [
                         "BAM Manager (BAMM) supports ARM64 architecture, ",
@@ -56,18 +67,18 @@ namespace BrowserAutomationMaster.Managers
 
 
             if (RuntimeManager.IsSupportedWindowsVersion())
-                IsWindows = true;
+                Platforms.IsWindows = true;
 
             else if (RuntimeManager.IsSupportedOSXVersion())
             {
-                IsOSX = true;
-                IsUnixLike = true;
+                Platforms.IsOSX = true;
+                Platforms.IsUnixLike = true;
             }
 
             else if (OperatingSystem.IsLinux())
             {
-                IsLinux = true;
-                IsUnixLike = true;
+                Platforms.IsLinux = true;
+                Platforms.IsUnixLike = true;
             }
 
             else
