@@ -1,13 +1,11 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Messaging;
-using System;
-using System.Diagnostics;
-using System.Net;
+﻿using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using BrowserAutomationMaster.Messaging;
+using System.Net;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
-using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -112,29 +110,30 @@ namespace BrowserAutomationMaster.Managers
 
         private static void OpenLatestForWindows(string currentReleaseUri)
         {
-            string url = CurrentArchitecture switch
+            string url = RuntimeInformation.ProcessArchitecture switch
             {
-                Arm64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-ARM64-Setup.exe"),
-                X64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-x64-Setup.exe"),
+                Architecture.Arm64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-ARM64-Setup.exe"),
+                Architecture.X64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-x64-Setup.exe"),
                 _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
             };
 
-            var psi = new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true };
-            using var Process = ProcessFactory.SpawnProcess(psi, "open new release page", runSync: true, timeout: 20).Result;
+            var psi = new ProcessStartInfo("cmd", $"/c start {url}")
+            {
+                CreateNoWindow = true
+            };
 
+            Process.Start(psi);
         }
         
         private static void OpenLatestForMacOS(string currentReleaseUri)
         {
             string url = RuntimeInformation.ProcessArchitecture switch
             {
-                Arm64 => Path.Combine(currentReleaseUri, "bamm-silicon"),
-                X64 => Path.Combine(currentReleaseUri, "bamm"),
+                Architecture.Arm64 => Path.Combine(currentReleaseUri, "bamm-silicon"),
+                Architecture.X64 => Path.Combine(currentReleaseUri, "bamm"),
                 _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-bypass flag.")
             };
-
-            var psi = new ProcessStartInfo("open", url);
-            using var Process = ProcessFactory.SpawnProcess(psi, "open new release page", runSync: true, timeout: 20).Result;
+            Process.Start("open", url);
         }
 
         private static void OpenLatestForLinux(string currentReleaseUri)
@@ -147,8 +146,8 @@ namespace BrowserAutomationMaster.Managers
             {
                 uri = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.deb"),
-                    X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.deb"),
+                    Architecture.Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.deb"),
+                    Architecture.X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.deb"),
                     _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-cpu-bypass flag.")
 
                 };
@@ -176,10 +175,7 @@ namespace BrowserAutomationMaster.Managers
                 }
 
                 if (Linux.CommandExists(openCMD))
-                {
-                    var psi = new ProcessStartInfo("xdg-open", uri);
-                    using var Process = ProcessFactory.SpawnProcess(psi, "open new release page", runSync: true, timeout: 20).Result;
-                }
+                    Process.Start("xdg-open", uri);
             }
             catch
             {

@@ -13,7 +13,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     public static partial class Linux
     {
-        public static bool IsArmHF { get; set; } = false;
         public static bool IsChromeOS { get; set; } = false;
 
         // Debian Package Manager
@@ -42,10 +41,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                             "dpkg\nflatpak\nrpm\n",
                         status: 1
                     );
-
-                //var ast = dpkgApps.Select(a => a.Name).Where(a => a.Contains("python", OIC));
-                //foreach (var a in ast)
-                //    Console.WriteLine(a);
 
                 var appSources = new List<(string Name, List<AppInfo> Apps)>
                 {
@@ -84,30 +79,14 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
-        public static void ARMHFCheck()
-        {
-            if (!IsLinux || IsWindows || IsOSX || !IsChromeOS) // If this is true, the OS is not supported regardless of its Architecture.
-                return;
-
-            var psi = new ProcessStartInfo()
-            {
-                FileName = "lscpu",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            };
-            
-            using var proc = ProcessFactory.SpawnProcess(psi, "check if the current system is using the ARMHF Architecture", runSync: true).Result;
-            (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(proc).Result;
-            
-            if (STDOut.Count > 0 && STDOut.Contains("armhf"))
-                IsArmHF = true;
-        }
-
         public static void ChromeOSCheck()
         {
 
             if (!OperatingSystem.IsLinux())
+            {
+                IsChromeOS = false;
                 return;
+            }
 
             try
             {
@@ -294,8 +273,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         }
 
-        /// <summary> Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.) </summary>
-        /// <returns>A List of AppInfo</returns>
+        // Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.)
         private static List<AppInfo> ParseDpkgList()
         {
             try
@@ -322,8 +300,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
-        /// <summary> Parses apps installed via RPM (Red Hat Package Manager) (only for CentOS, Fedora, Oracle Linux, etc.) </summary>
-        /// <returns>A List of AppInfo</returns>
+        // Parses apps installed via RPM (Red Hat Package Manager) (only for CentOS, Fedora, Oracle Linux, etc.)
         private static List<AppInfo> ParseRpmList()
         {
             var apps = new List<AppInfo>();
@@ -338,8 +315,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             return apps;
         }
 
-        /// <summary> Parses apps installed via Flatpak </summary>
-        /// <returns>A List of AppInfo</returns>
+        // Parses apps installed via Flatpak
         private static List<AppInfo> ParseFlatpakList()
         {
             var apps = new List<AppInfo>();

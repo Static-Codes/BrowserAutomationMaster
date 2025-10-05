@@ -128,8 +128,6 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public async Task InstallProjectPackages()
         {
-            var usingBrowserStack = GetBrowserStackStatus();
-
             Success.WriteSuccessMessage("Installing required project packages in the project's virtual environment, please wait..");
             await Task.Delay(1000);
 
@@ -159,15 +157,7 @@ namespace BrowserAutomationMaster.Managers.Python
             };
             SetProcessFileName(ref psi, useCMD: false, fileName: pipExecutable);
 
-            // 3 minutes 20 seconds normally or 10 minutes if using browserstack.
-            int timeout = usingBrowserStack ? 600 : 200;
-
-            // Uses async if browserstack is selected else sync call of async func.
-            using Process proc = usingBrowserStack ?
-                await ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime", whiteOutput: true, timeout: timeout) :
-                ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime", whiteOutput: true, timeout: timeout).Result;
-
-
+            using Process proc = ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime", whiteOutput: true).Result;
             await Task.Delay(1000);
 
             (var ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(proc).Result;
