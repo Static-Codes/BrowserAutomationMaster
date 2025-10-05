@@ -67,11 +67,11 @@ namespace BrowserAutomationMaster.Managers.Python
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         private static string GetInterpreterFromPath()
         {
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 return Win.GetInterpreterPath();
 
             // Path to full executable is required to replicate the expected behavior due to OSX being built off BSD 
-            if (IsUnixLike || IsChromeOS)
+            if (Platforms.IsUnixLike || Platforms.IsChromeOS)
                 return "python3";
 
             throw new PlatformNotSupportedException(
@@ -246,7 +246,7 @@ namespace BrowserAutomationMaster.Managers.Python
             if (result.IsValid)
                 return;
                 
-            if (IsOSX)
+            if (Platforms.IsOSX)
                 HandleVEnvExceptions(result.Errors);  // Will exit if an exception is found.
 
             Errors.WriteAndExit(

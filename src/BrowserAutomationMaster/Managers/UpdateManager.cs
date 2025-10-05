@@ -112,7 +112,7 @@ namespace BrowserAutomationMaster.Managers
 
         private static void OpenLatestForWindows(string currentReleaseUri)
         {
-            string url = CurrentArchitecture switch
+            string url = Platforms.CurrentArchitecture switch
             {
                 Arm64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-ARM64-Setup.exe"),
                 X64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-x64-Setup.exe"),
@@ -194,13 +194,13 @@ namespace BrowserAutomationMaster.Managers
             {
                 string currentReleaseUri = Path.Combine(RELEASES_DOWNLOAD_LINK, LatestVersion);
 
-                if (IsWindows)
+                if (Platforms.IsWindows)
                     OpenLatestForWindows(currentReleaseUri);
 
-                else if (IsOSX)
+                else if (Platforms.IsOSX)
                     OpenLatestForMacOS(currentReleaseUri);
 
-                else if (IsLinux)
+                else if (Platforms.IsLinux)
                     OpenLatestForLinux(currentReleaseUri);
             }
             catch (Exception e) { Errors.Write(

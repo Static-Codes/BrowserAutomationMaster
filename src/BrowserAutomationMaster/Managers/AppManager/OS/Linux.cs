@@ -8,14 +8,12 @@ using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Compilation.Transpiler;
+using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     public static partial class Linux
     {
-
-        public static bool IsARMHF { get; set; } = false;
-        public static bool IsChromeOS { get; set; } = false;
 
         // Debian Package Manager
         readonly public static bool HasDPKG = CommandExists("dpkg");
@@ -87,7 +85,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static void ARMHFCheck()
         {
-            if (IsLinux || IsWindows || IsOSX || !IsChromeOS) // If this is true, the OS is not supported regardless of its Architecture.
+            if (Platforms.IsLinux || Platforms.IsWindows || Platforms.IsOSX || !Platforms.IsChromeOS || Platforms.CurrentArchitecture != Arm) // If this is true, the OS is not supported regardless of its Architecture.
                 return;
            
 
@@ -109,7 +107,10 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
 
             if (STDOut.Any(a => a.Contains("armhf", OIC)))
-                IsARMHF = true;
+                Platforms.IsARMHF = true;
+
+            else if (STDOut.Any(a => a.Contains("armhf", OIC)))
+                Platforms.IsARMHF = true;
 
             else
             {
@@ -129,12 +130,19 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             try
             {
                 string cmdline = File.ReadAllText("/proc/cmdline");
-                IsChromeOS = cmdline.Contains("cros_");
+                Platforms.IsChromeOS = cmdline.Contains("cros_");
             }
 
-            catch
+            catch (Exception ex)
             {
-                IsChromeOS = false;
+                Warning.Write(
+                    string.Join(
+                        string.Empty, [
+                            "Unable to complete ChromeOS Check, if you are using ChromeOS, ",
+                            $"please make a bug report at {ISSUES_LINK}\n\n",
+                            $"Error Log:\n{ex}"
+                    ])
+                );
             }
         }
 
@@ -168,7 +176,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             {
                 string black = "0000/0000/0000";
                 
-                if (IsChromeOS || IsOSX)
+                if (Platforms.IsChromeOS || Platforms.IsOSX)
                     return black; 
                 
                 string tempFile = Path.GetTempFileName();

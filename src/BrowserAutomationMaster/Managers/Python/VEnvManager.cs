@@ -113,13 +113,13 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private string GetVEnvStartArgs(string pythonPath)
         {
-            if (IsLinux)
+            if (Platforms.IsLinux)
                 return $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{pythonPath}\" \"{ScriptFilePath}\"";
 
-            if (IsOSX)
+            if (Platforms.IsOSX)
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && '{pythonPath}' '{ScriptFilePath}'";
 
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 return $"\"{ScriptFilePath}\"";
 
             Errors.ThrowUnsupportedPlatformException();
@@ -194,7 +194,7 @@ namespace BrowserAutomationMaster.Managers.Python
             await InstallProjectPackages();
             await Task.Delay(1000);
 
-            if (IsChromeOS || GetBrowserStackStatus() || usingBrowserStack)
+            if (Platforms.IsChromeOS || GetBrowserStackStatus() || usingBrowserStack)
                 await RunScriptWithBrowserStack();
 
             else
@@ -242,7 +242,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 WorkingDirectory = ParentDirectory,
             };
 
-            pythonPath = IsOSX ? "/bin/bash" : pythonPath;
+            pythonPath = Platforms.IsOSX ? "/bin/bash" : pythonPath;
 
             SetProcessFileName(ref psi, useCMD: false, fileName: pythonPath);
 
@@ -315,8 +315,8 @@ namespace BrowserAutomationMaster.Managers.Python
             // Windows: Scripts/browserstack-sdk.exe
             var browserStackExecutable = Path.Combine(
                 GetProjectVEnvPath(ParentDirectory),
-                IsUnixLike ? "bin" : "Scripts",
-                IsUnixLike ? "browserstack-sdk" : "browserstack-sdk.exe"
+                Platforms.IsUnixLike ? "bin" : "Scripts",
+                Platforms.IsUnixLike ? "browserstack-sdk" : "browserstack-sdk.exe"
             );
 
             var args = $"python \"{ScriptFilePath}\"";
@@ -376,7 +376,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 Errors.WriteAndExit("A filename param must be specified for SetProcessFileName when useShell = false", 1);
 
             // Set for Windows regardless of global status
-            if (IsWindows && useCMD)
+            if (Platforms.IsWindows && useCMD)
             {
                 psi.FileName = "cmd.exe";
                 // Proactively preventing any encoding issues caused by crossplatform development
@@ -385,18 +385,18 @@ namespace BrowserAutomationMaster.Managers.Python
             }
 
 
-            else if (IsWindows && !useCMD)
+            else if (Platforms.IsWindows && !useCMD)
             {
                 psi.FileName = fileName;
                 psi.StandardOutputEncoding = Encoding.UTF8;
                 psi.StandardErrorEncoding = Encoding.UTF8;
             }
 
-            else if (IsUnixLike && !useCMD)
+            else if (Platforms.IsUnixLike && !useCMD)
                 psi.FileName = fileName;
 
 
-            else if (IsUnixLike)
+            else if (Platforms.IsUnixLike)
                 psi.FileName = "/bin/bash";
         }
     }

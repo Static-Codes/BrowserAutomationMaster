@@ -15,13 +15,13 @@ namespace BrowserAutomationMaster.Managers.AppManager
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         private static async Task<List<AppInfo>> GetInstalledApps()
         {
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 return await Task.Run(Win.GetApps);
 
-            if (IsOSX)
+            if (Platforms.IsOSX)
                 return await Task.Run(MacOS.GetApps);
 
-            if (IsLinux)
+            if (Platforms.IsLinux)
                 return await Task.Run(Linux.GetApps);
 
             Errors.ThrowUnsupportedPlatformException();
@@ -42,7 +42,7 @@ namespace BrowserAutomationMaster.Managers.AppManager
             InstallationsList = new Installations(AppInfoList);
 
 
-            if (IsLinux)
+            if (Platforms.IsLinux)
                 await Task.Run(install);
         }
 

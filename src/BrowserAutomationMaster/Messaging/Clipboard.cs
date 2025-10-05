@@ -229,13 +229,13 @@ namespace BrowserAutomationMaster.Messaging
 
         public static bool TrySetText(string text)
         {
-            if (IsWindows)
+            if (Platforms.IsWindows)
                 Clipboard.Win.SetText(text);
 
-            else if (IsOSX)
+            else if (Platforms.IsOSX)
                 Clipboard.OSX.SetText(text);
 
-            else if (IsLinux)
+            else if (Platforms.IsLinux)
                 Clipboard.Linux.SetText(text);
 
             else
