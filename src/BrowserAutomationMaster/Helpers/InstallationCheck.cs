@@ -14,6 +14,7 @@ namespace BrowserAutomationMaster.Helpers
         Chrome,
         Firefox,
         Python3_X, // This flag is for MacOS since the default python installer is not a .app bundle
+        Python3_8, // THIS IS ONLY FOR CHROMEOS (Ubuntu 22.04.5 [Focal Fossa])
         Python3_9, // Display warning that packages might not be compatible, stick to 3.10 or 3.11
         Python3_10,
         Python3_11,
@@ -27,14 +28,15 @@ namespace BrowserAutomationMaster.Helpers
 
         public List<ApplicationNames> AppNames { get; set; }
         
-        public static readonly List<ApplicationNames> validPythonVersions = [
-            ApplicationNames.Python3_X, ApplicationNames.Python3_9, ApplicationNames.Python3_10, 
-            ApplicationNames.Python3_11, ApplicationNames.Python3_12, ApplicationNames.Python3_13, 
-            ApplicationNames.Python3_14
+        public static readonly List<ApplicationNames> validPythonVersions = 
+        [
+            ApplicationNames.Python3_X, ApplicationNames.Python3_8, ApplicationNames.Python3_9, 
+            ApplicationNames.Python3_10, ApplicationNames.Python3_11, ApplicationNames.Python3_12, 
+            ApplicationNames.Python3_13, ApplicationNames.Python3_14
         ];
 
-        //readonly List<ApplicationNames> validBrowsersApps = [ApplicationNames.Brave, ApplicationNames.Chrome, ApplicationNames.Firefox];
-        readonly List<ApplicationNames> validBrowsersApps = [ApplicationNames.Chrome, ApplicationNames.Firefox];
+        //readonly List<ApplicationNames> validBrowsersApps = [ ApplicationNames.Brave, ApplicationNames.Chrome, ApplicationNames.Firefox ];
+        readonly List<ApplicationNames> validBrowsersApps = [ ApplicationNames.Chrome, ApplicationNames.Firefox ];
 
 
         readonly static string NoBrowsersMessage = @"BAM Manager (BAMM) was unable to detect any valid browser installations.
@@ -57,6 +59,7 @@ Supported versions include:
 
         readonly Dictionary<string, ApplicationNames> pythonVerMap = new()
         {
+                { "Python 3.8", ApplicationNames.Python3_8 },
                 { "Python 3.9", ApplicationNames.Python3_9 },
                 { "Python 3.10", ApplicationNames.Python3_10 },
                 { "Python 3.11", ApplicationNames.Python3_11 },
@@ -119,7 +122,7 @@ Supported versions include:
                 if (string.IsNullOrEmpty(foundVersion))
                     Add(ApplicationNames.Python3_X); // This will raise an error once Transpiler.New is executed.
 
-                else if (GetEnumMemberFromString(foundVersion, out ApplicationNames appNameNested))
+                else if (GetEnumMemberFromString(foundVersion, out ApplicationNames _))
                     CheckApp(app, pythonOnly: true, version: foundVersion);
 
             }
@@ -141,7 +144,7 @@ Supported versions include:
             if (!AppNames.Intersect(validBrowsersApps).Any())
                 Errors.WriteAndExit(NoBrowsersMessage, 1);
 
-            if (!AppNames.Intersect(validPythonVersions).Any())
+            if (!AppNames.Intersect(validPythonVersions).Any() && !Linux.IsChromeOS)
                 Errors.WriteAndExit(NoPythonMessage, 1);
         }
 

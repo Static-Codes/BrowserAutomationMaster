@@ -183,8 +183,8 @@ namespace BrowserAutomationMaster.Managers
             var errorLines = new List<string>();
             var newProc = new Process() { StartInfo = psi };
 
-            try
-            {
+            //try
+            //{
                 if (raiseEvents)
                 {
                     newProc.EnableRaisingEvents = true; // Enabling events to be reported to the handlers below.
@@ -250,7 +250,6 @@ namespace BrowserAutomationMaster.Managers
 
                 else
                 {
-                    // 200 Seconds = 3 Minutes 20 Seconds
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
                     await newProc.WaitForExitAsync(cts.Token);
                 }
@@ -285,20 +284,20 @@ namespace BrowserAutomationMaster.Managers
 
                     Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
                 }
-            }
+            ////}
 
-            catch (Exception ex)
-            {
-                Errors.WriteAndExit(
-                    message:
-                        "BAM Manager (BAMM) was unable to spawn the requested process.\n" +
-                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        "Error Log:\n" +
-                        $"Unable to execute command:\n{psi.FileName} {psi.Arguments}\n\n{ex.Message}",
-                    status: 1
-                );
+            ////catch (Exception ex)
+            ////{
+            //    Errors.WriteAndExit(
+            //        message:
+            //            "BAM Manager (BAMM) was unable to spawn the requested process.\n" +
+            //            $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
+            //            "Error Log:\n" +
+            //            $"Unable to execute command:\n{psi.FileName} {psi.Arguments}\n\n{ex.Message}",
+            //        status: 1
+            //    );
 
-            }
+            //}
 
             return newProc;
         }

@@ -32,7 +32,6 @@ namespace BrowserAutomationMaster.Managers
     public class CPUInfoManager()
     {
         public int Cores { get; set; } = CPUCoreManager.GetCoreCount();
-        public Architecture Architecture { get; init; } = RuntimeInformation.OSArchitecture;
 
         // Minimum cores supported: 2
         // Minimum cores recommended: 4
