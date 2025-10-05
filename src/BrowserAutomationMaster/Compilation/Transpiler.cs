@@ -1,6 +1,7 @@
 ﻿using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
+using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Net;
@@ -125,7 +126,7 @@ namespace BrowserAutomationMaster.Compilation
             var sdkLocalPackage = usingBrowserstack ? $"browserstack-local >= 1.2.3" : string.Empty;
 
             string[] packages = [
-                GetSetupToolsVersion(),
+                "setuptools==80.9.0",
                 $"selenium=={sVersion}",
                 $"selenium-wire=={swVersion}",
                 $"webdriver_manager=={wmVersion}",
@@ -397,15 +398,6 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
         
-        private static string GetSetupToolsVersion()
-        {
-            return IsChromeOS switch
-            {
-                true => "setuptools==75.3.2",
-                false => "setuptools==80.9.0"
-            };
-        }
-
         private static void HandleAutoCopy()
         {
             if (!GlobalConfig.AutoCopyPath)
@@ -892,14 +884,13 @@ namespace BrowserAutomationMaster.Compilation
             var versionArray = new string[maxVersions];
 
             var versionMapping = new Dictionary<ApplicationNames, string>() {
-                { ApplicationNames.Python3_X, "3." },
-                { ApplicationNames.Python3_8, "3.8" },
-                { ApplicationNames.Python3_9, "3.9" },
-                { ApplicationNames.Python3_10, "3.10" },
-                { ApplicationNames.Python3_11, "3.11" },
-                { ApplicationNames.Python3_12, "3.12" },
-                { ApplicationNames.Python3_13, "3.13" },
-                { ApplicationNames.Python3_14, "3.14" },
+                {ApplicationNames.Python3_X, "3." },
+                {ApplicationNames.Python3_9, "3.9" },
+                {ApplicationNames.Python3_10, "3.10" },
+                {ApplicationNames.Python3_11, "3.11" },
+                {ApplicationNames.Python3_12, "3.12" },
+                {ApplicationNames.Python3_13, "3.13" },
+                {ApplicationNames.Python3_14, "3.14" },
             };
 
             var errorMessage =

@@ -57,6 +57,7 @@ namespace BrowserAutomationMaster
                     $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n"
                 );
 
+            Linux.ChromeOSCheck();
             CheckForMultipleInstances();
 
             if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
