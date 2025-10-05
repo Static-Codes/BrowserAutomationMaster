@@ -13,7 +13,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
     public static partial class Linux
     {
-        public static bool IsArmHF { get; set; } = false;
+
+        public static bool IsARMHF { get; set; } = false;
         public static bool IsChromeOS { get; set; } = false;
 
         // Debian Package Manager
@@ -86,21 +87,37 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static void ARMHFCheck()
         {
-            if (!IsLinux || IsWindows || IsOSX || !IsChromeOS) // If this is true, the OS is not supported regardless of its Architecture.
+            if (IsLinux || IsWindows || IsOSX || !IsChromeOS) // If this is true, the OS is not supported regardless of its Architecture.
                 return;
+           
 
             var psi = new ProcessStartInfo()
             {
-                FileName = "lscpu",
+                FileName = HasDPKG ? "dpkg" : (HasRPM ? "rpm" : "bin/bash"),
+                Arguments = HasDPKG ? "--print-architecture" : (HasRPM ? "--queryformat \"%{ARCH}\\n\" -qf /bin/ls" : "lscpu"),
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
             
             using var proc = ProcessFactory.SpawnProcess(psi, "check if the current system is using the ARMHF Architecture", runSync: true).Result;
             (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(proc).Result;
+
+            if (STDOut.Count == 0)
+            {
+                Warning.Write("Unable to determine if the current CPU ABI is ARMHF, you may experience runtime errors.");
+                return;
+            }
+
+            if (STDOut.Any(a => a.Contains("armhf", OIC)))
+                IsARMHF = true;
+
+            else
+            {
+                foreach (var std in STDOut)
+                    Console.Write(std);
+            }
             
-            if (STDOut.Count > 0 && STDOut.Contains("armhf"))
-                IsArmHF = true;
+
         }
 
         public static void ChromeOSCheck()
@@ -114,6 +131,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 string cmdline = File.ReadAllText("/proc/cmdline");
                 IsChromeOS = cmdline.Contains("cros_");
             }
+
             catch
             {
                 IsChromeOS = false;
