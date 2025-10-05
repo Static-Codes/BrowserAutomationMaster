@@ -23,26 +23,21 @@ namespace BrowserAutomationMaster.Managers
         public static Color? FromRGB(string rgbString)
         {
             if (string.IsNullOrEmpty(rgbString))
-            {
                 return null;
-            }
 
             rgbString = rgbString.Replace("RGB(", "").Replace(')', ' ').Trim();
             var parts = rgbString.Split(", ");
 
             if (parts.Length != 3)
-            {
                 return null;
-            }
 
             var bytes = new byte[parts.Length];
 
             for (int i = 0; i < parts.Length; i++)
             {
                 if (!byte.TryParse(parts[i], out var byteRes))
-                {
                     return null;
-                }
+
                 bytes[i] = byteRes;
             }
 
@@ -105,10 +100,9 @@ namespace BrowserAutomationMaster.Managers
         {
             Color oldFG = AnsiConsole.Foreground;
             var newFG = GetForeground(isSuccess, isWarning, isError);
+
             if (!oldFG.Equals(newFG))
-            {
                 AnsiConsole.Foreground = newFG;
-            }
         }
 
         public static System.Drawing.Color ToColor(Color color)

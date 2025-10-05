@@ -39,19 +39,24 @@ namespace BrowserAutomationMaster.Managers
 
         private static Theme GetDefaultTheme()
         {
-            if (!IsLinux)
-                return DarkTheme;
-            
-            var Ansi24BitColor = Linux.GetTerminalBackgroundColor();
+            try
+            {
+                if (!IsLinux || Linux.IsChromeOS)
+                    return DarkTheme;
 
-            if (Ansi24BitColor == null) {
-                return DarkTheme;
+                var Ansi24BitColor = Linux.GetTerminalBackgroundColor();
+
+                if (Ansi24BitColor == null)
+                {
+                    return DarkTheme;
+                }
+
+                (int r, int g, int b) = AnsiManager.FromXTerm(Ansi24BitColor);
+                var color = Color.FromArgb(r, g, b);
+
+                return GetThemeFromColor(color);
             }
-
-            (int r, int g, int b) = AnsiManager.FromXTerm(Ansi24BitColor);
-            var color = Color.FromArgb(r, g, b);
-
-            return GetThemeFromColor(color);
+            catch { return DarkTheme; }
         }
         private static Theme GetThemeFromColor(Color terminalBGColor)
         {
