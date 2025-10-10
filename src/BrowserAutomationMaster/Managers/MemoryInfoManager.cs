@@ -10,24 +10,33 @@ using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
 {
+    public struct MemoryInfo
+    {
+        public required double? TotalMemory { get; set; }
+        public required double? UsedMemory { get; set; }
+        public required double? FreeMemory { get; set; }
+        public required double? UsedPercent { get; set; }
+        public required double? FreePercent { get; set; }
+    }
+
     public class MemoryInfoManager
     {
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
-        public static Dictionary<string, double> RunCheck()
+        public static MemoryInfo? RunCheck()
         {
             return true switch
             {
                 _ when Platforms.IsWindows => CheckForWindows(),
                 _ when Platforms.IsOSX => CheckForOSX(),
                 _ when Platforms.IsLinux => CheckForLinux64(),
-                _ => []
+                _ => null
             };
         }
 
 
         [SupportedOSPlatform("windows10.0.10240")]
-        private static Dictionary<string, double> CheckForWindows()
+        private static MemoryInfo? CheckForWindows()
         {
             // Lays out the managed memory from c# in a manner that is identical to the unmanaged memory of c++ 
             MEMORYSTATUSEX memStatus = new() {
@@ -42,7 +51,7 @@ namespace BrowserAutomationMaster.Managers
                              $"Error log:\nGlobalMemoryStatusEx invoke inside MemoryInfoManager.CheckForWindows() returned false", 
                     status: 1
                 );
-                return [];
+                return null;
             }
 
             double total = (double)(memStatus.ullTotalPhys / (1024 * 1024));
@@ -51,17 +60,18 @@ namespace BrowserAutomationMaster.Managers
             double usedPercent = Math.Round((used / total) * 100.0, 2); // 100.0 is required to go from a double to a decimal to prevent the error below
             double freePercent = Math.Round(100.0 - usedPercent, 2);  // The call is ambiguous between the following methods or properties: 'System.Math.Round(double, int)' and 'System.Math.Round(decimal, int)
 
-            return new Dictionary<string, double>() {
-                { "totalMemoryMB", total },
-                { "usedMemoryMB",  used },
-                { "freeMemoryMB",  free },
-                { "usedPercent", usedPercent },
-                { "freePercent", freePercent }
+            return new MemoryInfo()
+            {
+                TotalMemory = total,
+                UsedMemory = used,
+                FreeMemory = free,
+                UsedPercent = usedPercent,
+                FreePercent = freePercent
             };
         }
             
 
-        private static Dictionary<string, double> CheckForOSX() {
+        private static MemoryInfo? CheckForOSX() {
             string scriptFileContents = @"#!/bin/bash
 
     BYTES_IN_MB=$((1024 * 1024))
@@ -182,7 +192,7 @@ namespace BrowserAutomationMaster.Managers
                 var lines = output.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries); 
                 //foreach (string line in lines) { Spectre.Console.AnsiConsole.Write(line); } // Used for debug only do not forget to comment this out.
 
-                if (lines.Length < 3) { return []; }
+                if (lines.Length < 3) { return null; }
 
                 if (double.TryParse(lines[0], out double total) && 
                     double.TryParse(lines[1], out double used) && 
@@ -192,12 +202,13 @@ namespace BrowserAutomationMaster.Managers
                     var usedPercent = Math.Round(used / total * 100.0, 2); // 100 is required to go from a double to a decimal to prevent this error
                     var freePercent = Math.Round(100.0 - usedPercent, 2);  // The call is ambiguous between the following methods or properties: 'System.Math.Round(double, int)' and 'System.Math.Round(decimal, int)
 
-                    return new Dictionary<string, double>() {
-                        { "totalMemoryMB", total },
-                        { "usedMemoryMB",  used },
-                        { "freeMemoryMB",  free },
-                        { "usedPercent", usedPercent },
-                        { "freePercent", freePercent }
+                    return new MemoryInfo()
+                    {
+                        TotalMemory = total,
+                        UsedMemory = used,
+                        FreeMemory = free,
+                        UsedPercent = usedPercent,
+                        FreePercent = freePercent
                     };
                 }
                 Errors.WriteAndExit(
@@ -216,10 +227,10 @@ namespace BrowserAutomationMaster.Managers
                     status: 1);
             }
 
-            return [];
+            return null;
         }
 
-        private static Dictionary<string, double> CheckForLinux64() {
+        private static MemoryInfo? CheckForLinux64() {
             var output = "";
 
             var info = new ProcessStartInfo {
@@ -293,12 +304,13 @@ namespace BrowserAutomationMaster.Managers
                 var usedPercent = Math.Round(used / total * 100, 2);
                 var freePercent = Math.Round(100 - usedPercent, 2);
 
-                return new Dictionary<string, double>(){
-                    { "totalMemoryMB", total },
-                    { "usedMemoryMB",  used },
-                    { "freeMemoryMB",  free },
-                    { "usedPercent", usedPercent },
-                    { "freePercent", freePercent }
+                return new MemoryInfo()
+                {
+                    TotalMemory = total,
+                    UsedMemory = used,
+                    FreeMemory = free,
+                    UsedPercent = usedPercent,
+                    FreePercent = freePercent
                 };
             }
             catch (Exception e)
@@ -310,7 +322,7 @@ namespace BrowserAutomationMaster.Managers
                         $"Error log:\n\nRuntimeManager.GetMemoryInfo for linux exited with stack trace of:\n\n{e}",
                     status: 1
                 );
-                return [];
+                return null;
             }
         }
     }

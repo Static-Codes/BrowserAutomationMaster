@@ -13,7 +13,9 @@
 
 ### General Changes:
 
-- Added namespace `BrowserStack` in namespace `BrowserAutomationMaster.Managers.BrowserStack`
+- Added namespace `BrowserAutomationMaster.Managers.BrowserStack`
+
+- Added namespace `BrowserAutomationMaster.Managers.LocalServer`
 
 - Added `BAMConfig` class in namespace `BrowserAutomationMaster.Compilation`
 
@@ -30,6 +32,8 @@
   - `GetProjectVEnvPythonPath`
   - `GetProjectVEnvPipPath`
 
+- Added `MemoryInfo` struct in class `MemoryInfoManager` within namespace `BrowserAutomationMaster.Managers` + Refactored `MemoryInfoManager`
+
 - Added `PlatformManager` class in namespace `BrowserAutomationMaster.Managers`
 
 - Added `ProcessFactory` class in namespace `BrowserAutomationMaster.Managers`
@@ -39,6 +43,11 @@
 - Added `ProgramFunctions` class in namespace `BrowserAutomationMaster`
 
 - Added BrowserStack related functions to class `BrowserAutomationMaster.Managers.DirectoryManager`
+
+- Fixed a Windows-Specific bug causing black text to be outputted on a black terminal backgrounds, when multiple instances of are opened.  
+  - Expected behavior is now red text on a black background.
+
+- Improved Browser command parsing within `Parser` class in namespace `BrowserAutomationMaster.Managers.Parsing`
 
 - Improved Physical CPU Core count logic in class `CPUCoreManager` in namespace `BrowserAutomationMaster.Managers`
 
@@ -101,3 +110,7 @@ There are two versions for Windows. You most likely need the **x64** version.
 - `bamm.v1.0.0A5.linux-x64.rpm`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Intel and AMD CPUs from the last 15 years.
 
 - `bamm.v1.0.0A5.linux-arm64.rpm`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Macs or newer Surface Laptops.
+
+- `bamm.v1.0.0A5-linux-arm.deb` : For **32-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on Macs or newer Surface Laptops.
+
+- `bamm.v1.0.0A5.linux-arm.rpm`: For **32-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Macs or newer Surface Laptops.

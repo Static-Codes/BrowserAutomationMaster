@@ -139,7 +139,7 @@ namespace BrowserAutomationMaster.Parsing
             // Trim whitespace from the code part and return it
             return codePart.Trim();
         }
-        
+
         public static void DisplayValidFiles()
         {
             Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -193,7 +193,18 @@ namespace BrowserAutomationMaster.Parsing
             }
             return builder.Length > 0 ? builder.ToString() : null;
         }
-        
+
+        public static string GetValidBrowserCommands()
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine(); // Empty line for formatting purposes.
+            foreach (var browser in browserArgs)
+            {
+                builder.AppendLine($"-> browser \"{browser}\"");
+            }
+            return builder.ToString(); 
+        }
+
         [DoesNotReturn]
         public static void ExitOnDuplicateCommand(string fileName, string line, int i)
         {
@@ -212,47 +223,6 @@ namespace BrowserAutomationMaster.Parsing
             return [.. BAMCFiles.Where(file => IsValidFile(file))];
         }
 
-        public static bool IsValidHeaderFormat(string headerString) {
-            if (string.IsNullOrEmpty(headerString))
-                return false; 
-
-            return PrecompiledHeaderRegex().IsMatch(headerString);
-        }
-        
-        public static bool IsValidNumberFormat(string numberString) {
-            if (string.IsNullOrEmpty(numberString))
-                return false;
-
-            return PrecompiledNumberRegex().IsMatch(numberString);
-        }
-
-        public static bool IsValidLinkFormat(string linkString) {
-            if (string.IsNullOrWhiteSpace(linkString)) 
-                return false;
-
-            bool hasValidProtocol = false;
-
-            foreach (string protocol in validProtocols)
-            { 
-                if (linkString.StartsWith(protocol)) 
-                { 
-                    hasValidProtocol = true; 
-                    break; 
-                }
-            }
-            return hasValidProtocol && PrecompiledLinkRegex().IsMatch(linkString);
-        }
-        
-        public static bool IsValidProxyFormat(string proxyString) {
-            if (string.IsNullOrWhiteSpace(proxyString)) { return false; }
-            return PrecompiledProxyRegex().IsMatch(proxyString);
-        }
-        
-        public static bool IsValidUserAgentFormat(string userAgentString) {
-            if (string.IsNullOrEmpty(userAgentString)) { return false; }
-            return PrecompiledUserAgentRegex().IsMatch(userAgentString);
-        }
-        
         public static void HandleBAMCFileValidation(string[] BAMCFiles)
         {
             validFiles = [.. ValidateBAMCFiles(BAMCFiles)];
@@ -401,7 +371,53 @@ namespace BrowserAutomationMaster.Parsing
 
             return fileNumber - 1; // index = fileNumber - 1;
         }
-        
+
+        public static bool IsValidHeaderFormat(string headerString)
+        {
+            if (string.IsNullOrEmpty(headerString))
+                return false;
+
+            return PrecompiledHeaderRegex().IsMatch(headerString);
+        }
+
+        public static bool IsValidNumberFormat(string numberString)
+        {
+            if (string.IsNullOrEmpty(numberString))
+                return false;
+
+            return PrecompiledNumberRegex().IsMatch(numberString);
+        }
+
+        public static bool IsValidLinkFormat(string linkString)
+        {
+            if (string.IsNullOrWhiteSpace(linkString))
+                return false;
+
+            bool hasValidProtocol = false;
+
+            foreach (string protocol in validProtocols)
+            {
+                if (linkString.StartsWith(protocol))
+                {
+                    hasValidProtocol = true;
+                    break;
+                }
+            }
+            return hasValidProtocol && PrecompiledLinkRegex().IsMatch(linkString);
+        }
+
+        public static bool IsValidProxyFormat(string proxyString)
+        {
+            if (string.IsNullOrWhiteSpace(proxyString)) { return false; }
+            return PrecompiledProxyRegex().IsMatch(proxyString);
+        }
+
+        public static bool IsValidUserAgentFormat(string userAgentString)
+        {
+            if (string.IsNullOrEmpty(userAgentString)) { return false; }
+            return PrecompiledUserAgentRegex().IsMatch(userAgentString);
+        }
+
         public static bool IsValidFile(string filePath)
         {
             List<string> usedFeatures = [];
@@ -447,17 +463,30 @@ namespace BrowserAutomationMaster.Parsing
 
                     // If a browser command is present in any line but the first line that contains characters.
                     if (firstArg.Equals("browser") && i != 0 && browserBlockFinished)
+                    {
                         return Errors.WriteErrorAndReturnBool(
-                            message:
-                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                                $"File: \"{fileName}\"\n" +
-                                $"Invalid 'browser' command location on line {i + 1}.\n" +
-                                $"'browser' command must be placed at the top of the file.\n",
+                            message: $"BAM Manager (BAMM) ran into a BAMC validation error:\n" +
+                                     $"File: \"{fileName}\"\n" +
+                                     $"Invalid 'browser' command location on line {i + 1}.\n" +
+                                     "'browser' command must be placed at the top of the file.\n",
                             returnBool: false
                         );
+                    }
 
+                    if (firstArg.Equals("browser") && !browserBlockFinished && !BrowserRegex.IsMatch(line))
+                    {
+                        // The error message here appears to be the same as the first one, 
+                        // but the failure reason is different.
+                        return Errors.WriteErrorAndReturnBool(
+                            message: $"BAM Manager (BAMM) ran into a BAMC validation error:\n" +
+                                     $"File: \"{fileName}\"\n" +
+                                     $"Invalid browser name on \"browser\" command on line {i + 1}.\n" +
+                                     $"Valid Commands:\n{GetValidBrowserCommands()}",
+                            returnBool: false
+                        );
+                    }
 
-                    if (firstArg.Equals("browser") && !browserBlockFinished)
+                    if (firstArg.Equals("browser") && BrowserRegex.IsMatch(line))
                     {
                         browserBlockFinished = true;
                         continue;
@@ -692,6 +721,7 @@ namespace BrowserAutomationMaster.Parsing
             }
         }
         
+
         public static KeyValuePair<MenuOption, string> New()
         {
             bool userScriptDirExists = CreateUserScriptsDirectory();
@@ -732,6 +762,7 @@ namespace BrowserAutomationMaster.Parsing
                             status: 1
                         );
 
+                    // This executes UserScriptManager.AddScript()
                     UserScriptManager _ = new(path, "add");
                     return KeyValuePair.Create(MenuOption.Add, path);
 

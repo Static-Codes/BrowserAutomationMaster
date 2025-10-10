@@ -146,24 +146,18 @@ namespace BrowserAutomationMaster.Managers.Python
         
         public static bool HasEnoughMemory()
         {
-            Dictionary<string, double> memoryInfo = MemoryInfoManager.RunCheck();
+            MemoryInfo? memoryInfo = MemoryInfoManager.RunCheck();
             
-            if (memoryInfo.Count != 5)
+            if (!memoryInfo.HasValue)
                 Errors.WriteAndExit(
                     $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                     $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary.",
                     status: 1
                 );
-            
-            memoryInfo.TryGetValue("totalMemoryMB", out double totalMemoryMB);
-            //memoryInfo.TryGetValue("usedMemoryMB", out double usedMemoryMB); // Will be used in a later update to display various info.
-            memoryInfo.TryGetValue("freeMemoryMB", out double freeMemoryMB);
-            //memoryInfo.TryGetValue("usedPercent", out double usedPercent);
-            //memoryInfo.TryGetValue("freePercent", out double freePercent);
 
             // Less than 2GiB Total
-            if (totalMemoryMB < 2048)
+            if (memoryInfo.Value.TotalMemory < 2048)
             {
                 Errors.WriteAndExit(
                     "BAM Manager (BAMM) determined you are running below the minimum RAM requirements to properly use bamm.\n" +
@@ -173,7 +167,7 @@ namespace BrowserAutomationMaster.Managers.Python
             }
 
             // Less than 512MiB Free
-            if (freeMemoryMB < 512)
+            if (memoryInfo.Value.FreeMemory < 512)
             {
                 Errors.WriteAndExit(
                     "BAM Manager (BAMM) determined you don't have enough free RAM to continue.\n\n" +
@@ -183,7 +177,7 @@ namespace BrowserAutomationMaster.Managers.Python
             }
 
             // Less than 4GiB Total but between 512MiB and 1GiB Free.
-            else if (totalMemoryMB < 4096 && freeMemoryMB < 1024)
+            else if (memoryInfo.Value.TotalMemory < 4096 && memoryInfo.Value.FreeMemory < 1024)
             {
                 Warning.Write(
                     "BAM Manager (BAMM) determined you are running below the minimum RAM requirements.\n" +
@@ -194,7 +188,7 @@ namespace BrowserAutomationMaster.Managers.Python
             }
 
             // 4GiB Total but under 1GiB Free.
-            else if (totalMemoryMB == 4096 && freeMemoryMB < 1024)
+            else if (memoryInfo.Value.TotalMemory == 4096 && memoryInfo.Value.FreeMemory < 1024)
             {
                 Warning.Write(
                     "BAM Manager (BAMM) determined you running on the minimum RAM requirements.\n" +
@@ -207,7 +201,7 @@ namespace BrowserAutomationMaster.Managers.Python
             }
 
             // 4GiB Total and 1GiB free.
-            else if (totalMemoryMB == 4096 && freeMemoryMB >= 1024)
+            else if (memoryInfo.Value.TotalMemory == 4096 && memoryInfo.Value.FreeMemory >= 1024)
             {
                 // I hate nested conditionals, but this allows for a graceful passthrough
                 if (GlobalConfig.ShowMemoryCheck)

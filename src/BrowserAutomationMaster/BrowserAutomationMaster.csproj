@@ -91,6 +91,9 @@
 		<PackageReference Include="TextCopy" Version="6.2.1" />
 		<PackageReference Include="YamlDotNet" Version="16.3.0" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Managers\LocalServer\" />
+	</ItemGroup>
 
 
 </Project>

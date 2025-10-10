@@ -167,5 +167,11 @@ namespace BrowserAutomationMaster.Managers
         const string packageFormatPattern = @"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9])$"; // Regex pulled from https://pypi.org/project/twine/
         [GeneratedRegex(packageFormatPattern)]
         public static partial Regex PrecompiledPackageRegex();
+
+
+        // Used in LocalServer
+        const string base64FormatPattern = @"^[a-zA-Z0-9\+/]*={0,2}$";
+        [GeneratedRegex(base64FormatPattern)]
+        public static partial Regex PrecompiledBase64Regex();
     }
 }

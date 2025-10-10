@@ -35,26 +35,26 @@ namespace BrowserAutomationMaster.Managers
             HighlightForeground: OliveGreen,
             AccentColor: LightBlue
         );
-        public readonly static Theme DefaultTheme = GetDefaultTheme();
+        public static Theme DefaultTheme { get; private set; } = GetDefaultTheme();
 
         private static Theme GetDefaultTheme()
         {
             try
             {
                 if (!Platforms.IsLinux || Platforms.IsChromeOS)
-                    return DarkTheme;
+                    return LightTheme;
 
                 var Ansi24BitColor = Linux.GetTerminalBackgroundColor();
 
                 if (Ansi24BitColor == null)
-                    return DarkTheme;
+                    return LightTheme;
 
                 (int r, int g, int b) = AnsiManager.FromXTerm(Ansi24BitColor);
                 var color = Color.FromArgb(r, g, b);
 
                 return GetThemeFromColor(color);
             }
-            catch { return DarkTheme; }
+            catch { return LightTheme; }
         }
         private static Theme GetThemeFromColor(Color terminalBGColor)
         {
