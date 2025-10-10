@@ -3,15 +3,14 @@ using BrowserAutomationMaster.Messaging;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.InternalPlatforms;
 using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Managers
 {
     public class InternalPlatforms()
     {
-        public bool IsARMEL { get; set; }
-        public bool IsARMHF { get; set; }
+        public bool IsARMel { get; set; } // 32 Bit ARMv7 (el = EABI Little Endian)
+        public bool IsARMhf { get; set; } // 32 Bit ARMv7 (hf = Hard Float)
         public bool IsChromeOS { get; set; }
         public bool IsWindows { get; set; }
         public bool IsOSX { get; set; }
@@ -41,8 +40,8 @@ namespace BrowserAutomationMaster.Managers
             // Checks if ChromeOS is in use.
             ChromeOSCheck();
 
-            // Checks if ARMHF is in use, as it requires cross-compiled wheels.
-            ARMHFCheck();
+            // Checks if ARM32 is in use, as it requires cross-compiled wheels.
+            ARM32Check();
 
             if (!ValidArchitectures.Contains(Platforms.CurrentArchitecture))
                 Errors.WriteAndExit(

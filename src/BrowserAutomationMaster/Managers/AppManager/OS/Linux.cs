@@ -83,7 +83,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
-        public static void ARMHFCheck()
+        public static void ARM32Check()
         {
             if (Platforms.IsLinux || Platforms.IsWindows || Platforms.IsOSX || !Platforms.IsChromeOS || Platforms.CurrentArchitecture != Arm) // If this is true, the OS is not supported regardless of its Architecture.
                 return;
@@ -107,10 +107,10 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
 
             if (STDOut.Any(a => a.Contains("armhf", OIC)))
-                Platforms.IsARMHF = true;
+                Platforms.IsARMhf = true;
 
-            else if (STDOut.Any(a => a.Contains("armhf", OIC)))
-                Platforms.IsARMHF = true;
+            else if (STDOut.Any(a => a.Contains("armel", OIC)))
+                Platforms.IsARMel = true;
 
             else
             {

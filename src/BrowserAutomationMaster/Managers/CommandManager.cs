@@ -42,6 +42,15 @@ namespace BrowserAutomationMaster.Managers
 
             {
                 new Command(
+                    name: "--gui",
+                    description: "Launches an HTTP Server and the user's default browser to the Graphical User Interface (GUI)",
+                    examples: ["bamm --gui"],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
                     name: "--nohwc",
                     description: 
                         "Instructs BAMM not to check your system's hardware for compatibility, " +

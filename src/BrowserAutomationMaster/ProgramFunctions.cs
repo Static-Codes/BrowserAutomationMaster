@@ -32,7 +32,8 @@ namespace BrowserAutomationMaster
             // Sets PlatformManager.PlatformName to be used across the session duration.
             SetPlatform();
 
-            // Downloads a local copy of https://github.dev/Static-Codes/BrowserAutomationMaster/blob/main/src/BrowserAutomationMaster/AppData/packages.json
+            // Downloads a local copy of:
+            // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/packages.json
             await PackageManager.Initalize();
 
             // BUG FIXXED: DO NOT CHANGE POSITION
@@ -111,6 +112,12 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("--editbsconf"))
             {
                 HandleBSOverwriteCommand();
+                return true;
+            }
+
+            if (pArgs[0].Equals("--gui"))
+            {
+                await LSManager.Start();
                 return true;
             }
 

@@ -5,10 +5,8 @@ using Spectre.Console;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Text;
 using System.Text.RegularExpressions;
 using Windows.Win32;
-using Windows.Win32.System.Console;
 using Windows.Win32.System.SystemInformation;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -372,46 +370,27 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             PInvoke.FreeConsole();
             if (PInvoke.AttachConsole((uint)instance.Id))
             {
-                var safeHandle = PInvoke.GetStdHandle_SafeHandle(STD_HANDLE.STD_ERROR_HANDLE);
-
-                using var fileStream = new FileStream(safeHandle, FileAccess.ReadWrite);
-
-                var standardOutput = new StreamWriter(fileStream, Encoding.UTF8) { AutoFlush = true };
-
-                var settings = new AnsiConsoleSettings { Out = new AnsiConsoleOutput(standardOutput) };
-
-                AnsiConsole.Clear();
-
-                var console = AnsiConsole.Create(settings);
-                console.Write(
-                    new Text(
-                        "\n\nThere was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
-                        new Style(foreground: ToSpectreColor(ThemeManager.DefaultTheme.ForegroundColor))
-                    )
-                );
+                Errors.Write("There was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n");
 
                 PInvoke.FreeConsole();
 
                 if (!PInvoke.AttachConsole((uint)instances[1].Id))
-                    WriteMessage(
-                        "Unable to switch window handles, please restart BAMM, " +
-                        $"then make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\nUnable to attach to the console associated with instance.",
-                        isError: true
+                    Errors.Write(
+                        string.Join(
+                            string.Empty, 
+                            [
+                                "Unable to switch window handles, please restart BAMM, ",
+                                $"then make a bug report at {ISSUES_LINK}\n\n",
+                                $"Error log:\nUnable to attach to the console associated with instance."
+                            ]
+                        )
                     );
 
                 Environment.Exit(1);
             }
 
-            AnsiConsole.Write(
-                new Text(
-                    "There was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n",
-                    new Style(foreground: ToSpectreColor(ThemeManager.DefaultTheme.ForegroundColor))
-                )
-            );
-
+            Errors.Write("There was an attempt to open another instance of BAMM, only one instance can be run at the same time.\n");
             Environment.Exit(1);
-
         }
 
         #endregion
