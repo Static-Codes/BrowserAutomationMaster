@@ -2,12 +2,14 @@ using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
 using System.Diagnostics;
+using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
-using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Compilation.Transpiler;
+using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
@@ -35,7 +37,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             try
             {
                 if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0)
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to detect any of the following commands:\n\n" +
                             "dpkg\nflatpak\nrpm\n",
@@ -62,10 +64,10 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         Warning.Write($"No apps found for: {Name}");
 
                     else if (Apps.Count == 1)
-                        Success.WriteSuccessMessage($"Found 1 app from: {Name}");
+                        WriteSuccessMessage($"Found 1 app from: {Name}");
 
                     else
-                        Success.WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}");
+                        WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}");
                 }
 
                 AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
@@ -74,7 +76,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             catch (Exception ex)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     $"BAM Manager (BAMM) was unable to parse installed system applications, " +
                     $"please see the error below:\n\n{ex}",
                     status: 1
@@ -102,7 +104,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             if (STDOut.Count == 0)
             {
-                Warning.Write("Unable to determine if the current CPU ABI is ARMHF, you may experience runtime errors.");
+                Warning.Write("Unable to determine if the current CPU ABI is ARMHF, you may experience runtime ");
                 return;
             }
 
@@ -258,7 +260,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     };
 
                     if (PKM_CMD == "UNSELECTED DISTRO")
-                        Errors.WriteAndExit("An error occured while attempting to access your Distribution's Package Manager, please try again.", 1);
+                        WriteAndExit("An error occured while attempting to access your Distribution's Package Manager, please try again.", 1);
                 }
 
 
@@ -287,7 +289,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 ];
 
                 if (installPrefix == null)
-                    Errors.WriteAndExit($"Unable to install the following required Linux Packages:\n{string.Join('\n', packages)}", 1);
+                    WriteAndExit($"Unable to install the following required Linux Packages:\n{string.Join('\n', packages)}", 1);
 
 
                 string[] commands = new string[packages.Length];
@@ -307,14 +309,14 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         continue;
 
                     Warning.Write($"Installing package: {packages[i]}");
-                    Success.WriteSuccessMessage(RunCommand("/bin/bash", $"{commands[i]}"));
+                    WriteSuccessMessage(RunCommand("/bin/bash", $"{commands[i]}"));
                 }
 
                 File.Create(linuxPackageFile);
             }
             catch (Exception e)
             {
-                Errors.WriteAndExit($"Unable to install the required Linux Packages.\n\nError Log:\n{e}", 1);
+                WriteAndExit($"Unable to install the required Linux Packages.\n\nError Log:\n{e}", 1);
             }
 
 
@@ -343,7 +345,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return apps;
             }
             catch { 
-                Errors.Write("DPKG not found, checking another method."); 
+                Write("DPKG not found, checking another method."); 
                 return []; 
             }
         }
@@ -412,7 +414,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
             catch (Exception ex)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to execute a necessary command, if this issue persists, " +
                         $"please make a bug report at {ISSUES_LINK}\nError log:\nUnable to execute\n" +
@@ -422,6 +424,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return string.Empty;
             }
         }
+
 
     }
 }

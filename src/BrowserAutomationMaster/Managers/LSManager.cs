@@ -1,11 +1,16 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using System.Diagnostics;
 using System.Net;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.EndpointFunctions;
 using static BrowserAutomationMaster.Managers.EndpointHelpers;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 using static System.Text.Encoding;
 
 namespace BrowserAutomationMaster.Managers
@@ -13,7 +18,7 @@ namespace BrowserAutomationMaster.Managers
     public class LSManager
     {
         private readonly static HttpListener listener = new();
-        private readonly static string url = "http://localhost:8008/";
+        const string DEFAULT_PORT = "80";
 
         private static bool isRunning = true;
         public static bool IsRunning() { return isRunning; }
@@ -24,12 +29,50 @@ namespace BrowserAutomationMaster.Managers
         }
 
 
-        public static async Task HandleIncomingConnections()
+
+        public static (string name, string args) GetProcessNameAndArgs()
+        {
+            if (Platforms.IsChromeOS || Platforms.IsUnixLike) return ("netstat", "-ltu");
+            else if (Platforms.IsWindows) return ("cmd.exe", "/c netstat -ano");
+            else throw new PlatformNotSupportedException("Invalid OS.");
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="groups">GroupCollection from a MatchCollection</param>
+        /// <returns>An Enumerable of Group objects</returns>
+        /// <exception cref="PlatformNotSupportedException"></exception>
+        public static IEnumerable<Group>? GetValues(GroupCollection? groups)
+        {
+            if (groups == null || groups.Count == 0) 
+                return [];
+
+            if (Platforms.IsWindows)
+                return groups
+                    .Values
+                    .Where(val =>
+                        !string.IsNullOrEmpty(val.Value) &&
+                        !val.Value.StartsWith("TCP", OIC) &&
+                        !val.Value.StartsWith("UDP", OIC) &&
+                        val.Value.All(c => char.IsNumber(c)) // Fixes issues with the matches including "localhost:"
+                    );
+
+            if (Platforms.IsUnixLike || Platforms.IsChromeOS)
+                return groups.Values
+                    .Where(val => 
+                        !string.IsNullOrEmpty(val.Value) &&
+                        val.Value.All(c => char.IsNumber(c)) // Fixes issues with the matches including "localhost:"
+                    );
+
+            throw new PlatformNotSupportedException("Invalid OS.");
+        }
+
+        public static async Task HandleEndpointRequests()
         {
             string[] invalidMethods = ["CONNECT", "DELETE", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE"];
             while (isRunning)
             {
-                // Waits for a connection is made.
+                // Waits for a connection that is made.
                 HttpListenerContext context = await listener.GetContextAsync();
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
@@ -83,16 +126,90 @@ namespace BrowserAutomationMaster.Managers
                         break;
 
 
-                }
-                ;
+                };
             }
         }
 
-
-        public static async Task Start()
+        /// <summary>
+        /// Uses netstat on all supported Platforms and OS to return a list of 
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<string[]> ScanForUsedLHPorts()
         {
+            (var name, var args) = GetProcessNameAndArgs();
+            var psi = new ProcessStartInfo()
+            {
+                FileName = name,
+                Arguments = args,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+
+            using var process = await ProcessFactory.SpawnProcess(psi, "scanning localhost for open ports", writeSTDInOut: false);
+            (var ExitCode, var STDOut, var STDErr) = await ProcessFactory.GetProcessResponse(process);
+
+
+            if (ExitCode != 0)
+                WriteAndExit(
+                    message:
+                        string.Join(string.Empty, [
+                            "Unable to determine open ports on localhost, ",
+                            "as a result BAMM's GUI could not be loaded.\n\n",
+                            "Error Log:\n",
+                            $"{(STDErr.Count != 0 ? string.Join(NLC, STDErr) : "Could not execute command: netstat -ano with cmd.exe")}"
+                        ]),
+                    status: 1
+                );
+
+            if (STDOut.Count == 0)
+                WriteAndExit(
+                    message:
+                        string.Join(string.Empty, [
+                            "Unable to determine open ports on localhost, ",
+                            "as a result BAMM's GUI could not be loaded.\n\n",
+                            $"Error Log:\nCommand: 'netstat -ano with cmd.exe' exited with no output.\n",
+                            $"If this issue persist, please make a bug report at {ISSUES_LINK}"
+                        ]),
+                    status: 1
+                );
+
+            var matches = PrecompiledNetStatRegex().Matches(string.Join(NLC, STDOut));
+            var foundPorts = new StringBuilder();
+
+            for (int i = 0; i < matches.Count; i++)
+            {
+                if (matches[i].Success && matches[i].Groups.Count > 0)
+                {
+                    var groups = matches[i].Groups;
+                    var values = GetValues(groups);
+
+                    if (values == null)
+                        continue;
+
+                    foreach (var value in values)
+                        foundPorts.AppendLine(value.Value);
+                }
+            }
+
+            return [..
+                foundPorts
+                .ToString()
+                .Split(NLC)
+                .Where(val => !string.IsNullOrEmpty(val)) // Fixes bug where splitting using NLC causes element at index 0 to be empty.
+                .Distinct()
+                .Order()
+            ];
+        }
+
+        public static async Task Start(string port = DEFAULT_PORT)
+        {
+
+            var url = $"http://127.0.0.1:{port}/";
+
             if (!HttpListener.IsSupported)
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         string.Join(
                             string.Empty, 
@@ -104,16 +221,54 @@ namespace BrowserAutomationMaster.Managers
                     status: 1
                 );
 
-            // Creates a simple http server listens on localhost:8008
-            listener.Prefixes.Add(url);
-            listener.Start();
-            Console.WriteLine("Started GUI on {0}\n", url);
+            try
+            {
 
-            // Handle requests
-            await HandleIncomingConnections();
-            
-            // Closes the listener.
-            listener.Close();
+                var usedLHPorts = await ScanForUsedLHPorts();
+
+                if (usedLHPorts.Contains(port))
+                    throw new HttpListenerException(1, "Access is denied");
+
+                listener.Prefixes.Add(url);
+                listener.Start();
+                Console.WriteLine("Started GUI on {0}\n", url);
+
+                await HandleEndpointRequests();
+                listener.Close();
+            }
+
+            catch (HttpListenerException ex)
+            {
+                if (ex.Message.Contains("Access is denied"))
+                    WriteAndExit(
+                        message:
+                            string.Join(string.Empty, [
+                                $"Port {port} on localhost is already in use, ",
+                                "as a result BAMM's GUI could not be loaded.\n\n",
+                                "Error Log:\n",
+                                $"Address '127.0.0.1:{port}' is already in use, ",
+                                "please use the following argument:\n",
+                                "bamm --gui --port==<PORT>\n",
+                                "Replace <PORT> with a number between 1 and 65535\n\n",
+                                "Example:\n",
+                                "bamm --gui --port==42069\n",
+                            ]),
+                        status: 1
+                    );
+            }
+
+            catch (Exception ex)
+            {
+                WriteAndExit(
+                    message:
+                        string.Join(string.Empty, [
+                            "An unknown exception occured during the operation of BAMM's GUI.\n\n",
+                                $"Error Log:\n{ex.Message}\n",
+                                $"If this issue persists, please make a bug report at {ISSUES_LINK}"
+                        ]),
+                    status: 1
+                );
+            }
         }
 
         public static async Task WriteResponse(HttpListenerResponse response, byte[] data, string contentType = "application/json")

@@ -6,6 +6,8 @@ using System.Text;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -21,7 +23,7 @@ namespace BrowserAutomationMaster.Managers
             var curProc = Process.GetCurrentProcess();
             if (curProc == null)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     "Unable to determine the number of open instances of BAMM.\n" +
                     "This is a bug, please make a bug report at {ISSUES_LINK}\n" +
                     "Error log:\n\n" +
@@ -47,7 +49,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception ex)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "BAM Manager (BAMM) was unable to check for multiple instances, " +
                         $"please make a bug report at {ISSUES_LINK}\n" +
@@ -66,7 +68,7 @@ namespace BrowserAutomationMaster.Managers
                     "driverName has a size of 0 in PreventMemoryLeaks()";
 
             if (selectedBrowser == null)
-                Errors.WriteAndExit(errMessage, 1);
+                WriteAndExit(errMessage, 1);
 
             var dBuilder = new StringBuilder();
 
@@ -77,7 +79,7 @@ namespace BrowserAutomationMaster.Managers
                 dBuilder.Append("geckodriver");
 
             if (dBuilder.Length == 0)
-                Errors.WriteAndExit(errMessage, 1);
+                WriteAndExit(errMessage, 1);
 
             if (Platforms.IsWindows)
                 dBuilder.Append(".exe");
@@ -97,7 +99,7 @@ namespace BrowserAutomationMaster.Managers
                         $"ID: {process.Id}\n" +
                         $"Error Log:\n{e.Message}\n\n";
 
-                    Errors.Write(message);
+                    Write(message);
                 }
             }
         }
@@ -138,7 +140,7 @@ namespace BrowserAutomationMaster.Managers
             ArgumentNullException.ThrowIfNull(process);
 
             if (!Processes.ContainsKey(process))
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "The process associated with the command: " +
                         $"{process.StartInfo.FileName} {process.StartInfo.Arguments} was not properly spawned.\n\n" +
@@ -198,7 +200,7 @@ namespace BrowserAutomationMaster.Managers
                         outputLines.Add(args.Data);
 
                         if (writeSTDInOut && !whiteOutput)
-                            Success.WriteSuccessMessage(args.Data + '\n');
+                            WriteSuccessMessage(args.Data + '\n');
 
                         else if (writeSTDInOut && whiteOutput)
                             Console.WriteLine(args.Data + '\n');
@@ -214,7 +216,7 @@ namespace BrowserAutomationMaster.Managers
                         errorLines.Add(args.Data);
 
                         if (writeSTDInOut)
-                            Errors.Write(args.Data + '\n');
+                            Write(args.Data + '\n');
                             
                     };
                 }
@@ -257,7 +259,7 @@ namespace BrowserAutomationMaster.Managers
                 ActiveProcesses.Remove(newProc); // Remove new process from ActiveProcesses upon exit.
 
                 if (!Processes.TryGetValue(newProc, out var _))
-                    Errors.WriteAndExit($"Unable to find the process associated with the command:\n{psi.FileName} {psi.Arguments}", 1);
+                    WriteAndExit($"Unable to find the process associated with the command:\n{psi.FileName} {psi.Arguments}", 1);
 
                 // Get the ProcessResponse associated with the newly spawned Process
                 var procResponse = Processes[newProc];
@@ -282,13 +284,13 @@ namespace BrowserAutomationMaster.Managers
                                       $"Command: {psi.FileName} {psi.Arguments} failed with exit code {newProc.ExitCode}\n\n" +
                                       $"Stack Trace:\n{fullStackTrace}\n\n";
 
-                    Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
+                    WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
                 }
             }
 
             catch (Exception ex)
             {
-               Errors.WriteAndExit(
+               WriteAndExit(
                    message:
                        "BAM Manager (BAMM) was unable to spawn the requested process.\n" +
                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +

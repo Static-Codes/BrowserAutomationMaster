@@ -4,6 +4,8 @@ using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -11,7 +13,7 @@ namespace BrowserAutomationMaster.Managers
     {
         public static void Uninstall()
         {
-            Errors.Write("This will delete BAM Manager (BAMM) from your system.\n");
+            Write("This will delete BAM Manager (BAMM) from your system.\n");
 
             var response = Input.AskForInput("Would you like to continue with the uninstallation process? [y/n]: ");
             var uninstallConfirmed = Input.ConditionAccepted(response);
@@ -31,7 +33,7 @@ namespace BrowserAutomationMaster.Managers
 
             if (removeAppData)
             {
-                Errors.Write(dataMessage);
+                Write(dataMessage);
                 response = Input.AskForInput("Have you backed up your data? [y/n]: ");
                 if (Input.ConditionAccepted(response))
                     DoAppDataDeletion();
@@ -57,7 +59,7 @@ namespace BrowserAutomationMaster.Managers
             string installationDirectory = AppContext.BaseDirectory;
 
             if (!Path.Exists(installationDirectory))
-                Errors.WriteAndExit(message: failureMessage, status: 1);
+                WriteAndExit(message: failureMessage, status: 1);
 
             string uninstallerPath = Path.Combine(installationDirectory, "unins000.exe");
             try
@@ -65,7 +67,7 @@ namespace BrowserAutomationMaster.Managers
                 if (File.Exists(uninstallerPath))
                 {
                     Process.Start(uninstallerPath);
-                    Success.WriteSuccessMessageAndExit(
+                    WriteSuccessMessageAndExit(
                         message: "Started uninstaller, BAM Manager (BAMM) will now exit...",
                         exitCode: 0
                     );
@@ -73,19 +75,19 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (FileNotFoundException notFound)
             {
-                Errors.WriteAndExit(message: notFound.Message, status: 1);
+                WriteAndExit(message: notFound.Message, status: 1);
             }
             catch (Win32Exception w32e)
             {
-                Errors.WriteAndExit(message: w32e.Message, status: 1);
+                WriteAndExit(message: w32e.Message, status: 1);
             }
             catch (ObjectDisposedException notDisposed)
             {
-                Errors.WriteAndExit(message: notDisposed.Message, status: 1);
+                WriteAndExit(message: notDisposed.Message, status: 1);
             }
             catch (Exception ex)
             {
-                Errors.WriteAndExit(message: $"{ex.Message}", status: 1);
+                WriteAndExit(message: $"{ex.Message}", status: 1);
             }
         }
         private static void DoMacUninstall()
@@ -139,7 +141,7 @@ namespace BrowserAutomationMaster.Managers
                         $"{AppDataDirectory}\n" +
                         $"Please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
                         $"Error Log:\n{e.Message}";
-                    Errors.Write(message);
+                    Write(message);
                 }
             }
         }

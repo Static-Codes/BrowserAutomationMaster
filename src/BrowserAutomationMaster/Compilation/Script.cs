@@ -1,5 +1,6 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Compilation.Transpiler;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -45,7 +46,7 @@ namespace BrowserAutomationMaster.Compilation
                 "Error Log:\nUnable to reset the state of the current Script() object.";
 
             if (isNotEmpty)
-                Errors.WriteAndExit(message, 1);
+                WriteAndExit(message, 1);
 
         }
     }

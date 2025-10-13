@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.InstanceManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 {
@@ -40,7 +41,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
             catch (Exception ex)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     "Unable to get the latest browser versions for BrowserStack.\n" +
                     $"If this persists, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error Log:\n{ex.Message}",

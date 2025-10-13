@@ -7,6 +7,8 @@ using static BrowserAutomationMaster.Managers.Python.BrowserStack.InstanceManage
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -42,7 +44,7 @@ namespace BrowserAutomationMaster.Managers.Python
             
             catch (Exception e)
             {
-                Errors.WriteAndExit(e.Message, 1);
+                WriteAndExit(e.Message, 1);
                 return false;
             }
         }
@@ -54,7 +56,7 @@ namespace BrowserAutomationMaster.Managers.Python
         {
             var config = LoadConfig();
             if (config == null)
-                Errors.WriteAndExit($"Unable to load BrowserStack Config from:\n{GetBrowserStackConfigPath()}", 1);
+                WriteAndExit($"Unable to load BrowserStack Config from:\n{GetBrowserStackConfigPath()}", 1);
             return new VEnvManager("browserstack-sdk python", scriptFilePath);
         }
 
@@ -84,7 +86,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 // If the process returned an error or the venv is not able to be accessed.
                 if (ExitCode != 0 || !VEnvExists())
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to create a virtual environment with the interpreter:\n" +
                             $"{InterpreterPath}.\n\nIf this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -93,14 +95,14 @@ namespace BrowserAutomationMaster.Managers.Python
                         status: 1
                     );
                 }
-                Success.WriteSuccessMessage("Successfully created Project Virtual Environment!\n");
+                WriteSuccessMessage("Successfully created Project Virtual Environment!\n");
             }
 
 
             catch (Exception e)
             {
 
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to create a virtual environment for the interpreter:\n{InterpreterPath}.\n\n" +
                         $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -122,7 +124,7 @@ namespace BrowserAutomationMaster.Managers.Python
             if (Platforms.IsWindows)
                 return $"\"{ScriptFilePath}\"";
 
-            Errors.ThrowUnsupportedPlatformException();
+            ThrowUnsupportedPlatformException();
             return string.Empty; // Will not be executed.
         }
 
@@ -130,11 +132,11 @@ namespace BrowserAutomationMaster.Managers.Python
         {
             var usingBrowserStack = GetBrowserStackStatus();
 
-            Success.WriteSuccessMessage("Installing required project packages in the project's virtual environment, please wait..");
+            WriteSuccessMessage("Installing required project packages in the project's virtual environment, please wait..");
             await Task.Delay(1000);
 
             if (ParentDirectory == null)
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "Unable to install the required Python packages for the current project, please try again.\n" +
                         $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -149,7 +151,7 @@ namespace BrowserAutomationMaster.Managers.Python
             var installCMD = $"install -r \"{requirementsFilePath}\"";
             
 
-            ProcessStartInfo psi = new()
+            var psi = new ProcessStartInfo()
             {
                 Arguments = installCMD,
                 CreateNoWindow = true,
@@ -184,7 +186,7 @@ namespace BrowserAutomationMaster.Managers.Python
                                   $"Command: {installCMD} failed with exit code {ExitCode}\n\n" +
                                   $"Stack Trace:\n{fullStackTrace}\n\n";
 
-                Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
+                WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
             }
         }
 
@@ -204,7 +206,7 @@ namespace BrowserAutomationMaster.Managers.Python
         private async Task StartScriptExecution()
         {
             if (ParentDirectory == null)
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "Unable to install the required Python packages for the current project, please try again.\n" +
                         $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -221,7 +223,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 scriptFileName = ScriptFilePath;
 
             if (!File.Exists(pythonPath))
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
                         $"if this issue persists.please make a bug report at {ISSUES_LINK}\n\n" +
@@ -232,7 +234,7 @@ namespace BrowserAutomationMaster.Managers.Python
             //var args = IsOSX ? GetVEnvStartArgs(pythonPath).Replace("Application Support/", "Application\\ Support/") : GetVEnvStartArgs(pythonPath);
             var args = GetVEnvStartArgs(pythonPath);
 
-            ProcessStartInfo psi = new()
+            var psi = new ProcessStartInfo()
             {
                 Arguments = args,
                 CreateNoWindow = true,
@@ -262,14 +264,14 @@ namespace BrowserAutomationMaster.Managers.Python
                                   $"Command: {psi.FileName} {psi.Arguments} failed with exit code {ExitCode}\n\n" +
                                   $"Stack Trace:\n{fullStackTrace}\n\n";
 
-                Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
+                WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
             }
         }
 
         public async Task RunScriptWithBrowserStack()
         {
             if (string.IsNullOrEmpty(ParentDirectory))
-                Errors.WriteAndExit
+                WriteAndExit
                 (
                     message:
                         "Unable to run the requested test, please try again.\n" +
@@ -284,7 +286,7 @@ namespace BrowserAutomationMaster.Managers.Python
             StackConfig = LoadConfig();
 
             if (StackConfig == null)
-                Errors.WriteAndExit
+                WriteAndExit
                 (
                     message:
                         "Unable to run the requested test, please try again.\n" +
@@ -293,10 +295,10 @@ namespace BrowserAutomationMaster.Managers.Python
                     status: 1
                 );
 
-            Success.WriteSuccessMessage($"A valid BrowserStack Config file was found at: {browserStackConfig}\n");
+            WriteSuccessMessage($"A valid BrowserStack Config file was found at: {browserStackConfig}\n");
             await Task.Delay(1000);
             
-            Success.WriteSuccessMessage("Config Info:");
+            WriteSuccessMessage("Config Info:");
             Console.WriteLine($"{StackConfig}\n");
             await Task.Delay(1000);
 
@@ -322,7 +324,7 @@ namespace BrowserAutomationMaster.Managers.Python
             var args = $"python \"{ScriptFilePath}\"";
 
 
-            ProcessStartInfo psi = new()
+            var psi = new ProcessStartInfo()
             {
                 Arguments = args,
                 CreateNoWindow = true,
@@ -349,7 +351,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 var detailedLog = "Error log:\n" +
                                   $"Command: {psi.FileName} {psi.Arguments} failed with exit code {ExitCode}\n\n" +
                                   $"Stack Trace:\n{fullStackTrace}\n\n";
-                Errors.WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
+                WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
             }
 
             var baseProjectLink = $"https://automate.browserstack.com/projects";
@@ -361,7 +363,7 @@ namespace BrowserAutomationMaster.Managers.Python
             if (projectName != null)
                 fullMessage += $"/project/{projectName}/builds";
 
-            Success.WriteSuccessMessage(fullMessage);
+            WriteSuccessMessage(fullMessage);
         }
 
         /// <summary>
@@ -373,7 +375,7 @@ namespace BrowserAutomationMaster.Managers.Python
         public static void SetProcessFileName(ref ProcessStartInfo psi, bool useCMD = true, string? fileName = null)
         {
             if (!useCMD && string.IsNullOrEmpty(fileName))
-                Errors.WriteAndExit("A filename param must be specified for SetProcessFileName when useShell = false", 1);
+                WriteAndExit("A filename param must be specified for SetProcessFileName when useShell = false", 1);
 
             // Set for Windows regardless of global status
             if (Platforms.IsWindows && useCMD)

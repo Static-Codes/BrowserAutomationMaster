@@ -5,6 +5,7 @@ using BrowserAutomationMaster.Messaging;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Helpers
 {
@@ -142,15 +143,15 @@ Supported versions include:
             CheckAndAdd(detectedApplications);
 
             if (!AppNames.Intersect(validBrowsersApps).Any())
-                Errors.WriteAndExit(NoBrowsersMessage, 1);
+                WriteAndExit(NoBrowsersMessage, 1);
 
             if (!AppNames.Intersect(validPythonVersions).Any() && !Platforms.IsChromeOS)
-                Errors.WriteAndExit(NoPythonMessage, 1);
+                WriteAndExit(NoPythonMessage, 1);
         }
 
         public Installations() // Empty constructor used as a fallback.
         {
-            Errors.WriteAndExit(NoBrowsersMessage, 1);
+            WriteAndExit(NoBrowsersMessage, 1);
             AppNames = []; // This wont be reached, its purely to appease the compilers static nature.
         }
 

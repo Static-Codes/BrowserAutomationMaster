@@ -1,6 +1,6 @@
-﻿using BrowserAutomationMaster.Managers;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Messaging.Debug;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -34,7 +34,8 @@ namespace BrowserAutomationMaster.Messaging
         [DoesNotReturn]
         public static void WriteAndExit(string message, int status)
         {
-            WriteMessage(message, isError: true);
+            var output = $"{message}\n{GetPlatformInfoForErrorLog()}";
+            WriteMessage(output, isError: true);
             ReadKey();
             Environment.Exit(status);
         }

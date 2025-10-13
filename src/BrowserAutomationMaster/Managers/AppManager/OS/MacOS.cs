@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS
 {
@@ -45,13 +45,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 }
             }
             catch { 
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: "BAM Manager (BAMM) was unable to find any installed applications, exiting...", 
                     status: 1
                 ); 
             }
             if (apps.Count == 0) { 
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: "BAM Manager (BAMM) was unable to find any installed applications, exiting...", 
                     status: 1
                 ); 
@@ -64,7 +64,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             if (exMessage.StartsWith("xcode-select: note: no developer tools were found at '/Applications/Xcode.app'"))
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "Python requires a package installation prior to working with virtual environments for the first time.\n" +
                         "Please click the 'install' button on the popup window, then restart BAMM.",

@@ -1,8 +1,11 @@
 ﻿using System.Net.NetworkInformation;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Compilation.Transpiler;
+using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.Messaging.Warning;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -286,7 +289,7 @@ namespace BrowserAutomationMaster.Compilation
                 if (sanitizedArg2.EndsWith('/')) { sanitizedArg2 = sanitizedArg2[..^1]; }
                 if (!IsResolvableLink(sanitizedArg2))
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
                             $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
@@ -299,7 +302,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception e)
             {
-                Errors.Write(
+                Write(
                     message:
                         $"BAM Manager (BAMM) was unable to resolve the url: '{sanitizedArg2}'\n" +
                         $"Error log:\n\n{e.Message}"
@@ -448,7 +451,7 @@ namespace BrowserAutomationMaster.Compilation
             // Parser already ensures this line is valid so a second null check is not required; assuming set-custom-useragent is not modified without testing.
             string customUserAgent = splitLine[1].Replace('"', ' ').Trim();
             requestUserAgent = customUserAgent;
-            Success.WriteSuccessMessage($"\nSuccessfully set custom user agent on line {lineNumber}.");
+            WriteSuccessMessage($"\nSuccessfully set custom user agent on line {lineNumber}.");
             isCU = false;
         }
         public static void TakeScreenshot(List<string> scriptBody, string sanitizedArg2)
@@ -461,14 +464,12 @@ namespace BrowserAutomationMaster.Compilation
         )
         {
             if (!IsResolvableLink(sanitizedArg2))
-            {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
                         $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
                         $"If this error persists please make a bug report at {ISSUES_LINK}",
                     status: 1);
-            }
 
             scriptBody.Add($"url = '{sanitizedArg2}'");
             if (firstVisitFinished)
