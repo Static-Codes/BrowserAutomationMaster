@@ -1,0 +1,170 @@
+/* COMMAND COMBOBOX STYLING */
+.command-combobox-section {
+  padding: 20px;
+  max-width: 600px; /* Adjust as needed */
+  margin: 20px auto;
+  background-color: var(--page-header-bgColor); /* Use a dark background */
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  color: var(--page-header-txtColor); /* Use light text color */
+}
+
+.combobox-container {
+  margin-bottom: 15px;
+}
+
+.combobox-label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 700;
+  color: var(--page-header-headingColor); /* Slightly dimmer heading color */
+}
+
+.combobox-input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid var(--page-header-bgColor-hover);
+  background-color: var(
+    --page-header-bgColor-hover
+  ); /* A slightly lighter dark shade */
+  color: var(--page-header-txtColor);
+  border-radius: var(--border-radius);
+  appearance: none; /* Remove default browser styling for select */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.combobox-input:focus {
+  outline: none;
+  border-color: var(--blue); /* Highlight on focus */
+}
+
+/* Command Description Styling */
+.command-description {
+  margin-bottom: 20px;
+  padding: 10px;
+  border-left: 3px solid var(--blue);
+  background-color: var(--page-header-bgColor-hover);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* ARGUMENTS CONTAINER STYLING */
+.arguments-container {
+  border-top: 1px solid var(--page-header-headingColor);
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.arg-group {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.05
+  ); /* Very slight background for clarity */
+  border-radius: var(--border-radius);
+}
+
+.arg-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+/* Radio button/Dropdown for optional arguments */
+.arg-options-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.arg-option {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.arg-option input[type="radio"] {
+  /* Hide actual radio button but keep it focusable */
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Custom radio button look */
+.radio-custom {
+  height: 18px;
+  width: 18px;
+  background-color: var(--page-header-bgColor-hover);
+  border-radius: 50%;
+  border: 2px solid var(--page-header-headingColor);
+  display: inline-block;
+  position: relative;
+  margin-right: 8px;
+}
+
+/* Highlighted state when checked */
+.arg-option input[type="radio"]:checked + .radio-custom {
+  border-color: var(--blue);
+}
+
+.arg-option input[type="radio"]:checked + .radio-custom:after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: var(--blue);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.arg-option span {
+  font-size: 0.95rem;
+}
+
+/* Simple text input for arguments without options */
+.arg-text-input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid var(--page-header-bgColor-hover);
+  background-color: var(--page-header-bgColor-hover);
+  color: var(--page-header-txtColor);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+.arg-text-input:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+/* Execute Button */
+.execute-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 25px;
+  border: none;
+  border-radius: var(--border-radius);
+  background-color: var(--blue);
+  color: var(--white);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.execute-button:hover {
+  background-color: #0093c4; /* Slightly darker blue on hover */
+}
