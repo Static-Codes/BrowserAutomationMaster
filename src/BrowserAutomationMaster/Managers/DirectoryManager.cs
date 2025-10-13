@@ -1,7 +1,8 @@
 ﻿using System.IO.Compression;
 using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -31,7 +32,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     case "zip" when outputPath == null:
                         if (!Directory.Exists(AppDataDirectory))
-                            Errors.WriteAndExit($"Unable to create backup file, directory doesn't exist at: {AppDataDirectory}", 1);
+                            WriteAndExit($"Unable to create backup file, directory doesn't exist at: {AppDataDirectory}", 1);
 
 
                         if (string.IsNullOrEmpty(backupPath))
@@ -46,7 +47,7 @@ namespace BrowserAutomationMaster.Managers
 
 
                         ZipFile.CreateFromDirectory(AppDataDirectory, backupPath, CompressionLevel.Optimal, false);
-                        Success.WriteSuccessMessage($"Successfully created backup at: {backupPath}");
+                        WriteSuccessMessage($"Successfully created backup at: {backupPath}");
                         break;
                 }
             }
@@ -57,7 +58,7 @@ namespace BrowserAutomationMaster.Managers
                     $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}" +
                     $"Error Log:\n{ex.Message}";
 
-                Errors.WriteAndExit(message, 1);
+                WriteAndExit(message, 1);
             }
         }
 
@@ -66,7 +67,7 @@ namespace BrowserAutomationMaster.Managers
             if (string.IsNullOrWhiteSpace(directory)) { return; }
             if (!Directory.Exists(directory))
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: $"\nBAM Manager (BAMM) was unable to locate:\n{directory}\nPlease ensure this directory exists.",
                     status: 1
                 );
@@ -74,13 +75,13 @@ namespace BrowserAutomationMaster.Managers
             try
             {
                 Directory.Delete(directory, true);
-                Success.WriteSuccessMessage(
+                WriteSuccessMessage(
                     message: $"BAM Manager (BAMM) successfully deleted directory:\n{directory}\n"
                 );
             }
             catch (IOException e)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
                              $"File: {directory}\n\nException:\n\n{e.Message}",
                     status: 1
@@ -88,7 +89,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (UnauthorizedAccessException e)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\n" +
                         $"File: {directory}\n\nException:\n\n{e.Message}",
@@ -97,7 +98,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (System.Security.SecurityException e)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\n" +
                         $"File: {directory}\n\nException:\n\n{e.Message}",
@@ -106,7 +107,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (ArgumentException e)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"Invalid argument for file path: '{directory}\n\n" +
                         $"Exception:\n\n {e.Message}",
@@ -115,7 +116,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception ex)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"An unexpected error of type: '{ex.GetType().Name}' occurred while trying to delete file: '{directory}'\n\n" +
                         $"Exception:\n\n{ex.Message}",
@@ -129,7 +130,7 @@ namespace BrowserAutomationMaster.Managers
             if (string.IsNullOrWhiteSpace(path)) { return; }
             if (!File.Exists(path))
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to locate:\n" +
                         $"{path}\n" +
@@ -140,13 +141,13 @@ namespace BrowserAutomationMaster.Managers
             try
             {
                 File.Delete(path);
-                Success.WriteSuccessMessage(
+                WriteSuccessMessage(
                     message: $"BAM Manager (BAMM) successfully deleted file: {path}\n"
                 );
             }
             catch (IOException)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
                         $"File: {path}\n",
@@ -155,7 +156,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (UnauthorizedAccessException)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {path}\n",
                     status: 1
@@ -163,7 +164,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (System.Security.SecurityException)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"\nBAM Manager (BAMM) was unable to continue, permission denied.\nFile: {path}\n",
                     status: 1
@@ -171,14 +172,14 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (ArgumentException)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: $"Invalid argument for file path: '{path}'\n",
                     status: 1
                 );
             }
             catch (Exception ex)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"An unexpected error of type: '{ex.GetType().Name}' " +
                         $"occurred while trying to delete file: '{path}'\n",
@@ -194,7 +195,7 @@ namespace BrowserAutomationMaster.Managers
                 try { Directory.CreateDirectory(path); }
                 catch (Exception)
                 {
-                    Errors.Write(
+                    Write(
                         message: $"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"
                     );
                 }
@@ -215,7 +216,7 @@ namespace BrowserAutomationMaster.Managers
             catch
             {
                 var message = "Unable to get the default backup directory, please ensure you have a Desktop Environment installed.";
-                return Errors.WriteErrorAndReturnEmptyString(message);
+                return WriteErrorAndReturnEmptyString(message);
             }
         }
 
@@ -243,7 +244,7 @@ namespace BrowserAutomationMaster.Managers
             if (Platforms.IsUnixLike)
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "python3");
 
-            Errors.ThrowUnsupportedPlatformException();
+            ThrowUnsupportedPlatformException();
             return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
         }
 
@@ -255,7 +256,7 @@ namespace BrowserAutomationMaster.Managers
             if (Platforms.IsUnixLike)
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "pip");
 
-            Errors.ThrowUnsupportedPlatformException();
+            ThrowUnsupportedPlatformException();
             return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
         }
 
@@ -272,7 +273,7 @@ namespace BrowserAutomationMaster.Managers
             // Fallback for second check
             if (string.IsNullOrEmpty(homeDirectory))
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "BAM Manager (BAMM) could not determine home directory on Linux.\n" +
                         "Press any key to exit...",
@@ -308,7 +309,7 @@ namespace BrowserAutomationMaster.Managers
 
             else
             {
-                Errors.Write(
+                Write(
                     message:
                         $"BAM Manager (BAMM) could not automatically determine the user's home directory\n" +
                         $"(UserProfile was empty)."
@@ -316,7 +317,7 @@ namespace BrowserAutomationMaster.Managers
                 string username = Environment.UserName;
                 if (string.IsNullOrEmpty(username))
                 {
-                    Errors.Write(
+                    Write(
                         message: "BAM Manager (BAMM) was also unable to determine the active user's username automatically."
                     );
 
@@ -334,7 +335,7 @@ namespace BrowserAutomationMaster.Managers
 
                         if (string.IsNullOrEmpty(username))
                         {
-                            Errors.WriteAndExit(
+                            WriteAndExit(
                                 message:
                                     "Invalid username provided. " +
                                     "BAM Manager (BAMM) will now exit. " +
@@ -345,7 +346,7 @@ namespace BrowserAutomationMaster.Managers
                     }
                     else
                     {
-                        Errors.WriteAndExit(
+                        WriteAndExit(
                             message:
                                 "Username not provided. Press any key to exit...",
                             status: 1

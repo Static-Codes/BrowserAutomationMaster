@@ -1,5 +1,4 @@
-﻿using BrowserAutomationMaster.Compilation;
-using BrowserAutomationMaster.Managers;
+﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
@@ -14,8 +13,11 @@ using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.ProcessManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.BrowserVersionManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
+using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Menu;
+using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.Parser;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 
@@ -115,9 +117,15 @@ namespace BrowserAutomationMaster
                 return true;
             }
 
-            if (pArgs[0].Equals("--gui"))
+            if (pArgs.Length == 1 && pArgs[0].Equals("--gui") )
             {
                 await LSManager.Start();
+                return true;
+            }
+
+            if (pArgs.Length == 2 && pArgs[0].Equals("--gui") && IsMatches(GUIPortRegex(), pArgs[1], out string port))
+            {
+                await LSManager.Start(port);
                 return true;
             }
 
@@ -139,7 +147,7 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("delete", CCIC))
             {
                 if (pArgs.Length == 0)
-                    Errors.WriteAndExit("Invalid delete command format please specify the path to the file you wish to delete.", 1);
+                    WriteAndExit("Invalid delete command format please specify the path to the file you wish to delete.", 1);
                 DeleteFile(pArgs[1]);
                 return true;
             }
@@ -166,12 +174,12 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("validate", CCIC))
             {
                 if (pArgs.Length != 2)
-                    Errors.WriteAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", 1);
+                    WriteAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", 1);
                 
                 if (IsValidFile(pArgs[1]))
-                    Success.WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
+                    WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
                 else
-                    Errors.WriteAndExit("Selected file has invalid syntax.", 1);
+                    WriteAndExit("Selected file has invalid syntax.", 1);
 
                 return true;
             }
@@ -191,7 +199,7 @@ namespace BrowserAutomationMaster
                     "bamm backup # backups to the desktop or $HOME directory." +
                     "bamm backup path/to/desired/backupFile.zip # Creates a backup file at the specified location.";
 
-                Errors.Write(message);
+                Write(message);
                 ReadKey();
                 return;
             }
@@ -220,7 +228,7 @@ namespace BrowserAutomationMaster
         {
             if (pArgs.Length != 2)
             {
-                Errors.Write(
+                Write(
                     "Invalid 'clear' command.\n\nValid commands:\nbamm clear userScripts\nbamm clear compiled\nbamm clear config\n\nPress any key to continue...");
                 ReadKey();
                 return;
@@ -237,7 +245,7 @@ namespace BrowserAutomationMaster
 
             if (string.IsNullOrEmpty(dirPath))
             {
-                Errors.Write("Invalid 'clear' target. Use 'userScripts', 'compiled', or 'config'.");
+                Write("Invalid 'clear' target. Use 'userScripts', 'compiled', or 'config'.");
                 ReadKey();
                 return;
             }
@@ -254,7 +262,7 @@ namespace BrowserAutomationMaster
         {
             if (pArgs.Length == 1)
             {
-                Errors.Write(
+                Write(
                     "Invalid command: 'bamm help'\n\nTo see available entries for the 'help' command, run bamm without arguments then select the Help tab.\n\n");
                 ReadKey();
             }
@@ -281,7 +289,7 @@ namespace BrowserAutomationMaster
                 await runtimeManager.RunScript();
             }
 
-            else { Errors.WriteAndExit(errorMessage, 1); }
+            else { WriteAndExit(errorMessage, 1); }
 
             return true;
         }

@@ -1,5 +1,6 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Parsing.Parser;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Parsing
 {
@@ -12,7 +13,7 @@ namespace BrowserAutomationMaster.Parsing
             selectorString = "\"header-name\" \"header-value\"";
 
             if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].EndsWith('"'))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}\n" +
@@ -29,7 +30,7 @@ namespace BrowserAutomationMaster.Parsing
             selectorString = $"{{\"header-name\": \"header-value\", \"header-name2\": \"header-value2\"}}";
 
             if (!IsValidHeaderFormat(line))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -54,7 +55,7 @@ namespace BrowserAutomationMaster.Parsing
                 selectorString = "option-selector";
 
             else if (lineArgs.Length != 2 || !lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}\n" +
@@ -63,7 +64,7 @@ namespace BrowserAutomationMaster.Parsing
                 );
 
             else if (lineArgs[0].Equals("visit") && !IsValidLinkFormat(lineArgs[1].Replace('"', ' ').Trim()))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\nInvalid url format on line {lineNumber}\n" +
@@ -82,7 +83,7 @@ namespace BrowserAutomationMaster.Parsing
                 !lineArgs[1].EndsWith('"')
             )
 
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -111,7 +112,7 @@ namespace BrowserAutomationMaster.Parsing
                     $"Line {index - 1} -> {lines[index - 1]}\n" +
                     $"Line {index} -> {line} <-- This is the line that's causing the issue.\n";
 
-                Errors.WriteErrorAndReturnBool(
+                WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error on line {index} of '{fileName}'.\n\n" +
                         $"Error log:\n{surroundingLines}\n" +
@@ -125,7 +126,7 @@ namespace BrowserAutomationMaster.Parsing
             else if (line.StartsWith("start-javascript"))
             {
                 jsBlockStartLine = index + 1;
-                Errors.WriteErrorAndReturnBool(
+                WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n\n" +
@@ -146,7 +147,7 @@ namespace BrowserAutomationMaster.Parsing
             selectorString = "\"x-coordinate\" \"y-coordinate\"";
 
             if (lineArgs.Length != 3)
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -168,7 +169,7 @@ namespace BrowserAutomationMaster.Parsing
                 );
 
                 if (notQuoted || notParsable)
-                    return Errors.WriteErrorAndReturnBool(
+                    return WriteErrorAndReturnBool(
                         message:
                             $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                             $"File: \"{fileName}\"\n" +
@@ -187,7 +188,7 @@ namespace BrowserAutomationMaster.Parsing
             selectorString = "'selector'";
 
             if (lineArgs.Length != 2 || !lineArgs[1].EndsWith('\''))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -212,7 +213,7 @@ namespace BrowserAutomationMaster.Parsing
                 $"Valid Syntax: {firstArg} {selectorString}\n";
 
             if (!lineArgs[1].StartsWith('"') || !lineArgs[1].EndsWith('"'))
-                return Errors.WriteErrorAndReturnBool(invalidSyntaxMessage, returnBool: false);
+                return WriteErrorAndReturnBool(invalidSyntaxMessage, returnBool: false);
 
             // Sanitize args based on length
             switch (lineArgs.Length)
@@ -227,7 +228,7 @@ namespace BrowserAutomationMaster.Parsing
                     break;
 
                 default:
-                    return Errors.WriteErrorAndReturnBool(invalidSyntaxMessage, returnBool: false);
+                    return WriteErrorAndReturnBool(invalidSyntaxMessage, returnBool: false);
             }
 
 
@@ -237,7 +238,7 @@ namespace BrowserAutomationMaster.Parsing
                 !featureArgs.Contains(lineArgs[1].Replace('"', ' ').Trim());
 
             if (invalidFeature)
-                return Errors.WriteErrorAndReturnBool(invalidSyntaxMessage, returnBool: false);
+                return WriteErrorAndReturnBool(invalidSyntaxMessage, returnBool: false);
 
             bool failedProxySoftCheck = 
                 lineArgs.Length != 3 ||
@@ -247,7 +248,7 @@ namespace BrowserAutomationMaster.Parsing
             if (proxyFeatureArgs.Contains(lineArgs[1]) && failedProxySoftCheck)
             {
                 selectorString = $"\"{lineArgs[1]}\"";
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -260,7 +261,7 @@ namespace BrowserAutomationMaster.Parsing
             }
 
             if (proxyFeatureArgs.Contains(lineArgs[1]) && !IsValidProxyFormat(lineArgs[2]))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAMC Validation Error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -279,7 +280,7 @@ namespace BrowserAutomationMaster.Parsing
             selectorString = "\"selector\" \"Desired value to input\"";
 
             if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].Trim().EndsWith('"'))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -298,7 +299,7 @@ namespace BrowserAutomationMaster.Parsing
 
             if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].Trim().EndsWith('"'))
 
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -317,7 +318,7 @@ namespace BrowserAutomationMaster.Parsing
 
             // Invalid # of args
             if (lineArgs.Length != 3)
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -333,7 +334,7 @@ namespace BrowserAutomationMaster.Parsing
 
             // Invalid url format
             if (!IsValidLinkFormat(lineArgs[1]))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -346,7 +347,7 @@ namespace BrowserAutomationMaster.Parsing
 
             // Invalid timeout
             if (!int.TryParse(lineArgs[2], out int waitTime))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -367,7 +368,7 @@ namespace BrowserAutomationMaster.Parsing
                !lineArgs[1].Trim().EndsWith('"') ||
                !int.TryParse(lineArgs[2], out int _))
 
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -385,7 +386,7 @@ namespace BrowserAutomationMaster.Parsing
             selectorString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
             if (lineArgs.Length != 2 ||
                 !lineArgs[1].Trim().EndsWith('"'))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -396,7 +397,7 @@ namespace BrowserAutomationMaster.Parsing
                 );
 
             else if (!IsValidUserAgentFormat(lineArgs[1].Trim()))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +
@@ -413,7 +414,7 @@ namespace BrowserAutomationMaster.Parsing
         {
             selectorString = "5";
             if (!IsValidNumberFormat(lineArgs[1].Trim()))
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"File: \"{fileName}\"\n" +

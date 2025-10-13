@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -20,7 +21,7 @@ namespace BrowserAutomationMaster.Managers.Python
         {
             if (string.IsNullOrEmpty(pythonExecutablePath))
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "BAM Manager (BAMM) was unable to determine the path of the installed python instance, " +
                         "if this continues, please make an issue on github.", 
@@ -29,7 +30,7 @@ namespace BrowserAutomationMaster.Managers.Python
             }
 
             if (!File.Exists(scriptPath)) {
-                Errors.WriteErrorAndReturnBool("BAM Manager (BAMM) was unable to locate the specified file, please try again.", false);
+                WriteErrorAndReturnBool("BAM Manager (BAMM) was unable to locate the specified file, please try again.", false);
             }
 
 

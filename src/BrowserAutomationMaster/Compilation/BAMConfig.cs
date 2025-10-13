@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -36,7 +37,7 @@ namespace BrowserAutomationMaster.Compilation
             int numberOfLines = Lines.Length;
             if (numberOfLines == 0)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "BAM Manager (BAMM) encountered a fatal error, the selected file has no lines.\n\n" +
                         "Press any key to exit...",
@@ -85,7 +86,7 @@ namespace BrowserAutomationMaster.Compilation
                     "Unable to read the contents of the desired BAMC file.\n" +
                     $"If this error persists, please make a bug report at {ISSUES_LINK}\n" +
                     $"Error Log:\n\n{e.Message}";
-                Errors.Write(message);
+                Write(message);
                 return [];
             }
         }

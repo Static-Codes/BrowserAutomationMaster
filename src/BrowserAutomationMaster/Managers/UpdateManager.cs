@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static System.Runtime.InteropServices.Architecture;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -35,7 +37,7 @@ namespace BrowserAutomationMaster.Managers
                 
             }
             else 
-                Success.WriteSuccessMessage($"BAM Manager (BAMM) is currently running the latest release ({LatestVersion})");
+                WriteSuccessMessage($"BAM Manager (BAMM) is currently running the latest release ({LatestVersion})");
         }
 
         private static async Task<string> GetLatestVersion()
@@ -56,7 +58,7 @@ namespace BrowserAutomationMaster.Managers
 
                 if (response.StatusCode != HttpStatusCode.Redirect)
                 {
-                    Errors.Write(
+                    Write(
                         message:
                             $"BAM Manager (BAMM) was unable to check github for the latest version.\n" +
                             $"If this issue persists, " +
@@ -69,7 +71,7 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception e)
             {
-                Errors.WriteErrorAndReturnEmptyString(
+                WriteErrorAndReturnEmptyString(
                     $"BAM Manager (BAMM) was unable to check github for the latest version.\n" +
                     $"If this issue persists, " +
                     $"please make a bug report at {ISSUES_LINK}\n\n" +
@@ -87,7 +89,7 @@ namespace BrowserAutomationMaster.Managers
             int versionIndex = url.LastIndexOf('/');
 
             if (versionIndex == -1) { 
-                Errors.Write(
+                Write(
                     message: 
                     $"BAM Manager (BAMM) was unable to check github for the latest version, " +
                     $"if this issue persists, and you are positive your network connection is stable, " +
@@ -203,7 +205,7 @@ namespace BrowserAutomationMaster.Managers
                 else if (Platforms.IsLinux)
                     OpenLatestForLinux(currentReleaseUri);
             }
-            catch (Exception e) { Errors.Write(
+            catch (Exception e) { Write(
                 message:
                     $"BAM Manager (BAMM) was unable to check github for the latest version.\n" + 
                     "If this issue persists, and you are positive your network connection is stable, " + 
@@ -218,7 +220,7 @@ namespace BrowserAutomationMaster.Managers
         private static async Task<bool> UpdateAvailable()
         {
             if (!HasNetworkConnection()) {
-                Errors.Write(
+                Write(
                     message:
                         "BAM Manager (BAMM) was unable to check for an update, " +
                         "this likely means your system doesn't currently have an internet connection."
@@ -234,7 +236,7 @@ namespace BrowserAutomationMaster.Managers
             LatestVersion = await GetLatestVersion();
 
             if (string.IsNullOrEmpty(LatestVersion) || !LatestVersion.StartsWith('v')) {
-                Errors.WriteErrorAndReturnBool(
+                WriteErrorAndReturnBool(
                     message:
                         "BAM Manager (BAMM) was unable to determine the latest release version, please check:\n" +
                         LATEST_VERSION_LINK,

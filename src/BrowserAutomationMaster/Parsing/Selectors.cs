@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Parsing
 {
@@ -41,7 +42,7 @@ namespace BrowserAutomationMaster.Parsing
         public static ParsedSelector Parse(string selectorString)
         {
             if (string.IsNullOrWhiteSpace(selectorString)) {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to validate empty selector, please ensure it's properly formatted then try compiling again.", 
                     status: 1
@@ -50,7 +51,7 @@ namespace BrowserAutomationMaster.Parsing
 
             string selectorTrimmed = selectorString.Trim();
             if (string.IsNullOrWhiteSpace(selectorTrimmed)) {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to trim empty selector, " +
                         $"please ensure it's properly formatted then try compiling again.", 
@@ -223,7 +224,7 @@ namespace BrowserAutomationMaster.Parsing
             string isSelector = Input.AskForInput("Is this a css selector? [y/n]: ");
             
             if (Input.ConditionRejected(isSelector))
-                Errors.Write(
+                Write(
                     message:
                         $"\nBAM Manager (BAMM) was unable to validate selector: '{selectorTrimmed}', " +
                         $"please ensure it's properly formatted then try compiling again."

@@ -7,6 +7,8 @@ using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager.DeviceHelper;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 {
@@ -89,7 +91,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             var description = $"version of {rawOSName} that supports {browserName}";
             if (versions == null)
-                Errors.WriteAndExit($"Unable to find a {description}, please try a different combination.", 1);
+                WriteAndExit($"Unable to find a {description}, please try a different combination.", 1);
 
             // Will be used for defining DeviceName and DeviceOrientation if mobile
             // If not mobile, browserVersion must be specified.
@@ -117,7 +119,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 };
 
                 if (devices.Length == 0)
-                    Errors.WriteAndExit("Unable to find device supported by BrowserStack that fits your requirements.", status: 1);
+                    WriteAndExit("Unable to find device supported by BrowserStack that fits your requirements.", status: 1);
 
                 device = Input.WriteListFromOptions(devices, noun: "device");
 
@@ -197,11 +199,11 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             catch (Exception ex)
             {
-                Errors.Write($"Unable to read BrowserStack Config.\n\nError Log:\n{ex.Message}");
+                Write($"Unable to read BrowserStack Config.\n\nError Log:\n{ex.Message}");
                 return false;
             }
 
-            Success.WriteSuccessMessage("Config Contents:\n");
+            WriteSuccessMessage("Config Contents:\n");
             Warning.Write(builder.ToString());
 
             var response = Input.AskForInput("Would you like to overwrite the config above? [y/n]: ");
@@ -223,11 +225,11 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             {
                 if (fileNotFound)
                 {
-                    Errors.Write("Unable to locate the BrowserStack Config.");
+                    Write("Unable to locate the BrowserStack Config.");
                     string response = Input.AskForInput("Do you already have an account on https://browserstack.com [y/n]: ");
 
                     if (Input.ConditionRejected(response))
-                        Errors.WriteAndExit(tutorialMessage, 1);
+                        WriteAndExit(tutorialMessage, 1);
 
                     Warning.Write("Creating browserstack.yml now.\n\n");
                 }
@@ -240,7 +242,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
                 var yaml = serializer.Serialize(config);
                 if (yaml == null)
-                    Errors.WriteAndExit("Unable to generate browserstack.yml using the selected information, please try again.", 1);
+                    WriteAndExit("Unable to generate browserstack.yml using the selected information, please try again.", 1);
                 EnsureDirectoryExists(browserStackDirectory);
                 File.WriteAllText(browserStackConfig, yaml);
 
@@ -248,7 +250,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             catch (Exception e)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     "Unable to generate browserstack.yml using the selected information, please try again.\n\n" +
                     $"Error Log:\n{e.Message} in WriteConfig()",
                     status: 1

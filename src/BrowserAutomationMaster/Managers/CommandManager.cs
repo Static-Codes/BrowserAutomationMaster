@@ -44,7 +44,10 @@ namespace BrowserAutomationMaster.Managers
                 new Command(
                     name: "--gui",
                     description: "Launches an HTTP Server and the user's default browser to the Graphical User Interface (GUI)",
-                    examples: ["bamm --gui"],
+                    examples: [
+                        "bamm --gui",
+                        "bamm --gui --port==42069"
+                    ],
                     type: CommandType.Argument
                 )
             },

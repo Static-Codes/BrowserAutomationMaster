@@ -4,10 +4,12 @@ using BrowserAutomationMaster.Messaging;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using static BrowserAutomationMaster.Managers.AnsiManager;
-using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Managers.CommandManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Menu;
+using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.LineValidation;
 
 namespace BrowserAutomationMaster.Parsing
@@ -111,7 +113,7 @@ namespace BrowserAutomationMaster.Parsing
         {
             if (validFiles.Count != 0)
             {
-                Success.WriteSuccessMessage(
+                WriteSuccessMessage(
                     message: $"BAM Manager (BAMM) located {validFiles.Count} valid .bamc files, please see below:\n"
                 );
                 for (int i = 0; i < validFiles.Count; i++) {
@@ -208,7 +210,7 @@ namespace BrowserAutomationMaster.Parsing
         [DoesNotReturn]
         public static void ExitOnDuplicateCommand(string fileName, string line, int i)
         {
-            Errors.WriteAndExit(
+            WriteAndExit(
                 message:
                     "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                     $"File: \"{fileName}\"\n" +
@@ -228,7 +230,7 @@ namespace BrowserAutomationMaster.Parsing
             validFiles = [.. ValidateBAMCFiles(BAMCFiles)];
             if (validFiles.Count == 0)
             {
-                Errors.WriteAndExit(noFilesFoundMessage, 1);
+                WriteAndExit(noFilesFoundMessage, 1);
             }
             if (validFilesMapping.Count != validFiles.Count)
             {
@@ -236,7 +238,7 @@ namespace BrowserAutomationMaster.Parsing
             }
             if (validFilesMapping.Count == 0)
             {
-                Errors.WriteAndExit(noFilesFoundMessage, 1);
+                WriteAndExit(noFilesFoundMessage, 1);
             }
 
         }
@@ -311,7 +313,7 @@ namespace BrowserAutomationMaster.Parsing
 
                 "feature" => Feature(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                _ => Errors.WriteErrorAndReturnBool(
+                _ => WriteErrorAndReturnBool(
                         message:
                             $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                             $"File: \"{fileName}\"\n" +
@@ -328,7 +330,7 @@ namespace BrowserAutomationMaster.Parsing
         {
 
             if (mapping.Count == 0)
-                Errors.WriteAndExit(noFilesFoundMessage, 1);
+                WriteAndExit(noFilesFoundMessage, 1);
 
             int numberOfFilesFound = mapping.Count;
            
@@ -351,7 +353,7 @@ namespace BrowserAutomationMaster.Parsing
             }
 
             if (menuOptions.Length == 0) 
-                Errors.WriteAndExit(noFilesFoundMessage, 1); 
+                WriteAndExit(noFilesFoundMessage, 1); 
 
             string panicText = 
                 $"BAM Manager (BAMM) panicked due an invalid value provided as input.  " +
@@ -361,13 +363,13 @@ namespace BrowserAutomationMaster.Parsing
             var input = GetFileNumber(rawInput);
 
             if (input == null)
-                Errors.WriteAndExit(panicText, 1);
+                WriteAndExit(panicText, 1);
 
             if (!int.TryParse(input, out int fileNumber))
-                Errors.WriteAndExit(panicText, 1);
+                WriteAndExit(panicText, 1);
 
             if (fileNumber < 1 || fileNumber > numberOfFilesFound)
-                Errors.WriteAndExit(panicText, 1);
+                WriteAndExit(panicText, 1);
 
             return fileNumber - 1; // index = fileNumber - 1;
         }
@@ -464,7 +466,7 @@ namespace BrowserAutomationMaster.Parsing
                     // If a browser command is present in any line but the first line that contains characters.
                     if (firstArg.Equals("browser") && i != 0 && browserBlockFinished)
                     {
-                        return Errors.WriteErrorAndReturnBool(
+                        return WriteErrorAndReturnBool(
                             message: $"BAM Manager (BAMM) ran into a BAMC validation error:\n" +
                                      $"File: \"{fileName}\"\n" +
                                      $"Invalid 'browser' command location on line {i + 1}.\n" +
@@ -477,7 +479,7 @@ namespace BrowserAutomationMaster.Parsing
                     {
                         // The error message here appears to be the same as the first one, 
                         // but the failure reason is different.
-                        return Errors.WriteErrorAndReturnBool(
+                        return WriteErrorAndReturnBool(
                             message: $"BAM Manager (BAMM) ran into a BAMC validation error:\n" +
                                      $"File: \"{fileName}\"\n" +
                                      $"Invalid browser name on \"browser\" command on line {i + 1}.\n" +
@@ -499,7 +501,7 @@ namespace BrowserAutomationMaster.Parsing
 
                     // If a feature name is provided after defining non feature actions
                     else if (firstArg.Equals("feature") && featureBlockFinished)
-                        return Errors.WriteErrorAndReturnBool(
+                        return WriteErrorAndReturnBool(
                             message:
                                 $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                                 $"File: \"{fileName}\"\n" +
@@ -515,7 +517,7 @@ namespace BrowserAutomationMaster.Parsing
 
                     // If an invalid feature name is provided -> feature "invalid-name"
                     else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg)))
-                        return Errors.WriteErrorAndReturnBool(
+                        return WriteErrorAndReturnBool(
                             message:
                                 "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                                 $"File: \"{fileName}\"\n" +
@@ -567,7 +569,7 @@ namespace BrowserAutomationMaster.Parsing
                         lineArgs.Any(arg => proxyFeatureArgs.Contains(arg.Replace('"', ' ').Trim()));
 
                     if (potentialProxyLine && !proxyFeatureFound)
-                        return Errors.WriteErrorAndReturnBool(intendedToUseProxyMessage, false);
+                        return WriteErrorAndReturnBool(intendedToUseProxyMessage, false);
 
 
                     Action AddValidatedProxy() => () =>
@@ -580,7 +582,7 @@ namespace BrowserAutomationMaster.Parsing
                             ExitOnDuplicateCommand(fileName, line, i);
 
                         if (!IsValidProxyFormat(proxyString))
-                            Errors.WriteAndExit(invalidProxyFeatureMessage, 1);
+                            WriteAndExit(invalidProxyFeatureMessage, 1);
 
                         usedFeatures.Add(line);
 
@@ -617,9 +619,9 @@ namespace BrowserAutomationMaster.Parsing
                     }
 
                     if (invalidLines.Count > 0)
-                        Errors.WriteAndExit(
+                        WriteAndExit(
                             message:
-                                Errors.GenerateErrorMessage(fileName, line, i,
+                                GenerateErrorMessage(fileName, line, i,
                                     issueText:
                                         $"A 'visit' command must be placed after 'browser' and 'feature' commands." +
                                         $"\n\nExample:\n\n" +
@@ -665,7 +667,7 @@ namespace BrowserAutomationMaster.Parsing
                 //    usedFeatures.Any(x => x.Contains("async")) &&
                 //    usedFeatures.Any(x => x.Contains("bypass-cloudflare"))
                 //)
-                //    return Errors.WriteErrorAndReturnBool(
+                //    return WriteErrorAndReturnBool(
                 //        message:
                 //            $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                 //            $"File: \"{fileName}\"\n\n" +
@@ -678,7 +680,7 @@ namespace BrowserAutomationMaster.Parsing
 
             catch (FileNotFoundException)
             {
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAMC Validation Error:\n\n" +
                         $"Error: File not found: '{fileName}'.\n",
@@ -688,7 +690,7 @@ namespace BrowserAutomationMaster.Parsing
 
             catch (UnauthorizedAccessException)
             {
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"Permission was denied for '{fileName}'.\n",
@@ -699,7 +701,7 @@ namespace BrowserAutomationMaster.Parsing
             // Handles locked files, network errors, etc.
             catch (IOException ex)
             {
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"An IO Exception occurred while validating: '{fileName}'\n" +
@@ -711,7 +713,7 @@ namespace BrowserAutomationMaster.Parsing
             // General catchall (LOG MORE SEVERLY IF HIT) 
             catch (Exception ex)
             {
-                return Errors.WriteErrorAndReturnBool(
+                return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                         $"A fatal error occurred while validating:'{fileName}'\n" +
@@ -728,7 +730,7 @@ namespace BrowserAutomationMaster.Parsing
             if (!userScriptDirExists) { 
                 return KeyValuePair.Create(
                     MenuOption.Invalid, 
-                    Errors.WriteErrorAndReturnEmptyString(noFilesFoundMessage)
+                    WriteErrorAndReturnEmptyString(noFilesFoundMessage)
                 ); 
             }
 
@@ -736,7 +738,7 @@ namespace BrowserAutomationMaster.Parsing
             if (BAMCFiles.Length == 0) { 
                 return KeyValuePair.Create(
                     MenuOption.Invalid, 
-                    Errors.WriteErrorAndReturnEmptyString(noFilesFoundMessage)
+                    WriteErrorAndReturnEmptyString(noFilesFoundMessage)
                 ); 
             }
 
@@ -749,13 +751,13 @@ namespace BrowserAutomationMaster.Parsing
                     string input = Input.WriteListFromOptions(["Select a File", "Exit"]);
 
                     if (input.Equals("Exit"))
-                        Errors.WriteAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
+                        WriteAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
                     
 
                     string path = Input.AskForInput("Path: ");
                     
                     if (!File.Exists(path))
-                        Errors.WriteAndExit(
+                        WriteAndExit(
                             message:
                                 "BAMM Manager (BAMM) was unable to find the provided file, " +
                                 $"please ensure the file below exists:\n{path}",

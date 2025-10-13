@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -219,7 +220,7 @@ namespace BrowserAutomationMaster.Managers
                 }
                 catch (Exception ex)
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         "Failed to create config directory.\n'" +
                         $"{ConfigDirectory}'\nError: {ex.Message}",
                         status: 1
@@ -238,7 +239,7 @@ namespace BrowserAutomationMaster.Managers
                 }
                 catch (Exception ex)
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         "Failed to create config file.\n'" +
                         $"{ConfigFilePath}'\nError: {ex.Message}\n" +
                         $"Please make a bug report at {ISSUES_LINK}",
@@ -255,7 +256,7 @@ namespace BrowserAutomationMaster.Managers
             catch (Exception ex)
             {
                 WriteMessage(ex.Message);
-                Errors.Write("Failed to validate config.ini, writing default values.");
+                Write("Failed to validate config.ini, writing default values.");
                 string configContents = BuildConfigContents();
                 ValidateConfigContents(configContents);
                 File.WriteAllText(ConfigFilePath, configContents); // Fixed: was ConfigDirectory, should be ConfigFilePath
@@ -352,8 +353,8 @@ namespace BrowserAutomationMaster.Managers
                             "where PropertyName is one of the supported color properties and value is a valid color format.\n\n" +
                             "For more information please check {}";
 
-            Errors.Write(
-                Errors.GenerateErrorMessage(
+            Write(
+                GenerateErrorMessage(
                     fileName: "config.ini",
                     originalLine,
                     lineNumber: Array.IndexOf(splitLines, originalLine) + 1,
@@ -374,8 +375,8 @@ namespace BrowserAutomationMaster.Managers
 
             if (property == null)
             {
-                Errors.WriteAndExit(
-                    Errors.GenerateErrorMessage(
+                WriteAndExit(
+                    GenerateErrorMessage(
                         fileName: "config.ini",
                         originalLine,
                         lineNumber,
@@ -390,8 +391,8 @@ namespace BrowserAutomationMaster.Managers
                 var castedValue = DoCast(propValue, property.PropertyType);
                 if (castedValue == null)
                 {
-                    Errors.WriteAndExit(
-                        Errors.GenerateErrorMessage(
+                    WriteAndExit(
+                        GenerateErrorMessage(
                             fileName: "config.ini",
                             originalLine,
                             lineNumber,
@@ -402,8 +403,8 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception ex)
             {
-                Errors.WriteAndExit(
-                    Errors.GenerateErrorMessage(
+                WriteAndExit(
+                    GenerateErrorMessage(
                         "config.ini",
                         originalLine,
                         lineNumber,
@@ -499,8 +500,8 @@ namespace BrowserAutomationMaster.Managers
                     string sectionName = trimmedLine;
 
                     if (!rawSections.ContainsKey(sectionName))
-                        Errors.WriteAndExit(
-                            Errors.GenerateErrorMessage(
+                        WriteAndExit(
+                            GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
                                 lineNumber: i + 1, // Fixed: line numbers should be 1-based
@@ -510,8 +511,8 @@ namespace BrowserAutomationMaster.Managers
                         );
 
                     if (encounteredSections.Contains(sectionName))
-                        Errors.WriteAndExit(
-                            Errors.GenerateErrorMessage(
+                        WriteAndExit(
+                            GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
                                 lineNumber: i + 1,
@@ -527,8 +528,8 @@ namespace BrowserAutomationMaster.Managers
                 {
                     if (currentSection == null)
                     {
-                        Errors.WriteAndExit(
-                            Errors.GenerateErrorMessage(
+                        WriteAndExit(
+                            GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
                                 lineNumber: i + 1,
@@ -546,8 +547,8 @@ namespace BrowserAutomationMaster.Managers
 
 
                     if (parts.Length != 2)
-                        Errors.WriteAndExit(
-                            Errors.GenerateErrorMessage(
+                        WriteAndExit(
+                            GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
                                 lineNumber: i + 1,
@@ -571,8 +572,8 @@ namespace BrowserAutomationMaster.Managers
                     {
                         
                         if (typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null) // Handles overrides
-                            Errors.WriteAndExit(
-                                Errors.GenerateErrorMessage(
+                            WriteAndExit(
+                                GenerateErrorMessage(
                                     fileName: "config.ini",
                                     originalLine,
                                     lineNumber: i + 1,
@@ -586,8 +587,8 @@ namespace BrowserAutomationMaster.Managers
                     {
                         // The nested if statement is ideal but it allows for the application to fallthrough safely in the case no validation rule is provided
                         if (!ConfigParser.IsValidLine(trimmedLine, func))
-                            Errors.WriteAndExit(
-                                Errors.GenerateErrorMessage(
+                            WriteAndExit(
+                                GenerateErrorMessage(
                                     fileName: "config.ini",
                                     originalLine,
                                     lineNumber: i + 1,
@@ -602,8 +603,8 @@ namespace BrowserAutomationMaster.Managers
 
                     else
                     {
-                        Errors.WriteAndExit(
-                            Errors.GenerateErrorMessage(
+                        WriteAndExit(
+                            GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
                                 lineNumber: i + 1,

@@ -3,6 +3,7 @@ using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.AppManager
 {
@@ -24,7 +25,7 @@ namespace BrowserAutomationMaster.Managers.AppManager
             if (Platforms.IsLinux)
                 return await Task.Run(Linux.GetApps);
 
-            Errors.ThrowUnsupportedPlatformException();
+            ThrowUnsupportedPlatformException();
             return [];
         }
 

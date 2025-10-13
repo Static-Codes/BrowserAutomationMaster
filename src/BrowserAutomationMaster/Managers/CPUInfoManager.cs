@@ -8,6 +8,8 @@ using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.RequiredCPUInstruction;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -118,7 +120,7 @@ namespace BrowserAutomationMaster.Managers
                 );
 
             else if (GlobalConfig.ShowCpuCheck)
-                Success.WriteSuccessMessage(
+                WriteSuccessMessage(
                     $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
                     $"you should not experience any performance issues directly related to your CPU.\n"
                 );
@@ -170,7 +172,7 @@ namespace BrowserAutomationMaster.Managers
             if (Platforms.IsUnixLike) 
                 return GetPhysicalCoreCountUnixLike();  
             
-            Errors.ThrowUnsupportedPlatformException();
+            ThrowUnsupportedPlatformException();
             return 0; // This wont be executed, roslyn has no idea an exception has been thrown, so this is required.
         }
         private static int GetPhysicalCoreCountUnixLike()
@@ -217,7 +219,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 case 0:
                     failureMessage += "Command returned no output.";
-                    Errors.WriteAndExit(failureMessage, 1);
+                    WriteAndExit(failureMessage, 1);
                     break;
 
                 case 1 when returnType.Equals(typeof(int)):
@@ -229,12 +231,12 @@ namespace BrowserAutomationMaster.Managers
                 // Fallback for cases where an unsupported returnType is provided.
                 case 1:
                     failureMessage += "Invalid returnType passed to HandleSingleLineProcessOutput()";
-                    Errors.WriteAndExit(failureMessage, 1);
+                    WriteAndExit(failureMessage, 1);
                     break;
 
                 default:
                     failureMessage += $"Command returned invalid output.\n\nOutput:\n{string.Join("\n", STDOut)}";
-                    Errors.WriteAndExit(failureMessage, 1);
+                    WriteAndExit(failureMessage, 1);
                     break;
             }
             return -1;

@@ -5,6 +5,8 @@ using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.RequestManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -36,14 +38,14 @@ namespace BrowserAutomationMaster.Managers
             {
                 var response = await NetworkClient.Instance.GetStringAsync(PACKAGES_LINK);
                 if (response == null)
-                    Errors.WriteAndExit(nullMessage, 1);
+                    WriteAndExit(nullMessage, 1);
                 File.WriteAllText(packagePath, response);
-                Success.WriteSuccessMessage("Successfully downloaded required Python package data!\n");
+                WriteSuccessMessage("Successfully downloaded required Python package data!\n");
             }
             catch (Exception ex)
             {
                 var exMessage = $"{baseMessage}{ex.Message}\n";
-                Errors.WriteAndExit(exMessage, 1);
+                WriteAndExit(exMessage, 1);
             }
         }
 
@@ -64,7 +66,7 @@ namespace BrowserAutomationMaster.Managers
             catch (Exception ex)
             {
                 var errMessage = $"{baseMessage}{ex.Message}";
-                Errors.WriteAndExit(errMessage, 1);
+                WriteAndExit(errMessage, 1);
             }
 
         }
@@ -72,7 +74,7 @@ namespace BrowserAutomationMaster.Managers
         {
             if (!PrecompiledPackageRegex().IsMatch(packageName))
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: $"Invalid package name '{packageName}', this package name was not matched using PrecompiledPackageRegex()",
                     status: 1
                 );
@@ -80,7 +82,7 @@ namespace BrowserAutomationMaster.Managers
             }
             if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
                     status: 1
                 );
@@ -92,7 +94,7 @@ namespace BrowserAutomationMaster.Managers
 
             if (supportedPackageVersions.Count == 0)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: $"No versions of package '{packageName}' found that support Python {pythonVersion}.",
                     status: 1
                 );
@@ -106,7 +108,7 @@ namespace BrowserAutomationMaster.Managers
 
             if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? selectedPackageData))
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: "Invalid packageName provided, please check your spelling and try again.",
                     status: 1
                 );
@@ -114,7 +116,7 @@ namespace BrowserAutomationMaster.Managers
 
             if (!selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || supportedPyVersions.Count == 0)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: $"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.",
                     status: 1
                 );
@@ -154,37 +156,37 @@ namespace BrowserAutomationMaster.Managers
 
                 HttpStatusCode statusCode = response.StatusCode;
                 if (statusCode != HttpStatusCode.OK) {  
-                    Errors.Write(unvalidatedMessage); 
+                    Write(unvalidatedMessage); 
                     return false; 
                 }
 
                 HttpContent content = response.Content;
                 if (content == null) { 
-                    Errors.Write(unvalidatedMessage); 
+                    Write(unvalidatedMessage); 
                     return false; 
                 }
                 
                 string responseBody = await content.ReadAsStringAsync(); // Catch Aggregate Exception
                 
                 if (string.IsNullOrEmpty(responseBody)) { 
-                    Errors.Write(unvalidatedMessage); 
+                    Write(unvalidatedMessage); 
                     return false; 
                 }
                 
                 if (responseBody.Contains("This release has been yanked<br>")) { 
-                    Errors.Write(deprecatedMessage); 
+                    Write(deprecatedMessage); 
                     return true; 
                 }
 
                 if (responseBody.Contains("<span>Latest version</span>") || responseBody.Contains("<span>Newer version available (")) {
-                    Success.WriteSuccessMessage(validMessage);
+                    WriteSuccessMessage(validMessage);
                     return true;
                 }
 
             }
             catch { } // Reminder to add AggregateException if encountered.
 
-            Errors.Write(unvalidatedMessage);
+            Write(unvalidatedMessage);
             return false;
 
         }

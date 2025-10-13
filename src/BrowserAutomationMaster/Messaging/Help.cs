@@ -1,6 +1,8 @@
 ﻿using BrowserAutomationMaster.Managers;
 using Spectre.Console;
 using static BrowserAutomationMaster.Managers.CommandManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -22,14 +24,14 @@ namespace BrowserAutomationMaster.Messaging
                 // Ensures no invalid command will be passed to show
                 while (string.IsNullOrEmpty(command) || !CommandExists(command))
                 {
-                    Errors.Write(
+                    Write(
                         $"Invalid command '{command}' provided, for more information on valid commands, please type:\n\nbamm help --all"
                     );
                     command = Input.AskForInput("Please provide a valid command for more information.\n");
                 }
                 var exArray = GetExamples(command);
                 var examples = exArray.Length != 0 ? string.Join("\n", exArray) : "Not Found";
-                Success.WriteSuccessMessage(
+                WriteSuccessMessage(
                     $"\nCommand: {command}\n" +
                     $"\nType: {CommandManager.GetType(command)}" + 
                     $"\n\nDescription:\n{GetDescription(command)}" +

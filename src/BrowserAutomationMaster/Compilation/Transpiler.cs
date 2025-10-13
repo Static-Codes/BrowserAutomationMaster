@@ -15,6 +15,8 @@ using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -83,15 +85,15 @@ namespace BrowserAutomationMaster.Compilation
                 WriteRequirementsFile();
 
                 string path = Path.Combine(desiredSaveDirectory, projectName, pythonScriptFileName);
-                Success.WriteSuccessMessage($"Compiled -> {bamConfig.Name}");
-                Success.WriteSuccessMessage($"Location -> {path}\n");
+                WriteSuccessMessage($"Compiled -> {bamConfig.Name}");
+                WriteSuccessMessage($"Location -> {path}\n");
 
                 HandleAutoCopy();
                 //HandleAutoRun here
             }
             catch (Exception ex)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     "BAM Manager (BAMM) was unable to continue due to a fatal error.\n\n" +
                     $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
                     $"Error Log:\nUnhandled exception: {ex.Message}",
@@ -110,7 +112,7 @@ namespace BrowserAutomationMaster.Compilation
 
             if (desiredUrls.Count == 0)
             {
-                Errors.WriteAndExit(noUrlsFound, 1);
+                WriteAndExit(noUrlsFound, 1);
                 return;
             }
 
@@ -196,13 +198,13 @@ namespace BrowserAutomationMaster.Compilation
             bool validStatement = import.StartsWith("from") || import.StartsWith("import");
 
             if (!validStatement)
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: $"Invalid import statement: {import}.",
                     status: 1
                 );
 
             if (addToReqs && !string.IsNullOrEmpty(reqText))
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: $"Invalid requirement statement: {reqText}.",
                     status: 1
                 );
@@ -313,7 +315,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
                     status: 1
@@ -335,7 +337,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         "BAMM Manager (BAMM) was unable to create the desired project directory, " +
                         "please try again.",
@@ -391,7 +393,7 @@ namespace BrowserAutomationMaster.Compilation
                 if (ValidDirectoryRegex.IsMatch(customName))
                     return customName;
 
-                Errors.Write("Invalid name, a project name can contain only alphanumeric characters, dashes, and periods.\nPlease try again.");
+                Write("Invalid name, a project name can contain only alphanumeric characters, dashes, and periods.\nPlease try again.");
                 Thread.Sleep(2000);
                 
             }
@@ -415,11 +417,11 @@ namespace BrowserAutomationMaster.Compilation
                 return;
 
             if (!ClipboardHelper.TrySetText(projectDirectory))
-                Errors.Write(
+                Write(
                     $"Unable to copy project directory to clipboard, please manually copy this path:\n{projectDirectory}"
                 );
 
-            Success.WriteSuccessMessage("Successfully copied project directory to clipboard.");
+            WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
         
         private static async Task HandleBrowserCmd(BAMConfig config)
@@ -429,7 +431,7 @@ namespace BrowserAutomationMaster.Compilation
             {
                 var potentialUA = await UserAgentManager.GetUserAgent(config.selectedBrowser);
                 if (potentialUA == null)
-                    Errors.WriteErrorAndReturnNull("Unable to select custom user agent, please try again");
+                    WriteErrorAndReturnNull("Unable to select custom user agent, please try again");
 
                 requestUserAgent = potentialUA!; // null check is done above.
             }
@@ -489,7 +491,7 @@ namespace BrowserAutomationMaster.Compilation
                     string requestLine = script.Body.GetMakeRequestLine();
 
                     if (string.IsNullOrEmpty(requestLine))
-                        Errors.WriteAndExit(
+                        WriteAndExit(
                             message:
                                 "Unable to locate request logic in partially compiled script, " +
                                 "please attempt recompilation.",
@@ -500,7 +502,7 @@ namespace BrowserAutomationMaster.Compilation
                     int index = script.Body.scriptLines.IndexOf(requestLine);
 
                     if (index == -1)
-                        Errors.WriteAndExit(
+                        WriteAndExit(
                             message:
                                 "BAM Manager (BAMM) was unable to locate request logic in partially compiled script, " +
                                 "please attempt recompilation.",
@@ -575,9 +577,9 @@ namespace BrowserAutomationMaster.Compilation
                     continue;
 
                 if (normalLengthBypass)
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
-                            Errors.GenerateErrorMessage(
+                            GenerateErrorMessage(
                                 fileName,
                                 line,
                                 lineNumber,
@@ -589,9 +591,9 @@ namespace BrowserAutomationMaster.Compilation
 
                 // Handle case where user attempts to create another jsBlock before closing the previous one.
                 if (isJSBlock && line.StartsWith("start-javascript"))
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
-                            Errors.GenerateErrorMessage(
+                            GenerateErrorMessage(
                                 fileName,
                                 line,
                                 lineNumber,
@@ -616,9 +618,9 @@ namespace BrowserAutomationMaster.Compilation
                     PreprocessJSCodeBlock(jsBlockContent);
 
                     if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error))
-                        Errors.WriteAndExit(
+                        WriteAndExit(
                             message:
-                                Errors.GenerateErrorMessage(
+                                GenerateErrorMessage(
                                     fileName,
                                     line,
                                     lineNumber + 1,
@@ -639,9 +641,9 @@ namespace BrowserAutomationMaster.Compilation
                 bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
 
                 if (!canRunBrowserless && noBrowsersFound)
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
-                            Errors.GenerateErrorMessage(
+                            GenerateErrorMessage(
                                 fileName,
                                 line,
                                 lineNumber,
@@ -678,10 +680,11 @@ namespace BrowserAutomationMaster.Compilation
                         string issueText = $"Unable to parse selector: {splitLine[1]}\n" +
                                            $"If this is a CSS Selector, please use:\n" +
                                            $"click-exp '{sanitizedArg2}'";
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, issueText),
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, issueText),
                           status: 1
                         );
+
                         break;
 
 
@@ -692,8 +695,9 @@ namespace BrowserAutomationMaster.Compilation
                           sanitizedArg3,
                           actionTimeout
                         ) is (false, var eText):
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, issueText: eText),
+
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, issueText: eText),
                           status: 1
                         );
                         break;
@@ -706,8 +710,9 @@ namespace BrowserAutomationMaster.Compilation
                           actionTimeout,
                           ref isCE
                         ) is (false, var err):
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, err),
+
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, err),
                           status: 1
                         );
                         break;
@@ -722,8 +727,9 @@ namespace BrowserAutomationMaster.Compilation
                          script.Body.scriptLines,
                          splitLine
                         ) is (false, var e):
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, e),
+
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, e),
                           status: 1
                         );
                         break;
@@ -735,8 +741,9 @@ namespace BrowserAutomationMaster.Compilation
                         sanitizedArg2,
                         ref isFT
                         ) is (false, var issue):
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, issue),
+
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, issue),
                           status: 1
                         );
                         break;
@@ -749,8 +756,9 @@ namespace BrowserAutomationMaster.Compilation
                         sanitizedArg2,
                         ref isFT
                         ) is (false, var exceptionText):
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, exceptionText),
+
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, exceptionText),
                           status: 1
                         );
                         break;
@@ -761,8 +769,9 @@ namespace BrowserAutomationMaster.Compilation
                         sanitizedArg2,
                         sanitizedArg3
                         ) is (false, var errorText):
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, errorText),
+
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, errorText),
                           status: 1
                         );
                         break;
@@ -783,8 +792,9 @@ namespace BrowserAutomationMaster.Compilation
                         splitLine,
                         actionTimeout
                         ) is (false, var errMsg):
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, errMsg),
+
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, errMsg),
                           status: 1
                         );
                         break;
@@ -796,8 +806,9 @@ namespace BrowserAutomationMaster.Compilation
                         sanitizedArg3,
                         actionTimeout
                         ) is (false, var errorMsg):
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, errorMsg),
+
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, errorMsg),
                           status: 1
                         );
                         break;
@@ -821,8 +832,9 @@ namespace BrowserAutomationMaster.Compilation
                         firstVisitFinished,
                         config.disableSSL,
                         config.runHeadless) is (false, var eMessage):
-                        Errors.WriteAndExit(
-                          message: Errors.GenerateErrorMessage(fileName, line, lineNumber, eMessage),
+
+                        WriteAndExit(
+                          message: GenerateErrorMessage(fileName, line, lineNumber, eMessage),
                           status: 1
                         );
                         break;
@@ -832,8 +844,9 @@ namespace BrowserAutomationMaster.Compilation
                         script.Body.scriptLines,
                         splitLine,
                         sanitizedArg2) is (false, var errMessage):
-                        Errors.WriteAndExit(
-                            message: Errors.GenerateErrorMessage(fileName, line, lineNumber, errMessage),
+
+                        WriteAndExit(
+                            message: GenerateErrorMessage(fileName, line, lineNumber, errMessage),
                             status: 1
                         );
                         break;
@@ -923,7 +936,7 @@ namespace BrowserAutomationMaster.Compilation
 
             // Checks for valid contents since the array is initialized at the beginning of the function.
             if (!foundVersions.Any())
-                Errors.WriteAndExit(errorMessage, 1);
+                WriteAndExit(errorMessage, 1);
 
 
             if (foundVersions.Count() == 1)
@@ -949,7 +962,7 @@ namespace BrowserAutomationMaster.Compilation
                 return false;
 
             if (!Directory.Exists(projectDirectory))
-                Errors.WriteAndExit(
+                WriteAndExit(
                     "Unable to run the newly compiled project, please ensure this directory still exists.",
                     status: 1
                 );
@@ -957,7 +970,7 @@ namespace BrowserAutomationMaster.Compilation
             var path = Path.Combine(projectDirectory, pythonScriptFileName);
 
             if (!File.Exists(path))
-                Errors.WriteAndExit(
+                WriteAndExit(
                     "Unable to run the newly compiled project, please ensure this file still exists.\\n\\n" +
                     $"Path: {path}",
                     status: 1
@@ -1015,7 +1028,7 @@ namespace BrowserAutomationMaster.Compilation
         {
             if (numberOfIndents < 0)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: "Invalid value provided to Indent(), value must be >= 0.",
                     status: 1
                 );
@@ -1076,7 +1089,7 @@ namespace BrowserAutomationMaster.Compilation
                 bool isValidUri = Uri.TryCreate(link, UriKind.Absolute, out Uri? uriResult);
                 if (!isValidUri)
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to resolve: '{link}'\n\n" +
                             $"Error log:\nUnable to create Uri object from provided link, returned a false boolean.",
@@ -1086,7 +1099,7 @@ namespace BrowserAutomationMaster.Compilation
                 }
                 if (uriResult == null)
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to resolve: '{link}'\n\n" +
                             $"Error log:\nUnable to create Uri object from provided link, returned a null result.",
@@ -1129,7 +1142,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception ex)
             {
-                Errors.Write(
+                Write(
                     message:
                         $"BAM Manager (BAMM) was unable to resolve the url: '{link}'"
                 );
@@ -1163,7 +1176,7 @@ namespace BrowserAutomationMaster.Compilation
                 lineNumber++;
                 if (HasUnclosedQuotes(line))
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) encountered a validation error while parsing a javascript code block.\n" +
                             $"Line {lineNumber} contains an unescape quoted, please fix this and recompile.\n\n" +
@@ -1191,7 +1204,7 @@ namespace BrowserAutomationMaster.Compilation
             List<string> userAgentArgs = [.. args.Where(arg => arg.StartsWith("--set-custom-useragent=="))];
             if (userAgentArgs.Count > 1)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                      $"BAM Manager (BAMM) encountered a fatal error: '--set-custom-useragent' can only be specified once.\n" +
                      $"Found multiple instances:\n\n" +
                      $"1.'{userAgentArgs[0]}'\n\n" +
@@ -1215,11 +1228,11 @@ namespace BrowserAutomationMaster.Compilation
                     if (Parser.IsValidUserAgentFormat(newUserAgent))
                     {
                         requestUserAgent = newUserAgent;
-                        Success.WriteSuccessMessage($"\nOverrode default UserAgent with:");
+                        WriteSuccessMessage($"\nOverrode default UserAgent with:");
                         Warning.Write($"{newUserAgent}");
                         return;
                     }
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
                             "BAM Manager (BAMM) encountered a fatal error: " +
                             "Could not parse user agent string from the '--set-custom-useragent' argument.\n" +
@@ -1229,7 +1242,7 @@ namespace BrowserAutomationMaster.Compilation
                     );
 
                 }
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"BAM Manager encountered an error: Invalid format for '--set-custom-useragent' argument.\n\n" +
                         $"Expected Format: '--set-custom-useragent==\"UserAgentString\"",
@@ -1257,7 +1270,7 @@ namespace BrowserAutomationMaster.Compilation
                 string fileName = Path.GetFileName(filePath);
                 if (fileName == null)
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message: failureMessage,
                         status: 1
                     );
@@ -1270,7 +1283,7 @@ namespace BrowserAutomationMaster.Compilation
                         $"Please ensure this file was not deleted, and is not in use by any other program.\n\n" +
                         $"Press any key to exit...";
 
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message: failureMessage,
                         status: 1
                     );
@@ -1287,7 +1300,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: failureMessage,
                     status: 1
                 );
@@ -1300,7 +1313,7 @@ namespace BrowserAutomationMaster.Compilation
 
             if (timeoutArgs.Count > 1)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) encountered a fatal error: '--set-timeout' can only be specified once.\n" +
                         $"Found multiple instances:\n\n" +
@@ -1320,7 +1333,7 @@ namespace BrowserAutomationMaster.Compilation
                     // Case for when the argument starts with --set-timeout==
                     // but doesn't match the expected format
                     // (For example '--set-timeout==X')
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
                             $"BAM Manager encountered an error: Invalid format for '--set-timeout' argument.\n\n" +
                             $"Expected Format: '--set-timeout==integer'" +
@@ -1333,7 +1346,7 @@ namespace BrowserAutomationMaster.Compilation
 
                 if (!valueParsed || parsedTimeout <= 0)
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message:
                             "BAM Manager (BAMM) encountered a a fatal error: " +
                             "Could not parse integer value from '--set-timeout' argument.\n",
@@ -1341,7 +1354,7 @@ namespace BrowserAutomationMaster.Compilation
                     );
                 }
                 actionTimeout = parsedTimeout;
-                Success.WriteSuccessMessage(
+                WriteSuccessMessage(
                     $"Timeout set to {actionTimeout} seconds ({actionTimeout * 1000}ms)"
                 );
 
@@ -1384,7 +1397,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception e)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable write requirements.txt for '{pythonScriptFileName}'.\n\n" +
                         $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -1434,7 +1447,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             catch (Exception e)
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable write '{pythonScriptFileName}' for the desired script.\n\n" +
                         $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +

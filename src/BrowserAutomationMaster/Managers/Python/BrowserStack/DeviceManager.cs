@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 {
@@ -109,7 +110,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 var devicesJSON = await RequestManager.NetworkClient.Instance.GetStringAsync(BROWSER_STACK_LINK);
 
                 if (devicesJSON == null)
-                    return Errors.WriteErrorAndReturnBool(msg, false);
+                    return WriteErrorAndReturnBool(msg, false);
 
                 Devices = JsonSerializer.Deserialize<DeviceTypes>(devicesJSON);
                 return Devices != null;
@@ -118,7 +119,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             {
                 {
                     Console.WriteLine(ex.Message);
-                    return Errors.WriteErrorAndReturnBool(msg, false);
+                    return WriteErrorAndReturnBool(msg, false);
                 }
 
             }

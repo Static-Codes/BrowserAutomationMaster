@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static System.Runtime.InteropServices.Architecture;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -17,7 +18,7 @@ namespace BrowserAutomationMaster.Managers
         public bool IsLinux { get; set; }
         public bool IsUnixLike { get; set; } // Linux + OSX
         public Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
-
+        
     }
 
 
@@ -44,7 +45,7 @@ namespace BrowserAutomationMaster.Managers
             ARM32Check();
 
             if (!ValidArchitectures.Contains(Platforms.CurrentArchitecture))
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message:
                         string.Join(NLC, [
                             "You're attempting to run BAM Manager (BAMM) on an unsupported CPU Architecture.",

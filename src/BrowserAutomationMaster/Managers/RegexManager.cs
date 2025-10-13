@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
 namespace BrowserAutomationMaster.Managers
@@ -9,7 +6,57 @@ namespace BrowserAutomationMaster.Managers
 
     public static partial class RegexManager
     {
-        public static readonly Regex ValidDirectoryRegex = ValidDirRegex();
+
+        /// <summary>
+        /// Checks a string against a given regex, extracts the content of all captured groups (excluding Group 0, the full match), 
+        /// and returns the concatenated groups from all matches.
+        /// </summary>
+        /// <param name="regex">The desired precompiled regex function.</param>
+        /// <param name="input">The input string to check against the regex.</param>
+        /// <param name="outputGroup">Contains a string representation of the concatenated captured group values (excluding Group 0) from all matches.</param>
+        /// <param name="numericOnly">If true, only captured groups containing purely numeric characters are included in the output.</param>
+        /// <returns>True if at least one match is found for the given regex, false otherwise.</returns>
+        public static bool IsMatches(Regex regex, string input, out string outputGroup, bool numericOnly = false)
+        {
+            outputGroup = string.Empty;
+
+            try
+            {
+                if (string.IsNullOrEmpty(input))
+                    return false;
+
+                var matches = regex.Matches(input);
+
+                if (matches.Count == 0)
+                    return false;
+
+                var builder = new StringBuilder();
+
+                foreach (Match match in matches)
+                {
+                    if (match.Success && match.Groups.Count > 1)
+                    {
+                        for (int i = 1; i < match.Groups.Count; i++)
+                        {
+                            Group group = match.Groups[i];
+
+                            if (group.Success)
+                                builder.AppendLine(group.Value);
+                        }
+                    }
+                }
+
+                outputGroup = builder.ToString().TrimEnd();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    
+
+    public static readonly Regex ValidDirectoryRegex = ValidDirRegex();
         [GeneratedRegex(@"^[0-9a-zA-Z_\-.]+$", RegexOptions.Compiled)]
         private static partial Regex ValidDirRegex();
 
@@ -28,6 +75,11 @@ namespace BrowserAutomationMaster.Managers
         public static readonly Regex CustomUserAgentRegex = CLIUserAgentRegex();
         [GeneratedRegex(@"^--set-custom-useragent==(.+?)$", RegexOptions.Compiled)]
         private static partial Regex CLIUserAgentRegex();
+
+        //public static readonly Regex GUIPortRegex = CLIPortRegex();
+        [GeneratedRegex(@"^--port==([0-9]{1,5})$", RegexOptions.Compiled)]
+        public static partial Regex GUIPortRegex();
+
 
         // Regex to find paths starting with a drive letter, containing path separators, and ending with python.exe
         // Example: "-V:3.12 * C:\Users\UserName\AppData\Local\Programs\Python\Python312\python.exe" -> "C:\Users\UserName\AppData\Local\Programs\Python\Python312\python.exe"
@@ -169,9 +221,18 @@ namespace BrowserAutomationMaster.Managers
         public static partial Regex PrecompiledPackageRegex();
 
 
-        // Used in LocalServer
+        // Used in LSManager.HandleEndpointRequests();
         const string base64FormatPattern = @"^[a-zA-Z0-9\+/]*={0,2}$";
         [GeneratedRegex(base64FormatPattern)]
         public static partial Regex PrecompiledBase64Regex();
+
+        // Used for LSManager.ScanUsedLHPorts() (Windows)
+        [GeneratedRegex(@"(?:TCP|UDP)\s{4}(?:localhost|127.0.0.1):([0-9]{1,5})|(?:localhost|127.0.0.1):([0-9]{1,5})")]
+        public static partial Regex PrecompiledNetStatRegex();
+
+
+        //// Used for LSManager.ScanUsedLHPorts() (Unix)
+        //[GeneratedRegex(@"(?:TCP|UDP)\s{4}(?:localhost|127.0.0.1):([0-9]{1,5})")]
+        //public static partial Regex PrecompiledNetStatRegex();
     }
 }
