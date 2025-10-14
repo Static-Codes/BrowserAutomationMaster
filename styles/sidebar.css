@@ -11,6 +11,8 @@
   --page-content-bgColor: #f0f1f6;
   --page-content-txtColor: #171616;
   --page-content-blockColor: #fff;
+  --input-section-background: rgba(255, 255, 255, 0.05);
+  --input-section-inputBackColor: #1d2636;
   --white: #fff;
   --black: #333;
   --blue: #00b9eb;
@@ -73,7 +75,6 @@ svg {
 body {
   font: 16px/1.5 "Lato", sans-serif;
 }
-
 
 /* HEADER STYLES
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -183,7 +184,6 @@ body {
   fill: var(--blue);
 }
 
-
 /* PAGE CONTENT STYLES
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .page-content {
@@ -289,7 +289,6 @@ body {
   grid-column: 1 / -1;
 }
 
-
 /* MQ RULES
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 @media screen and (max-width: 767px) {
@@ -384,7 +383,6 @@ body {
   }
 }
 
-
 /* BODY CLASSES
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .mob-menu-opened .toggle-mob-menu svg {
@@ -425,7 +423,6 @@ body {
     width: calc(100% - 40px);
   }
 }
-
 
 /* SWITCH STYLES
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -496,34 +493,33 @@ body {
 }
 
 /* ----------------------------------------------------- */
-/* --- OTTER BROWSER COMPATIBILITY FIX (via JS class) --- */
+/* ---------- OTTER BROWSER COMPATIBILITY FIX ---------- */
 /* ----------------------------------------------------- */
-/* This style forces the sidebar content to flow naturally, overriding the 'margin-top: auto' */
-/* property on the last list item, which often fails in non-standard/older Flexbox engines. */
 body.otter-compat .sidebar li:last-child {
-  /* Force to stack immediately below the previous item. The bottom-alignment is sacrificed, */
-  /* but the layout remains stable and readable. */
-  margin-top: 1rem; 
+  margin-top: 1rem;
 }
 
-/* Specific fix for the switch label: overrides display: flex to display: block */
+/* Specific fix for the switch label: overr ides display: flex to display: block */
 body.otter-compat .switch label {
-    display: block; 
-    align-items: initial;
+  display: block;
+  align-items: initial;
 }
 
 /* In case the sidebar's 100% height doesn't work correctly, allowing scrolling is the safest fallback */
 body.otter-compat .sidebar {
-    overflow-y: auto;
+  overflow-y: auto;
 }
-
 
 /* LIGHT MODE STYLES
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .light-mode {
   --page-header-bgColor: #f1efec;
-  --page-header-bgColor-hover: #b9e4e0;
+  /* --page-header-bgColor-hover: #b9e4e0; */
+  --page-header-bgColor-hover: rgb(40, 168, 221);
   --page-header-txtColor: #2c303a;
+  /* --page-header-txtColor: rgb(230, 80, 63); */
+  --input-section-inputBackColor: #ffffff;
+  --input-section-background: rgba(0, 0, 0, 0.05);
   --page-header-headingColor: #979595;
   --page-content-bgColor: #fff;
   --box-shadow: 0 0 10px -2px rgba(0, 0, 0, 0.25);
@@ -553,7 +549,6 @@ body.otter-compat .sidebar {
     fill: var(--black);
   }
 }
-
 
 /* FOOTER
 –––––––––––––––––––––––––––––––––––––––––––––––––– */

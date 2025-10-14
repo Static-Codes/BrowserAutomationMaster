@@ -25,7 +25,7 @@
   padding: 10px 15px;
   border: 1px solid var(--page-header-bgColor-hover);
   background-color: var(
-    --page-header-bgColor-hover
+    /* --page-header-bgColor-hover */ --input-section-inputBackColor
   ); /* A slightly lighter dark shade */
   color: var(--page-header-txtColor);
   border-radius: var(--border-radius);
@@ -47,7 +47,7 @@
   margin-bottom: 20px;
   padding: 10px;
   border-left: 3px solid var(--blue);
-  background-color: var(--page-header-bgColor-hover);
+  background-color: var(--input-section-background);
   font-style: italic;
   font-size: 0.9rem;
 }
@@ -62,12 +62,7 @@
 .arg-group {
   margin-bottom: 20px;
   padding: 15px;
-  background-color: rgba(
-    255,
-    255,
-    255,
-    0.05
-  ); /* Very slight background for clarity */
+  background-color: rgba(--input-section-background);
   border-radius: var(--border-radius);
 }
 
@@ -75,7 +70,7 @@
   display: block;
   margin-bottom: 10px;
   font-weight: 600;
-  color: var(--white);
+  color: var(--page-header-txtColor);
 }
 
 /* Radio button/Dropdown for optional arguments */
@@ -138,12 +133,13 @@
   width: 100%;
   padding: 10px 15px;
   border: 1px solid var(--page-header-bgColor-hover);
-  background-color: var(--page-header-bgColor-hover);
+  background-color: var(--input-section-inputBackColor);
   color: var(--page-header-txtColor);
   border-radius: var(--border-radius);
   font-size: 1rem;
   transition: border-color 0.2s;
 }
+
 .arg-text-input:focus {
   outline: none;
   border-color: var(--blue);

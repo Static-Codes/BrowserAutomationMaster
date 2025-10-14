@@ -1,3 +1,7 @@
+/* RESET RULES
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+@import url("https://fonts.googleapis.com/css?family=Lato:400,700&display=swap");
+
 /* --- GLOBAL STYLES & VARIABLES (DARK MODE DEFAULT) --- */
 :root {
   --sidebar-width: 260px;

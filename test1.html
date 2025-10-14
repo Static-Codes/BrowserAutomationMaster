@@ -9,56 +9,23 @@
       rel="stylesheet"
     />
     <link href="styles/sidebar.css" rel="stylesheet" />
+    <link href="styles/create_script.css" rel="stylesheet" />
   </head>
-  <body>
     <header class="page-header">
       <nav>
-        <a href="#0" aria-label="logo" class="logo">
+        <a aria-label="logo" class="logo">
           <svg id="logo" width="140" height="100" viewBox="0 0 2000 1600">
             <defs>
-              <linearGradient
-                id="Gradient1"
-                gradientUnits="userSpaceOnUse"
-                x1="1555.58"
-                y1="1494.79"
-                x2="1581.64"
-                y2="1512.72"
-              >
-                <stop
-                  class="stop0"
-                  offset="0"
-                  stop-opacity="1"
-                  stop-color="rgb(195,194,193)"
-                ></stop>
-                <stop
-                  class="stop1"
-                  offset="1"
-                  stop-opacity="1"
-                  stop-color="rgb(229,227,222)"
-                ></stop>
+              <linearGradient id="Gradient1" gradientUnits="userSpaceOnUse" x1="1555.58" y1="1494.79" x2="1581.64" y2="1512.72">
+                <stop class="stop0" offset="0" stop-opacity="1" stop-color="rgb(195,194,193)"></stop>
+                <stop class="stop1" offset="1" stop-opacity="1" stop-color="rgb(229,227,222)"></stop>
               </linearGradient>
 
-              <linearGradient
-                id="Gradient2"
-                gradientUnits="userSpaceOnUse"
-                x1="238.684"
-                y1="1511.7"
-                x2="284.337"
-                y2="1530.12"
-              >
-                <stop
-                  class="stop0"
-                  offset="0"
-                  stop-opacity="1"
-                  stop-color="rgb(194,193,191)"
-                ></stop>
+              <linearGradient id="Gradient2" gradientUnits="userSpaceOnUse" x1="238.684" y1="1511.7" x2="284.337" y2="1530.12">
 
-                <stop
-                  class="stop1"
-                  offset="1"
-                  stop-opacity="1"
-                  stop-color="rgb(241,240,239)"
-                ></stop>
+                <stop class="stop0" offset="0" stop-opacity="1" stop-color="rgb(194,193,191)"></stop>
+
+                <stop class="stop1" offset="1" stop-opacity="1" stop-color="rgb(241,240,239)"></stop>
               </linearGradient>
             </defs>
 
@@ -179,19 +146,9 @@
           </svg>
         </a>
 
-        <button
-          class="toggle-mob-menu"
-          aria-expanded="false"
-          aria-label="open menu"
-        >
-          <svg
-            width="20"
-            height="20"
-            aria-hidden="true"
-            id="down"
-            viewBox="0 0 24 24"
-          >
-            <path d="M7 10l5 5 5-5z" />
+        <button class="toggle-mob-menu" aria-expanded="false" aria-label="open menu">
+          <svg width="20" height="20" aria-hidden="true" id="down" viewBox="0 0 24 24">
+              <path d="M7 10l5 5 5-5z" />
           </svg>
         </button>
 
@@ -221,9 +178,7 @@
           <li>
             <a href="#0" title="Delete Existing Script">
               <svg id="delete" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"
-                />
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/>
               </svg>
               <span>Delete Existing Script</span>
             </a>
@@ -246,9 +201,7 @@
           <li>
             <a href="#0" title="Restart GUI">
               <svg id="restart" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
-                />
+                <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
               </svg>
               <span>Restart GUI</span>
             </a>
@@ -256,9 +209,7 @@
           <li>
             <a href="#0" title="Terminate GUI">
               <svg id="terminate" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M12 1.5c-5.8 0-10.5 4.7-10.5 10.5s4.7 10.5 10.5 10.5 10.5-4.7 10.5-10.5S17.8 1.5 12 1.5zm0 18c-4.14 0-7.5-3.36-7.5-7.5s3.36-7.5 7.5-7.5 7.5 3.36 7.5 7.5-3.36 7.5-7.5 7.5zM11 7h2v6h-2zM11 15h2v2h-2z"
-                />
+                <path d="M12 1.5c-5.8 0-10.5 4.7-10.5 10.5s4.7 10.5 10.5 10.5 10.5-4.7 10.5-10.5S17.8 1.5 12 1.5zm0 18c-4.14 0-7.5-3.36-7.5-7.5s3.36-7.5 7.5-7.5 7.5 3.36 7.5 7.5-3.36 7.5-7.5 7.5zM11 7h2v6h-2zM11 15h2v2h-2z"/>
               </svg>
               <span>Terminate GUI</span>
             </a>
@@ -266,9 +217,7 @@
           <li>
             <a href="#0" title="View Version Info">
               <svg id="version" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
               </svg>
               <span>View Version Info</span>
             </a>
@@ -276,12 +225,8 @@
           <li>
             <a href="#0" title="Report a Bug">
               <svg id="report" viewBox="0 0 16 16">
-                <path
-                  d="M8,11a3,3,0,1,1,3-3A3,3,0,0,1,8,11ZM8,6a2,2,0,1,0,2,2A2,2,0,0,0,8,6Z"
-                />
-                <path
-                  d="M8.5,16h-1A1.5,1.5,0,0,1,6,14.5v-.85a5.91,5.91,0,0,1-.58-.24l-.6.6A1.54,1.54,0,0,1,2.7,14L2,13.3a1.5,1.5,0,0,1,0-2.12l.6-.6A5.91,5.91,0,0,1,2.35,10H1.5A1.5,1.5,0,0,1,0,8.5v-1A1.5,1.5,0,0,1,1.5,6h.85a5.91,5.91,0,0,1,.24-.58L2,4.82A1.5,1.5,0,0,1,2,2.7L2.7,2A1.54,1.54,0,0,1,4.82,2l.6.6A5.91,5.91,0,0,1,6,2.35V1.5A1.5,1.5,0,0,1,7.5,0h1A1.5,1.5,0,0,1,10,1.5v.85a5.91,5.91,0,0,1,.58.24l.6-.6A1.54,1.54,0,0,1,13.3,2L14,2.7a1.5,1.5,0,0,1,0,2.12l-.6.6a5.91,5.91,0,0,1,.24.58h.85A1.5,1.5,0,0,1,16,7.5v1A1.5,1.5,0,0,1,14.5,10h-.85a5.91,5.91,0,0,1-.24.58l.6.6a1.5,1.5,0,0,1,0,2.12L13.3,14a1.54,1.54,0,0,1-2.12,0l-.6-.6a5.91,5.91,0,0,1-.58.24v.85A1.5,1.5,0,0,1,8.5,16ZM5.23,12.18l.33.18a4.94,4.94,0,0,0,1.07.44l.36.1V14.5a.5.5,0,0,0,.5.5h1a.5.5,0,0,0,.5-.5V12.91l.36-.1a4.94,4.94,0,0,0,1.07-.44l.33-.18,1.12,1.12a.51.51,0,0,0,.71,0l.71-.71a.5.5,0,0,0,0-.71l-1.12-1.12.18-.33a4.94,4.94,0,0,0,.44-1.07l.1-.36H14.5a.5.5,0,0,0,.5-.5v-1a.5.5,0,0,0-.5-.5H12.91l-.1-.36a4.94,4.94,0,0,0-.44-1.07l-.18-.33L13.3,4.11a.5.5,0,0,0,0-.71L12.6,2.7a.51.51,0,0,0-.71,0L10.77,3.82l-.33-.18a4.94,4.94,0,0,0-1.07-.44L9,3.09V1.5A.5.5,0,0,0,8.5,1h-1a.5.5,0,0,0-.5.5V3.09l-.36.1a4.94,4.94,0,0,0-1.07.44l-.33.18L4.11,2.7a.51.51,0,0,0-.71,0L2.7,3.4a.5.5,0,0,0,0,.71L3.82,5.23l-.18.33a4.94,4.94,0,0,0-.44,1.07L3.09,7H1.5a.5.5,0,0,0-.5.5v1a.5.5,0,0,0,.5.5H3.09l.1.36a4.94,4.94,0,0,0,.44,1.07l.18.33L2.7,11.89a.5.5,0,0,0,0,.71l.71.71a.51.51,0,0,0,.71,0Z"
-                />
+                <path d="M8,11a3,3,0,1,1,3-3A3,3,0,0,1,8,11ZM8,6a2,2,0,1,0,2,2A2,2,0,0,0,8,6Z" />
+                <path d="M8.5,16h-1A1.5,1.5,0,0,1,6,14.5v-.85a5.91,5.91,0,0,1-.58-.24l-.6.6A1.54,1.54,0,0,1,2.7,14L2,13.3a1.5,1.5,0,0,1,0-2.12l.6-.6A5.91,5.91,0,0,1,2.35,10H1.5A1.5,1.5,0,0,1,0,8.5v-1A1.5,1.5,0,0,1,1.5,6h.85a5.91,5.91,0,0,1,.24-.58L2,4.82A1.5,1.5,0,0,1,2,2.7L2.7,2A1.54,1.54,0,0,1,4.82,2l.6.6A5.91,5.91,0,0,1,6,2.35V1.5A1.5,1.5,0,0,1,7.5,0h1A1.5,1.5,0,0,1,10,1.5v.85a5.91,5.91,0,0,1,.58.24l.6-.6A1.54,1.54,0,0,1,13.3,2L14,2.7a1.5,1.5,0,0,1,0,2.12l-.6.6a5.91,5.91,0,0,1,.24.58h.85A1.5,1.5,0,0,1,16,7.5v1A1.5,1.5,0,0,1,14.5,10h-.85a5.91,5.91,0,0,1-.24.58l.6.6a1.5,1.5,0,0,1,0,2.12L13.3,14a1.54,1.54,0,0,1-2.12,0l-.6-.6a5.91,5.91,0,0,1-.58.24v.85A1.5,1.5,0,0,1,8.5,16ZM5.23,12.18l.33.18a4.94,4.94,0,0,0,1.07.44l.36.1V14.5a.5.5,0,0,0,.5.5h1a.5.5,0,0,0,.5-.5V12.91l.36-.1a4.94,4.94,0,0,0,1.07-.44l.33-.18,1.12,1.12a.51.51,0,0,0,.71,0l.71-.71a.5.5,0,0,0,0-.71l-1.12-1.12.18-.33a4.94,4.94,0,0,0,.44-1.07l.1-.36H14.5a.5.5,0,0,0,.5-.5v-1a.5.5,0,0,0-.5-.5H12.91l-.1-.36a4.94,4.94,0,0,0-.44-1.07l-.18-.33L13.3,4.11a.5.5,0,0,0,0-.71L12.6,2.7a.51.51,0,0,0-.71,0L10.77,3.82l-.33-.18a4.94,4.94,0,0,0-1.07-.44L9,3.09V1.5A.5.5,0,0,0,8.5,1h-1a.5.5,0,0,0-.5.5V3.09l-.36.1a4.94,4.94,0,0,0-1.07.44l-.33.18L4.11,2.7a.51.51,0,0,0-.71,0L2.7,3.4a.5.5,0,0,0,0,.71L3.82,5.23l-.18.33a4.94,4.94,0,0,0-.44,1.07L3.09,7H1.5a.5.5,0,0,0-.5.5v1a.5.5,0,0,0,.5.5H3.09l.1.36a4.94,4.94,0,0,0,.44,1.07l.18.33L2.7,11.89a.5.5,0,0,0,0,.71l.71.71a.51.51,0,0,0,.71,0Z" />
               </svg>
               <span>Report a Bug</span>
             </a>
@@ -296,11 +241,7 @@
               </label>
             </div>
 
-            <button
-              class="collapse-btn"
-              aria-expanded="true"
-              aria-label="collapse menu"
-            >
+            <button class="collapse-btn" aria-expanded="true" aria-label="collapse menu">
               <svg id="collapse" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
               </svg>
@@ -310,6 +251,18 @@
         </ul>
       </nav>
     </header>
+    <section class="command-combobox-section">
+      <div class="combobox-container">
+        <label for="command-select" class="combobox-label">Select Command:</label>
+        <select id="command-select" class="combobox-input"></select>
+      </div>
+      <div id="command-description" class="command-description" hidden="true"></div>
+      <div id="command-arguments-container" class="arguments-container"></div>
+      <button class="execute-button" id="execute-command-btn">Execute Command</button>
+    </section>
+
     <script src="scripts/sidebar.js"></script>
+    <script src="scripts/create/commands.js"></script>
+    <script src="scripts/create/create_script.js"></script>
   </body>
 </html>
