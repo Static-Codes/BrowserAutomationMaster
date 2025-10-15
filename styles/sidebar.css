@@ -187,13 +187,24 @@ body {
 /* PAGE CONTENT STYLES
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .page-content {
-  position: relative;
+  background-color: var(--page-header-bgColor);
+  /* position: relative;
   left: var(--page-header-width);
   width: calc(100% - var(--page-header-width));
   min-height: 100vh;
   padding: 30px;
   color: var(--page-content-txtColor);
-  background: var(--page-content-bgColor);
+  background: var(--page-content-bgColor); */
+  /* PAGE CONTENT STYLES –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+  position: relative;
+  left: var(--page-header-width);
+  width: calc(80% - var(--page-header-width));
+  min-height: 100vh;
+  /* Content will be aligned with the sidebar */
+  /* padding: 30px 30px 30px 0; */
+  color: var(--page-content-txtColor);
+  /* background: var(--page-content-bgColor); */
 }
 
 .search-and-user {
@@ -420,7 +431,7 @@ body {
 
   .collapsed .page-content {
     left: 40px;
-    width: calc(100% - 40px);
+    width: calc(80% - 40px);
   }
 }
 

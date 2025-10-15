@@ -1,12 +1,12 @@
 /* COMMAND COMBOBOX STYLING */
 .command-combobox-section {
   padding: 20px;
-  max-width: 600px; /* Adjust as needed */
-  margin: 20px auto;
-  background-color: var(--page-header-bgColor); /* Use a dark background */
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  color: var(--page-header-txtColor); /* Use light text color */
+  /* max-width: 600px; */
+  /* margin: 20px 0px; */
+  background-color: var(--page-header-bgColor);
+  /* border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow); */
+  color: var(--page-header-txtColor);
 }
 
 .combobox-container {
@@ -24,12 +24,10 @@
   width: 100%;
   padding: 10px 15px;
   border: 1px solid var(--page-header-bgColor-hover);
-  background-color: var(
-    /* --page-header-bgColor-hover */ --input-section-inputBackColor
-  ); /* A slightly lighter dark shade */
+  background-color: var(--input-section-inputBackColor);
   color: var(--page-header-txtColor);
   border-radius: var(--border-radius);
-  appearance: none; /* Remove default browser styling for select */
+  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   font-size: 1rem;
@@ -99,7 +97,7 @@
 .radio-custom {
   height: 18px;
   width: 18px;
-  background-color: var(--page-header-bgColor-hover);
+  /* background-color: var(--page-header-bgColor-hover); */
   border-radius: 50%;
   border: 2px solid var(--page-header-headingColor);
   display: inline-block;
