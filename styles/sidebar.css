@@ -188,97 +188,11 @@ body {
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .page-content {
   background-color: var(--page-header-bgColor);
-  /* position: relative;
-  left: var(--page-header-width);
-  width: calc(100% - var(--page-header-width));
-  min-height: 100vh;
-  padding: 30px;
-  color: var(--page-content-txtColor);
-  background: var(--page-content-bgColor); */
-  /* PAGE CONTENT STYLES –––––––––––––––––––––––––––––––––––––––––––––––––– */
-
   position: relative;
   left: var(--page-header-width);
-  width: calc(80% - var(--page-header-width));
+  width: calc(60% - var(--page-header-width));
   min-height: 100vh;
-  /* Content will be aligned with the sidebar */
-  /* padding: 30px 30px 30px 0; */
   color: var(--page-content-txtColor);
-  /* background: var(--page-content-bgColor); */
-}
-
-.search-and-user {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-column-gap: 50px;
-  align-items: center;
-  background: var(--page-content-bgColor);
-  margin-bottom: 30px;
-}
-
-.search-and-user form {
-  position: relative;
-}
-
-.search-and-user [type="search"] {
-  width: 100%;
-  height: 50px;
-  font-size: 1.5rem;
-  padding-left: 15px;
-  background: var(--page-content-blockColor);
-  color: var(--white);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-}
-
-.search-and-user ::placeholder {
-  color: var(--page-content-txtColor);
-}
-
-.search-and-user form svg {
-  width: 26px;
-  height: 26px;
-  fill: var(--page-content-txtColor);
-}
-
-.search-and-user form button {
-  position: absolute;
-  top: 50%;
-  right: 15px;
-  transform: translateY(-50%);
-}
-
-.search-and-user .admin-profile {
-  display: flex;
-  align-items: center;
-}
-
-.search-and-user .admin-profile .greeting {
-  margin: 0 10px 0 20px;
-}
-
-.search-and-user .admin-profile svg {
-  width: 30px;
-  height: 30px;
-}
-
-.search-and-user .admin-profile .notifications {
-  position: relative;
-}
-
-.search-and-user .admin-profile .badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  top: -10px;
-  right: -3px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  font-size: 10px;
-  color: var(--white);
-  background: var(--red);
 }
 
 .page-content .grid {
@@ -348,8 +262,7 @@ body {
     margin-bottom: 12px;
   }
 
-  .page-header .sidebar li:last-child button,
-  .search-and-user .admin-profile .greeting {
+  .page-header .sidebar li:last-child button {
     display: none;
   }
 
@@ -360,31 +273,6 @@ body {
 
   .page-content .grid {
     grid-gap: 10px;
-  }
-
-  .search-and-user {
-    position: absolute;
-    left: 131px;
-    top: 10px;
-    padding: 0;
-    grid-column-gap: 5px;
-    width: calc(100% - 141px);
-    border-radius: var(--border-radius);
-    background: transparent;
-  }
-
-  .search-and-user [type="search"] {
-    font-size: 1rem;
-    height: 35px;
-  }
-
-  .search-and-user form svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .search-and-user .admin-profile svg {
-    fill: var(--white);
   }
 }
 
@@ -431,7 +319,7 @@ body {
 
   .collapsed .page-content {
     left: 40px;
-    width: calc(80% - 40px);
+    width: calc(60% - 40px);
   }
 }
 
@@ -556,9 +444,56 @@ body.otter-compat .sidebar {
 }
 
 @media screen and (max-width: 767px) {
-  .light-mode .search-and-user .admin-profile svg {
+  .light-mode svg {
     fill: var(--black);
   }
+}
+
+.script-actions-sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  position: fixed !important;
+  right: 0 !important;
+  top: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: var(--page-header-bgColor);
+  /* width: var(--page-header-width); */
+  width: calc(51.5% - var(--page-header-width));
+  box-sizing: border-box !important;
+}
+
+.command-list-box {
+  flex-grow: 1 !important; /* This item fills the space */
+  display: flex !important; /* Make the list box a flex container */
+  flex-direction: column !important; /* Stack its children vertically */
+  border: 1px solid black;
+  background-color: var(--page-header-bgColor);
+  padding: 0 !important;
+  overflow-y: auto;
+}
+
+.command-list-box h3 {
+  margin: 0 !important;
+  padding: 15px !important;
+  border-bottom: 1px solid black;
+  background-color: var(--page-header-bgColor-hover);
+}
+
+#command-list {
+  flex-grow: 1 !important; /* This is the key: it grows to fill the parent space */
+  overflow-y: auto !important; /* Allows the content to scroll */
+  padding-left: 0 !important;
+  margin: 0 !important; /* Eliminates all default top/bottom margin */
+}
+
+#command-list li::selection {
+  background-color: #00b9eb;
+}
+
+#command-list li:checked {
+  background-color: #00b9eb;
 }
 
 /* FOOTER
