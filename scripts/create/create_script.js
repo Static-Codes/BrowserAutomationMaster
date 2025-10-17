@@ -10,14 +10,30 @@ var argsContainer = document.getElementById("command-arguments-container");
 var descriptionElement = document.getElementById("command-description");
 var executeButton = document.getElementById("execute-command-btn");
 
-// var
+var commandList = document.querySelector("#command-list");
 
-function checkEntries() {
-  for (var i = 0; i < commands.length; i++) {
-    if (commands[i].arguments.includes("browser")) {
-      alert("works");
-    }
-  }
+var duplicateCommandButton = document.querySelector(
+  ".action-button.duplicate-command-btn"
+);
+var removeCommandButton = document.querySelector(
+  ".action-button.remove-command-btn"
+);
+var validateScriptButton = document.querySelector(
+  ".action-button.validate-script-btn"
+);
+var exportScriptButton = document.querySelector(
+  ".action-button.export-script-btn"
+);
+
+var nextIndexAfterDelete = 0;
+
+function updateCommandComboBoxState() {
+  document
+    .querySelectorAll("#command-select option")
+    .forEach((el) => (el.disabled = false));
+
+  document.querySelector("#command-select option:first-child").disabled = true;
+  document.querySelector("#command-select option:first-child").selected = false;
 }
 
 function getData() {
@@ -41,6 +57,63 @@ function populateCommandSelect() {
     }
     commandSelect.appendChild(option);
   });
+}
+
+function addCommandToCommandList(commandText) {
+  try {
+    var childNode = document.createElement("li");
+
+    // Changes the state of the previously selected item
+    document.querySelector(".list-item").classList.remove("list-item");
+
+    // Makes the newly added item the active selection
+    childNode.classList.add("list-item");
+    childNode.textContent = commandText;
+
+    commandList.appendChild(childNode);
+
+    console.log(`Added element at index ${index + 1}`);
+  } catch {}
+}
+
+function getIndexOfSelectedCommand() {
+  try {
+    if (Object.keys(commands).length == 0) {
+      alert("No commands present.");
+      throw new Error("No commands present.");
+    }
+    var child = document.querySelector(".list-item");
+    var parent = child.parentNode;
+    return Array.prototype.indexOf.call(parent.children, child);
+  } catch {
+    return -1;
+  }
+}
+
+function removeSelectedCommand() {
+  var index = getIndexOfSelectedCommand();
+  if (index == -1) {
+    alert("Please select an element to remove.");
+    throw new Error("No element selected");
+  }
+
+  if (Object.keys(commands).length == 1) {
+    nextIndexAfterDelete = 0;
+  } else if (index === 0 && nextIndexAfterDelete !== 0) {
+    nextIndexAfterDelete = 0;
+  } else if (index === Object.keys(commands).length) {
+    nextIndexAfterDelete = index - 1;
+  }
+  console.log(`next selected index: ${nextIndexAfterDelete}`);
+  try {
+    delete commands[index + 1];
+    console.log(`deleted element at index ${index + 1}`);
+    document.querySelector(".list-item").remove();
+    console.log(`deleted element .list-item`);
+    setData(commands);
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 function renderArguments(command) {
@@ -169,20 +242,16 @@ executeButton.addEventListener("click", (e) => {
   console.log("--- Executing Command ---");
   console.log(JSON.stringify(commandData));
 
-  commands[Object.keys(commands).length] = JSON.stringify(
-    commandData.arguments
-  );
+  var jsonString = JSON.stringify(commandData.arguments);
+  commands[Object.keys(commands).length] = jsonString;
 
   setData(commands);
   console.log(getData());
-  checkEntries();
-  // alert(
-  //   `Command: ${commandData.command} \nArguments: ${JSON.stringify(
-  //     commandData.arguments,
-  //     null,
-  //     2
-  //   )} \nCheck the browser console for the structured data.`
-  // );
+  updateCommandComboBoxState();
+  addCommandToCommandList(jsonString);
 });
 
+removeCommandButton.addEventListener("click", (e) => {
+  removeSelectedCommand();
+});
 populateCommandSelect();

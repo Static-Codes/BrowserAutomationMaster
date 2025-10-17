@@ -339,10 +339,7 @@
     <script src="scripts/create/create_script.js"></script>
 
     <script>
-      // A variable to track the currently selected element across clicks
       let currentlySelectedItem = null;
-      
-      // Get all the list items inside the command-list <ul>
       const commandItems = document.querySelectorAll('#command-list li');
 
       function handleSelection(event) {
@@ -352,11 +349,9 @@
           currentlySelectedItem.classList.remove('list-item');
         }
         newSelectedItem.classList.add('list-item');
-
         currentlySelectedItem = newSelectedItem;
       }
 
-      // Attach the handler to every list item in the command list
       commandItems.forEach(item => {
         item.addEventListener('click', handleSelection);
       });
