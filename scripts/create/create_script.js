@@ -1,6 +1,6 @@
 var commandTemplate = {
   // command: selectedCommandName,
-  arguments: {},
+  // arguments: {},
 };
 
 var commands = getData();
@@ -26,6 +26,7 @@ var exportScriptButton = document.querySelector(
 );
 
 var nextIndexAfterDelete = 0;
+var scriptIsValidated = false;
 
 function updateCommandComboBoxState() {
   document
@@ -59,21 +60,49 @@ function populateCommandSelect() {
   });
 }
 
-function addCommandToCommandList(commandText) {
+function addCommandToCommandList(commandText, addToLocalStorage = true) {
   try {
     var childNode = document.createElement("li");
 
-    // Changes the state of the previously selected item
-    document.querySelector(".list-item").classList.remove("list-item");
+    if (document.querySelector(".list-item")) {
+      // Changes the state of the previously selected item
+      document.querySelector(".list-item").classList.remove("list-item");
+    }
 
     // Makes the newly added item the active selection
     childNode.classList.add("list-item");
     childNode.textContent = commandText;
 
     commandList.appendChild(childNode);
+    if (addToLocalStorage) {
+      addCmdToLocalStorage(childNode.textContent);
+    }
+    console.log(
+      `Added element ${Object.keys(commands).length} at index ${
+        Object.keys(commands).length - 1
+      }`
+    );
+    refocusSelection();
+  } catch (e) {
+    console.log(e);
+  }
+}
 
-    console.log(`Added element at index ${index + 1}`);
-  } catch {}
+function addCmdToLocalStorage(value) {
+  commands[Object.keys(commands).length] = value;
+}
+
+function duplicateSelectedCommand() {
+  var index = getIndexOfSelectedCommand();
+  if (index == -1) {
+    alert("Please select an element to remove.");
+    throw new Error("No element selected");
+  }
+  addCmdToLocalStorage(commands[index]);
+
+  var selectedChild = document.querySelector(".list-item");
+  var clonedChild = selectedChild.cloneNode(true);
+  addCommandToCommandList(clonedChild.textContent);
 }
 
 function getIndexOfSelectedCommand() {
@@ -90,6 +119,20 @@ function getIndexOfSelectedCommand() {
   }
 }
 
+function refocusSelection() {
+  commandList.addEventListener("click", (e) => {
+    const clickedItem = e.target.closest("li");
+
+    if (clickedItem) {
+      commandList.querySelectorAll(".list-item").forEach((item) => {
+        item.classList.remove("list-item");
+      });
+
+      clickedItem.classList.add("list-item");
+    }
+  });
+}
+
 function removeSelectedCommand() {
   var index = getIndexOfSelectedCommand();
   if (index == -1) {
@@ -97,20 +140,27 @@ function removeSelectedCommand() {
     throw new Error("No element selected");
   }
 
-  if (Object.keys(commands).length == 1) {
+  var cmdCount = Object.keys(commands).length;
+  var numberOfShownItems = document.querySelectorAll("#command-list li").length;
+  if (cmdCount == 1) {
     nextIndexAfterDelete = 0;
   } else if (index === 0 && nextIndexAfterDelete !== 0) {
     nextIndexAfterDelete = 0;
-  } else if (index === Object.keys(commands).length) {
+  } else if (index === cmdCount) {
     nextIndexAfterDelete = index - 1;
+  } else if (numberOfShownItems !== cmdCount) {
+    nextIndexAfterDelete = 0;
   }
+
   console.log(`next selected index: ${nextIndexAfterDelete}`);
   try {
     delete commands[index + 1];
     console.log(`deleted element at index ${index + 1}`);
     document.querySelector(".list-item").remove();
     console.log(`deleted element .list-item`);
+    commandList.children[nextIndexAfterDelete].classList.add("list-item");
     setData(commands);
+    refocusSelection();
   } catch (e) {
     console.log(e);
   }
@@ -191,6 +241,10 @@ function setData(data) {
   localStorage.setItem("commands", JSON.stringify(data));
 }
 
+window.addEventListener("load", (e) => {
+  Object.values(commands).forEach((el) => addCommandToCommandList(el, false));
+});
+
 commandSelect.addEventListener("change", (event) => {
   var selectedCommandName = event.target.value;
   var selectedCommand = commandCollection.find(
@@ -251,7 +305,11 @@ executeButton.addEventListener("click", (e) => {
   addCommandToCommandList(jsonString);
 });
 
+duplicateCommandButton.addEventListener("click", (e) => {
+  duplicateSelectedCommand();
+});
 removeCommandButton.addEventListener("click", (e) => {
   removeSelectedCommand();
 });
+
 populateCommandSelect();
