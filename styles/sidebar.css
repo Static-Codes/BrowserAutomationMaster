@@ -449,53 +449,6 @@ body.otter-compat .sidebar {
   }
 }
 
-.script-actions-sidebar {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100vh !important;
-  position: fixed !important;
-  right: 0 !important;
-  top: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  background-color: var(--page-header-bgColor);
-  /* width: var(--page-header-width); */
-  width: calc(51.5% - var(--page-header-width));
-  box-sizing: border-box !important;
-}
-
-.command-list-box {
-  flex-grow: 1 !important; /* This item fills the space */
-  display: flex !important; /* Make the list box a flex container */
-  flex-direction: column !important; /* Stack its children vertically */
-  border: 1px solid black;
-  background-color: var(--page-header-bgColor);
-  padding: 0 !important;
-  overflow-y: auto;
-}
-
-.command-list-box h3 {
-  margin: 0 !important;
-  padding: 15px !important;
-  border-bottom: 1px solid black;
-  background-color: var(--page-header-bgColor-hover);
-}
-
-#command-list {
-  flex-grow: 1 !important; /* This is the key: it grows to fill the parent space */
-  overflow-y: auto !important; /* Allows the content to scroll */
-  padding-left: 0 !important;
-  margin: 0 !important; /* Eliminates all default top/bottom margin */
-}
-
-#command-list li::selection {
-  background-color: #00b9eb;
-}
-
-#command-list li:checked {
-  background-color: #00b9eb;
-}
-
 /* FOOTER
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .page-footer {

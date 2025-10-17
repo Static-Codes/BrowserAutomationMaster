@@ -1,11 +1,7 @@
 /* COMMAND COMBOBOX STYLING */
 .command-combobox-section {
   padding: 20px;
-  /* max-width: 600px; */
-  /* margin: 20px 0px; */
   background-color: var(--page-header-bgColor);
-  /* border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow); */
   color: var(--page-header-txtColor);
 }
 
@@ -161,4 +157,111 @@
 
 .execute-button:hover {
   background-color: #0093c4; /* Slightly darker blue on hover */
+}
+
+.command-list-box {
+  flex-grow: 1 !important; /* This item fills the space */
+  display: flex !important; /* Make the list box a flex container */
+  flex-direction: column !important; /* Stack its children vertically */
+  border: 1px solid black;
+  background-color: var(--page-header-bgColor);
+  padding: 0 !important;
+  overflow-y: auto;
+}
+
+.command-list-box h3 {
+  margin: 0 !important;
+  padding: 15px !important;
+  border-bottom: 1px solid black;
+  background-color: var(--page-header-bgColor-hover);
+  text-align: center;
+  font: 26px/1.5 "Lato", sans-serif;
+  font-size: 26px;
+}
+
+#command-list {
+  flex-grow: 1 !important; /* This is the key: it grows to fill the parent space */
+  overflow-y: auto !important; /* Allows the content to scroll */
+  padding-left: 0 !important;
+  margin: 0 !important; /* Eliminates all default top/bottom margin */
+  text-align: center;
+}
+
+#command-list li {
+  background-color: Command var(--input-section-background);
+  cursor: pointer;
+}
+
+.script-actions-sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  position: fixed !important;
+  right: 0 !important;
+  top: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: var(--page-header-bgColor);
+  /* width: var(--page-header-width); */
+  width: calc(51.5% - var(--page-header-width));
+  box-sizing: border-box !important;
+}
+
+.list-item {
+  background-color: #0db172 !important;
+  cursor: grab;
+  padding: 10px 5px;
+  margin-bottom: 2px;
+  border: 1px solid #ccc;
+  text-decoration-line: underline;
+}
+
+.actions-buttons-container {
+  padding: 20px 20px 20px 20px !important;
+  width: 75%;
+  margin: auto;
+  /*! display: flex !important; */
+  flex-direction: column !important;
+  column-count: 4;
+  column-gap: 20px;
+}
+
+.actions-buttons-container svg {
+  padding: 10px !important;
+  width: 100%;
+  margin: auto;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.action-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border: none;
+  border-radius: var(--border-radius);
+  background-color: var(--blue);
+  color: var(--white);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: invert(var(--page-header-txtColor));
+}
+
+.remove-command-btn {
+  background-color: #700f0f;
+}
+
+.validate-script-btn {
+  background-color: #2f9749;
+}
+
+.light-mode .remove-command-btn {
+  background-color: #b11a1a;
+}
+
+.light-mode .validate-script-btn {
+  background-color: #3dc45f;
 }
