@@ -250,17 +250,17 @@
 }
 
 .remove-command-btn {
-  background-color: #700f0f;
+  background-color: #a21a1a;
 }
 
 .validate-script-btn {
-  background-color: #2f9749;
+  background-color: #38b156;
 }
 
 .light-mode .remove-command-btn {
-  background-color: #b11a1a;
+  background-color: #ff2929;
 }
 
 .light-mode .validate-script-btn {
-  background-color: #3dc45f;
+  background-color: #4bf375;
 }
