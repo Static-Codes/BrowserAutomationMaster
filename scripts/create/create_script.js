@@ -1,8 +1,3 @@
-var commandTemplate = {
-  // command: selectedCommandName,
-  // arguments: {},
-};
-
 var commands = getData();
 
 var commandSelect = document.getElementById("command-select");
@@ -27,38 +22,6 @@ var exportScriptButton = document.querySelector(
 
 var nextIndexAfterDelete = 0;
 var scriptIsValidated = false;
-
-function updateCommandComboBoxState() {
-  document
-    .querySelectorAll("#command-select option")
-    .forEach((el) => (el.disabled = false));
-
-  document.querySelector("#command-select option:first-child").disabled = true;
-  document.querySelector("#command-select option:first-child").selected = false;
-}
-
-function getData() {
-  try {
-    return JSON.parse(localStorage.getItem("commands") ?? commandTemplate);
-  } catch {
-    return commandTemplate;
-  }
-}
-
-function populateCommandSelect() {
-  commandCollection.forEach((command) => {
-    var option = document.createElement("option");
-    option.value = command.commandName;
-    option.disabled = command.disabledOnLoad;
-    option.textContent = command.commandName;
-
-    if (command.commandName == "Browser") {
-      renderArguments(command);
-      option.selected = true;
-    }
-    commandSelect.appendChild(option);
-  });
-}
 
 function addCommandToCommandList(commandText, addToLocalStorage = true) {
   try {
@@ -92,6 +55,35 @@ function addCmdToLocalStorage(value) {
   commands[Object.keys(commands).length] = value;
 }
 
+function getData() {
+  try {
+    var commandsFromLS = localStorage.getItem("commands");
+    if (commandsFromLS == null) {
+      localStorage.setItem("commands", JSON.stringify({}));
+    }
+    return JSON.parse(localStorage.getItem("commands"));
+  } catch (e) {
+    console.log(e);
+    localStorage.setItem("commands", JSON.stringify({}));
+    return JSON.parse(localStorage.getItem("commands"));
+  }
+}
+
+function populateCommandSelect() {
+  commandCollection.forEach((command) => {
+    var option = document.createElement("option");
+    option.value = command.commandName;
+    option.disabled = command.disabledOnLoad;
+    option.textContent = command.commandName;
+
+    if (command.commandName == "Browser") {
+      renderArguments(command);
+      option.selected = true;
+    }
+    commandSelect.appendChild(option);
+  });
+}
+
 function duplicateSelectedCommand() {
   var index = getIndexOfSelectedCommand();
   if (index == -1) {
@@ -114,8 +106,33 @@ function getIndexOfSelectedCommand() {
     var child = document.querySelector(".list-item");
     var parent = child.parentNode;
     return Array.prototype.indexOf.call(parent.children, child);
-  } catch {
+  } catch (e) {
     return -1;
+  }
+}
+
+function loadCurrentScriptCommands() {
+  let currentlySelectedItem = null;
+  const commandItems = document.querySelectorAll("#command-list li");
+
+  function handleSelection(event) {
+    const newSelectedItem = event.currentTarget;
+
+    if (currentlySelectedItem !== null) {
+      currentlySelectedItem.classList.remove("list-item");
+    }
+    newSelectedItem.classList.add("list-item");
+    currentlySelectedItem = newSelectedItem;
+  }
+
+  if (usingOtter) {
+    for (cmd in commandItems) {
+      cmd.addEventListener("click", handleSelection);
+    }
+  } else {
+    commandItems.forEach((item) => {
+      item.addEventListener("click", handleSelection);
+    });
   }
 }
 
@@ -313,3 +330,4 @@ removeCommandButton.addEventListener("click", (e) => {
 });
 
 populateCommandSelect();
+loadCurrentScriptCommands();

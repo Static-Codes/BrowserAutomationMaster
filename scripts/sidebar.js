@@ -1,9 +1,9 @@
+const usingOtter = navigator.userAgent.includes("Otter");
 // Wait for the DOM to fully load
 window.onload = function () {
   setTimeout(function () {}, 2000);
   const html = document.documentElement;
   const body = document.body;
-  const usingOtter = navigator.userAgent.includes("Otter");
 
   const collapseBtn = document.querySelector(".sidebar .collapse-btn");
   const toggleMobileMenu = document.querySelector(".toggle-mob-menu");

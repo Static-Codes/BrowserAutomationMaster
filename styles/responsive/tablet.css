@@ -1,0 +1,10 @@
+/* This is styling specific for tablets or smaller LCD laptops like chromebooks or 11-12 inch portable laptops */
+
+@media screen and (min-width: 1024px) and (max-width: 1650px) and (min-height: 768px) {
+  .actions-buttons-container {
+    width: 35vw;
+  }
+  .page-content {
+    width: calc(80vw - (var(--page-header-width) * 2));
+  }
+}

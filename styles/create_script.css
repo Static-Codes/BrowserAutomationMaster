@@ -139,7 +139,6 @@
   border-color: var(--blue);
 }
 
-/* Execute Button */
 .execute-button {
   display: block;
   width: 100%;
@@ -156,13 +155,13 @@
 }
 
 .execute-button:hover {
-  background-color: #0093c4; /* Slightly darker blue on hover */
+  background-color: #0093c4;
 }
 
 .command-list-box {
-  flex-grow: 1 !important; /* This item fills the space */
-  display: flex !important; /* Make the list box a flex container */
-  flex-direction: column !important; /* Stack its children vertically */
+  flex-grow: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
   border: 1px solid black;
   background-color: var(--page-header-bgColor);
   padding: 0 !important;
@@ -180,15 +179,15 @@
 }
 
 #command-list {
-  flex-grow: 1 !important; /* This is the key: it grows to fill the parent space */
-  overflow-y: auto !important; /* Allows the content to scroll */
+  flex-grow: 1 !important;
+  overflow-y: auto !important;
   padding-left: 0 !important;
-  margin: 0 !important; /* Eliminates all default top/bottom margin */
+  margin: 0 !important;
   text-align: center;
 }
 
 #command-list li {
-  background-color: Command var(--input-section-background);
+  background-color: var(--input-section-background);
   cursor: pointer;
 }
 

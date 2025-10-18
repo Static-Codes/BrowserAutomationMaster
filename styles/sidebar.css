@@ -25,6 +25,10 @@
   --switch-bgDarkModeColor: #1f1f27;
 }
 
+html {
+  background: var(--page-header-bgColor);
+}
+
 * {
   padding: 0;
   margin: 0;
@@ -441,6 +445,10 @@ body.otter-compat .sidebar {
 
 .light-mode .switch [type="checkbox"]:focus + label span:first-child {
   box-shadow: 0 3px 5px rgba(0, 0, 0, 0.25);
+}
+
+.light-mode .validate-script-btn svg {
+  filter: invert(0%) !important;
 }
 
 @media screen and (max-width: 767px) {
