@@ -81,6 +81,8 @@ Where `v` is the version (For example: 3.9)
 ## User Experience Enhancements
 - Allow users the ability to open a new explorer/finder window to that directory, provided there's at least 100MB of RAM available.
 - Reintroduce 32bit system support (win-x86, osx-x86, linux-x86)
+- Update documentation to reflect the new commands [here](changelog-for-latest.md)
+- Finish GUI
 
 ## LSP (Language Server Protocol)
 - This will allow you to create bamm scripts with syntax highlighting and other features similar to pylance.
