@@ -187,20 +187,47 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
         }
-
+        
         public static void EnsureDirectoryExists(string path)
         {
-            if (!Directory.Exists(path))
+            if (Directory.Exists(path))
+                return;
+
+            try { 
+                Directory.CreateDirectory(path); 
+            }
+            catch (Exception)
             {
-                try { Directory.CreateDirectory(path); }
-                catch (Exception)
-                {
-                    Write(
-                        message: $"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"
-                    );
-                }
+                Write(
+                    message: $"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"
+                );
             }
         }
+
+        public static string GetAppDataDirectory()
+        {
+            string appName = "BrowserAutomationMaster";
+
+            if (Platforms.IsWindows)
+                return GetAppDataWindows(appName);
+
+            else if (Platforms.IsOSX)
+                return GetAppDataMacOS(appName);
+
+            else if (Platforms.IsLinux || Platforms.IsChromeOS)
+                return GetAppDataLinux(appName);
+
+            else
+                throw new PlatformNotSupportedException($"Unsupported OS");
+        }
+
+        public static string GetBrowserStackDirectory() { return Path.Combine(AppDataDirectory, "browserstack"); }
+
+        public static string GetBrowserStackConfigPath() { return Path.Combine(GetBrowserStackDirectory(), "browserstack.yml"); }
+
+        public static string GetBAMConfigDirectory() { return Path.Combine(AppDataDirectory, "config"); }
+
+        public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
 
         private static string GetDefaultBackupPath(string compression = "zip")
         {
@@ -220,13 +247,14 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
-        public static string GetBrowserStackDirectory() { return Path.Combine(AppDataDirectory, "browserstack"); }
+        public static string GetGUIDaemonPath() { return Path.Combine(AppDataDirectory, "guiDaemon.py"); }
+      
+        public static string GetGUIDirectoryPath() { return Path.Combine(AppDataDirectory, "gui"); }
+        
+        public static string GetGUIZipPath() { return Path.Combine(AppDataDirectory, "gui.zip"); }
 
-        public static string GetBrowserStackConfigPath() { return Path.Combine(GetBrowserStackDirectory(), "browserstack.yml"); }
+        public static string GetLinuxPackageFile() { return Path.Combine(AppDataDirectory, "PKGS_INSTALLED"); }
 
-        public static string GetBAMConfigDirectory() { return Path.Combine(AppDataDirectory, "config"); }
-
-        public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
         public static string GetPackagesPath() { return Path.Combine(AppDataDirectory, "packages.json"); }
 
         public static string GetProjectRequirementsPath(string ParentDirectory)
@@ -375,26 +403,5 @@ namespace BrowserAutomationMaster.Managers
             return appDataDirectory;
         }
 
-        public static string GetAppDataDirectory()
-        {
-            string appName = "BrowserAutomationMaster";
-
-            if (Platforms.IsWindows)
-                return GetAppDataWindows(appName);
-
-            else if (Platforms.IsOSX)
-                return GetAppDataMacOS(appName);
-
-            else if (Platforms.IsLinux || Platforms.IsChromeOS)
-                return GetAppDataLinux(appName);
-
-            else
-                throw new PlatformNotSupportedException($"Unsupported OS");
-        }
-
-        public static string GetLinuxPackageFile()
-        {
-            return Path.Combine(AppDataDirectory, "PKGS_INSTALLED");
-        }
     }
 }

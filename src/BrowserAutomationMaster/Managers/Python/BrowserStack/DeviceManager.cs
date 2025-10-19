@@ -117,11 +117,8 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
             catch (Exception ex)
             {
-                {
-                    Console.WriteLine(ex.Message);
-                    return WriteErrorAndReturnBool(msg, false);
-                }
-
+                Console.WriteLine(ex.Message);
+                return WriteErrorAndReturnBool(msg, false);
             }
 
         }

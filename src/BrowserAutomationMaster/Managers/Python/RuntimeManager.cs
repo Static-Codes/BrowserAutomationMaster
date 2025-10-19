@@ -1,9 +1,7 @@
-﻿using BrowserAutomationMaster.Compilation;
-using BrowserAutomationMaster.Managers.AppManager.OS;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
@@ -66,7 +64,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
-        private static string GetInterpreterFromPath()
+        public static string GetInterpreterFromPath()
         {
             if (Platforms.IsWindows)
                 return Win.GetInterpreterPath();
@@ -257,31 +255,27 @@ namespace BrowserAutomationMaster.Managers.Python
         // Readd error handling
         public async Task<bool> RunScript(bool usingBrowserstack = false)
         {
-            // For the current commit this is intentionally unwrapped from the try catch block to invoke an Exception and have its StackTrace automatically output for debugging purposes.
-            ValidateScript();
-            var vEnvManager = usingBrowserstack switch
+            try
             {
-                true => VEnvManager.CheckBSConfigAtRuntime(scriptFilePath),
-                false => new VEnvManager(InterpreterPath, scriptFilePath),
-            };
-            await vEnvManager.RunScriptInVEnv(usingBrowserStack: usingBrowserstack);
-
-            //try
-            //{
-            //    ValidateScript();
-            //    VEnvManager vEnvManager = new(InterpreterPath, scriptFilePath);
-            //    await vEnvManager.RunScriptInVEnv();
-            //}
-            //catch (Exception ex)
-            //{
-            //    WriteAndExit(
-            //        message:
-            //            $"BAM Manager (BAMM) was unable finish execution of the selected file.\n" +
-            //            $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
-            //            $"Error log:\n{ex.Message}'",
-            //        status: 1
-            //    );
-            //}
+                // For the current commit this is intentionally unwrapped from the try catch block to invoke an Exception and have its StackTrace automatically output for debugging purposes.
+                ValidateScript();
+                var vEnvManager = usingBrowserstack switch
+                {
+                    true => VEnvManager.CheckBSConfigAtRuntime(scriptFilePath),
+                    false => new VEnvManager(InterpreterPath, scriptFilePath),
+                };
+                await vEnvManager.RunScriptInVEnv(usingBrowserStack: usingBrowserstack);
+            }
+            catch (Exception ex)
+            {
+                WriteAndExit(
+                    message:
+                        $"BAM Manager (BAMM) was unable finish execution of the selected file.\n" +
+                        $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
+                        $"Error log:\n{ex.Message}'",
+                    status: 1
+                );
+            }
 
             return true;
         }

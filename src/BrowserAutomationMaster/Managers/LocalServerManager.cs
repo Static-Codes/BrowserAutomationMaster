@@ -1,24 +1,28 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.EndpointFunctions;
 using static BrowserAutomationMaster.Managers.EndpointHelpers;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static System.Text.Encoding;
 
 namespace BrowserAutomationMaster.Managers
 {
-    public class LSManager
+    public class LocalServerManager
     {
         private readonly static HttpListener listener = new();
-        const string DEFAULT_PORT = "80";
+        const string DEFAULT_PORT = "8008";
+        private readonly static string GUI_ZIP_PATH = GetGUIZipPath();
 
         private static bool isRunning = true;
         public static bool IsRunning() { return isRunning; }
@@ -30,11 +34,65 @@ namespace BrowserAutomationMaster.Managers
 
 
 
-        public static (string name, string args) GetProcessNameAndArgs()
+        public static async Task<bool> DownloadGUI()
         {
-            if (Platforms.IsChromeOS || Platforms.IsUnixLike) return ("netstat", "-ltu");
-            else if (Platforms.IsWindows) return ("cmd.exe", "/c netstat -ano");
-            else throw new PlatformNotSupportedException("Invalid OS.");
+            var msg = "Unable to download the GUI, any attempt to use the `--gui` flag will throw an error.";
+            try
+            {
+                var response = await RequestManager.NetworkClient.Instance.GetAsync(GUI_ZIP_LINK);
+                
+                if (!response.IsSuccessStatusCode)
+                    return WriteErrorAndReturnBool(msg, false);
+
+                var content = await response.Content.ReadAsByteArrayAsync();
+
+                if (content == null)
+                    return WriteErrorAndReturnBool(msg, false);
+
+                await File.WriteAllBytesAsync(GUI_ZIP_PATH, content);
+
+                return File.Exists(GUI_ZIP_PATH);
+            }
+
+            catch (Exception ex)
+            {
+                var error = string.Join("", [msg, "Error Log:\n\n", ex.Message]);
+                return WriteErrorAndReturnBool(error, false);
+            }
+        }
+
+        public static bool ExtractGUI()
+        {
+            try
+            {
+                ZipFile.ExtractToDirectory(GUI_ZIP_PATH, AppDataDirectory);
+                File.Delete(GUI_ZIP_PATH);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Warning.Write("An unhandled exception has occured while attempting to extract BAMM's GUI.");
+                WriteAndExit(ex.Message, 1);
+            }
+            return false;
+        }
+
+        public static (string name, string args) GetProcessNameAndArgs(bool scan = false, bool restart = false)
+        {
+            if (!scan && !restart)
+                WriteAndExit("Both scan and restart are set to false in a call to GetProcessNameAndArgs(), please fix this before continuing.", 1);
+
+            if (restart)
+                return (GetInterpreterFromPath(), GetGUIDaemonPath());
+
+            if (scan && Platforms.IsChromeOS || Platforms.IsUnixLike) 
+                return ("netstat", "-ltu");
+            
+            else if (scan && Platforms.IsWindows)
+                return ("cmd.exe", "/c netstat -ano");
+            
+            else
+                throw new PlatformNotSupportedException("Invalid OS.");
         }
 
         /// <summary>
@@ -113,7 +171,7 @@ namespace BrowserAutomationMaster.Managers
                         break;
 
                     case "/restart":
-                        //CREATE A SEPARATE DAEMON TO KILL BAMM AND RESTART
+                        await Restart(response);
                         break;
 
                     case "/terminate":
@@ -134,13 +192,14 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
+
         /// <summary>
         /// Uses netstat on all supported Platforms and OS to return a list of 
         /// </summary>
         /// <returns></returns>
         public static async Task<string[]> ScanForUsedLHPorts()
         {
-            (var name, var args) = GetProcessNameAndArgs();
+            (var name, var args) = GetProcessNameAndArgs(scan: true);
             var psi = new ProcessStartInfo()
             {
                 FileName = name,
@@ -207,7 +266,7 @@ namespace BrowserAutomationMaster.Managers
             ];
         }
 
-        public static async Task Start(string port = DEFAULT_PORT)
+        public static async Task StartServer(string port = DEFAULT_PORT)
         {
 
             var url = $"http://127.0.0.1:{port}/";
@@ -235,7 +294,10 @@ namespace BrowserAutomationMaster.Managers
 
                 listener.Prefixes.Add(url);
                 listener.Start();
-                Console.WriteLine("Started GUI on {0}\n", url);
+                Console.WriteLine("Started GUI Server on {0}\n", url);
+
+                // Would you like to open the GUI in your default browser?
+                // If yes, then open for the user 
 
                 await HandleEndpointRequests();
                 listener.Close();
@@ -320,6 +382,30 @@ namespace BrowserAutomationMaster.Managers
                 }
 
                 await HandleValidResponse(response, data);
+            }
+            catch (Exception ex)
+            {
+                await HandleInvalidResponse(response, ex.Message);
+            }
+        }
+
+        public static async Task Restart(HttpListenerResponse response)
+        {
+            var actionText = "restart the HTTP Server associated with BAMM's GUI";
+            try
+            {
+                (string name, string args) = LocalServerManager.GetProcessNameAndArgs(restart: true);
+                var psi = new ProcessStartInfo()
+                {
+                    FileName = name,
+                    Arguments = args,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,
+                };
+                using var process = await ProcessFactory.SpawnProcess(psi, actionText, timeout: 30);
+                (var ExitCode, var STDOut, var STDErr) = await ProcessFactory.GetProcessResponse(process);
             }
             catch (Exception ex)
             {
@@ -457,7 +543,7 @@ namespace BrowserAutomationMaster.Managers
         {
             var invalidResp = JsonSerializer.Serialize(Error(error));
             var respBytes = UTF8.GetBytes(invalidResp);
-            await LSManager.WriteResponse(response, respBytes);
+            await LocalServerManager.WriteResponse(response, respBytes);
         }
 
         public static async Task HandleValidResponse(HttpListenerResponse response, Dictionary<string, string> items)
@@ -466,7 +552,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 var validRespObj = JsonSerializer.Serialize(Success(items));
                 var validRespBytes = UTF8.GetBytes(validRespObj);
-                await LSManager.WriteResponse(response, validRespBytes);
+                await LocalServerManager.WriteResponse(response, validRespBytes);
             }
             catch (Exception ex)
             {
