@@ -1,14 +1,17 @@
 ﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
+using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using System.Reflection.Metadata;
 using static BrowserAutomationMaster.Compilation.Transpiler;
-using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.LocalServerManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.ProcessManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.BrowserVersionManager;
@@ -19,14 +22,12 @@ using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.Parser;
-using BrowserAutomationMaster.Managers.Python.BrowserStack;
 
 
 namespace BrowserAutomationMaster
 {
     public class ProgramFunctions
     {
-
         /// <summary>Handles all of the initial application setup and prerequisite checks.</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
         public static async Task InitializeAsync(string[] args)
@@ -105,27 +106,36 @@ namespace BrowserAutomationMaster
                 return !wantsToContinue; // Exit if user doesn't want to continue
             }
 
+            // Handles --bs command (does nothing if on chromeOS)
             if (pArgs[0].Equals("--bs", CCIC))
             {
                 SetBrowserStackStatus(status: true);
                 return false;
             }
 
+            // Handles `--editbsconf` command
             if (pArgs[0].Equals("--editbsconf"))
             {
                 HandleBSOverwriteCommand();
                 return true;
             }
 
-            if (pArgs.Length == 1 && pArgs[0].Equals("--gui") )
+            // Downloads a local copy of the GUI (If one is not already present) from:
+            // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip
+            if (pArgs[0].Equals("--gui") && !Directory.Exists(GetGUIDirectoryPath()))
+                await HandleGUIDownload();
+
+            // Handles '--gui' command using default port (8008)
+            if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
             {
-                await LSManager.Start();
+                await StartServer();
                 return true;
             }
 
+            // Handles '--gui --port==X' command where X is a valid integer between 1 and 65535
             if (pArgs.Length == 2 && pArgs[0].Equals("--gui") && IsMatches(GUIPortRegex(), pArgs[1], out string port))
             {
-                await LSManager.Start(port);
+                await StartServer(port);
                 return true;
             }
 
@@ -255,6 +265,99 @@ namespace BrowserAutomationMaster
                 DeleteDirectory(dirPath);
         }
 
+        private static async Task<bool> HandleDaemonDownload()
+        {
+            var msg = "Unable to download the GUI Daemon, any attempt to use the 'Restart GUI' button will throw an error.";
+            try
+            {
+                var content = await RequestManager.NetworkClient.Instance.GetStringAsync(GUI_DAEMON_LINK);
+
+                if (content == null)
+                    return WriteErrorAndReturnBool(msg, false);
+
+                var path = GetGUIDaemonPath();
+                File.WriteAllText(path, content);
+                return File.Exists(path);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return WriteErrorAndReturnBool(msg, false);
+            }
+        }
+
+        private static async Task<bool> HandleGUIDownload()
+        {
+            //try
+            //{
+                bool daemonDownloaded = false; // Prevents the requirement for nesting
+
+                if (File.Exists(GetGUIDaemonPath())) // If the Daemon is already downloaded, continue
+                    daemonDownloaded = true;
+
+                else // Downloads a local copy of the GUI from ConstantManager.GUI_DAEMON_LINK
+                    daemonDownloaded = await HandleDaemonDownload();
+
+
+                if (!daemonDownloaded) // If the daemonDownload flag isnt true, execution ends.
+                    return false;
+
+                if (!File.Exists(GetGUIDaemonPath())) // If the daemon wasn't downloaded, execution ends.
+                    return false;
+
+                WriteSuccessMessage("Successfully downloaded the GUI Daemon, downloading GUI now..");
+                await Task.Delay(300);
+
+                if (!await DownloadGUI())
+                    return false;
+
+                WriteSuccessMessage("Successfully downloaded gui.zip from project repository, please wait while it's extracted.");
+                await Task.Delay(300);
+
+                if (!ExtractGUI())
+                    return false;
+
+                WriteSuccessMessage("Successfully extracted GUI, please wait while the HTTP Server starts..");
+            //}
+            //catch (Exception ex)
+            //{
+            //    WriteAndExit(
+            //        message:
+            //            string.Join(
+            //                string.Empty, [
+            //                    "Unable to download the required GUI files, ",
+            //                    "if this issue persists, ",
+            //                    $"please make a bug report at {ISSUES_LINK}\n\n",
+            //                    $"Error Log:\n{ex.Message}"
+            //                ]
+            //            ), 
+            //        status: 1
+            //    );
+            //}
+            return true;
+        }
+
+        private static async Task HandleHardwareCheck(string[] pArgs)
+        {
+            // Skip compatibility checks if the user is not attempting to compile or run scripts.
+            string[] nonUserScriptArgs = ["backup", "clear", "help", "uninstall", "validate"];
+
+            string[] bypassCLIArgs = ["--bs", "--nohwc", "--editbsconf"];
+
+            bool bypassCheck1 = pArgs.Any(arg => nonUserScriptArgs.Contains(arg));
+            bool bypassCheck2 = pArgs.Any(arg => bypassCLIArgs.Contains(arg));
+
+            bool doHardwareCheck = !bypassCheck1 && !bypassCheck2;
+
+            if (GlobalConfig.ShowUpdateCheck)
+                await CheckForUpdate();
+
+            if (doHardwareCheck)
+                RuntimeManager.DoRuntimeCheck();
+        }
+        /// <summary>Runs the main menu loop for BAMM.</summary>
+        /// <param name="pArgs">Program Arguments (args)</param>
+
 
         /// <summary> Handles variations of 'bamm help' </summary>
         /// <param name="pArgs">Program Arguments (args)</param>
@@ -262,8 +365,12 @@ namespace BrowserAutomationMaster
         {
             if (pArgs.Length == 1)
             {
-                Write(
-                    "Invalid command: 'bamm help'\n\nTo see available entries for the 'help' command, run bamm without arguments then select the Help tab.\n\n");
+                Write(string.Join(
+                    string.Empty, [
+                        "Invalid command: 'bamm help'\n\nTo see available entries for the 'help' command, ",
+                        "run bamm without arguments then select the Help tab.\n\n"
+                    ])
+                );
                 ReadKey();
             }
             else if (pArgs.Length == 2)
@@ -271,6 +378,7 @@ namespace BrowserAutomationMaster
                 Help.ShowCommandDetails(pArgs[1]);
             }
         }
+
 
         /// <summary> Handle variations of 'bamm run' </summary>
         /// <param name="pArgs"></param>
@@ -293,27 +401,6 @@ namespace BrowserAutomationMaster
 
             return true;
         }
-
-        private static async Task HandleHardwareCheck(string[] pArgs)
-        {
-            // Skip compatibility checks if the user is not attempting to compile or run scripts.
-            string[] nonUserScriptArgs = ["backup", "clear", "help", "uninstall", "validate"];
-            
-            string[] bypassCLIArgs = ["--bs", "--nohwc",  "--editbsconf"];
-
-            bool bypassCheck1 = pArgs.Any(arg => nonUserScriptArgs.Contains(arg));
-            bool bypassCheck2 = pArgs.Any(arg => bypassCLIArgs.Contains(arg));
-
-            bool doHardwareCheck = !bypassCheck1 && !bypassCheck2;
-
-            if (GlobalConfig.ShowUpdateCheck)
-                await CheckForUpdate();
-
-            if (doHardwareCheck)
-                RuntimeManager.DoRuntimeCheck();
-        }
-        /// <summary>Runs the main menu loop for BAMM.</summary>
-        /// <param name="pArgs">Program Arguments (args)</param>
 
         public static async Task RunMenuLoop(string[] args)
         {

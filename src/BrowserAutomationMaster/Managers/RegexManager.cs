@@ -221,17 +221,17 @@ namespace BrowserAutomationMaster.Managers
         public static partial Regex PrecompiledPackageRegex();
 
 
-        // Used in LSManager.HandleEndpointRequests();
+        // Used in LocalServerManager.HandleEndpointRequests();
         const string base64FormatPattern = @"^[a-zA-Z0-9\+/]*={0,2}$";
         [GeneratedRegex(base64FormatPattern)]
         public static partial Regex PrecompiledBase64Regex();
 
-        // Used for LSManager.ScanUsedLHPorts() (Windows)
+        // Used for LocalServerManager.ScanUsedLHPorts() (Windows)
         [GeneratedRegex(@"(?:TCP|UDP)\s{4}(?:localhost|127.0.0.1):([0-9]{1,5})|(?:localhost|127.0.0.1):([0-9]{1,5})")]
         public static partial Regex PrecompiledNetStatRegex();
 
 
-        //// Used for LSManager.ScanUsedLHPorts() (Unix)
+        //// Used for LocalServerManager.ScanUsedLHPorts() (Unix)
         //[GeneratedRegex(@"(?:TCP|UDP)\s{4}(?:localhost|127.0.0.1):([0-9]{1,5})")]
         //public static partial Regex PrecompiledNetStatRegex();
     }

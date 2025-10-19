@@ -194,7 +194,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             while (true)
             {
                 WriteMessage(choicesMessage, isWarning: true);
-                string rawChoice = Input.WriteListFromOptions(choices, noun: "interpretter");
+                string rawChoice = Input.WriteListFromOptions(choices, noun: "interpreter");
                 if (int.TryParse(rawChoice, out int choice) && choice >= 1 && choice <= python3Paths.Length) { 
                     return python3Paths[choice - 1]; 
                 }
