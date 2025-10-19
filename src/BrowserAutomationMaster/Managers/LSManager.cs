@@ -112,6 +112,10 @@ namespace BrowserAutomationMaster.Managers
                         await Load(response);
                         break;
 
+                    case "/restart":
+                        //CREATE A SEPARATE DAEMON TO KILL BAMM AND RESTART
+                        break;
+
                     case "/terminate":
                         isRunning = false;
                         await WriteResponse(response, UTF8.GetBytes("{ \"terminated\": true }"));
