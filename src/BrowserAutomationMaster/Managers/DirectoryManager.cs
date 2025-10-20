@@ -250,7 +250,10 @@ namespace BrowserAutomationMaster.Managers
         public static string GetGUIDaemonPath() { return Path.Combine(AppDataDirectory, "guiDaemon.py"); }
       
         public static string GetGUIDirectoryPath() { return Path.Combine(AppDataDirectory, "gui"); }
-        
+
+
+        public static string GetMainGUIPage() { return Path.Combine(GetGUIDirectoryPath(), "index.html"); }
+
         public static string GetGUIZipPath() { return Path.Combine(AppDataDirectory, "gui.zip"); }
 
         public static string GetLinuxPackageFile() { return Path.Combine(AppDataDirectory, "PKGS_INSTALLED"); }
