@@ -140,6 +140,19 @@ function populateCommandSelect() {
   });
 }
 
+function refocusSelection() {
+  commandList.addEventListener("click", (e) => {
+   const clickedItem = e.target.closest("li");
+
+    if (clickedItem) {
+      commandList.querySelectorAll(".list-item").forEach((item) => {
+        item.classList.remove("list-item");
+      });
+      clickedItem.classList.add("list-item");
+    }
+  });
+}
+
 function removeSelectedCommand() {
   var index = getIndexOfSelectedCommand();
   if (index == -1) {
