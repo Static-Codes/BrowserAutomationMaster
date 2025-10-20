@@ -295,6 +295,7 @@ namespace BrowserAutomationMaster.Managers
                 listener.Prefixes.Add(url);
                 listener.Start();
                 Console.WriteLine("Started GUI Server on {0}\n", url);
+                Console.WriteLine("To access the GUI visit {0}\n", GetMainGUIPage());
 
                 // Would you like to open the GUI in your default browser?
                 // If yes, then open for the user 
