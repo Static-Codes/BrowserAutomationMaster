@@ -55,6 +55,21 @@ function addCmdToLocalStorage(value) {
   commands[Object.keys(commands).length] = value;
 }
 
+
+
+function duplicateSelectedCommand() {
+  var index = getIndexOfSelectedCommand();
+  if (index == -1) {
+    alert("Please select an element to remove.");
+    throw new Error("No element selected");
+  }
+  addCmdToLocalStorage(commands[index]);
+
+  var selectedChild = document.querySelector(".list-item");
+  var clonedChild = selectedChild.cloneNode(true);
+  addCommandToCommandList(clonedChild.textContent);
+}
+
 function getData() {
   try {
     var commandsFromLS = localStorage.getItem("commands");
@@ -69,33 +84,6 @@ function getData() {
   }
 }
 
-function populateCommandSelect() {
-  commandCollection.forEach((command) => {
-    var option = document.createElement("option");
-    option.value = command.commandName;
-    option.disabled = command.disabledOnLoad;
-    option.textContent = command.commandName;
-
-    if (command.commandName == "Browser") {
-      renderArguments(command);
-      option.selected = true;
-    }
-    commandSelect.appendChild(option);
-  });
-}
-
-function duplicateSelectedCommand() {
-  var index = getIndexOfSelectedCommand();
-  if (index == -1) {
-    alert("Please select an element to remove.");
-    throw new Error("No element selected");
-  }
-  addCmdToLocalStorage(commands[index]);
-
-  var selectedChild = document.querySelector(".list-item");
-  var clonedChild = selectedChild.cloneNode(true);
-  addCommandToCommandList(clonedChild.textContent);
-}
 
 function getIndexOfSelectedCommand() {
   try {
@@ -136,17 +124,22 @@ function loadCurrentScriptCommands() {
   }
 }
 
-function refocusSelection() {
-  commandList.addEventListener("click", (e) => {
-    const clickedItem = e.target.closest("li");
 
-    if (clickedItem) {
-      commandList.querySelectorAll(".list-item").forEach((item) => {
-        item.classList.remove("list-item");
-      });
+function populateCommandSelect() {
+  commandCollection.forEach((command) => {
+    var option = document.createElement("option");
+    option.value = command.commandName;
+    option.disabled = command.disabledOnLoad;
+    option.textContent = command.commandName;
 
-      clickedItem.classList.add("list-item");
+    if (command.commandName == "Browser") {
+      renderArguments(command);
+      option.selected = true;
     }
+    commandSelect.appendChild(option);
+  });
+}
+Static-Codes/Browser
   });
 }
 
@@ -256,6 +249,15 @@ function renderArguments(command) {
 function setData(data) {
   localStorage.removeItem("commands");
   localStorage.setItem("commands", JSON.stringify(data));
+}
+
+function updateCommandComboBoxState() {
+  document
+    .querySelectorAll("#command-select option")
+    .forEach((el) => (el.disabled = false));
+
+  document.querySelector("#command-select option:first-child").disabled = true;
+  document.querySelector("#command-select option:first-child").selected = false;
 }
 
 window.addEventListener("load", (e) => {
