@@ -139,9 +139,6 @@ function populateCommandSelect() {
     commandSelect.appendChild(option);
   });
 }
-Static-Codes/Browser
-  });
-}
 
 function removeSelectedCommand() {
   var index = getIndexOfSelectedCommand();
