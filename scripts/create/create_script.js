@@ -23,19 +23,6 @@ var exportScriptButton = document.querySelector(
 var nextIndexAfterDelete = 0;
 var scriptIsValidated = false;
 
-function reindexCommands() {
-  var newCommands = {};
-  var listItems = commandList.children;
-  
-  for (var i = 0; i < listItems.length; i++) {
-    newCommands[i] = listItems[i].textContent;
-  }
-  
-  commands = newCommands;
-  setData(commands);
-  console.log(getData());
-}
-
 function addCommandToCommandList(commandText, addToLocalStorage = true) {
   try {
     var childNode = document.createElement("li");
@@ -76,6 +63,7 @@ function clearCurrentScriptState(commandsAdded) {
 
 // FIXED: Now grabs content and calls addCommandToCommandList to append to the end.
 function duplicateSelectedCommand() {
+  
   var selectedChild = document.querySelector(".list-item");
   if (!selectedChild) {
     alert("Please select an element to duplicate.");
@@ -83,6 +71,11 @@ function duplicateSelectedCommand() {
   }
   
   var commandText = selectedChild.textContent;
+
+  if (commandText.includes('"browser":')) {
+    alert("Unable to duplicate the browser command, only one of these commands may be present in any given script.");
+    return; 
+  }
 
   // Appends to the end then ensures it's selected and re-indexes the object.
   addCommandToCommandList(commandText, true);
@@ -123,6 +116,17 @@ function getIndexOfSelectedCommand() {
     return Array.prototype.indexOf.call(parent.children, child);
   } catch (e) {
     return -1;
+  }
+}
+
+function handleCommandListClick(e) {
+  const clickedItem = e.target.closest("li");
+
+  if (clickedItem) {
+    commandList.querySelectorAll(".list-item").forEach((item) => {
+      item.classList.remove("list-item");
+    });
+    clickedItem.classList.add("list-item");
   }
 }
 
@@ -171,16 +175,19 @@ function refocusSelection() {
   commandList.addEventListener("click", handleCommandListClick);
 }
 
-function handleCommandListClick(e) {
-  const clickedItem = e.target.closest("li");
-
-  if (clickedItem) {
-    commandList.querySelectorAll(".list-item").forEach((item) => {
-      item.classList.remove("list-item");
-    });
-    clickedItem.classList.add("list-item");
+function reindexCommands() {
+  var newCommands = {};
+  var listItems = commandList.children;
+  
+  for (var i = 0; i < listItems.length; i++) {
+    newCommands[i] = listItems[i].textContent;
   }
+  
+  commands = newCommands;
+  setData(commands);
+  console.log(getData());
 }
+
 
 function removeSelectedCommand() {
   var selectedChild = document.querySelector(".list-item");
@@ -190,6 +197,13 @@ function removeSelectedCommand() {
   }
   
   var index = getIndexOfSelectedCommand();
+
+  
+    
+  if (commands[index].includes('"browser":')) {
+    alert("Unable to remove the browser command, this is a requirement for every script.");
+    return; 
+  }
 
   var cmdCount = Object.keys(commands).length;
   
@@ -369,6 +383,7 @@ executeButton.addEventListener("click", (e) => {
 duplicateCommandButton.addEventListener("click", (e) => {
   duplicateSelectedCommand();
 });
+
 removeCommandButton.addEventListener("click", (e) => {
   removeSelectedCommand();
 });
