@@ -23,75 +23,102 @@ var exportScriptButton = document.querySelector(
 var nextIndexAfterDelete = 0;
 var scriptIsValidated = false;
 
+function reindexCommands() {
+  var newCommands = {};
+  var listItems = commandList.children;
+  
+  for (var i = 0; i < listItems.length; i++) {
+    newCommands[i] = listItems[i].textContent;
+  }
+  
+  commands = newCommands;
+  setData(commands);
+  console.log(getData());
+}
+
 function addCommandToCommandList(commandText, addToLocalStorage = true) {
   try {
     var childNode = document.createElement("li");
 
-    if (document.querySelector(".list-item")) {
-      // Changes the state of the previously selected item
-      document.querySelector(".list-item").classList.remove("list-item");
-    }
+    document.querySelectorAll("#command-list li.list-item").forEach(item => {
+        item.classList.remove("list-item");
+    });
 
-    // Makes the newly added item the active selection
     childNode.classList.add("list-item");
     childNode.textContent = commandText;
 
     commandList.appendChild(childNode);
+    
     if (addToLocalStorage) {
-      addCmdToLocalStorage(childNode.textContent);
+      reindexCommands();
     }
-    console.log(
-      `Added element ${Object.keys(commands).length} at index ${
-        Object.keys(commands).length - 1
-      }`
-    );
+    
+    console.log(`Added element at index ${commandList.children.length - 1}`);
     refocusSelection();
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 }
 
 function addCmdToLocalStorage(value) {
-  commands[Object.keys(commands).length] = value;
+  // Function now managed by reindexCommands
 }
 
+function clearCurrentScriptState(commandsAdded) {
+  setData({});
 
+  if (commandsAdded.length > 0) {
+    for (var i = commandsAdded.length - 1; i >= 0; i--) {
+      commandsAdded[i].remove();
+    }
+  }
+}
 
+// FIXED: Now grabs content and calls addCommandToCommandList to append to the end.
 function duplicateSelectedCommand() {
-  var index = getIndexOfSelectedCommand();
-  if (index == -1) {
-    alert("Please select an element to remove.");
+  var selectedChild = document.querySelector(".list-item");
+  if (!selectedChild) {
+    alert("Please select an element to duplicate.");
     throw new Error("No element selected");
   }
-  addCmdToLocalStorage(commands[index]);
+  
+  var commandText = selectedChild.textContent;
 
-  var selectedChild = document.querySelector(".list-item");
-  var clonedChild = selectedChild.cloneNode(true);
-  addCommandToCommandList(clonedChild.textContent);
+  // Appends to the end then ensures it's selected and re-indexes the object.
+  addCommandToCommandList(commandText, true);
+
+  console.log(`Duplicated command and appended to end.`);
 }
 
 function getData() {
   try {
     var commandsFromLS = localStorage.getItem("commands");
-    if (commandsFromLS == null) {
-      localStorage.setItem("commands", JSON.stringify({}));
+    var commandsAdded = document.querySelectorAll("#command-list li");
+    
+    if (commandsFromLS == null || commandsFromLS === "{}" || commandsFromLS === "[]") {
+      if (commandsAdded.length > 0) {
+        clearCurrentScriptState(commandsAdded);
+      }
+      return {}; 
     }
-    return JSON.parse(localStorage.getItem("commands"));
+    
+    let data = JSON.parse(commandsFromLS);
+    return Array.isArray(data) ? {} : data; 
   } catch (e) {
-    console.log(e);
-    localStorage.setItem("commands", JSON.stringify({}));
-    return JSON.parse(localStorage.getItem("commands"));
+    console.error(e);
+    clearCurrentScriptState([]);
+    return {};
   }
 }
 
-
 function getIndexOfSelectedCommand() {
   try {
-    if (Object.keys(commands).length == 0) {
-      alert("No commands present.");
-      throw new Error("No commands present.");
+    if (Object.keys(commands).length === 0) {
+      alert("No commands present in the current script.");
+      throw new Error("No commands present in the current script.");
     }
     var child = document.querySelector(".list-item");
+    if (!child) return -1;
     var parent = child.parentNode;
     return Array.prototype.indexOf.call(parent.children, child);
   } catch (e) {
@@ -113,8 +140,8 @@ function loadCurrentScriptCommands() {
     currentlySelectedItem = newSelectedItem;
   }
 
-  if (usingOtter) {
-    for (cmd in commandItems) {
+  if (typeof usingOtter !== 'undefined' && usingOtter) {
+    for (cmd of commandItems) {
       cmd.addEventListener("click", handleSelection);
     }
   } else {
@@ -123,7 +150,6 @@ function loadCurrentScriptCommands() {
     });
   }
 }
-
 
 function populateCommandSelect() {
   commandCollection.forEach((command) => {
@@ -141,48 +167,57 @@ function populateCommandSelect() {
 }
 
 function refocusSelection() {
-  commandList.addEventListener("click", (e) => {
-   const clickedItem = e.target.closest("li");
+  commandList.removeEventListener("click", handleCommandListClick);
+  commandList.addEventListener("click", handleCommandListClick);
+}
 
-    if (clickedItem) {
-      commandList.querySelectorAll(".list-item").forEach((item) => {
-        item.classList.remove("list-item");
-      });
-      clickedItem.classList.add("list-item");
-    }
-  });
+function handleCommandListClick(e) {
+  const clickedItem = e.target.closest("li");
+
+  if (clickedItem) {
+    commandList.querySelectorAll(".list-item").forEach((item) => {
+      item.classList.remove("list-item");
+    });
+    clickedItem.classList.add("list-item");
+  }
 }
 
 function removeSelectedCommand() {
-  var index = getIndexOfSelectedCommand();
-  if (index == -1) {
+  var selectedChild = document.querySelector(".list-item");
+  if (!selectedChild) {
     alert("Please select an element to remove.");
     throw new Error("No element selected");
   }
+  
+  var index = getIndexOfSelectedCommand();
 
   var cmdCount = Object.keys(commands).length;
-  var numberOfShownItems = document.querySelectorAll("#command-list li").length;
-  if (cmdCount == 1) {
-    nextIndexAfterDelete = 0;
-  } else if (index === 0 && nextIndexAfterDelete !== 0) {
-    nextIndexAfterDelete = 0;
-  } else if (index === cmdCount) {
+  
+  if (cmdCount === 1) {
+    nextIndexAfterDelete = -1;
+  } else if (index === cmdCount - 1) {
     nextIndexAfterDelete = index - 1;
-  } else if (numberOfShownItems !== cmdCount) {
-    nextIndexAfterDelete = 0;
+  } else {
+    nextIndexAfterDelete = index;
   }
 
-  console.log(`next selected index: ${nextIndexAfterDelete}`);
   try {
-    delete commands[index + 1];
-    console.log(`deleted element at index ${index + 1}`);
-    document.querySelector(".list-item").remove();
-    console.log(`deleted element .list-item`);
-    commandList.children[nextIndexAfterDelete].classList.add("list-item");
-    setData(commands);
-    refocusSelection();
+    selectedChild.remove();
+    console.log(`deleted command element at index ${index}`);
+    
+    reindexCommands();
+
+    if (Object.keys(commands).length === 0) {
+      console.log("Command list is now empty.");
+      return; 
+    }
+
+    var child = commandList.children[nextIndexAfterDelete];
+    if (child) {
+      child.classList.add("list-item");
+    }
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 }
 
@@ -199,7 +234,6 @@ function renderArguments(command) {
     var argGroup = document.createElement("div");
     argGroup.classList.add("arg-group");
 
-    // Create a label for the argument
     var label = document.createElement("label");
     label.classList.add("arg-label");
     label.textContent =
@@ -271,7 +305,11 @@ function updateCommandComboBoxState() {
 }
 
 window.addEventListener("load", (e) => {
-  Object.values(commands).forEach((el) => addCommandToCommandList(el, false));
+  Object.values(commands).forEach((commandText) => {
+    addCommandToCommandList(commandText, false);
+  });
+  
+  reindexCommands(); 
 });
 
 commandSelect.addEventListener("change", (event) => {
@@ -297,25 +335,22 @@ executeButton.addEventListener("click", (e) => {
   }
 
   var commandData = {
-    // command: selectedCommandName,
     arguments: {},
   };
 
   var argGroups = argsContainer.querySelectorAll(".arg-group");
 
-  // Includes any textbox inputs
   argGroups.forEach((group) => {
-    var argLabel = group.querySelector(".arg-label").textContent.slice(0, -1); // Remove the trailing ':'
+    var argLabel = group.querySelector(".arg-label").textContent.slice(0, -1);
+    var key = argLabel.toLowerCase().replace(" ", "-");
 
     var textInput = group.querySelector(".arg-text-input");
     if (textInput) {
-      commandData.arguments[argLabel.toLowerCase().replace(" ", "-")] =
-        textInput.value;
+      commandData.arguments[key] = textInput.value;
       return;
     }
   });
 
-  // Includes any radiobox inputs
   document
     .querySelectorAll('.arg-option input[type="radio"]:checked')
     .forEach((arg) => {
@@ -323,15 +358,12 @@ executeButton.addEventListener("click", (e) => {
     });
 
   console.log("--- Executing Command ---");
-  console.log(JSON.stringify(commandData));
 
   var jsonString = JSON.stringify(commandData.arguments);
-  commands[Object.keys(commands).length] = jsonString;
+  
+  addCommandToCommandList(jsonString, true);
 
-  setData(commands);
-  console.log(getData());
   updateCommandComboBoxState();
-  addCommandToCommandList(jsonString);
 });
 
 duplicateCommandButton.addEventListener("click", (e) => {
