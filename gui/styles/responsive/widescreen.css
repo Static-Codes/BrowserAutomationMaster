@@ -1,0 +1,10 @@
+/* This is styling specific to wide screen displays */
+
+@media screen and (min-width: 1600px) and (max-width: 1919px) and (min-height: 1080px) {
+  .actions-buttons-container {
+    width: 90% !important;
+  }
+  .page-content {
+    width: calc(75vw - (var(--page-header-width) * 2));
+  }
+}

@@ -1,0 +1,371 @@
+/* RESET RULES
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+@import url("https://fonts.googleapis.com/css?family=Lato:400,700&display=swap");
+
+/* --- GLOBAL STYLES & VARIABLES (DARK MODE DEFAULT) --- */
+:root {
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 90px;
+  --bg-color: #1f2937; /* Gray 800 */
+  --sidebar-bg: #111827; /* Gray 900 */
+  --text-color: #f9fafb; /* Gray 50 */
+  --hover-bg: #374151; /* Gray 700 */
+  --active-bg: #4b5563; /* Gray 600 */
+  --heading-color: #9ca3af; /* Gray 400 */
+  --accent-color: #3b82f6; /* Blue 500 */
+  --switch-bg: #4b5563;
+  --transition-duration: 0.3s;
+  font-family: "Inter", sans-serif;
+}
+
+/* --- LIGHT MODE OVERRIDES --- */
+html.light-mode {
+  --bg-color: #f3f4f6; /* Gray 100 */
+  --sidebar-bg: #ffffff; /* White */
+  --text-color: #1f2937; /* Gray 800 */
+  --hover-bg: #e5e7eb; /* Gray 200 */
+  --active-bg: #d1d5db; /* Gray 300 */
+  --heading-color: #6b7280; /* Gray 500 */
+  --switch-bg: #d1d5db;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color var(--transition-duration),
+    color var(--transition-duration);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --- HEADER & NAVIGATION --- */
+.page-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: var(--sidebar-width);
+  background-color: var(--sidebar-bg);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: width var(--transition-duration);
+  z-index: 1000;
+}
+
+.page-header nav {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 1rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--hover-bg);
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  color: var(--accent-color);
+}
+
+.logo img {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+}
+
+.toggle-mob-menu {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 1rem;
+}
+
+.sidebar {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar li {
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.sidebar li:last-child {
+  margin-top: auto;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0.5rem;
+  text-decoration: none;
+  color: var(--text-color);
+  border-radius: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color var(--transition-duration);
+}
+
+.sidebar a:hover {
+  background-color: var(--hover-bg);
+}
+
+.sidebar a:active {
+  background-color: var(--active-bg);
+}
+
+.sidebar a svg {
+  width: 20px;
+  height: 20px;
+  margin-right: 1rem;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.sidebar .menu-heading {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  padding: 0 0.5rem;
+  color: var(--heading-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.sidebar .menu-heading h3 {
+  margin: 0;
+  opacity: 1;
+  transition: opacity var(--transition-duration);
+}
+
+.sidebar li:last-child {
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.sidebar li:last-child > div {
+  margin-bottom: 0.5rem;
+}
+
+.collapse-btn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0.75rem 0.5rem;
+  border-radius: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color var(--transition-duration);
+}
+
+.collapse-btn:hover {
+  background-color: var(--hover-bg);
+}
+
+.collapse-btn svg {
+  width: 20px;
+  height: 20px;
+  margin-right: 1rem;
+  fill: currentColor;
+  transition: transform var(--transition-duration);
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 0.5rem;
+  justify-content: space-between;
+  background-color: var(--hover-bg);
+}
+
+.switch label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.switch label span:last-child {
+  margin-left: 1rem;
+}
+
+.switch input {
+  display: none;
+}
+
+.switch label span:first-child {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: var(--switch-bg);
+  border-radius: 10px;
+  transition: background-color var(--transition-duration);
+  flex-shrink: 0;
+}
+
+.switch label span:first-child::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background-color: var(--text-color);
+  border-radius: 50%;
+  transition: transform var(--transition-duration);
+}
+
+.switch input:checked + label span:first-child {
+  background-color: var(--accent-color);
+}
+
+.switch input:checked + label span:first-child::after {
+  transform: translateX(20px);
+}
+
+/* --- COLLAPSED STATE (Desktop) --- */
+body.collapsed .page-header {
+  width: var(--sidebar-collapsed-width);
+}
+
+body.collapsed .sidebar a span,
+body.collapsed .menu-heading h3,
+body.collapsed .collapse-btn span,
+body.collapsed .switch label span:last-child {
+  opacity: 0;
+  width: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-duration),
+    width var(--transition-duration);
+}
+
+/* Switch position fix in collapsed mode */
+body.collapsed .switch {
+  justify-content: center;
+}
+
+/* Ensure the switch container itself doesn't shrink width zero */
+body.collapsed .switch label {
+  width: 40px; /* Width of the switch toggle itself */
+}
+
+/* Collapse button icon rotation */
+body.collapsed .collapse-btn svg {
+  margin-right: 0;
+  transform: rotate(180deg);
+}
+
+body.collapsed .sidebar a {
+  padding: 0.75rem 0;
+  justify-content: center;
+}
+
+body.collapsed .sidebar a svg {
+  margin-right: 0;
+}
+
+body.collapsed .logo {
+  padding: 0.5rem 0;
+}
+
+/* --- RESPONSIVENESS (Mobile View) --- */
+@media (max-width: 768px) {
+  .page-header {
+    position: relative;
+    width: 100%;
+    height: auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .page-header nav {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    height: 60px;
+  }
+
+  .logo {
+    height: 60px;
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    width: 40px;
+  }
+
+  .toggle-mob-menu {
+    display: block;
+  }
+
+  .sidebar {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    background-color: var(--sidebar-bg);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    transition: max-height 0.4s ease-in-out;
+    flex-grow: 0;
+  }
+
+  body.mob-menu-opened .sidebar {
+    max-height: 500px; /* Arbitrary large value to show all content */
+    padding-bottom: 1rem;
+  }
+
+  .sidebar .collapse-btn {
+    display: none; /* Hide collapse button on mobile */
+  }
+
+  /* Remove desktop-only collapsed state if present */
+  body.collapsed .page-header {
+    width: 100%;
+  }
+  body.collapsed .sidebar a span,
+  body.collapsed .menu-heading h3,
+  body.collapsed .collapse-btn span,
+  body.collapsed .switch label span:last-child {
+    opacity: 1;
+    width: auto;
+    visibility: visible;
+  }
+
+  body.collapsed .sidebar a,
+  body.collapsed .sidebar a svg {
+    padding: 0.75rem 0.5rem;
+    justify-content: flex-start;
+  }
+
+  body.collapsed .sidebar a svg {
+    margin-right: 1rem;
+    transform: none;
+  }
+
+  body.collapsed .collapse-btn svg {
+    transform: none;
+  }
+}
