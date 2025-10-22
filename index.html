@@ -158,7 +158,7 @@
           </li>
 
           <li>
-            <a href="#0" title="Create New Script">
+            <a href="#createScript" title="Create New Script" id="resetScriptState">
               <svg id="createScript" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
               </svg>
@@ -355,6 +355,14 @@
 
       commandItems.forEach(item => {
         item.addEventListener('click', handleSelection);
+      });
+
+
+      const resetScriptBtn = document.querySelector("#resetScriptState");
+      var commandsAdded = document.querySelectorAll("#command-list li");
+
+      resetScriptBtn.addEventListener("click", (e) => {
+        clearCurrentScriptState(commandsAdded)
       });
     </script>
     

@@ -27,19 +27,19 @@ function addCommandToCommandList(commandText, addToLocalStorage = true) {
   try {
     var childNode = document.createElement("li");
 
-    document.querySelectorAll("#command-list li.list-item").forEach(item => {
-        item.classList.remove("list-item");
+    document.querySelectorAll("#command-list li.list-item").forEach((item) => {
+      item.classList.remove("list-item");
     });
 
     childNode.classList.add("list-item");
     childNode.textContent = commandText;
 
     commandList.appendChild(childNode);
-    
+
     if (addToLocalStorage) {
       reindexCommands();
     }
-    
+
     console.log(`Added element at index ${commandList.children.length - 1}`);
     refocusSelection();
   } catch (e) {
@@ -47,34 +47,33 @@ function addCommandToCommandList(commandText, addToLocalStorage = true) {
   }
 }
 
-function addCmdToLocalStorage(value) {
-  // Function now managed by reindexCommands
-}
+function clearCurrentScriptState() {
+  commands = {};
+  window.location.reload(true);
+  setData(commands);
 
-function clearCurrentScriptState(commandsAdded) {
-  setData({});
-
-  if (commandsAdded.length > 0) {
-    for (var i = commandsAdded.length - 1; i >= 0; i--) {
-      commandsAdded[i].remove();
+  if (commandList.children.length > 0) {
+    for (var i = commandList.children.length - 1; i >= 0; i--) {
+      commandList.children[i].remove();
     }
   }
 }
 
 // FIXED: Now grabs content and calls addCommandToCommandList to append to the end.
 function duplicateSelectedCommand() {
-  
   var selectedChild = document.querySelector(".list-item");
   if (!selectedChild) {
     alert("Please select an element to duplicate.");
     throw new Error("No element selected");
   }
-  
+
   var commandText = selectedChild.textContent;
 
   if (commandText.includes('"browser":')) {
-    alert("Unable to duplicate the browser command, only one of these commands may be present in any given script.");
-    return; 
+    alert(
+      "Unable to duplicate the browser command, only one of these commands may be present in any given script."
+    );
+    return;
   }
 
   // Appends to the end then ensures it's selected and re-indexes the object.
@@ -87,19 +86,23 @@ function getData() {
   try {
     var commandsFromLS = localStorage.getItem("commands");
     var commandsAdded = document.querySelectorAll("#command-list li");
-    
-    if (commandsFromLS == null || commandsFromLS === "{}" || commandsFromLS === "[]") {
+
+    if (
+      commandsFromLS == null ||
+      commandsFromLS === "{}" ||
+      commandsFromLS === "[]"
+    ) {
       if (commandsAdded.length > 0) {
-        clearCurrentScriptState(commandsAdded);
+        clearCurrentScriptState();
       }
-      return {}; 
+      return {};
     }
-    
+
     let data = JSON.parse(commandsFromLS);
-    return Array.isArray(data) ? {} : data; 
+    return Array.isArray(data) ? {} : data;
   } catch (e) {
     console.error(e);
-    clearCurrentScriptState([]);
+    clearCurrentScriptState();
     return {};
   }
 }
@@ -144,7 +147,7 @@ function loadCurrentScriptCommands() {
     currentlySelectedItem = newSelectedItem;
   }
 
-  if (typeof usingOtter !== 'undefined' && usingOtter) {
+  if (typeof usingOtter !== "undefined" && usingOtter) {
     for (cmd of commandItems) {
       cmd.addEventListener("click", handleSelection);
     }
@@ -178,16 +181,15 @@ function refocusSelection() {
 function reindexCommands() {
   var newCommands = {};
   var listItems = commandList.children;
-  
+
   for (var i = 0; i < listItems.length; i++) {
     newCommands[i] = listItems[i].textContent;
   }
-  
+
   commands = newCommands;
   setData(commands);
   console.log(getData());
 }
-
 
 function removeSelectedCommand() {
   var selectedChild = document.querySelector(".list-item");
@@ -195,18 +197,18 @@ function removeSelectedCommand() {
     alert("Please select an element to remove.");
     throw new Error("No element selected");
   }
-  
+
   var index = getIndexOfSelectedCommand();
 
-  
-    
   if (commands[index].includes('"browser":')) {
-    alert("Unable to remove the browser command, this is a requirement for every script.");
-    return; 
+    alert(
+      "Unable to remove the browser command, this is a requirement for every script."
+    );
+    return;
   }
 
   var cmdCount = Object.keys(commands).length;
-  
+
   if (cmdCount === 1) {
     nextIndexAfterDelete = -1;
   } else if (index === cmdCount - 1) {
@@ -218,12 +220,12 @@ function removeSelectedCommand() {
   try {
     selectedChild.remove();
     console.log(`deleted command element at index ${index}`);
-    
+
     reindexCommands();
 
     if (Object.keys(commands).length === 0) {
       console.log("Command list is now empty.");
-      return; 
+      return;
     }
 
     var child = commandList.children[nextIndexAfterDelete];
@@ -322,8 +324,8 @@ window.addEventListener("load", (e) => {
   Object.values(commands).forEach((commandText) => {
     addCommandToCommandList(commandText, false);
   });
-  
-  reindexCommands(); 
+
+  reindexCommands();
 });
 
 commandSelect.addEventListener("change", (event) => {
@@ -374,7 +376,7 @@ executeButton.addEventListener("click", (e) => {
   console.log("--- Executing Command ---");
 
   var jsonString = JSON.stringify(commandData.arguments);
-  
+
   addCommandToCommandList(jsonString, true);
 
   updateCommandComboBoxState();
