@@ -3,6 +3,7 @@ using BrowserAutomationMaster.Parsing;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
+using System.Security.AccessControl;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -33,6 +34,25 @@ namespace BrowserAutomationMaster.Managers
         }
 
 
+        public static void AddOptionResponseHeaders(HttpListenerResponse response)
+        {
+            try
+            {
+                response.AddHeader("Access-Control-Allow-Origin", "*");
+                response.AddHeader("Access-Control-Allow-Methods", "GET");
+                response.AddHeader("Access-Control-Max-Age", "86400"); // 1 day in seconds.
+
+                response.StatusCode = (int)HttpStatusCode.NoContent;
+            }
+            catch (Exception e){
+                Warning.Write(
+                    string.Join("", [
+                        "An exception occured while trying to add the required headers to an OPTIONS request.\n\n",
+                        $"Error Log:\n{e.Message}"
+                    ])
+                );
+            }
+        }
 
         public static async Task<bool> DownloadGUI()
         {
@@ -127,7 +147,7 @@ namespace BrowserAutomationMaster.Managers
 
         public static async Task HandleEndpointRequests()
         {
-            string[] invalidMethods = ["CONNECT", "DELETE", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE"];
+            string[] invalidMethods = ["CONNECT", "DELETE", "HEAD", "PATCH", "POST", "PUT", "TRACE"];
             while (isRunning)
             {
                 // Waits for a connection that is made.
@@ -146,6 +166,14 @@ namespace BrowserAutomationMaster.Managers
                     await HandleInvalidResponse(response, $"Invalid HTTP Method, {request.HttpMethod} requests are not supported by this very basic GUI.");
                     return;
                 }
+
+                if (request.HttpMethod.Equals("OPTIONS"))
+                    AddOptionResponseHeaders(response);
+
+
+
+
+                response.AddHeader("Access-Control-Allow-Origin", "*");
 
                 switch (request.Url.AbsolutePath)
                 {
@@ -185,6 +213,10 @@ namespace BrowserAutomationMaster.Managers
 
                     case "/validate":
                         await Validate(request, response);
+                        break;
+
+                    default:
+                        Warning.Write($"Invalid route provided: {request.Url.AbsolutePath}");
                         break;
 
 
@@ -291,6 +323,7 @@ namespace BrowserAutomationMaster.Managers
 
                 if (usedLHPorts.Contains(port))
                     throw new HttpListenerException(1, "Access is denied");
+
 
                 listener.Prefixes.Add(url);
                 listener.Start();
