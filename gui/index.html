@@ -167,7 +167,7 @@
           </li>
 
           <li>
-            <a href="#0" title="View Existing Script">
+            <a id="viewScript" href="#viewScript" title="View Existing Script">
               <svg aria-hidden="true" id="upload" viewBox="0 0 24 24">
                 <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
               </svg>
@@ -252,7 +252,7 @@
       </nav>
     </header>
     <main class="page-content">
-      <section class="command-combobox-section">
+      <section id="create" class="command-combobox-section">
         <div class="combobox-container">
           <label for="command-select" class="combobox-label">Select Command:</label>
           <select id="command-select" class="combobox-input"></select>
@@ -339,6 +339,8 @@
     <script src="scripts/create/create_script.js"></script>
     <script src="scripts/responsive.js"></script>
     
+
+    <!-- Create a Script Button Functionality -->
     <script>
       let currentlySelectedItem = null;
       const commandItems = document.querySelectorAll('#command-list li');
@@ -357,14 +359,83 @@
         item.addEventListener('click', handleSelection);
       });
 
-
-      const resetScriptBtn = document.querySelector("#resetScriptState");
+      const createScriptBtn = document.querySelector("#resetScriptState");
       var commandsAdded = document.querySelectorAll("#command-list li");
 
-      resetScriptBtn.addEventListener("click", (e) => {
+      createScriptBtn.addEventListener("click", (e) => {
         clearCurrentScriptState(commandsAdded)
+
+        if (currentViewSection && originalCreateSection && currentViewSection.parentNode) {
+            var parentEl = currentViewSection.parentNode;
+            
+            parentEl.replaceChild(originalCreateSection, currentViewSection);
+            currentViewSection = originalCreateSection;
+            originalCreateSection = null;
+
+            console.log("Successfully set id attribute of <section> to 'create'");
+        } else {
+            console.log("Failed to set id attribute of <section> to 'create', it remains, 'view'");
+        }
+
       });
     </script>
     
+    <!-- GUI Port Management -->
+    <script>
+      var guiPort = "8008";
+      var href = window.location.href;
+
+      function setPort() {
+        if (!href || !href.includes("?port=")){
+          console.log("No port parameter found.\nUsing default port:", guiPort);
+          return;
+        }
+          
+        var regexPattern = "\\bport=(\\d{1,5})";
+        var regex = new RegExp(regexPattern);
+          
+        var matches = href.match(regex);
+          
+        if (!matches && !matches[1]) {
+          console.log("Port parameter contains an invalid value.\nUsing default port:", guiPort);
+          return;
+        }
+
+        guiPort = matches[1];
+        console.log("Set PORT to:", guiPort);
+      }
+    </script>
+    
+    <!-- Retrieving Local UserScripts -->
+    <script>
+      setTimeout(function() {}, 2000);
+      var baseServerURL = `http://127.0.0.1:${guiPort}`;
+      var createScriptURL = `${baseServerURL}/create`
+      var loadScriptsURL = `${baseServerURL}/load`
+      var validateScriptURL = `${baseServerURL}/validate`
+      var exportScriptURL = `${baseServerURL}/export`
+      var restartGUIURL = `${baseServerURL}/restart`
+      var terminateGUIURL = `${baseServerURL}/terminate`
+      var localUserScripts = null;
+
+      fetch(
+        loadScriptsURL, 
+        { method: "GET" }
+      )
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Invalid HTTP status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // console.log(data);
+        localUserScripts = data["Items"];
+        console.log(localUserScripts);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+    </script>
   </body>
 </html>
