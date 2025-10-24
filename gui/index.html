@@ -10,6 +10,70 @@
     />
     <link href="styles/sidebar.css" rel="stylesheet" />
     <link href="styles/create_script.css" rel="stylesheet" />
+
+    <!-- GUI Port Management -->
+    <script>
+      var guiPort = "8008";
+      var href = window.location.href;
+
+      function setPort() {
+        if (!href || !href.includes("?port=")){
+          console.log("No port parameter found.\nUsing default port:", guiPort);
+          return;
+        }
+          
+        var regexPattern = "\\bport=(\\d{1,5})";
+        var regex = new RegExp(regexPattern);
+          
+        var matches = href.match(regex);
+          
+        if (!matches && !matches[1]) {
+          console.log("Port parameter contains an invalid value.\nUsing default port:", guiPort);
+          return;
+        }
+
+        guiPort = matches[1];
+        console.log("Set PORT to:", guiPort);
+      }
+    </script>
+    
+    <!-- Retrieving Local UserScripts -->
+    <script>
+      var baseServerURL = `http://127.0.0.1:${guiPort}`;
+      var createScriptURL = `${baseServerURL}/create`
+      var loadScriptsURL = `${baseServerURL}/load`
+      var validateScriptURL = `${baseServerURL}/validate`
+      var exportScriptURL = `${baseServerURL}/export`
+      var restartGUIURL = `${baseServerURL}/restart`
+      var terminateGUIURL = `${baseServerURL}/terminate`
+      var localUserScripts = null;
+
+      fetch(
+        loadScriptsURL, 
+        
+        { 
+          method: "GET",
+          signal: AbortSignal.timeout(200)
+        }
+      )
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Invalid HTTP status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // console.log(data);
+        localUserScripts = data["Items"];
+        console.log(localUserScripts);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        window.location.href = "inactive.html";
+      });
+
+    </script>
+
   </head>
     <header class="page-header">
       <nav>
@@ -267,24 +331,6 @@
       <div class="command-list-box">
         <h3>Command List</h3>
         <ul id="command-list">
-          <!-- <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li>
-          <li>Test</li> -->
         </ul>
       </div>
       
@@ -377,64 +423,6 @@
             console.log("Failed to set id attribute of <section> to 'create', it remains, 'view'");
         }
 
-      });
-    </script>
-    
-    <!-- GUI Port Management -->
-    <script>
-      var guiPort = "8008";
-      var href = window.location.href;
-
-      function setPort() {
-        if (!href || !href.includes("?port=")){
-          console.log("No port parameter found.\nUsing default port:", guiPort);
-          return;
-        }
-          
-        var regexPattern = "\\bport=(\\d{1,5})";
-        var regex = new RegExp(regexPattern);
-          
-        var matches = href.match(regex);
-          
-        if (!matches && !matches[1]) {
-          console.log("Port parameter contains an invalid value.\nUsing default port:", guiPort);
-          return;
-        }
-
-        guiPort = matches[1];
-        console.log("Set PORT to:", guiPort);
-      }
-    </script>
-    
-    <!-- Retrieving Local UserScripts -->
-    <script>
-      setTimeout(function() {}, 2000);
-      var baseServerURL = `http://127.0.0.1:${guiPort}`;
-      var createScriptURL = `${baseServerURL}/create`
-      var loadScriptsURL = `${baseServerURL}/load`
-      var validateScriptURL = `${baseServerURL}/validate`
-      var exportScriptURL = `${baseServerURL}/export`
-      var restartGUIURL = `${baseServerURL}/restart`
-      var terminateGUIURL = `${baseServerURL}/terminate`
-      var localUserScripts = null;
-
-      fetch(
-        loadScriptsURL, 
-        { method: "GET" }
-      )
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Invalid HTTP status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        // console.log(data);
-        localUserScripts = data["Items"];
-        console.log(localUserScripts);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
       });
     </script>
   </body>
