@@ -1,18 +1,19 @@
 const usingOtter = navigator.userAgent.includes("Otter");
 
-// Will be used in Create and View Script Buttons
-var originalCreateSection = null;
-var currentViewSection = null;
+// Will be used in Create, View and Delete Script Buttons
+var originalSection = null;
+var currentSection = null;
 
-// Wait for the DOM to fully load
+// Waits for the DOM to fully load
 window.onload = function () {
   setTimeout(function () {}, 2000);
   const html = document.documentElement;
   const body = document.body;
 
-  var createSectionEl = document.querySelector(".command-combobox-section");
+  currentSection = document.querySelector(".command-combobox-section");
 
-  const viewScriptBtn = document.querySelector("#viewScript");
+  const loadScriptBtn = document.querySelector("#loadScript");
+  const deleteScriptBtn = document.querySelector("#deleteScript");
   const collapseBtn = document.querySelector(".sidebar .collapse-btn");
   const toggleMobileMenu = document.querySelector(".toggle-mob-menu");
   const switchInput = document.querySelector(".switch input");
@@ -63,6 +64,230 @@ window.onload = function () {
     switchLabelText.textContent = "Dark";
   }
 
+  
+  function getFileNameSelected(){
+    var selectedOption = select.querySelector(`option[value="${e.target.value}"]`);
+    if (!selectedOption) {
+      alert("No selected option found, please make a bug report.");
+      throw new Error("");
+    }
+    
+    var scriptName = Object.keys(localUserScripts).at(
+      (script) => script.includes(selectedOption.textContent)
+    );
+    return scriptName;
+  }
+
+  function swapToViewSection() {
+    if (currentSection && currentSection.id == "create" || currentSection.id == "delete") 
+    {
+      originalSection = currentSection;
+
+      // <section id="view" class="command-combobox-section">
+      var viewSectionEl = document.createElement("section");
+      viewSectionEl.id = "view";
+      viewSectionEl.classList.add("command-combobox-section");
+
+      // <div class="combobox-container">
+      var containerEl = viewSectionEl.appendChild(document.createElement("div"));
+      containerEl.classList.add("combobox-container");
+
+      // <label for="command-select" class="combobox-label">Select File:</label>
+      var label = containerEl.appendChild(document.createElement("label"));
+      label.for = "command-select";
+      label.classList.add("combobox-label");
+      label.textContent = "Select a File";
+
+      // <select id="command-select" class="combobox-input"></select>
+      var select = containerEl.appendChild(document.createElement("select"));
+      select.id = "command-select";
+      select.classList.add("combobox-input");
+      var scriptIndex = 0;
+
+      // Appends each file loaded from localUserScript as a child <option> of parent <select>.
+      Object.keys(localUserScripts).forEach(key => {
+        var substring = null;
+
+        if (window.navigator.userAgent.includes("Windows")){
+          substring = "\\";
+        } else {
+          substring = "/"
+        }
+
+        var index = key.lastIndexOf(substring);
+        if (index == -1) {
+          return;
+          // throw Error("Unable to determine substring, the platform logic needs to be adjusted.");
+        }
+        
+        adjustedIndex = index + 1;
+        var fileName = key.substring(adjustedIndex);
+        var selectOption = document.createElement("option");
+        selectOption.textContent = fileName;
+        selectOption.value = scriptIndex;
+          
+        if (selectOption == 0){
+          selectOption.setAttribute("selected", "");
+        }
+        select.appendChild(selectOption);
+        scriptIndex++;
+      });
+      
+
+      var lastSelectedOption = select.querySelector('option') || select.options[0];
+      lastSelectedOption.setAttribute("selected", "");
+
+      select.onchange = function(e) {
+          var newSelectedOption = select.querySelector(`option[value="${e.target.value}"]`);
+          if (lastSelectedOption) {
+              lastSelectedOption.removeAttribute("selected");
+          }
+          if (newSelectedOption) {
+              newSelectedOption.setAttribute("selected", "");
+              lastSelectedOption = newSelectedOption;
+          }
+      };
+        
+
+      // <button class="execute-button" id="execute-command-btn">Load Selected</button>
+      var button = viewSectionEl.appendChild(document.createElement("button"));
+      button.classList.add("execute-button");
+      button.id = "select-file-btn";
+      button.textContent = "Load Selected";
+
+      button.onclick = function() {
+        var fileName = getFileNameSelected();
+        if (fileName){
+          alert(fileName);
+        }
+      }
+
+      var parentEl = currentSection.parentNode;
+
+      if (parentEl) {
+        parentEl.replaceChild(viewSectionEl, currentSection);
+        currentSection = viewSectionEl;
+        console.log('Successfully swapped to view section.');
+      } else{
+        console.error('Failed to swap to view section, parentNode not found.');
+      }
+    }
+  }
+
+  function swapToDeleteSection() {
+    if (currentSection && currentSection.id == "create" || currentSection.id == "view") 
+    {
+      originalSection = currentSection;
+
+      // <section id="delete" class="command-combobox-section">
+      var deleteSectionEl = document.createElement("section");
+      deleteSectionEl.id = "delete";
+      deleteSectionEl.classList.add("command-combobox-section");
+
+      // <div class="combobox-container">
+      var containerEl = deleteSectionEl.appendChild(document.createElement("div"));
+      containerEl.classList.add("combobox-container");
+
+      // <label for="command-select" class="combobox-label">Select File:</label>
+      var label = containerEl.appendChild(document.createElement("label"));
+      label.for = "command-select";
+      label.classList.add("combobox-label");
+      label.textContent = "Select a File";
+
+      // <select id="command-select" class="combobox-input"></select>
+      var select = containerEl.appendChild(document.createElement("select"));
+      select.id = "command-select";
+      select.classList.add("combobox-input");
+      var scriptIndex = 0;
+
+      // Appends each file loaded from localUserScript as a child <option> of parent <select>.
+      Object.keys(localUserScripts).forEach(key => {
+        var substring = null;
+
+        if (window.navigator.userAgent.includes("Windows")){
+          substring = "\\";
+        } else {
+          substring = "/"
+        }
+
+        var index = key.lastIndexOf(substring);
+        if (index == -1) {
+          return;
+          // throw Error("Unable to determine substring, the platform logic needs to be adjusted.");
+        }
+        
+        adjustedIndex = index + 1;
+        var fileName = key.substring(adjustedIndex);
+        var selectOption = document.createElement("option");
+        selectOption.textContent = fileName;
+        selectOption.value = scriptIndex;
+          
+        if (selectOption == 0){
+          selectOption.setAttribute("selected", "");
+        }
+        select.appendChild(selectOption);
+        scriptIndex++;
+      });
+      
+
+      var lastSelectedOption = select.querySelector('option') || select.options[0];
+      lastSelectedOption.setAttribute("selected", "");
+
+      select.onchange = function(e) {
+          var newSelectedOption = select.querySelector(`option[value="${e.target.value}"]`);
+          if (lastSelectedOption) {
+              lastSelectedOption.removeAttribute("selected");
+          }
+          if (newSelectedOption) {
+              newSelectedOption.setAttribute("selected", "");
+              lastSelectedOption = newSelectedOption;
+          }
+      };
+        
+
+      // <button class="execute-button" id="execute-command-btn">Delete Selected</button>
+      var button = deleteSectionEl.appendChild(document.createElement("button"));
+      button.classList.add("execute-button");
+      button.id = "select-file-btn";
+      button.textContent = "Delete Selected";
+
+      button.onclick = function() {
+        var fileName = getFileNameSelected();
+        if (fileName){
+          alert(fileName);
+        }
+      }
+
+      button.onclick = function() {
+        var selectedOption = select.querySelector(`option[value="${e.target.value}"]`);
+        if (!selectedOption) {
+          alert("No selected option found, please make a bug report.");
+          throw new Error("");
+        }
+        var scriptName = Object.keys(localUserScripts).at(
+          (script) => script.includes(selectedOption.textContent)
+        );
+
+        alert(scriptName);
+      }
+
+      var parentEl = currentSection.parentNode;
+
+      if (parentEl) {
+        parentEl.replaceChild(deleteSectionEl, currentSection);
+        currentSection = deleteSectionEl;
+        console.log('Successfully swapped to delete section.');
+      } else{
+        console.error('Failed to swap to delete section, parentNode not found.');
+      }
+
+      
+    }
+  }
+
+  loadScriptBtn.addEventListener("click", swapToViewSection);
+  deleteScriptBtn.addEventListener("click", swapToDeleteSection);
+
   /* TOGGLE HEADER STATE (Collapse/Expand) */
   collapseBtn.addEventListener("click", function () {
     body.classList.toggle(collapsedClass);
@@ -85,30 +310,6 @@ window.onload = function () {
     this.setAttribute("aria-label", newLabel);
   });
 
-  /* SHOW TOOLTIP ON MENU LINK HOVER */
-  for (const link of menuLinks) {
-    link.addEventListener("mouseenter", function () {
-      // Check if collapsed state is active AND screen size is desktop
-      if (
-        body.classList.contains(collapsedClass) &&
-        window.matchMedia("(min-width: 769px)").matches
-      ) {
-        const tooltip_element = this.querySelector("span");
-        const tooltip = tooltip_element
-          ? tooltip_element.textContent
-          : "Menu Item";
-        this.setAttribute("title", tooltip);
-      } else {
-        this.removeAttribute("title");
-      }
-    });
-
-    // Ensure title is removed on mouse leave
-    link.addEventListener("mouseleave", function () {
-      this.removeAttribute("title");
-    });
-  }
-
   /* TOGGLE LIGHT/DARK MODE */
   switchInput.addEventListener("input", function () {
     html.classList.toggle(lightModeClass);
@@ -123,103 +324,4 @@ window.onload = function () {
       localStorage.setItem("dark-mode", "true");
     }
   });
-
-  viewScriptBtn.addEventListener("click", function() {
-
-    if (createSectionEl && createSectionEl.id == "create") {
-      originalCreateSection = createSectionEl;
-
-      // <section id="view" class="command-combobox-section">
-      var viewSectionEl = document.createElement("section");
-      viewSectionEl.id = "view";
-      viewSectionEl.classList.add("command-combobox-section");
-
-      // <div class="combobox-container">
-      var containerEl = viewSectionEl.appendChild(document.createElement("div"));
-      containerEl.classList.add("combobox-container");
-
-      // <label for="command-select" class="combobox-label">Select File:</label>
-      var label = containerEl.appendChild(document.createElement("label"));
-      label.for = "command-select";
-      label.classList.add("combobox-label");
-      label.textContent = "Select a File";
-
-      // <select id="command-select" class="combobox-input"></select>
-      var select = containerEl.appendChild(document.createElement("select"));
-      select.id = "command-select";
-      select.classList.add("combobox-input");
-
-      var scriptIndex = 0;
-
-      // Appends each file loaded from localUserScript as a child <option> of parent <select>.
-      Object.keys(localUserScripts).forEach(key => {
-          var substring = null;
-          if (window.navigator.userAgent.includes("Windows")){
-            substring = "\\";
-          }
-
-          else {
-            substring = "/"
-          }
-
-          var index = key.lastIndexOf(substring);
-          if (index == -1) {
-            return;
-            // throw Error("Unable to determine substring, the platform logic needs to be adjusted.");
-          }
-          
-          adjustedIndex = index + 1;
-          var fileName = key.substring(adjustedIndex);
-
-          var selectOption = document.createElement("option");
-          selectOption.textContent = fileName;
-          selectOption.value = scriptIndex;
-          
-          if (selectOption == 0){
-            selectOption.setAttribute("selected", "");
-          }
-
-
-          select.appendChild(selectOption);
-          scriptIndex++;
-      });
-
-      var lastSelectedOption = select.querySelector('option') || select.options[0];
-      lastSelectedOption.setAttribute("selected", "");
-
-      select.onchange = function(e) {
-          var newSelectedOption = select.querySelector(`option[value="${e.target.value}"]`);
-          console.log(newSelectedOption);
-
-          if (lastSelectedOption) {
-              lastSelectedOption.removeAttribute("selected");
-          }
-
-          if (newSelectedOption) {
-              newSelectedOption.setAttribute("selected", "");
-              lastSelectedOption = newSelectedOption;
-          }
-      };
-      
-
-      // <button class="execute-button" id="execute-command-btn">Execute Command</button>
-      var button = viewSectionEl.appendChild(document.createElement("button"));
-      button.classList.add("execute-button");
-      button.id = "select-file-btn";
-      button.textContent = "Select File";
-
-      button.onclick = function() {
-        Object.keys(localUserScripts).at()
-      }
-
-      var parentEl = createSectionEl.parentNode;
-
-      if (parentEl) {
-        parentEl.replaceChild(viewSectionEl, createSectionEl);
-        currentViewSection = viewSectionEl;
-        console.log("Successfully replaced the main element.");
-      }
-    }
-
-  })
 };

@@ -59,7 +59,6 @@ function clearCurrentScriptState(commandsAdded) {
 
 // FIXED: Now grabs content and calls addCommandToCommandList to append to the end.
 function duplicateSelectedCommand() {
-  
   var selectedChild = document.querySelector(".list-item");
   if (!selectedChild) {
     alert("Please select an element to duplicate.");
@@ -308,11 +307,12 @@ function setData(data) {
 function updateCommandComboBoxState() {
   document
     .querySelectorAll("#command-select option")
-    .forEach((el) => (el.disabled = false));
+    .forEach(
+      (el) => el.removeAttribute("disabled"));
 
   var selector = document.querySelector("#command-select option:first-child")
   selector.disabled = true;
-  selector.selected = false;
+  selector.removeAttribute("selected");
 }
 
 window.addEventListener("load", (e) => {

@@ -69,7 +69,11 @@
       })
       .catch(error => {
         console.error('Error fetching data:', error);
-        window.location.href = "inactive.html";
+
+        if (!href.includes("&disabled=true")){
+          console.log('If this is intentional, please pass ?port=xyz&disabled=true');
+          window.location.href = "inactive.html";
+        }
       });
 
     </script>
@@ -222,8 +226,8 @@
           </li>
 
           <li>
-            <a href="#createScript" title="Create New Script" id="resetScriptState">
-              <svg id="createScript" viewBox="0 0 24 24" aria-hidden="true">
+            <a id="resetScriptState" href="#create" title="Create New Script">
+              <svg id="createSVG" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
               </svg>
               <span>Create New Script</span>
@@ -231,17 +235,17 @@
           </li>
 
           <li>
-            <a id="viewScript" href="#viewScript" title="View Existing Script">
+            <a id="loadScript" href="#load" title="View Existing Script">
               <svg aria-hidden="true" id="upload" viewBox="0 0 24 24">
                 <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
               </svg>
-              <span>View Existing Script</span>
+              <span>Load Existing Script</span>
             </a>
           </li>
 
           <li>
-            <a href="#0" title="Delete Existing Script">
-              <svg id="delete" viewBox="0 0 24 24" aria-hidden="true">
+            <a id="deleteScript" href="#delete" title="Delete Existing Script">
+              <svg id="deleteSVG" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/>
               </svg>
               <span>Delete Existing Script</span>
@@ -389,6 +393,9 @@
     <!-- Create a Script Button Functionality -->
     <script>
       let currentlySelectedItem = null;
+
+      var commandSelect = document.querySelector('#command-select');
+
       const commandItems = document.querySelectorAll('#command-list li');
 
       function handleSelection(event) {
@@ -400,29 +407,48 @@
         newSelectedItem.classList.add('list-item');
         currentlySelectedItem = newSelectedItem;
       }
-
+      
       commandItems.forEach(item => {
         item.addEventListener('click', handleSelection);
       });
+      
+      
+      var selectedOption = commandSelect.children[0];
+      selectedOption.setAttribute("selected", "");
+
+      commandSelect.onchange = function(e) {
+          var newSelectedOption = this.querySelector(`option[value="${e.target.value}"]`);
+          if (selectedOption) {
+              selectedOption.removeAttribute("selected");
+          }
+          if (newSelectedOption) {
+              newSelectedOption.setAttribute("selected", "");
+              selectedOption = newSelectedOption;
+          }
+      };
 
       const createScriptBtn = document.querySelector("#resetScriptState");
       var commandsAdded = document.querySelectorAll("#command-list li");
+      
+      var originalSection = null;
+      var currentSection = null;
+      
 
       createScriptBtn.addEventListener("click", (e) => {
         clearCurrentScriptState(commandsAdded)
 
-        if (currentViewSection && originalCreateSection && currentViewSection.parentNode) {
-            var parentEl = currentViewSection.parentNode;
+        if (currentSection && originalSection && currentSection.parentNode) {
+            var parentEl = currentSection.parentNode;
             
-            parentEl.replaceChild(originalCreateSection, currentViewSection);
-            currentViewSection = originalCreateSection;
-            originalCreateSection = null;
+            parentEl.replaceChild(originalSection, currentSection);
+            currentSection = originalSection;
+            originalSection = null;
 
-            console.log("Successfully set id attribute of <section> to 'create'");
-        } else {
-            console.log("Failed to set id attribute of <section> to 'create', it remains, 'view'");
+            
+            console.log('Successfully swapped to create section.');
+        } else if (currentSection) {
+            console.log(`Failed to swap to create section, it remains, ${currentSection.id}`);
         }
-
       });
     </script>
   </body>
