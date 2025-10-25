@@ -15,7 +15,7 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
 
 ## Quick Start Guide 🚀
-- To get started with Browser Automation Master, please follow the [Quick Start Guide](https://static-codes.github.io/BrowserAutomationMaster/)
+- To get started with Browser Automation Master, please follow the [Quick Start Guide](https://static-codes.github.io/BAMM-Docs/)
 
 
 ## Table of Contents 📖
