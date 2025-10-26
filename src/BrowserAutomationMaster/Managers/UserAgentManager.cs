@@ -1,6 +1,5 @@
-﻿using BrowserAutomationMaster.Messaging;
-using System;
-using System.Text.Json;
+﻿using System.Text.Json;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
@@ -33,7 +32,7 @@ namespace BrowserAutomationMaster.Managers
                         WriteAndExit(
                             message:
                                 $"BAM Manager (BAMM) was failed to user agent data, please try again." +
-                                $"If this error persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                                $"If this error persists, please make a bug report at {ISSUES_LINK}\n\n" +
                                 $"Error Log:\njsonString is null or empty",
                             status: 1
                         );
@@ -45,7 +44,7 @@ namespace BrowserAutomationMaster.Managers
                         WriteAndExit(
                             message:
                                 $"BAM Manager (BAMM) was failed to user agent data, please try again." +
-                                $"If this error persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                                $"If this error persists, please make a bug report at {ISSUES_LINK}\n\n" +
                                 $"Error Log:\nuserAgentsData is null or empty",
                             status: 1
                         );
@@ -60,7 +59,6 @@ namespace BrowserAutomationMaster.Managers
                             $"it is likely a network flaw not an issue with your machine.", 
                         status: 1
                     );
-                    //WriteAndExit($"Error deserializing JSON from {UserAgentsFilePath}: {ex.Message}", 1);
                 }
                 catch (Exception)
                 {
@@ -117,7 +115,7 @@ namespace BrowserAutomationMaster.Managers
 
         private static async Task<string?> RetrieveJSON()
         {
-            var uri = new Uri("https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/useragents.json");
+            var uri = new Uri(USERAGENTS_LINK);
             try 
             {
                 
@@ -149,7 +147,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 var message =
                     "Unable to read contents from useragents.json\n" +
-                    $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" + 
+                    $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" + 
                     $"Error Log:\n{ex.Message}";
                 return WriteErrorAndReturnNull(message);
             }
@@ -157,10 +155,9 @@ namespace BrowserAutomationMaster.Managers
 
         private static async Task<bool> WriteJSON()
         {
-            var uri = new Uri("https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/useragents.json");
             var message =
                     "Unable to read contents from useragents.json\n" +
-                    $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                    $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
                     "Error Log:\nJSON contents is null.";
 
             var contents = await RetrieveJSON();
@@ -175,7 +172,7 @@ namespace BrowserAutomationMaster.Managers
                 message =
                    "Unable to write useragents.json\n" +
                    $"This file should be placed in:\n{GetUserAgentsPath()}" +
-                   $"This file can be downloaded from:\n{uri}\n\n" +
+                   $"This file can be downloaded from:\n{USERAGENTS_LINK}\n\n" +
                    $"Error Log:\n\n{ex.Message}";
                 WriteAndExit(message, 1);
             }
@@ -186,7 +183,7 @@ namespace BrowserAutomationMaster.Managers
         {
 
             public readonly bool fileDownloaded = File.Exists(userAgentPath);
-            
+
             public async Task<string?> LoadJSONString()
             {
                 try
@@ -203,9 +200,6 @@ namespace BrowserAutomationMaster.Managers
                     return null;
                 }
             }
-            //public 
-
-
         }
     }
 }
