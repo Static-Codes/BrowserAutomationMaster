@@ -251,7 +251,6 @@ namespace BrowserAutomationMaster.Managers
       
         public static string GetGUIDirectoryPath() { return Path.Combine(AppDataDirectory, "gui"); }
 
-
         public static string GetMainGUIPage() { return Path.Combine(GetGUIDirectoryPath(), "index.html"); }
 
         public static string GetGUIZipPath() { return Path.Combine(AppDataDirectory, "gui.zip"); }
@@ -290,6 +289,8 @@ namespace BrowserAutomationMaster.Managers
             ThrowUnsupportedPlatformException();
             return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
         }
+
+        public static string GetPythonWheelDirectory() { return Path.Combine(AppDataDirectory, "wheels"); }
 
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
 
