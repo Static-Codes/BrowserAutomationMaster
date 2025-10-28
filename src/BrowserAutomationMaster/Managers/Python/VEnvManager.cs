@@ -2,13 +2,13 @@
 using System.Text;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Compilation.Transpiler;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.InstanceManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.InstanceManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
+
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -115,6 +115,13 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private string GetVEnvStartArgs(string pythonPath)
         {
+            if (ParentDirectory == null)
+                throw new ArgumentException("ParentDirectory is null");
+
+            if (Platforms.IsARMel || Platforms.IsARMhf)
+                return $"-c \"source '{Path.Combine(ParentDirectory, "venv", "bin", "activate")}'";
+            
+
             if (Platforms.IsLinux)
                 return $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{pythonPath}\" \"{ScriptFilePath}\"";
 
@@ -146,6 +153,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
 
             var pipExecutable = GetProjectVEnvPipPath(ParentDirectory);
+
             var requirementsFilePath = GetProjectRequirementsPath(ParentDirectory);
 
             var installCMD = $"install -r \"{requirementsFilePath}\"";
@@ -193,6 +201,7 @@ namespace BrowserAutomationMaster.Managers.Python
         public async Task RunScriptInVEnv(bool usingBrowserStack = false)
         {
             await CreateVEnv();
+
             await InstallProjectPackages();
             await Task.Delay(1000);
 

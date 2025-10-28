@@ -14,6 +14,7 @@ using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
+using static BrowserAutomationMaster.Managers.Python.WheelManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
@@ -117,6 +118,10 @@ namespace BrowserAutomationMaster.Compilation
             }
 
 
+            // ARMv7 (ARMel + ARMhf) Specific Packages (Precompiled Wheels for each Architecture)
+            if (Platforms.IsARMel || Platforms.IsARMhf)
+                script.AddRequirementPackages(GetRequirementStrings());
+
             // This function will exit if a null value is reached so no worries about a null check here
             string sVersion = PackageManager.Get("selenium", pythonVersion);
             string swVersion = PackageManager.Get("selenium-wire", pythonVersion);
@@ -125,6 +130,7 @@ namespace BrowserAutomationMaster.Compilation
 
             var sdkPackage = usingBrowserstack ? $"browserstack-sdk=={bsVersion}" : string.Empty;
             var sdkLocalPackage = usingBrowserstack ? $"browserstack-local >= 1.2.3" : string.Empty;
+
 
             string[] packages = [
                 GetSetupToolsVersion(),
@@ -244,16 +250,6 @@ namespace BrowserAutomationMaster.Compilation
 
             int index = 1; // Accounts for the functions below in the script.Body.
             script.Body.AddLine(MakeRequestFunction(requestUserAgent), 0);
-
-            // Starts at line 4 (index 3) to account for imports required by check_imports
-            //var statements = new Dictionary<string, int>()
-            //{
-            //    { checkImportFunction, 3 },
-            //    { installPackagesFunction, 4 },
-            //    { "install_packages()", 5 },
-            //};
-
-            //script.Imports.AddStatements(statements);
 
             Action Add(string func) => () => script.Body.AddLine(func, index);
             Action AddRange(string[] lines) => () => script.Body.AddLines(lines);
