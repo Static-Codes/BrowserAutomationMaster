@@ -37,14 +37,12 @@ namespace BrowserAutomationMaster.Managers.AppManager
         public static async Task PopulateInstallations()
         {
 
-            static void install() { Linux.InstallRequiredLinuxPackages(AppInfoList); }
-
             await PopulateAppInfoList();
             InstallationsList = new Installations(AppInfoList);
 
 
             if (Platforms.IsLinux)
-                await Task.Run(install);
+                await Linux.InstallRequiredLinuxPackages(AppInfoList);
         }
 
         public static Installations GetInstallations() { return InstallationsList ?? new Installations(); }

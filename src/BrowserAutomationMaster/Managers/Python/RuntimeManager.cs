@@ -2,10 +2,10 @@
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Diagnostics.CodeAnalysis;
+using static BrowserAutomationMaster.Managers.AppManager.OS.MacOS;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Managers.AppManager.OS.MacOS;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
@@ -51,6 +51,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     status: 1
                 );
             }
+            
         }
         
         private static List<string> GetCompiledScriptPaths(string saveDirectory)

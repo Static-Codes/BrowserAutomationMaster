@@ -287,8 +287,8 @@ namespace BrowserAutomationMaster
 
         private static async Task<bool> HandleGUIDownload()
         {
-            //try
-            //{
+            try
+            {
                 bool daemonDownloaded = false; // Prevents the requirement for nesting
 
                 if (File.Exists(GetGUIDaemonPath())) // If the Daemon is already downloaded, continue
@@ -317,22 +317,22 @@ namespace BrowserAutomationMaster
                     return false;
 
                 WriteSuccessMessage("Successfully extracted GUI, please wait while the HTTP Server starts..");
-            //}
-            //catch (Exception ex)
-            //{
-            //    WriteAndExit(
-            //        message:
-            //            string.Join(
-            //                string.Empty, [
-            //                    "Unable to download the required GUI files, ",
-            //                    "if this issue persists, ",
-            //                    $"please make a bug report at {ISSUES_LINK}\n\n",
-            //                    $"Error Log:\n{ex.Message}"
-            //                ]
-            //            ), 
-            //        status: 1
-            //    );
-            //}
+            }
+            catch (Exception ex)
+            {
+                WriteAndExit(
+                    message:
+                        string.Join(
+                            string.Empty, [
+                                "Unable to download the required GUI files, ",
+                                "if this issue persists, ",
+                                $"please make a bug report at {ISSUES_LINK}\n\n",
+                                $"Error Log:\n{ex.Message}"
+                            ]
+                        ),
+                    status: 1
+                );
+            }
             return true;
         }
 

@@ -26,7 +26,12 @@ namespace BrowserAutomationMaster.Compilation
 
 
         public void AddRequirementPackage(string package) { Requirements.AddPackage(package); }
-        public void AddRequirementPackages(string package) { Requirements.AddPackage(package); }
+        public void AddRequirementPackages(string[] packages) 
+        {
+            foreach (var package in packages) {
+                Requirements.AddPackage(package);
+            }
+        }
 
         public void ResetInstanceState()
         {

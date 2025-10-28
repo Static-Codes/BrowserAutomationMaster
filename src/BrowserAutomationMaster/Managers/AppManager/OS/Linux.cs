@@ -7,6 +7,7 @@ using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Python.WheelManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
@@ -87,6 +88,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static void ARM32Check()
         {
+
             if (Platforms.IsLinux || Platforms.IsWindows || Platforms.IsOSX || !Platforms.IsChromeOS || Platforms.CurrentArchitecture != Arm) // If this is true, the OS is not supported regardless of its Architecture.
                 return;
            
@@ -104,7 +106,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             if (STDOut.Count == 0)
             {
-                Warning.Write("Unable to determine if the current CPU ABI is ARMHF, you may experience runtime ");
+                Warning.Write("Unable to determine if the current CPU ABI is ARMHF, you may experience runtime issues.");
                 return;
             }
 
@@ -114,11 +116,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             else if (STDOut.Any(a => a.Contains("armel", OIC)))
                 Platforms.IsARMel = true;
 
-            else
-            {
-                foreach (var std in STDOut)
-                    Console.Write(std);
-            }
+            //else
+            //{
+            //    foreach (var std in STDOut)
+            //        Console.Write(std);
+            //}
             
 
         }
@@ -214,7 +216,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
-        public static void InstallRequiredLinuxPackages(List<AppInfo> appsInfo)
+        public static async Task InstallRequiredLinuxPackages(List<AppInfo> appsInfo)
         {
             try
             {
@@ -312,6 +314,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     WriteSuccessMessage(RunCommand("/bin/bash", $"{commands[i]}"));
                 }
 
+                await DownloadWheels();
+                
                 File.Create(linuxPackageFile);
             }
             catch (Exception e)
