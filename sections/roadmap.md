@@ -47,6 +47,14 @@ set-element-property "selector" "property" "value"
   set-element-property "#idp-month__selected" "data-selected-value" "02"
   ```
 
+## CLI Commands
+### 1. Extend Functionality for `clear` command
+Add functionality to delete a project via 
+```
+bamm clear compiled/PN
+```
+Where `PN` is the project name you wish to delete.
+
 ## Feature Commands
 ### 1. Set Python Version
 This command will tell the Compiler and Runtime Manager to use the specified version of Python 3.
