@@ -98,9 +98,12 @@ namespace BrowserAutomationMaster.Managers.Python
         private static Wheel CFFIARMel = new("CFFI for ARMel", "cffi-2.0.0-cp39-cp39-linux_armel.whl");
         private static Wheel ZSTDARMel = new("ZSTD for ARMel", "zstandard-0.25.0-cp39-cp39-linux_armel.whl");
 
-        private static Wheel BrotliARMhf = new("BrotliPY for ARMhf", "brotlipy-0.7.0-cp38-cp38-linux_armhf.whl");
-        private static Wheel CFFIARMhf = new("CFFI for ARMhf", "cffi-1.17.1-cp38-cp38-linux_armhf.whl");
-        private static Wheel ZSTDARMhf = new("ZSTD for ARMhf", "zstandard-0.23.0-cp38-cp38-linux_armhf.whl");
+        // private static Wheel BrotliARMhf = new("BrotliPY for ARMhf", "brotlipy-0.7.0-cp38-cp38-linux_armhf.whl");
+        // private static Wheel CFFIARMhf = new("CFFI for ARMhf", "cffi-1.17.1-cp38-cp38-linux_armhf.whl");
+        // private static Wheel ZSTDARMhf = new("ZSTD for ARMhf", "zstandard-0.23.0-cp38-cp38-linux_armhf.whl");
+        private static Wheel BrotliARMhf = new("BrotliPY for ARMhf", "brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl");
+        private static Wheel CFFIARMhf = new("CFFI for ARMhf", "cffi-2.0.0-cp311-cp311-linux_armv7l.whl");
+        private static Wheel ZSTDARMhf = new("ZSTD for ARMhf", "zstandard-0.25.0-cp311-cp311-linux_armv7l.whl");
 
 
 
