@@ -133,7 +133,7 @@ namespace BrowserAutomationMaster.Compilation
 
 
             string[] packages = [
-                GetSetupToolsVersion(),
+                "setuptools==80.9.0",
                 $"selenium=={sVersion}",
                 $"selenium-wire=={swVersion}",
                 $"webdriver_manager=={wmVersion}",
@@ -393,15 +393,6 @@ namespace BrowserAutomationMaster.Compilation
                 Thread.Sleep(2000);
                 
             }
-        }
-        
-        private static string GetSetupToolsVersion()
-        {
-            return Platforms.IsChromeOS switch
-            {
-                true => "setuptools==75.3.2",
-                false => "setuptools==80.9.0"
-            };
         }
 
         private static void HandleAutoCopy()
