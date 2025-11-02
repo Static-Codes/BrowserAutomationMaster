@@ -107,7 +107,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public static readonly Wheel[] ArmWheels = 
             Platforms.IsARMel ? [BrotliARMel, CFFIARMel, ZSTDARMel] 
-            : [BrotliARMhf, CFFIARMhf, ZSTDARMhf, PSUtilARMhf];
+            : [PSUtilARMhf, BrotliARMhf, CFFIARMhf, ZSTDARMhf, ];
 
         public static string[] GetRequirementStrings() 
         {
@@ -140,31 +140,6 @@ namespace BrowserAutomationMaster.Managers.Python
                 }
             }
         }
-
-        //public static async Task InstallWheels(string InterpreterPath)
-        //{
-        //    var psi = new ProcessStartInfo()
-        //    {
-        //        FileName = InterpreterPath,
-        //        UseShellExecute = false,
-        //        RedirectStandardOutput = true,
-        //        RedirectStandardError = true,
-        //        CreateNoWindow = true,
-        //    };
-
-        //    foreach (var wheel in wheels)
-        //    {
-        //        psi.Arguments = $"install {wheel.DownloadLocation}";
-        //        using var process = await ProcessFactory.SpawnProcess(psi, $"installing {wheel.FileName}");
-        //        (var ExitCode, var STDOut, var STDErr) = await ProcessFactory.GetProcessResponse(process);
-
-        //        wheel.UpdateStatus(ExitCode);
-        //        var responseArray = STDOut.Count > 0 ? STDOut : STDErr;
-        //        var response = string.Join(NLC, responseArray);
-                
-        //        wheel.UpdateResponse(response);
-        //    }
-        //}
     };
 
 }

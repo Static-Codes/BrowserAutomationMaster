@@ -223,8 +223,10 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 // This empty file will be written once the packages are installed, then checked in subsequent runtimes.
                 var linuxPackageFile = GetLinuxPackageFile();
 
-                if (File.Exists(linuxPackageFile))
+                if (File.Exists(linuxPackageFile)){
+                    await DownloadWheels(); // Do not remove this ensure the wheels will always be downloaded.
                     return;
+                }
 
                 Warning.Write("Installing the Required Linux Packages (if not already installed.), please wait up to 60 seconds");
 
@@ -276,18 +278,22 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 var installCMD = $"-c \"sudo {installPrefix}";
 
-                var potentialVersion = Installations.GetMissingPyVersion();
-                while (potentialVersion == null || !PyVersionRegex.IsMatch(potentialVersion))
+                var pyVersion = Installations.GetMissingPyVersion();
+                while (pyVersion == null || !PyVersionRegex.IsMatch(pyVersion))
                 {
                     Warning.Write("Unable to detect the installed version of Python.");
-                    potentialVersion = Input.AskForInput(inputMessage);
+                    pyVersion = Input.AskForInput(inputMessage);
                 }
 
+                // Python3.X-dev is used for brotli and zstandard for compression and decompression
+                var optionalPackages = GetBrowserStackStatus() ?
+                    $"libffi-dev build-essential python{pyVersion.Replace("Python ", "")}-dev" :
+                    string.Empty;
 
                 string[] packages = [
                     "xclip", // Used for auto_copy_path
-                    $"python{potentialVersion.Replace("Python ", "")}-venv",  // Used for majority of BAMM to create vEnv(s)
-                    GetBrowserStackStatus() ? "libffi-dev build-essential python3-dev" : string.Empty
+                    $"python{pyVersion.Replace("Python ", "")}-venv",  // Used for majority of BAMM to create vEnv(s)
+                    optionalPackages
                 ];
 
                 if (installPrefix == null)
