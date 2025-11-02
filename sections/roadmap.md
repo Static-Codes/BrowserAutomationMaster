@@ -6,6 +6,45 @@ This section outlines the planned commands and features for later BAMM releases.
 - To return to the previous page, [click here](..)
 ---
 
+## Codebase Improvements
+### 1. Create a function to handle CLI args
+```
+private static class CLIArgCheck (string CurrentValue, string[] AllowedValues, StringComparison ComparisonMethod) {
+  public static string CurrentValue { get; set; } = CurrentValue;
+  public static Dictionary<int, string[]> AllowedValues { get; set; } = AllowedValues;
+  
+  public static StringComparison ComparisonMethod { get; set; } = ComparisonMethod;
+};
+
+/// <summary>Handles CLI Commands
+/// <param name="ChecksToHandle">A list of CLIArgCheck objects</param>
+/// <returns>A dictionary with the index of the argument in the provided command and a bool value on whether or not it matches the expected value.</returns>
+/// </summary>
+private static Task<Dict<int, bool>> HandleCLIArgs(List<CLIArgCheck> ChecksToHandle){
+  // Potential Example
+  // @ means is present 
+  // ! means is missing
+  // # means is required
+  // ? means is optional
+  // so all keys should be seen as a boolean equation
+
+  // var argDict = new Dictionary<int, string[]> {
+    { 0, ["?--nohwc", "?clear"] },
+    { 1, ["@clear", "#compiled if argDict[0] == clear"] },
+    { 2, ["?--nohwc"] }
+  };
+  
+  var command = "bamm --nohwc clear compiled"
+  
+}
+```
+This would allow for less strict command requirements
+```
+bamm --nohwc clear compiled | Currently invalid.
+bamm clear compiled --nohwc | Currently invalid.
+bamm clear compiled | Currently valid
+```
+
 ## Browser Commands
 ### **Note**: 
 These commands are NOT currently in BAM Manager, they will be added in future releases.
@@ -52,6 +91,8 @@ set-element-property "selector" "property" "value"
 Add functionality to delete a project via 
 ```
 bamm clear compiled/PN
+bamm --nohwc clear compiled/PN
+bamm clear compiled/PN --nohwc
 ```
 Where `PN` is the project name you wish to delete.
 
