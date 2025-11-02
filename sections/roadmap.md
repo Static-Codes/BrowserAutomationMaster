@@ -8,7 +8,8 @@ This section outlines the planned commands and features for later BAMM releases.
 
 ## Codebase Improvements
 ### 1. Create a function to handle CLI args
-```
+
+```c#
 private static class CLIArgCheck (string CurrentValue, string[] AllowedValues, StringComparison ComparisonMethod) {
   public static string CurrentValue { get; set; } = CurrentValue;
   public static Dictionary<int, string[]> AllowedValues { get; set; } = AllowedValues;
@@ -39,7 +40,8 @@ private static Task<Dict<int, bool>> HandleCLIArgs(List<CLIArgCheck> ChecksToHan
 }
 ```
 This would allow for less strict command requirements
-```
+
+```sh
 bamm --nohwc clear compiled | Currently invalid.
 bamm clear compiled --nohwc | Currently invalid.
 bamm clear compiled | Currently valid
@@ -51,6 +53,7 @@ These commands are NOT currently in BAM Manager, they will be added in future re
 
 ### 1. Get Validated Text
 This command will try to get the text of a specific element, if it's found the result is then validated against "desired result", useful for checking the status of a page after input. 
+
 ```
 get-validated-text "selector" "desired result"
 ```
