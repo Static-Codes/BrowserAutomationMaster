@@ -12,13 +12,15 @@ namespace BrowserAutomationMaster.Managers
     {
         public bool IsARMel { get; set; } // 32 Bit ARMv7 (el = EABI Little Endian)
         public bool IsARMhf { get; set; } // 32 Bit ARMv7 (hf = Hard Float)
-        public bool IsChromeOS { get; set; }
+        public bool IsChromeOS { get; set; } 
+        public bool IsRaspi { get; set; } // Raspberry Pi
         public bool IsWindows { get; set; }
         public bool IsOSX { get; set; }
         public bool IsLinux { get; set; }
         public bool IsUnixLike { get; set; } // Linux + OSX
         public Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
-        
+        public string? RaspiModelName { get; set; }
+
     }
 
 
@@ -43,6 +45,10 @@ namespace BrowserAutomationMaster.Managers
 
             // Checks if ARM32 is in use, as it requires cross-compiled wheels.
             ARM32Check();
+
+            // Checks if a Raspberry Pi is in use.
+            RPICheck();
+
 
             if (!ValidArchitectures.Contains(Platforms.CurrentArchitecture))
                 WriteAndExit(
@@ -81,8 +87,13 @@ namespace BrowserAutomationMaster.Managers
                 Platforms.IsUnixLike = true;
             }
 
-            else
+            else if (Platforms.IsRaspi)
             {
+                Console.WriteLine("WORKING");
+                return; // Acts a fallthrough so the exception below is not thrown.
+            }
+
+            else
                 throw new PlatformNotSupportedException(
                     string.Join(NLC, [
                         "Unsupported OS.",
@@ -93,7 +104,6 @@ namespace BrowserAutomationMaster.Managers
                         ]
                     )
                 );
-            }
         }
     }
 }

@@ -41,7 +41,7 @@ namespace BrowserAutomationMaster.Managers
         {
             try
             {
-                if (!Platforms.IsLinux || Platforms.IsChromeOS)
+                if (!Platforms.IsLinux || Platforms.IsChromeOS || Platforms.IsRaspi)
                     return LightTheme;
 
                 var Ansi24BitColor = Linux.GetTerminalBackgroundColor();

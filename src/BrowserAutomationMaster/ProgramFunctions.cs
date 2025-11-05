@@ -34,6 +34,16 @@ namespace BrowserAutomationMaster
             // Sets PlatformManager.PlatformName to be used across the session duration.
             SetPlatform();
 
+            Console.WriteLine("IsARMel: {0}", Platforms.IsARMel);
+            Console.WriteLine("IsARMhf: {0}", Platforms.IsARMhf);
+            Console.WriteLine("IsChromeOS: {0}", Platforms.IsChromeOS);
+            Console.WriteLine("IsLinux: {0}", Platforms.IsLinux);
+            Console.WriteLine("IsOSX: {0}", Platforms.IsOSX);
+            Console.WriteLine("IsRaspi: {0}", Platforms.IsRaspi);
+            Console.WriteLine("Raspi Model: {0}", Platforms.RaspiModelName);
+            Console.WriteLine("IsUnixLike: {0}", Platforms.IsUnixLike);
+            Console.WriteLine("IsWindows: {0}", Platforms.IsWindows);
+
             // Downloads a local copy of:
             // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/packages.json
             await PackageManager.Initalize();

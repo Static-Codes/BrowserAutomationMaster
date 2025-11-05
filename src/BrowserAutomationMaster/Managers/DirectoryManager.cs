@@ -214,7 +214,7 @@ namespace BrowserAutomationMaster.Managers
             else if (Platforms.IsOSX)
                 return GetAppDataMacOS(appName);
 
-            else if (Platforms.IsLinux || Platforms.IsChromeOS)
+            else if (Platforms.IsLinux || Platforms.IsChromeOS || Platforms.IsRaspi)
                 return GetAppDataLinux(appName);
 
             else

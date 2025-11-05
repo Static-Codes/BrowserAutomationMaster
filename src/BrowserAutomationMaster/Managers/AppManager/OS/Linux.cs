@@ -33,6 +33,21 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         readonly public static List<AppInfo> rpmApps = HasRPM ? ParseRpmList() : [];
 
+
+        readonly public static string[] RPiModelNames =
+        [
+            "2 Model B",
+            "3 Model B",
+            "3 Model B+",
+            "4 Model B",
+            "400",
+            "5",
+            "Compute Module 3",
+            "Compute Module 3+",
+            "Compute Module 4",
+            "Compute Module 4S",
+        ];
+
         public static List<AppInfo> GetApps()
         {
             try
@@ -92,7 +107,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             if (Platforms.IsLinux || Platforms.IsWindows || Platforms.IsOSX || !Platforms.IsChromeOS || Platforms.CurrentArchitecture != Arm) // If this is true, the OS is not supported regardless of its Architecture.
                 return;
            
-
             var psi = new ProcessStartInfo()
             {
                 FileName = HasDPKG ? "dpkg" : (HasRPM ? "rpm" : "bin/bash"),
@@ -101,7 +115,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 RedirectStandardError = true,
             };
             
-            using var proc = ProcessFactory.SpawnProcess(psi, "check if the current system is using the ARMHF Architecture", runSync: true).Result;
+            using var proc = ProcessFactory.SpawnProcess(psi, "check if the current system is using the ARMHF Architecture", runSync: true, writeSTDInOut: false).Result;
             (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(proc).Result;
 
             if (STDOut.Count == 0)
@@ -115,13 +129,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             else if (STDOut.Any(a => a.Contains("armel", OIC)))
                 Platforms.IsARMel = true;
-
-            //else
-            //{
-            //    foreach (var std in STDOut)
-            //        Console.Write(std);
-            //}
-            
 
         }
 
@@ -180,7 +187,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             {
                 string black = "0000/0000/0000";
                 
-                if (Platforms.IsChromeOS || Platforms.IsOSX)
+                if (Platforms.IsChromeOS || Platforms.IsOSX || Platforms.IsRaspi)
                     return black; 
                 
                 string tempFile = Path.GetTempFileName();
@@ -376,6 +383,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             return apps;
         }
 
+
         /// <summary> Parses apps installed via Flatpak </summary>
         /// <returns>A List of AppInfo</returns>
         private static List<AppInfo> ParseFlatpakList()
@@ -393,6 +401,53 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             return apps;
         }
+
+        public static void RPICheck()
+        {
+            try
+            {
+                var cpuContents = File.ReadAllLines("/proc/cpuinfo");
+                File.WriteAllLines("temp.txt", cpuContents);
+
+                if (cpuContents == null)
+                    return;
+
+                foreach (var line in cpuContents)
+                {
+                    if (string.IsNullOrEmpty(line)) {
+                        continue;
+                    }
+
+                    var match = PrecompiledRPIRegex().Match(line);
+                    
+                    if (match == null)
+                        continue;
+
+                    if (match.Groups.Count > 0)
+                    {
+                        match.Groups.TryGetValue("model", out var model);
+                        // if (model != null && model.Success)
+                        // {
+                        //     Platforms.IsRaspi = true;
+                        //     Platforms.IsUnixLike = true;
+                        //     Platforms.RaspiModelName = model.Value.ToString();
+                        // }
+                        // match.Groups[1].Value
+                        if (model != null && model.Success)
+                        {
+                            Platforms.IsRaspi = true;
+                            Platforms.IsUnixLike = true;
+                            Platforms.RaspiModelName = model.Value.ToString();
+                        }
+                    }
+                }
+                
+            }
+            catch (Exception ex){
+                Warning.Write($"A non fatal error occured while attempting to read from /proc/cpuinfo\n\nError Log:\n{ex.Message}");
+            }
+        }
+
         public static string RunCommand(string cmd, string args)
         {
             try
