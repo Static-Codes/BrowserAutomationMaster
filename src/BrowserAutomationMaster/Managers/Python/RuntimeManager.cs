@@ -18,6 +18,8 @@ namespace BrowserAutomationMaster.Managers.Python
         
         public string InterpreterPath { get; } = GetInterpreterFromPath();
 
+        private static MemoryInfo? memoryInfo = null;
+
         private static string[] BuildScriptMenu(List<string> scriptPaths)
         {
             string[] menu = new string[scriptPaths.Count];
@@ -50,7 +52,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         $"Error log:\nBAM Manager (BAMM) detected {cpuInfoManager.Cores} physical CPU cores.",
                     status: 1
                 );
-            }
+            } 
             
         }
         
@@ -76,15 +78,17 @@ namespace BrowserAutomationMaster.Managers.Python
 
             throw new PlatformNotSupportedException(
                 string.Join(NLC, [
-                    "Unsupported OS.\n" +
-                    "BAM Manager (BAMM) currently supports:\n" +
-                    "Windows 10/11\n" +
-                    "Linux\n" +
+                    "Unsupported OS.",
+                    "BAM Manager (BAMM) currently supports:",
+                    "Windows 10/11",
+                    "Linux\n",
+                    memoryInfo,
                     "MacOS 11+\n"
                 ])
             );
         }
         
+        public static MemoryInfo? GetMemoryInfo() { return memoryInfo; }
         private static string GetUserScriptChoice(List<string> scriptPaths, string[] menu)
         {
             while (true)
@@ -146,7 +150,7 @@ namespace BrowserAutomationMaster.Managers.Python
         
         public static bool HasEnoughMemory()
         {
-            MemoryInfo? memoryInfo = MemoryInfoManager.RunCheck();
+            memoryInfo = MemoryInfoManager.RunCheck();
             
             if (!memoryInfo.HasValue)
                 WriteAndExit(

@@ -23,6 +23,7 @@ namespace BrowserAutomationMaster.Managers
     {
         private readonly static HttpListener listener = new();
         const string DEFAULT_PORT = "8008";
+        private static int MINIMUM_GUI_MEMORY_MB = 2048;
         private readonly static string GUI_ZIP_PATH = GetGUIZipPath();
 
         private static bool isRunning = true;
@@ -324,14 +325,33 @@ namespace BrowserAutomationMaster.Managers
                 if (usedLHPorts.Contains(port))
                     throw new HttpListenerException(1, "Access is denied");
 
+                var memoryInfo = GetMemoryInfo();
+
+                // if (memoryInfo == null)
+                //     throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");
+                
+                var _ = memoryInfo != null && memoryInfo.HasValue ? memoryInfo :
+                    throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");
+                
+
+                if (memoryInfo.Value.TotalMemory < MINIMUM_GUI_MEMORY_MB){
+                    throw new InsufficientMemoryException("Your system currently has less than 2GB of total RAM as such the GUI could not be loaded.");
+                }
+
+
+                if (memoryInfo.Value.FreeMemory < MINIMUM_GUI_MEMORY_MB / 2){
+                    throw new InsufficientMemoryException("Your system currently has less than 1GB of free RAM as such the GUI could not be loaded.");
+                }
 
                 listener.Prefixes.Add(url);
                 listener.Start();
                 Console.WriteLine("Started GUI Server on {0}\n", url);
                 Console.WriteLine("To access the GUI visit {0}\n", GetMainGUIPage());
 
+                // ADD THIS FEATURE
                 // Would you like to open the GUI in your default browser?
                 // If yes, then open for the user 
+
 
                 await HandleEndpointRequests();
                 listener.Close();
@@ -340,7 +360,27 @@ namespace BrowserAutomationMaster.Managers
             catch (HttpListenerException ex)
             {
                 if (ex.Message.Contains("Access is denied"))
+                {
                     WriteAndExit(
+                        message:
+                            string.Join(string.Empty, [
+                                $"Port {port} on localhost is already in use, ",
+                                "as a result BAMM's GUI could not be loaded.\n\n",
+                                "Error Log:\n",
+                                $"Address '127.0.0.1:{port}' is already in use, ",
+                                "please use the following argument:\n",
+                                "bamm --gui --port==<PORT>\n",
+                                "Replace <PORT> with a number between 1 and 65535\n\n",
+                                "Example:\n",
+                                "bamm --gui --port==42069\n",
+                            ]),
+                        status: 1
+                    );
+                }
+            }
+
+            catch (InsufficientMemoryException){
+                WriteAndExit(
                         message:
                             string.Join(string.Empty, [
                                 $"Port {port} on localhost is already in use, ",
