@@ -14,9 +14,8 @@ namespace BrowserAutomationMaster.Managers
         /// <param name="regex">The desired precompiled regex function.</param>
         /// <param name="input">The input string to check against the regex.</param>
         /// <param name="outputGroup">Contains a string representation of the concatenated captured group values (excluding Group 0) from all matches.</param>
-        /// <param name="numericOnly">If true, only captured groups containing purely numeric characters are included in the output.</param>
         /// <returns>True if at least one match is found for the given regex, false otherwise.</returns>
-        public static bool IsMatches(Regex regex, string input, out string outputGroup, bool numericOnly = false)
+        public static bool IsMatches(Regex regex, string input, out string outputGroup)
         {
             outputGroup = string.Empty;
 
@@ -231,8 +230,8 @@ namespace BrowserAutomationMaster.Managers
         public static partial Regex PrecompiledNetStatRegex();
 
 
-        //// Used for LocalServerManager.ScanUsedLHPorts() (Unix)
-        //[GeneratedRegex(@"(?:TCP|UDP)\s{4}(?:localhost|127.0.0.1):([0-9]{1,5})")]
-        //public static partial Regex PrecompiledNetStatRegex();
+        // Used in AppManager.OS.Linux
+        [GeneratedRegex(@"^(?:model name|Model)(?:	{1,2}):\s(?:Raspberry Pi\s)(?<model>.*)")]
+        public static partial Regex PrecompiledRPIRegex();
     }
 }
