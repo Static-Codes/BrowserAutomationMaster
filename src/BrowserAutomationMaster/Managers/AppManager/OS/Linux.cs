@@ -34,19 +34,27 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         readonly public static List<AppInfo> rpmApps = HasRPM ? ParseRpmList() : [];
 
 
-        readonly public static string[] RPiModelNames =
+
+        readonly public static RPIModel[] RPiModelNames =
         [
-            "2 Model B",
-            "3 Model B",
-            "3 Model B+",
-            "4 Model B",
-            "400",
-            "5",
-            "Compute Module 3",
-            "Compute Module 3+",
-            "Compute Module 4",
-            "Compute Module 4S",
+            new (ModelName: "2 Model B", SupportsGUI: false),         // Only 1GB of RAM
+            new (ModelName: "3 Model B", SupportsGUI: false),         // Only 1GB of RAM
+            new (ModelName: "3 Model B+", SupportsGUI: false),        // Only 1GB of RAM
+            new (ModelName: "4 Model B", SupportsGUI: true),          // Comes with a minimum RAM of 1GB offers 2GB, 4GB and 8GB models
+            new (ModelName: "400", SupportsGUI: true),                // Comes with exactly 4GB
+            new (ModelName: "5", SupportsGUI: true),                  // Comes with a minimum RAM of 2GB offers 4GB and 8GB models
+            new (ModelName: "Compute Module 3", SupportsGUI: false),  // Comes with exactly 1GB
+            new (ModelName: "Compute Module 3+", SupportsGUI: false), // Comes with exactly 1GB
+            new (ModelName: "Compute Module 4", SupportsGUI: true),   // Comes with a minimum RAM of 1GB offers 2GB, 4GB and 8GB models
+            new (ModelName: "Compute Module 4S", SupportsGUI: true),  // Comes with a minimum RAM of 1GB offers 2GB, 4GB and 8GB models
         ];
+
+        public class RPIModel (string ModelName, bool SupportsGUI)
+        {
+            public string ModelName { get; private set; } = ModelName;
+            public bool SupportsGUI { get; private set; } = SupportsGUI;
+
+        }
 
         public static List<AppInfo> GetApps()
         {
@@ -426,13 +434,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     if (match.Groups.Count > 0)
                     {
                         match.Groups.TryGetValue("model", out var model);
-                        // if (model != null && model.Success)
-                        // {
-                        //     Platforms.IsRaspi = true;
-                        //     Platforms.IsUnixLike = true;
-                        //     Platforms.RaspiModelName = model.Value.ToString();
-                        // }
-                        // match.Groups[1].Value
                         if (model != null && model.Success)
                         {
                             Platforms.IsRaspi = true;
