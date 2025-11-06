@@ -19,7 +19,20 @@ namespace BrowserAutomationMaster.Managers
         public bool IsLinux { get; set; }
         public bool IsUnixLike { get; set; } // Linux + OSX
         public Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
-        public string? RaspiModelName { get; set; }
+        public KeyValuePair<string, bool>? RaspiModelInfo { get; set; }
+
+        public string GetRaspiModelName()
+        {
+            if (!IsRaspi) return string.Empty;
+            if (RaspiModelInfo is null) return string.Empty;
+            return RaspiModelInfo.Value.Key;
+        }
+        
+        public void SetRaspiModel(string Name, bool SupportsGUI)
+        {
+            if (!IsRaspi) return;
+            RaspiModelInfo = new(Name, SupportsGUI);
+        }
 
     }
 
@@ -87,13 +100,12 @@ namespace BrowserAutomationMaster.Managers
                 Platforms.IsUnixLike = true;
             }
 
-            else if (Platforms.IsRaspi)
-            {
-                Console.WriteLine("WORKING");
-                return; // Acts a fallthrough so the exception below is not thrown.
-            }
+            // Acts a fallthrough so the exception below is not thrown.
+            else if (Platforms.IsRaspi) return;
+
 
             else
+            {
                 throw new PlatformNotSupportedException(
                     string.Join(NLC, [
                         "Unsupported OS.",
@@ -104,6 +116,7 @@ namespace BrowserAutomationMaster.Managers
                         ]
                     )
                 );
+            }
         }
     }
 }
