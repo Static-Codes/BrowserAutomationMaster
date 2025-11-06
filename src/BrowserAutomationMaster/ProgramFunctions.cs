@@ -34,16 +34,6 @@ namespace BrowserAutomationMaster
             // Sets PlatformManager.PlatformName to be used across the session duration.
             SetPlatform();
 
-            Console.WriteLine("IsARMel: {0}", Platforms.IsARMel);
-            Console.WriteLine("IsARMhf: {0}", Platforms.IsARMhf);
-            Console.WriteLine("IsChromeOS: {0}", Platforms.IsChromeOS);
-            Console.WriteLine("IsLinux: {0}", Platforms.IsLinux);
-            Console.WriteLine("IsOSX: {0}", Platforms.IsOSX);
-            Console.WriteLine("IsRaspi: {0}", Platforms.IsRaspi);
-            Console.WriteLine("Raspi Model: {0}", Platforms.RaspiModelName);
-            Console.WriteLine("IsUnixLike: {0}", Platforms.IsUnixLike);
-            Console.WriteLine("IsWindows: {0}", Platforms.IsWindows);
-
             // Downloads a local copy of:
             // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/packages.json
             await PackageManager.Initalize();
@@ -113,6 +103,21 @@ namespace BrowserAutomationMaster
                 var response = Input.AskForInput("Would you like to continue? [y/n]: ");
                 var wantsToContinue = Input.ConditionAccepted(response); // OIC = StringComparison.OrdinalIgnoreCase
                 return !wantsToContinue; // Exit if user doesn't want to continue
+            }
+
+            if (pArgs.Any(arg => arg.Equals("--platform-debug")))
+            {
+                Console.WriteLine("====================================");
+                Console.WriteLine("IsARMel: {0}", Platforms.IsARMel);
+                Console.WriteLine("IsARMhf: {0}", Platforms.IsARMhf);
+                Console.WriteLine("IsChromeOS: {0}", Platforms.IsChromeOS);
+                Console.WriteLine("IsLinux: {0}", Platforms.IsLinux);
+                Console.WriteLine("IsOSX: {0}", Platforms.IsOSX);
+                Console.WriteLine("IsRaspi: {0}", Platforms.IsRaspi);
+                Console.WriteLine("Raspi Model: {0}", Platforms.GetRaspiModelName());
+                Console.WriteLine("IsUnixLike: {0}", Platforms.IsUnixLike);
+                Console.WriteLine("IsWindows: {0}", Platforms.IsWindows);
+                Console.WriteLine("===================================={0}{1}", NLC, NLC);
             }
 
             // Handles --bs command (does nothing if on chromeOS)

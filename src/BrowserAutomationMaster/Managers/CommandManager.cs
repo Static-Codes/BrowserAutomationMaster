@@ -85,13 +85,26 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
-
+            {
+                new Command(
+                    name: "--platform-debug",
+                    description:
+                        string.Join(NLC, [
+                            "Displays the platform information associated with the current session.",
+                            "This should only be used for development, or if requested on github.",
+                        ]),
+                    examples: [ "bamm --nohwc --platform-debug" ],
+                    type: CommandType.Argument
+                )
+            },
             {
                 new Command(
                     name: "add",
                     description:
-                        "Adds the specified file to the userScripts directory.\n" +
-                        "The script cannot already exist in the userScript directory.",
+                        string.Join(NLC, [
+                            "Adds the specified file to the userScripts directory.",
+                            "The script cannot already exist in the userScript directory.",
+                        ]),
                     examples: [ "bamm add \"path/to/external/file.bamc\"", ],
                     type: CommandType.Argument
                 )

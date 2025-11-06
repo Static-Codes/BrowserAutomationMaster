@@ -35,26 +35,19 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
 
 
-        readonly public static RPIModel[] RPiModelNames =
-        [
-            new (ModelName: "2 Model B", SupportsGUI: false),         // Only 1GB of RAM
-            new (ModelName: "3 Model B", SupportsGUI: false),         // Only 1GB of RAM
-            new (ModelName: "3 Model B+", SupportsGUI: false),        // Only 1GB of RAM
-            new (ModelName: "4 Model B", SupportsGUI: true),          // Comes with a minimum RAM of 1GB offers 2GB, 4GB and 8GB models
-            new (ModelName: "400", SupportsGUI: true),                // Comes with exactly 4GB
-            new (ModelName: "5", SupportsGUI: true),                  // Comes with a minimum RAM of 2GB offers 4GB and 8GB models
-            new (ModelName: "Compute Module 3", SupportsGUI: false),  // Comes with exactly 1GB
-            new (ModelName: "Compute Module 3+", SupportsGUI: false), // Comes with exactly 1GB
-            new (ModelName: "Compute Module 4", SupportsGUI: true),   // Comes with a minimum RAM of 1GB offers 2GB, 4GB and 8GB models
-            new (ModelName: "Compute Module 4S", SupportsGUI: true),  // Comes with a minimum RAM of 1GB offers 2GB, 4GB and 8GB models
-        ];
-
-        public class RPIModel (string ModelName, bool SupportsGUI)
+        public readonly static Dictionary<string, bool> RPIModels = new()
         {
-            public string ModelName { get; private set; } = ModelName;
-            public bool SupportsGUI { get; private set; } = SupportsGUI;
-
-        }
+            { "2 Model B", false },
+            { "3 Model B", false },
+            { "3 Model B+", false },
+            { "4 Model B", true },
+            { "400", true },
+            { "5", true },
+            { "Compute Module 3", false },
+            { "Compute Module 3+", false },
+            { "Compute Module 4", true },
+            { "Compute Module 4S", true }
+        };
 
         public static List<AppInfo> GetApps()
         {
@@ -415,34 +408,42 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             try
             {
                 var cpuContents = File.ReadAllLines("/proc/cpuinfo");
-                File.WriteAllLines("temp.txt", cpuContents);
 
                 if (cpuContents == null)
                     return;
 
+
                 foreach (var line in cpuContents)
                 {
-                    if (string.IsNullOrEmpty(line)) {
-                        continue;
-                    }
+                    if (string.IsNullOrEmpty(line)) continue;
 
                     var match = PrecompiledRPIRegex().Match(line);
-                    
-                    if (match == null)
-                        continue;
 
-                    if (match.Groups.Count > 0)
-                    {
-                        match.Groups.TryGetValue("model", out var model);
-                        if (model != null && model.Success)
-                        {
-                            Platforms.IsRaspi = true;
-                            Platforms.IsUnixLike = true;
-                            Platforms.RaspiModelName = model.Value.ToString();
-                        }
+                    if (match == null) continue;
+                    if (match.Groups.Count == 0) continue;
+
+                    match.Groups.TryGetValue("model", out var modelNameMatch);
+
+                    if (modelNameMatch == null) continue;
+                    if (!modelNameMatch.Success) continue;
+
+                    var modelName = $"Raspberry Pi {modelNameMatch.Value}";
+
+                    // Checks if the partial model string is present in modelNameMatch.Value
+                    var validatedMatches = RPIModels.Where(m => modelNameMatch.Value.Contains(m.Key));
+
+                    if (validatedMatches is null) {
+                        WriteAndExit($"The {modelName} is not supported", status: 1);
                     }
+
+                    // The value of the pair is a boolean determining whether the specified model can run the GUI.
+                    var validatedMatch = validatedMatches.First();
+
+                    Platforms.IsRaspi = true;
+                    Platforms.IsUnixLike = true;
+                    Platforms.SetRaspiModel(modelName, validatedMatch.Value);
+                    
                 }
-                
             }
             catch (Exception ex){
                 Warning.Write($"A non fatal error occured while attempting to read from /proc/cpuinfo\n\nError Log:\n{ex.Message}");
