@@ -3,7 +3,6 @@ using BrowserAutomationMaster.Parsing;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
-using System.Security.AccessControl;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
