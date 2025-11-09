@@ -56,12 +56,13 @@ namespace BrowserAutomationMaster.Managers.Python
                 
                 if (isValid) {
                     return new PythonValidationResult(
-                      isValid,
-                      process.StandardOutput.ReadToEnd(), 
-                      "No errors detected", 
-                      process.ExitCode
+                        isValid,
+                        process.StandardOutput.ReadToEnd(), 
+                        "No errors detected", 
+                        process.ExitCode
                     );
                 }
+
                 return new PythonValidationResult(
                     isValid: false, 
                     "No output detected.",
