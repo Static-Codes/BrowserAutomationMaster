@@ -328,7 +328,7 @@ namespace BrowserAutomationMaster.Managers
                     continue;
                 }
 
-                if (currentSection == null) 
+                if (currentSection is null) 
                     continue;
 
                 // Handles overrides (if present)
@@ -373,7 +373,7 @@ namespace BrowserAutomationMaster.Managers
             var lineNumber = Array.IndexOf(splitLines, originalLine) + 1;
             var property = typeof(Config).GetProperty(propName, BindingAttr);
 
-            if (property == null)
+            if (property is null)
             {
                 WriteAndExit(
                     GenerateErrorMessage(
@@ -389,7 +389,7 @@ namespace BrowserAutomationMaster.Managers
             try
             {
                 var castedValue = DoCast(propValue, property.PropertyType);
-                if (castedValue == null)
+                if (castedValue is null)
                 {
                     WriteAndExit(
                         GenerateErrorMessage(
@@ -433,7 +433,7 @@ namespace BrowserAutomationMaster.Managers
         {
             bool hasComment = false;
             char commentChar = ';';
-            if (line == null) { return true; } // If a line is null returning true will have it skipped.
+            if (line is null) { return true; } // If a line is null returning true will have it skipped.
             foreach (char c in line)
             {
                 if (char.IsWhiteSpace(c))
@@ -526,7 +526,7 @@ namespace BrowserAutomationMaster.Managers
                 }
                 else
                 {
-                    if (currentSection == null)
+                    if (currentSection is null)
                     {
                         WriteAndExit(
                             GenerateErrorMessage(
@@ -541,7 +541,7 @@ namespace BrowserAutomationMaster.Managers
 
                     var parts = GetPartsOfLine(trimmedLine, originalLine);
 
-                    if (parts == null)
+                    if (parts is null)
                         continue; // Returning null means the line was skipped this is intended.
                     
 
@@ -571,7 +571,7 @@ namespace BrowserAutomationMaster.Managers
                     if (!rawSections[currentSection].Any(pair => pair.Key.Equals(propName))) // Handles all sections but overrides
                     {
                         
-                        if (typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null) // Handles overrides
+                        if (typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) is null) // Handles overrides
                             WriteAndExit(
                                 GenerateErrorMessage(
                                     fileName: "config.ini",

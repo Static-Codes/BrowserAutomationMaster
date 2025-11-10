@@ -45,13 +45,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             using (RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Registry64))
             using (RegistryKey? key = baseKey.OpenSubKey(subKeyPath))
             {
-                if (key == null)
+                if (key is null)
                     return list;
 
                 foreach (var subkeyName in key.GetSubKeyNames())
                 {
                     using RegistryKey? subkey = key.OpenSubKey(subkeyName);
-                    if (subkey == null) { continue; }
+                    if (subkey is null) { continue; }
                     string? name = subkey?.GetValue("DisplayName") as string;
                     if (string.IsNullOrWhiteSpace(name)) { continue; }
 
@@ -76,7 +76,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 if (args.Contains("--ignore-drive-root")) { return; }
                 string? rootDrive = Path.GetPathRoot(AppContext.BaseDirectory);
 
-                if (rootDrive == null || !rootDrive.StartsWith("C:"))
+                if (rootDrive is null || !rootDrive.StartsWith("C:"))
                 {
                     WriteAndExit(
                         message: 

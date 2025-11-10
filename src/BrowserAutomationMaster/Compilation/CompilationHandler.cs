@@ -14,7 +14,7 @@ namespace BrowserAutomationMaster.Compilation
         public static void AddHeader(List<string> scriptBody, string sanitizedArg2, string sanitizedArg3)
         {
             var headerString = BrowserFunctions.AddHeaderFunction(sanitizedArg2, sanitizedArg3);
-            if (headerString == null)
+            if (headerString is null)
             {
                 Warning.Write($"Unable to add header '{sanitizedArg2}' with value '{sanitizedArg3}'");
                 return;

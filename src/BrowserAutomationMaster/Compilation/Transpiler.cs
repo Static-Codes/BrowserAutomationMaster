@@ -14,6 +14,7 @@ using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
+using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -292,16 +293,25 @@ namespace BrowserAutomationMaster.Compilation
                 Add(browserQuitCode);
         }
         
-        private static void CheckBrowserStackStatus()
+        public static void CheckBrowserStackStatus()
         {
             // If argument `--bs` is not provided, usingBrowserstack will be false.
             // This functions checks if:
             // 1. The user is running on ChromeOS, since Chromebooks are 99/100 times too underpowered for Selenium execution.
             // 2. The user modified the `use_browserstack` property in config.ini
+            // 3. The user is running on Raspberry Pi with less than 2GB of free memory.
             
+            // var memoryInfo = GetMemoryInfo();
+
+            // if (memoryInfo is null) return;
+            
+            // var availableMemory = memoryInfo.Value.FreeMemory;
+
             if (!usingBrowserstack)
-                usingBrowserstack = Platforms.IsChromeOS || GlobalConfig.UseBrowserstack;
+                usingBrowserstack = Platforms.IsChromeOS || GlobalConfig.UseBrowserstack || Platforms.IsRaspi;
+                // && availableMemory < 2048;
         }
+
         private static void CreateProjectDirectory()
         {
             try
@@ -417,7 +427,7 @@ namespace BrowserAutomationMaster.Compilation
             if (config.browserPresent)
             {
                 var potentialUA = await UserAgentManager.GetUserAgent(config.selectedBrowser);
-                if (potentialUA == null)
+                if (potentialUA is null)
                     WriteErrorAndReturnNull("Unable to select custom user agent, please try again");
 
                 requestUserAgent = potentialUA!; // null check is done above.
@@ -958,7 +968,7 @@ namespace BrowserAutomationMaster.Compilation
 
             if (!File.Exists(path))
                 WriteAndExit(
-                    "Unable to run the newly compiled project, please ensure this file still exists.\\n\\n" +
+                    "Unable to run the newly compiled project, please ensure this file still exists.\n\n" +
                     $"Path: {path}",
                     status: 1
                 );
@@ -1084,7 +1094,7 @@ namespace BrowserAutomationMaster.Compilation
                     );
                     return false;
                 }
-                if (uriResult == null)
+                if (uriResult is null)
                 {
                     WriteAndExit(
                         message:
@@ -1245,6 +1255,7 @@ namespace BrowserAutomationMaster.Compilation
 
             bamConfig = new BAMConfig(filePath);
         }
+        
         private static void SetScriptName(string filePath)
         {
             string failureMessage =
@@ -1255,7 +1266,7 @@ namespace BrowserAutomationMaster.Compilation
             try
             {
                 string fileName = Path.GetFileName(filePath);
-                if (fileName == null)
+                if (fileName is null)
                 {
                     WriteAndExit(
                         message: failureMessage,

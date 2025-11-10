@@ -46,7 +46,7 @@
             {
                 using var response = await GetAsync();
 
-                if (response == null)
+                if (response is null)
                     return null;
 
                 response.EnsureSuccessStatusCode();
@@ -66,7 +66,7 @@
 
                 using var response = await GetAsync();
                 
-                if (response == null)
+                if (response is null)
                     return null;
 
                 if (ensureStatus)
@@ -86,7 +86,7 @@
         public async Task<string?> GetStringAsync(bool disableRedirectsForThisRequest)
         {
             using var response = await GetAsync(disableRedirectsForThisRequest);
-            if (response == null)
+            if (response is null)
                 return null;
 
             response.EnsureSuccessStatusCode();

@@ -47,13 +47,13 @@ namespace BrowserAutomationMaster.Managers
             {
                 bool uriCreated = Uri.TryCreate($"{LATEST_VERSION_LINK}", UriKind.Absolute, out Uri? uriResult);
 
-                if (!uriCreated || uriResult == null) 
+                if (!uriCreated || uriResult is null) 
                     return string.Empty;
 
                 RequestManager requestManager = RequestManager.Create(uriResult);
                 response = await requestManager.GetAsync(followRedirects: false);
                 
-                if (response == null)
+                if (response is null)
                     return string.Empty;
 
                 if (response.StatusCode != HttpStatusCode.Redirect)
@@ -80,7 +80,7 @@ namespace BrowserAutomationMaster.Managers
             }
 
             // This should never actually be hit but the line below has a "Dereference of possibly null reference" error so im leaving this in"
-            if (response == null)
+            if (response is null)
                 return string.Empty;
 
             string url = 

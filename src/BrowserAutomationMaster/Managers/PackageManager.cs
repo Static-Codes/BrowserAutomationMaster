@@ -37,7 +37,7 @@ namespace BrowserAutomationMaster.Managers
             try
             {
                 var response = await NetworkClient.Instance.GetStringAsync(PACKAGES_LINK);
-                if (response == null)
+                if (response is null)
                     WriteAndExit(nullMessage, 1);
                 File.WriteAllText(packagePath, response);
                 WriteSuccessMessage("Successfully downloaded required Python package data!\n");
@@ -80,7 +80,7 @@ namespace BrowserAutomationMaster.Managers
                 );
                 return null;
             }
-            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
+            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings is null)
             {
                 WriteAndExit(
                     message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
@@ -144,11 +144,11 @@ namespace BrowserAutomationMaster.Managers
 
             try
             {
-                if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { return false; }
+                if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult is null) { return false; }
                 RequestManager requestManager = RequestManager.Create(uriResult);
                 HttpResponseMessage? response = await requestManager.GetAsync(followRedirects: true);
                 
-                if (response == null)
+                if (response is null)
                     return false; 
               
 
@@ -161,7 +161,7 @@ namespace BrowserAutomationMaster.Managers
                 }
 
                 HttpContent content = response.Content;
-                if (content == null) { 
+                if (content is null) { 
                     Write(unvalidatedMessage); 
                     return false; 
                 }

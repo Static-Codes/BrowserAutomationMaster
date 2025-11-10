@@ -74,7 +74,7 @@ namespace BrowserAutomationMaster.Managers
         public static string? ReadKey()
         {
             var keyInfo = AnsiConsole.Console.Input.ReadKey(true);
-            if (keyInfo == null) { return null; }
+            if (keyInfo is null) { return null; }
             return SanitizeNumericValue(keyInfo.Value.Key.ToString());
         }
         public static string SanitizeNumericValue(string value)
