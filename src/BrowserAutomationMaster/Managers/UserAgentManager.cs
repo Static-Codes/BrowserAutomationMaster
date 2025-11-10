@@ -27,7 +27,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     var userAgentsObj = new UserAgents();
                     var jsonString = await userAgentsObj.LoadJSONString();
-                    if (jsonString == null)
+                    if (jsonString is null)
                     {
                         WriteAndExit(
                             message:
@@ -39,7 +39,7 @@ namespace BrowserAutomationMaster.Managers
                     }
                     userAgentsData = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(jsonString);
 
-                    if (userAgentsData == null || userAgentsData.Count == 0)
+                    if (userAgentsData is null || userAgentsData.Count == 0)
                     {
                         WriteAndExit(
                             message:
@@ -78,7 +78,7 @@ namespace BrowserAutomationMaster.Managers
         {
             await LoadUserAgents();
 
-            if (userAgentsData == null || userAgentsData.Count == 0)
+            if (userAgentsData is null || userAgentsData.Count == 0)
             {
                 WriteAndExit(
                     message: 
@@ -120,7 +120,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 
                 var response = await RequestManager.NetworkClient.Instance.GetStringAsync(uri);
-                if (response == null)
+                if (response is null)
                     return null;
                 return response;
             }
@@ -161,7 +161,7 @@ namespace BrowserAutomationMaster.Managers
                     "Error Log:\nJSON contents is null.";
 
             var contents = await RetrieveJSON();
-            if (contents == null)
+            if (contents is null)
                 WriteAndExit(message, 1);
 
             try

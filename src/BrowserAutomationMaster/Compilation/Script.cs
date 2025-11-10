@@ -65,13 +65,13 @@ namespace BrowserAutomationMaster.Compilation
 
         public void AddLine(string line)
         {
-            if (scriptLines == null) return;
+            if (scriptLines is null) return;
             scriptLines.Add(line);
         }
 
         public void AddLine(string line, int index)
         {
-            if (scriptLines == null) return;
+            if (scriptLines is null) return;
             scriptLines.Insert(index, line);
         }
         public void AddLines(string[] lines)

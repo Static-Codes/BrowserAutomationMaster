@@ -109,7 +109,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             {
                 var devicesJSON = await RequestManager.NetworkClient.Instance.GetStringAsync(BROWSER_STACK_LINK);
 
-                if (devicesJSON == null)
+                if (devicesJSON is null)
                     return WriteErrorAndReturnBool(msg, false);
 
                 Devices = JsonSerializer.Deserialize<DeviceTypes>(devicesJSON);
@@ -201,7 +201,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         {
             public static string[] GetMobileDeviceNames()
             {
-                if (Devices == null || Devices.Mobile == null)
+                if (Devices is null || Devices.Mobile is null)
                     return [];
 
                 var devices = Devices?.Mobile?
@@ -211,7 +211,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     .Distinct()
                     .ToArray();
 
-                if (devices == null || devices.Length == 0)
+                if (devices is null || devices.Length == 0)
                     return [];
 
                 return devices!;
@@ -219,7 +219,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
             public static string[] GetAndroidDeviceNames(string osVersion, string browserName)
             {
-                if (Devices == null || Devices.Mobile == null)
+                if (Devices is null || Devices.Mobile is null)
                     return [];
 
                 // OIC = OrdinalIgnoreCase (imported via ConstantManager)
@@ -239,7 +239,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             public static string[] GetiOSDeviceNames(string osVersion, string browserName)
             {
-                if (Devices == null || Devices.Mobile == null)
+                if (Devices is null || Devices.Mobile is null)
                     return [];
 
                 // OIC = OrdinalIgnoreCase (imported via ConstantManager)
@@ -272,7 +272,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
             public static string[] GetBrowserVersionsSupported(string browserName, string osName)
             {
-                if (Devices == null || Devices.Mobile == null)
+                if (Devices is null || Devices.Mobile is null)
                     return [];
 
                 if (osName == "OS X" || osName == "Windows")

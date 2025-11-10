@@ -66,7 +66,7 @@ namespace BrowserAutomationMaster.Managers
 
                 var content = await response.Content.ReadAsByteArrayAsync();
 
-                if (content == null)
+                if (content is null)
                     return WriteErrorAndReturnBool(msg, false);
 
                 await File.WriteAllBytesAsync(GUI_ZIP_PATH, content);
@@ -122,7 +122,7 @@ namespace BrowserAutomationMaster.Managers
         /// <exception cref="PlatformNotSupportedException"></exception>
         public static IEnumerable<Group>? GetValues(GroupCollection? groups)
         {
-            if (groups == null || groups.Count == 0) 
+            if (groups is null || groups.Count == 0) 
                 return [];
 
             if (Platforms.IsWindows)
@@ -155,7 +155,7 @@ namespace BrowserAutomationMaster.Managers
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
 
-                if (request.Url == null)
+                if (request.Url is null)
                 {
                     Warning.Write("Unable to parse request, please try again.");
                     return;
@@ -280,7 +280,7 @@ namespace BrowserAutomationMaster.Managers
                     var groups = matches[i].Groups;
                     var values = GetValues(groups);
 
-                    if (values == null)
+                    if (values is null)
                         continue;
 
                     foreach (var value in values)
@@ -326,11 +326,11 @@ namespace BrowserAutomationMaster.Managers
 
                 var memoryInfo = GetMemoryInfo();
 
-                // if (memoryInfo == null)
-                //     throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");
-                
-                var _ = memoryInfo != null && memoryInfo.HasValue ? memoryInfo :
+                if (memoryInfo is null)
                     throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");
+                
+                // var _ = memoryInfo != null && memoryInfo.HasValue ? memoryInfo :
+                //     throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");
                 
 
                 if (memoryInfo.Value.TotalMemory < MINIMUM_GUI_MEMORY_MB){
@@ -492,7 +492,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 var b64Path = request.QueryString["path"];
 
-                if (b64Path == null)
+                if (b64Path is null)
                 {
                     await HandleInvalidResponse(response, "Invalid request, missing param \"path\"");
                     return;
@@ -549,7 +549,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 var b64Path = request.QueryString["path"];
 
-                if (b64Path == null)
+                if (b64Path is null)
                 {
                     await HandleInvalidResponse(response, "Invalid request, missing param \"path\"");
                     return;

@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Diagnostics.CodeAnalysis;
+using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AppManager.OS.MacOS;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -52,8 +53,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         $"Error log:\nBAM Manager (BAMM) detected {cpuInfoManager.Cores} physical CPU cores.",
                     status: 1
                 );
-            } 
-            
+            }
         }
         
         private static List<string> GetCompiledScriptPaths(string saveDirectory)
@@ -81,9 +81,8 @@ namespace BrowserAutomationMaster.Managers.Python
                     "Unsupported OS.",
                     "BAM Manager (BAMM) currently supports:",
                     "Windows 10/11",
-                    "Linux\n",
-                    memoryInfo,
-                    "MacOS 11+\n"
+                    "Linux",
+                    "MacOS 11+"
                 ])
             );
         }
@@ -100,7 +99,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 string rawChoice = Input.WriteListFromOptions(menu);
                 string? choice = Parser.GetFileNumber(rawChoice);
 
-                if (choice == null)
+                if (choice is null)
                     WriteAndExit(message, 1);
 
                 if (int.TryParse(choice, out int result) && result >= 1 && result <= scriptPaths.Count)
@@ -264,6 +263,7 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 // For the current commit this is intentionally unwrapped from the try catch block to invoke an Exception and have its StackTrace automatically output for debugging purposes.
                 ValidateScript();
+                
                 var vEnvManager = usingBrowserstack switch
                 {
                     true => VEnvManager.CheckBSConfigAtRuntime(scriptFilePath),

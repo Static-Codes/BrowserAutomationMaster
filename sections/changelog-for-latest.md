@@ -2,7 +2,7 @@
 
 ## **Notes**
 
-- There are 8 releases below aswell as the raw source code (source.zip).
+- There are 10 releases below aswell as the raw source code (source.zip).
 
 ---
 
@@ -42,7 +42,10 @@
 
 - Added `ProgramFunctions` class in namespace `BrowserAutomationMaster`
 
+- Added `RPICheck` function in `Linux` class in namespace `BrowserAutomationMaster.Managers.AppManager.OS`
+
 - Added BrowserStack related functions to class `BrowserAutomationMaster.Managers.DirectoryManager`
+
 
 - Fixed a Windows-Specific bug causing black text to be outputted on a black terminal backgrounds, when multiple instances of are opened.  
   - Expected behavior is now red text on a black background.
@@ -52,6 +55,8 @@
 - Improved Physical CPU Core count logic in class `CPUCoreManager` in namespace `BrowserAutomationMaster.Managers`
 
 - Improved Python version detection in class `InstallationCheck` in namespace `BrowserAutomationMaster.Helpers`
+
+- Refactored all `== null` conditions to `is null` to utilize pattern matching, a feature that has been available since C# 7.
 
 - Refactored `PackageManager` class in namespace `BrowserAutomationMaster.Managers` to use externally hosted JSON, instead of embedded json.
 
@@ -78,8 +83,12 @@
 
 - `bamm --bs` - Instructs BAMM to use [BrowserStack](https://browserstack.com) to run the compiled scripts, works on all platforms except ChromeOS, as chromebooks are too underpowered to run selenium.
 - `bamm --editbsconf` - Edit and Overwrite Browserstack's YAML Config via an interactive process. (For advanced users)
+- `bamm --gui` - Starts the Graphical User Interface for BAMM.
 - `bamm --nohwc` - Instructs BAMM not to check your system's hardware for compatibility, this should not be done unless you've already verified BAMM can run on your machine.
+- `bamm --platform-debug` - Displays information on the operating system and machine currently running BAMM.
 - `bamm backup` - Backs up all application files to `BAMM-Backup.zip`.
+
+
 
 ## Releases
 
@@ -103,14 +112,11 @@ There are two versions for Windows. You most likely need the **x64** version.
 
 ### Linux 🐧
 
-- `bamm.v1.0.0A5.linux-x64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on Intel and AMD CPUs from the last 15 years.
+- `bamm.v1.0.0A5.linux-x64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on Intel and AMD CPUs from the last 20 years.
+- `bamm.v1.0.0A5.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on `M-Series Macs` or newer `Surface Laptops`.
+- `bamm.v1.0.0A5-linux-arm.deb` : For **32-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on older chromebooks.
 
-- `bamm.v1.0.0A5.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on Macs or newer Surface Laptops.
-
-- `bamm.v1.0.0A5.linux-x64.rpm`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Intel and AMD CPUs from the last 15 years.
-
+- `bamm.v1.0.0A5.linux-x64.rpm`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Intel and AMD CPUs from the last 20 years.
 - `bamm.v1.0.0A5.linux-arm64.rpm`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Macs or newer Surface Laptops.
+- `bamm.v1.0.0A5.linux-arm.rpm`: For **32-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on older chromebooks.
 
-- `bamm.v1.0.0A5-linux-arm.deb` : For **32-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on Macs or newer Surface Laptops.
-
-- `bamm.v1.0.0A5.linux-arm.rpm`: For **32-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Macs or newer Surface Laptops.

@@ -30,7 +30,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 switch (compression)
                 {
-                    case "zip" when outputPath == null:
+                    case "zip" when outputPath is null:
                         if (!Directory.Exists(AppDataDirectory))
                             WriteAndExit($"Unable to create backup file, directory doesn't exist at: {AppDataDirectory}", 1);
 

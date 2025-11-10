@@ -8,7 +8,7 @@ namespace BrowserAutomationMaster.Helpers
     {
         public static void PrintProperties(object? obj, int indent = 0)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 Console.WriteLine("null");
                 return;

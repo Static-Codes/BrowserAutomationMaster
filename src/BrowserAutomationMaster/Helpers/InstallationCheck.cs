@@ -96,7 +96,7 @@ Supported versions include:
 
         void CheckApp(AppInfo app, bool pythonOnly, string? version = null)
         {
-            if (app == null || app.Name == null || app.Name.Length == 0)
+            if (app is null || app.Name is null || app.Name.Length == 0)
                 return;
 
             //if (app.Name.Contains("brave", CCIC))
@@ -108,7 +108,7 @@ Supported versions include:
             else if (!pythonOnly && app.Name.Contains("firefox", CCIC))
                 Add(ApplicationNames.Firefox);
 
-            else if (version == null && GetEnumMemberFromString(app.Name, out ApplicationNames appName))
+            else if (version is null && GetEnumMemberFromString(app.Name, out ApplicationNames appName))
                 Add(appName);
 
             // Unix Specific Recursive Case

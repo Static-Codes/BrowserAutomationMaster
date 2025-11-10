@@ -34,7 +34,7 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 ParentDirectory = Path.GetDirectoryName(ScriptFilePath);
 
-                if (ParentDirectory == null)
+                if (ParentDirectory is null)
                     return false;
 
                 VEnvPath = Path.Combine(ParentDirectory, "venv");
@@ -55,8 +55,8 @@ namespace BrowserAutomationMaster.Managers.Python
         public static VEnvManager CheckBSConfigAtRuntime(string scriptFilePath)
         {
             var config = LoadConfig();
-            if (config == null)
-                WriteAndExit($"Unable to load BrowserStack Config from:\n{GetBrowserStackConfigPath()}", 1);
+            if (config is null)
+                WriteAndExit($"Unable to load BrowserStack Config from:{NLC}{GetBrowserStackConfigPath()}", 1);
             return new VEnvManager("browserstack-sdk python", scriptFilePath);
         }
 
@@ -115,12 +115,15 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private string GetVEnvStartArgs(string pythonPath)
         {
-            if (ParentDirectory == null)
+            if (ParentDirectory is null)
                 throw new ArgumentException("ParentDirectory is null");
+
+
+            if (Platforms.IsWindows || Platforms.IsRaspi)
+                return $"\"{ScriptFilePath}\"";
 
             if (Platforms.IsARMel || Platforms.IsARMhf)
                 return $"-c \"source '{Path.Combine(ParentDirectory, "venv", "bin", "activate")}'";
-            
 
             if (Platforms.IsLinux)
                 return $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{pythonPath}\" \"{ScriptFilePath}\"";
@@ -128,8 +131,6 @@ namespace BrowserAutomationMaster.Managers.Python
             if (Platforms.IsOSX)
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && '{pythonPath}' '{ScriptFilePath}'";
 
-            if (Platforms.IsWindows)
-                return $"\"{ScriptFilePath}\"";
 
             ThrowUnsupportedPlatformException();
             return string.Empty; // Will not be executed.
@@ -142,7 +143,7 @@ namespace BrowserAutomationMaster.Managers.Python
             WriteSuccessMessage("Installing required project packages in the project's virtual environment, please wait..");
             await Task.Delay(1000);
 
-            if (ParentDirectory == null)
+            if (ParentDirectory is null)
                 WriteAndExit(
                     message:
                         "Unable to install the required Python packages for the current project, please try again.\n" +
@@ -150,7 +151,6 @@ namespace BrowserAutomationMaster.Managers.Python
                         "Error log:\nParentDirectory is null in InstallProjectPackages()",
                     status: 1
                 );
-
 
             var pipExecutable = GetProjectVEnvPipPath(ParentDirectory);
 
@@ -214,7 +214,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private async Task StartScriptExecution()
         {
-            if (ParentDirectory == null)
+            if (ParentDirectory is null)
                 WriteAndExit(
                     message:
                         "Unable to install the required Python packages for the current project, please try again.\n" +
@@ -294,7 +294,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
             StackConfig = LoadConfig();
 
-            if (StackConfig == null)
+            if (StackConfig is null)
                 WriteAndExit
                 (
                     message:

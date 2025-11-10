@@ -164,7 +164,7 @@ namespace BrowserAutomationMaster.Managers
 
                 Process? process = Process.Start(scriptRunInfo);
 
-                if (process == null) {
+                if (process is null) {
                     WriteAndExit(
                         message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
                                  $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -247,7 +247,7 @@ namespace BrowserAutomationMaster.Managers
             { 
                 Process? process = Process.Start(info);
                 using (process) {
-                    if (process == null) { 
+                    if (process is null) { 
                         WriteAndExit(
                             message: 
                                 $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +

@@ -54,7 +54,7 @@ namespace BrowserAutomationMaster
             var versions = GetBrowserVersion();
 
             // Null check on BrowserVersionManager.browserVersions
-            if (versions == null)
+            if (versions is null)
                 Warning.Write(
                     "Unable to get most browser versions, please ensure you have an active internet connection.\n" +
                     $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n"
@@ -286,7 +286,7 @@ namespace BrowserAutomationMaster
             {
                 var content = await RequestManager.NetworkClient.Instance.GetStringAsync(GUI_DAEMON_LINK);
 
-                if (content == null)
+                if (content is null)
                     return WriteErrorAndReturnBool(msg, false);
 
                 var path = GetGUIDaemonPath();
@@ -436,7 +436,9 @@ namespace BrowserAutomationMaster
 
                     case MenuOption.Run:
                         RuntimeManager runtimeManager = new(parserResult.Value);
-                        await runtimeManager.RunScript();
+                        CheckBrowserStackStatus();
+                        Console.WriteLine(GetBrowserStackStatus());
+                        await runtimeManager.RunScript(GetBrowserStackStatus());
                         break;
 
                     case MenuOption.Help:

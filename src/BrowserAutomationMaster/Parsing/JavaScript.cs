@@ -23,7 +23,7 @@ internal class JavaScript
     // Currently unused
     public static string SanitizeJSForPython(string jsCode)
     {
-        if (jsCode == null || jsCode == string.Empty) { return string.Empty; }
+        if (jsCode is null || jsCode == string.Empty) { return string.Empty; }
 
         // Escapes backslashes first so later replacements dont double up on escape
         string sanitized = jsCode.Replace("\\", "\\\\");
