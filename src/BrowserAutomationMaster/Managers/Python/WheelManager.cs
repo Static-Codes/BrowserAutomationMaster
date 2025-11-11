@@ -22,7 +22,7 @@ namespace BrowserAutomationMaster.Managers.Python
             try
             {
                 var baseDir = GetPythonWheelDirectory();
-                var platformName = Platforms.IsARMel ? "armel" : "armhf";
+                var platformName = Platforms.IsARMhf ? "armhf" : "generic";
                 var platformWheelDir = Path.Combine(baseDir, platformName);
 
 
@@ -56,7 +56,7 @@ namespace BrowserAutomationMaster.Managers.Python
         {
 
             var baseDir = GetPythonWheelDirectory();
-            var platformName = Platforms.IsARMel ? "armel" : "armhf";
+            var platformName = Platforms.IsARMhf ? "armhf" : "generic";
             var platformWheelDir = Path.Combine(baseDir, platformName);
 
 
@@ -94,9 +94,10 @@ namespace BrowserAutomationMaster.Managers.Python
 
     public static class WheelManager
     {
-        private static Wheel BrotliARMel = new("BrotliPY for ARMel", "brotlipy-0.7.0-cp39-cp39-linux_armel.whl");
-        private static Wheel CFFIARMel = new("CFFI for ARMel", "cffi-2.0.0-cp39-cp39-linux_armel.whl");
-        private static Wheel ZSTDARMel = new("ZSTD for ARMel", "zstandard-0.25.0-cp39-cp39-linux_armel.whl");
+        private static Wheel BrotliARMv7 = new("BrotliPY for ARMv7", "brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl");
+        private static Wheel CFFIARMv7 = new("CFFI for ARMv7", "cffi-2.0.0-cp311-cp311-linux_armv7l.whl");
+        private static Wheel PSUtilARMv7 = new("PSUtil for ARMhf", "psutil-7.1.2-cp36-abi3-linux_armv7l.whl");
+        private static Wheel ZSTDARMv7 = new("ZSTD for ARMv7", "zstandard-0.25.0-cp311-cp311-linux_armv7l.whl");
         // private static Wheel PSUtilARMel = new Wheel
 
         private static Wheel BrotliARMhf = new("BrotliPY for ARMhf", "brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl");
@@ -106,8 +107,8 @@ namespace BrowserAutomationMaster.Managers.Python
 
 
         public static readonly Wheel[] ArmWheels = 
-            Platforms.IsARMel ? [BrotliARMel, CFFIARMel, ZSTDARMel] 
-            : [PSUtilARMhf, BrotliARMhf, CFFIARMhf, ZSTDARMhf, ];
+            Platforms.IsARMhf ? [PSUtilARMhf, BrotliARMhf, CFFIARMhf, ZSTDARMhf] 
+            : [PSUtilARMv7, BrotliARMv7, CFFIARMv7, ZSTDARMv7, ];
 
         public static string[] GetRequirementStrings() 
         {

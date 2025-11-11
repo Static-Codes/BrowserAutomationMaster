@@ -9,7 +9,7 @@
         public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
         public const string RELEASES_DOWNLOAD_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/download";
         public const string BROWSER_STACK_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/browserstack.json";
-        public const string BASE_ARMEL_WHEEL_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/raw/refs/heads/main/src/BrowserAutomationMaster/AppData/wheels/armel/";
+        public const string BASE_ARMEL_WHEEL_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/raw/refs/heads/main/src/BrowserAutomationMaster/AppData/wheels/generic/";
         public const string BASE_ARMHF_WHEEL_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/raw/refs/heads/main/src/BrowserAutomationMaster/AppData/wheels/armhf/";
         public const string PACKAGES_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/packages.json";
         public const string USERAGENTS_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/useragents.json";
