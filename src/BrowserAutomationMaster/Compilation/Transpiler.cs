@@ -66,7 +66,7 @@ namespace BrowserAutomationMaster.Compilation
             {
 
                 CheckBrowserStackStatus();
-                
+
                 // Found it's more reliable to reset the state when a new Transpiler object is created.
                 ResetTranspilerState();
 
@@ -122,6 +122,7 @@ namespace BrowserAutomationMaster.Compilation
             // ARMv7 (ARMel + ARMhf) Specific Packages (Precompiled Wheels for each Architecture)
             if (Platforms.IsARMel || Platforms.IsARMhf)
                 script.AddRequirementPackages(GetRequirementStrings());
+
 
             // This function will exit if a null value is reached so no worries about a null check here
             string sVersion = PackageManager.Get("selenium", pythonVersion);
@@ -301,15 +302,14 @@ namespace BrowserAutomationMaster.Compilation
             // 2. The user modified the `use_browserstack` property in config.ini
             // 3. The user is running on Raspberry Pi with less than 2GB of free memory.
             
-            // var memoryInfo = GetMemoryInfo();
+            var memoryInfo = GetMemoryInfo();
 
-            // if (memoryInfo is null) return;
+            if (memoryInfo is null) return;
             
-            // var availableMemory = memoryInfo.Value.FreeMemory;
+            var availableMemory = memoryInfo.Value.FreeMemory;
 
             if (!usingBrowserstack)
-                usingBrowserstack = Platforms.IsChromeOS || GlobalConfig.UseBrowserstack || Platforms.IsRaspi;
-                // && availableMemory < 2048;
+                usingBrowserstack = Platforms.IsChromeOS || GlobalConfig.UseBrowserstack || Platforms.IsRaspi && availableMemory < 2048;
         }
 
         private static void CreateProjectDirectory()

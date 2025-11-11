@@ -2,7 +2,6 @@
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Diagnostics.CodeAnalysis;
-using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AppManager.OS.MacOS;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -149,22 +148,14 @@ namespace BrowserAutomationMaster.Managers.Python
         
         public static bool HasEnoughMemory()
         {
-            memoryInfo = MemoryInfoManager.RunCheck();
-            
-            if (!memoryInfo.HasValue)
-                WriteAndExit(
-                    $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
-                    $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                    $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary.",
-                    status: 1
-                );
+            SetMemoryInfo();
 
-            // Less than 2GiB Total
-            if (memoryInfo.Value.TotalMemory < 2048)
+            // Less than 2GiB Total (The check above ensures memoryInfo is not null)
+            if (memoryInfo!.Value.TotalMemory < 2048)
             {
                 WriteAndExit(
                     "BAM Manager (BAMM) determined you are running below the minimum RAM requirements to properly use bamm.\n" +
-                    "Please run BAMM on a system with atleast 4GB of DDR3 RAM.",
+                    "Please run BAMM on a system with atleast 2GB of DDR3 RAM.",
                     status: 1
                 );
             }
@@ -225,7 +216,21 @@ namespace BrowserAutomationMaster.Managers.Python
         }
         
         public static bool IsSupportedOSXVersion() { return OperatingSystem.IsMacOSVersionAtLeast(11); }
-        
+
+        public static void SetMemoryInfo()
+        {
+            memoryInfo = MemoryInfoManager.RunCheck();
+
+            if (!memoryInfo.HasValue)
+            {
+                WriteAndExit(
+                    $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
+                    $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
+                    $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary.",
+                    status: 1
+                );
+            }
+        }
         private void ValidateScript()
         {
             SanitizedScriptPath = scriptFilePath.EndsWith(".py") ? scriptFilePath : string.Empty;
@@ -263,7 +268,6 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 // For the current commit this is intentionally unwrapped from the try catch block to invoke an Exception and have its StackTrace automatically output for debugging purposes.
                 ValidateScript();
-                
                 var vEnvManager = usingBrowserstack switch
                 {
                     true => VEnvManager.CheckBSConfigAtRuntime(scriptFilePath),
