@@ -330,12 +330,12 @@ namespace BrowserAutomationMaster.Managers.Python
                 Platforms.IsUnixLike ? "browserstack-sdk" : "browserstack-sdk.exe"
             );
 
-            var args = $"python \"{ScriptFilePath}\"";
+            var browserStackArgs = $"python \"{ScriptFilePath}\"";
 
 
             var psi = new ProcessStartInfo()
             {
-                Arguments = args,
+                Arguments = browserStackArgs,
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,

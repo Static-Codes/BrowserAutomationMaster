@@ -363,11 +363,17 @@ namespace BrowserAutomationMaster
 
             bool doHardwareCheck = !bypassCheck1 && !bypassCheck2;
 
-            if (GlobalConfig.ShowUpdateCheck)
+            if (GlobalConfig.ShowUpdateCheck) {
                 await CheckForUpdate();
+            }
 
-            if (doHardwareCheck)
+            if (doHardwareCheck) {
                 RuntimeManager.DoRuntimeCheck();
+                return;
+            }
+
+            RuntimeManager.SetMemoryInfo();
+            
         }
         /// <summary>Runs the main menu loop for BAMM.</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
@@ -436,9 +442,8 @@ namespace BrowserAutomationMaster
 
                     case MenuOption.Run:
                         RuntimeManager runtimeManager = new(parserResult.Value);
-                        CheckBrowserStackStatus();
-                        Console.WriteLine(GetBrowserStackStatus());
-                        await runtimeManager.RunScript(GetBrowserStackStatus());
+                        // CheckBrowserStackStatus(); 
+                        await runtimeManager.RunScript();
                         break;
 
                     case MenuOption.Help:

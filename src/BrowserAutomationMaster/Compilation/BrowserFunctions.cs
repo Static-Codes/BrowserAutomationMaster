@@ -454,6 +454,10 @@ namespace BrowserAutomationMaster.Compilation
         {
             string pythonSafeUserAgent = userAgent.Replace("\\", "\\\\").Replace("'", "\\'"); // Handles formatting before issues occur.
             return @"def make_request(url):
+    if (driver is None):
+        stderr.write('Unable to initialize selenium instance.')
+        exit(1)
+    
     status_code = None
     request_url = None
     final_url = None
