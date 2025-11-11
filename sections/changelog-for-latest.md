@@ -8,6 +8,10 @@
 
 ## Changelog
 
+- Added support for:
+  <br>
+  - ChromeOS <img style="height: 14px; width: 14px;" src="https://www.google.com/chrome/static/images/chrome-logo.svg">
+  - Raspberry Pi <img style="height: 14px; width: 14px;" src="https://upload.wikimedia.org/wikipedia/en/c/cb/Raspberry_Pi_Logo.svg">
 <details>
   <summary> Click to see direct source changes </summary>
 
