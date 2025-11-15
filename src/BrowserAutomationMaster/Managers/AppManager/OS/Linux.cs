@@ -33,8 +33,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         readonly public static List<AppInfo> rpmApps = HasRPM ? ParseRpmList() : [];
 
-
-
         public readonly static Dictionary<string, bool> RPIModels = new()
         {
             { "2 Model B", false },
@@ -61,10 +59,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         status: 1
                     );
 
-                //var ast = dpkgApps.Select(a => a.Name).Where(a => a.Contains("python", OIC));
-                //foreach (var a in ast)
-                //    Console.WriteLine(a);
-
                 var appSources = new List<(string Name, List<AppInfo> Apps)>
                 {
                     ("Debian Package Manager (dpkg)", dpkgApps),
@@ -73,7 +67,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 };
 
                 AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
-
 
                 foreach (var (Name, Apps) in appSources)
                 {
@@ -104,8 +97,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static void ARM32Check()
         {
-
-            if (Platforms.IsLinux || Platforms.IsWindows || Platforms.IsOSX || !Platforms.IsChromeOS || Platforms.CurrentArchitecture != Arm) // If this is true, the OS is not supported regardless of its Architecture.
+            // If this is true, the OS does not require precompiled wheels.
+            if (Platforms.IsLinux || Platforms.IsWindows || Platforms.IsOSX || !Platforms.IsChromeOS || Platforms.CurrentArchitecture != Arm)
                 return;
            
             var psi = new ProcessStartInfo()
@@ -182,6 +175,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
+        public static bool HasDisplayVarSet()
+        {
+            if (!Platforms.IsUnixLike) { return true; } // This check doesnt need to include windows.
+            return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"));
+        }
+
         public static string? GetTerminalBackgroundColor()
         {
             try
@@ -247,9 +246,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     - Python 3.14.X
 
                     Examples:
-                    Python 3.9
-                    Python 3.12.7
-                    Python 3.9.8
+                    - Python 3.9
+                    - Python 3.12.7
+                    - Python 3.9.8
 
                     Version: ".Replace("                    ", "");
 

@@ -29,6 +29,8 @@
 
 - Added class `RegexManager` in namespace `BrowserAutomationMaster.Managers` and moved all Regex functions to this new class.
 
+- Added check in class `ProgramFunctions` to prevent the GUI server from starting if $DISPLAY is not set
+
 - Added functions to class `DirectoryManager` in namespace `BrowserAutomationMaster`
 
   - `GetProjectRequirementsPath`
@@ -90,6 +92,7 @@
 - `bamm --gui` - Starts the Graphical User Interface for BAMM.
 - `bamm --nohwc` - Instructs BAMM not to check your system's hardware for compatibility, this should not be done unless you've already verified BAMM can run on your machine.
 - `bamm --platform-debug` - Displays information on the operating system and machine currently running BAMM.
+- `bamm --query-display` - Displays the status of the $DISPLAY variable, use this to check if your system supports BAMM's GUI.
 - `bamm backup` - Backs up all application files to `BAMM-Backup.zip`.
 
 

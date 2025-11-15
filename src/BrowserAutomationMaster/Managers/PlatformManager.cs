@@ -12,7 +12,7 @@ namespace BrowserAutomationMaster.Managers
     {
         public bool IsARMel { get; set; } // 32 Bit ARMv7 (el = EABI Little Endian)
         public bool IsARMhf { get; set; } // 32 Bit ARMv7 (hf = Hard Float)
-        public bool IsChromeOS { get; set; } 
+        public bool IsChromeOS { get; set; }
         public bool IsRaspi { get; set; } // Raspberry Pi
         public bool IsWindows { get; set; }
         public bool IsOSX { get; set; }
