@@ -65,6 +65,15 @@ namespace BrowserAutomationMaster.Managers
 
             {
                 new Command(
+                    name: "--query-display",
+                    description: "Displays whether or not your system has the $DISPLAY variable set, does not work on Windows!",
+                    examples: ["bamm --query-display"],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
                     name: "--set-custom-useragent",
                     description:
                         "Sets a custom user agent for the current script.\n" +

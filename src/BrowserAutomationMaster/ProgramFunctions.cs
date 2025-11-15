@@ -120,6 +120,12 @@ namespace BrowserAutomationMaster
                 Console.WriteLine("===================================={0}{1}", NLC, NLC);
             }
 
+            if (Platforms.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
+                Console.WriteLine("====================================");
+                Console.WriteLine("$DISPLAY Set: {0}", Linux.HasDisplayVarSet());
+                Console.WriteLine("===================================={0}{1}", NLC, NLC);
+            }
+
             // Handles --bs command (does nothing if on chromeOS)
             if (pArgs[0].Equals("--bs", CCIC))
             {
@@ -133,14 +139,23 @@ namespace BrowserAutomationMaster
                 HandleBSOverwriteCommand();
                 return true;
             }
+            
+            // If no display is set and the user attempts to user the GUI, browserstack will be set.
+            if (pArgs.Any(arg => arg.Equals("--gui")) && !Linux.HasDisplayVarSet())
+            {
+                Warning.Write($"Unable to query $DISPLAY, BAMM's GUI will not work.");
+                SetBrowserStackStatus(true);
+            }
 
             // Downloads a local copy of the GUI (If one is not already present) from:
             // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip
-            if (pArgs[0].Equals("--gui") && !Directory.Exists(GetGUIDirectoryPath()))
+            else if (pArgs[0].Equals("--gui") && !Directory.Exists(GetGUIDirectoryPath()))
+            {
                 await HandleGUIDownload();
+            }
 
             // Handles '--gui' command using default port (8008)
-            if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
+            else if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
             {
                 await StartServer();
                 return true;
