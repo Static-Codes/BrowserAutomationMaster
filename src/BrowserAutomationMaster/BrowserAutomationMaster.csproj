@@ -10,7 +10,7 @@
 		<SelfContained>true</SelfContained>
 		<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
 		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64;linux-arm</RuntimeIdentifiers>
-		<Authors>Static</Authors>
+		<Authors>Static-Codes</Authors>
 		<Copyright>Copyright © Static</Copyright>
 		<PackageTags>console;utility;windows;linux;osx</PackageTags>
 		<Description>Domain Specific Language Compiler converting an english like language into valid Python code on Python &gt;= 3.9 </Description>
@@ -68,11 +68,6 @@
 		<RpmDesktopTerminal>true</RpmDesktopTerminal>
 		<RpmDesktopName>$(CommonDesktopName)</RpmDesktopName>
 	</PropertyGroup>
-	<ItemGroup>
-	  <Compile Remove="Managers\LocalServer\**" />
-	  <EmbeddedResource Remove="Managers\LocalServer\**" />
-	  <None Remove="Managers\LocalServer\**" />
-	</ItemGroup>
 
 
 
