@@ -26,10 +26,10 @@ fi
 
 echo "Welcome to the BAMM installer for $DISTRO_NAME!"
 
-IS_CHROMEOS=false
+# IS_CHROMEOS=false
 IS_DEBIAN=false
 IS_FEDORA=false
-IS_RASPI=false
+# IS_RASPI=false
 IS_OSX=false
 
 
@@ -50,13 +50,13 @@ if [ "$(uname -s)" = "Darwin" ]; then
     IS_OSX=true
 fi
 
-if [[ $(cat "/proc/cpuinfo") =~ "Raspberry Pi" ]]; then
-    IS_RASPI=true
-fi
+# if [[ $(cat "/proc/cpuinfo") =~ "Raspberry Pi" ]]; then
+#     IS_RASPI=true
+# fi
 
-if [[ $(cat "/proc/cmdline") =~ "cros_" ]]; then
-    IS_CHROMEOS=true
-fi
+# if [[ $(cat "/proc/cmdline") =~ "cros_" ]]; then
+#     IS_CHROMEOS=true
+# fi
 
 for i in "${DEBIAN_DISTROS[@]}"; do
     if [[ $i =~ $DISTRO_NAME ]]; then
@@ -74,9 +74,35 @@ echo "============================================"
 echo "X64: $IS_X64"
 echo "ARMV7: $IS_ARMV7"
 echo "ARMV8: $IS_ARMV8"
-echo "ChromeOS: $IS_CHROMEOS"
+# echo "ChromeOS: $IS_CHROMEOS"
 echo "Debian Based: $IS_DEBIAN"
 echo "Fedora Based: $IS_FEDORA"
-echo "Raspberry Pi: $IS_RASPI"
+# echo "Raspberry Pi: $IS_RASPI"
 echo "Mac: $IS_OSX"
 echo "============================================"
+
+###### INSTALLATION ######
+TEMP_INSTALL_PATH="$HOME/bamm-installation"
+
+
+# OSX LOGIC:
+# 1. Get the latest release version of BAMM from the github api
+# 2. If the user is on osx and armv8 then download bamm-silicon
+# 3. If the user is on osx and x64 then download bamm
+
+# LINUX LOGIC:
+# 1. Get the latest release version of BAMM from the github api
+# 2. Convert from release tag to filename v1.0.0A4 => 1.0.0-alpha4
+# 3. Append .linux
+# 4. Append the architecture
+# 5. Append either .deb or .rpm
+
+
+if [ $IS_DEBIAN ] && [ $IS_X64 ]; then
+    mkdir -p $TEMP_INSTALL_PATH && cd $TEMP_INSTALL_PATH
+
+    # REPLACE ME WITH THE LOGIC ABOVE
+    wget "https://github.com/Static-Codes/BrowserAutomationMaster/releases/download/v1.0.0A4/bamm.1.0.0-alpha4.linux-x64.deb" || echo "Unable to download release script." return 1
+    chmod +x amd64.sh || echo "Unable to give the final installer executable privileges" return 1
+    ./amd64.sh
+    
