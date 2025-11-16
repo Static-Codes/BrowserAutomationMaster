@@ -46,20 +46,16 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
 ### Supported Operating Systems 💻
 
-- Linux **(ARM64, ARM, x86, x64)**
+- Linux **(ARM32, ARM64, x64)**
 - MacOS 11.0+ **(ARM64, x64)**
-- Windows 10/11 **(ARM64, x64)**
+- Windows 10/11 **(ARM64, x86, x64)**
 
 ### Hardware Requirements ✨
   
 - **Minimum Recommended**
   - 4 Core CPU @ 2 GHz
   - 4GB DDR4 RAM
-  - Any Supported Browser
-  - Any Supported Python Version
 
 - **Lowest Validated**
-  - 2 Core CPU @ 1.1 GHz
-  - 2GB DDR3 RAM
-  - Any Supported Browser
-  - Any Supported Python Version
+  - 4 Core CPU @ 1.4 GHz
+  - 1GB SDRAM RAM
