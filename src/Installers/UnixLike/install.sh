@@ -176,5 +176,28 @@ elif [ -n "$DISTRO_NAME" ]; then
 fi
 ###### End of Linux specific installation logic ######
 
-rm -rf "$TEMP_INSTALL_PATH" || show_error_and_exit "Unable to remove the installer from $TEMP_INSTALL_PATH/$FILENAME, please manually remove this file."
-show_info "Successfully installed latest release of BAMM ($VERSION_TAG)"
+if test $IS_OSX = "false"; then
+    rm -rf "$TEMP_INSTALL_PATH" || show_error_and_exit "Unable to remove the installer from $TEMP_INSTALL_PATH/$FILENAME, please manually remove this file."
+    show_info "Successfully installed latest release of BAMM ($VERSION_TAG)"
+    show_info "Installation location: /usr/bin/local/bamm"
+else
+    show_info "Successfully downloaded latest release of BAMM ($VERSION_TAG)"
+    show_info "Download location: $TEMP_INSTALL_PATH/$FILENAME"
+    show_info "Before running BAMM for the first time please follow the steps below to set an exception in Gatekeeper:\n"
+
+    echo "1. Open Terminal"
+    echo "2. cd $TEMP_INSTALL_PATH"
+    echo "3. sudo chmod +x $FILENAME"
+    echo "4. ./$FILENAME"
+    echo "   (This command will fail and immediately display a 'Developer cannot be verified' warning dialog.)"
+    echo "5. Open 'System Settings'"
+    echo "6. Click 'Privacy & Security' in the sidebar."
+    echo "7. Scroll down to the 'Security' section and find the message:"
+    echo "   '\"bamm\" was blocked from use because it is not from an identified developer.' Click the \"Open Anyway\" button next to it."
+    echo "8. Go back to Terminal and run the command again: ./$FILENAME"
+    echo "9. A dialog window will pop up with a final warning. Click \"Open\" to launch the application.\n"
+
+    show_info "Once you've ran the above commands, you can run BAMM anytime with the following commands:"
+    echo "cd $TEMP_INSTALL_PATH"
+    echo "./$FILENAME"
+fi
