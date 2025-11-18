@@ -19,7 +19,6 @@ class Platform:
                 "x64": "linux-x64",
                 "ARM": "linux-arm",
                 "ARM64": "linux-arm64",
-                "x86": "linux-x86"
             }
 
             rid = rid_map.get(self.architecture)
