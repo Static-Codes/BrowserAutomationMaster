@@ -451,5 +451,83 @@
         }
       });
     </script>
+    
+    <!-- Export Button Functionality -->
+    <script>
+      var exportScriptButton = document.querySelector(
+        ".action-button.export-script-btn"
+      );
+
+      if (exportScriptButton == null){
+        alert("The export button was not found, please make a bug report, if you are reading this.");
+        throw new Error("The export button was not found, please make a bug report, if you are reading this.");
+      }
+      exportScriptButton.addEventListener("click", (e) => {
+        
+        var commandArray = getData();
+        console.log(commandArray);
+        if (commandArray == {} || commandArray == null)
+        {
+          alert(
+            "Unable to access commands from local storage, please ensure atleast 2 commands are present before attempting to export a script. " +
+            "If this issue persists, please make a bug report."
+          );
+          throw new Error(
+            "Unable to access commands from local storage, please ensure atleast 2 commands are present before attempting to export a script. " +
+            "If this issue persists, please make a bug report."
+          );
+        }
+        
+        
+        var filename = prompt("Please enter your desired filename, it must end with .bamc");
+
+        while (filename == null || !filename.endsWith(".bamc")){
+          fileName = prompt("Please enter your desired filename, it must end with .bamc");
+        }
+        
+        var commandString = Object.values(commandArray).join('\n');
+
+        if (commandString == null || commandString == ""){
+          alert(
+            "Unable to sanitize commands from local storage, please ensure atleast 2 commands are present before attempting to export a script. " +
+            "If this issue persists, please make a bug report."
+          );
+          throw new Error(
+            "Unable to sanitize commands from local storage, please ensure atleast 2 commands are present before attempting to export a script. " +
+            "If this issue persists, please make a bug report."
+          );
+        }
+        console.log(commandString);
+
+        var encodedFilename = encodeURIComponent(filename);
+        var encodedContents = btoa(commandString);
+
+        var url = `${exportScriptURL}?filename=${encodedFilename}&contents=${encodedContents}`
+        
+        fetch(
+          url,
+          { 
+            method: "GET",
+            signal: AbortSignal.timeout(5000)
+          }
+        )
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Invalid HTTP status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log(`Successfully saved file: ${filename}`)
+          console.log(`Response: ${data}`);
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+
+      });
+      
+    </script>
+    
   </body>
 </html>
