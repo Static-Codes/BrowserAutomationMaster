@@ -141,9 +141,9 @@ namespace BrowserAutomationMaster.Parsing
                 jsBlockContent += $"{line}\n";
         }
 
-        public static bool ClickAtPosition(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
+        public static bool ClickAtPosition(string fileName, string line, int lineNumber, string firstArg, ref string selectorString)
         {
-            lineArgs = line.Trim().Split(" ");
+            var lineArgs = line.Trim().Split(" ");
             selectorString = "\"x-coordinate\" \"y-coordinate\"";
 
             if (lineArgs.Length != 3)
@@ -165,7 +165,7 @@ namespace BrowserAutomationMaster.Parsing
 
                 bool notParsable = !int.TryParse(
                     arg.Replace('"', ' ').Trim(),
-                    out int posArg
+                    out int _
                 );
 
                 if (notQuoted || notParsable)
@@ -346,7 +346,7 @@ namespace BrowserAutomationMaster.Parsing
                 );
 
             // Invalid timeout
-            if (!int.TryParse(lineArgs[2], out int waitTime))
+            if (!int.TryParse(lineArgs[2], out int _))
                 return WriteErrorAndReturnBool(
                     message:
                         $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +

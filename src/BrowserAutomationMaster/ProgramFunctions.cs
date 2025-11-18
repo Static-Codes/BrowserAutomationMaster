@@ -155,7 +155,7 @@ namespace BrowserAutomationMaster
             }
 
             // Handles '--gui' command using default port (8008)
-            else if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
+            if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
             {
                 await StartServer();
                 return true;
