@@ -258,7 +258,7 @@ namespace BrowserAutomationMaster.Parsing
             }
         }
         
-        private static bool HandleLineValidation(string fileName, string line, int lineNumber)
+        public static bool HandleLineValidation(string fileName, string line, int lineNumber)
         {
             string selectorString = "selector"; // Defaults to "selector" for selector based actions
             string trimmedLine = line.Trim();
@@ -291,7 +291,7 @@ namespace BrowserAutomationMaster.Parsing
 
                 "add-header" => AddHeader(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                "click-at-position" => ClickAtPosition(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
+                "click-at-position" => ClickAtPosition(fileName, line, lineNumber, firstArg, ref selectorString),
 
                 "click-exp" => ClickExp(fileName, line, lineNumber, firstArg, ref lineArgs, ref selectorString),
 

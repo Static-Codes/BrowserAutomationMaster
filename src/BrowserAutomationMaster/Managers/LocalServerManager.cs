@@ -3,6 +3,7 @@ using BrowserAutomationMaster.Parsing;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -22,7 +23,7 @@ namespace BrowserAutomationMaster.Managers
     {
         private readonly static HttpListener listener = new();
         const string DEFAULT_PORT = "8008";
-        private static int MINIMUM_GUI_MEMORY_MB = 2048;
+        private readonly static int MINIMUM_GUI_MEMORY_MB = 2048;
         private readonly static string GUI_ZIP_PATH = GetGUIZipPath();
 
         private static bool isRunning = true;
@@ -192,7 +193,9 @@ namespace BrowserAutomationMaster.Managers
                     case "/export":
                         // This executes UserScriptManager.AddScript(), pass it to the newly created Export() method in EndpointFunctions
                         //UserScriptManager _ = new(path, "add");
-                        throw new NotImplementedException("Implement me");
+                        // throw new NotImplementedException("Implement me");
+                        await Export(request, response);
+                        break;
 
                     case "/load":
                         await Load(response);
@@ -441,6 +444,93 @@ namespace BrowserAutomationMaster.Managers
 
     public static class EndpointFunctions
     {
+
+        public static async Task Export(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            try
+            {
+                var b64Contents = request.QueryString["contents"];
+                var fileName = request.QueryString["name"];
+
+                if (b64Contents is null)
+                {
+                    await HandleInvalidResponse(response, "Invalid request, missing param \"contents\"");
+                    return;
+                }
+
+                if (!IsB64(b64Contents))
+                {
+                    await HandleInvalidResponse(response, "Invalid request, this endpoint requires a base64 string for the parameter \"contents\"");
+                    return;
+                }
+
+                if (fileName is null)
+                {
+                    await HandleInvalidResponse(response, "Invalid request, this endpoint requires a filename ending in '.bamc' for the parameter \"name\"");
+                    return;
+                }
+
+                if (!fileName.EndsWith(".bamc", OIC))
+                {
+                    await HandleInvalidResponse(response, "Invalid request, specified file is not a .BAMC file.");
+                    return;
+                }
+
+                var contentsBytes = System.Convert.FromBase64String(b64Contents);
+                var contents = UTF8.GetString(contentsBytes).Split('\n');
+
+                // Case insensitivity cpvers all supported platforms
+                if (Parser.GetBAMCFiles().Any(file => file.EndsWith(fileName, CCIC)))
+                {
+                    await HandleInvalidResponse(response, "Invalid request, specified file already exists, please choose a different name.");
+                    return;
+                }
+
+
+                for (int i = 0; i < contents.Length; i++)
+                {
+                    if (!Parser.HandleLineValidation(fileName, contents[i], i))
+                    {
+                        await HandleInvalidResponse(
+                            response, 
+                            $"Invalid request, the specified file has syntax errors on line {i}\nLine:{contents[i]}"
+                        );
+                        return;
+                    }
+                }
+
+                var projectName = fileName[..^5]; // Returns the filePath minus ".bamc"
+
+                var projectPath = Path.Combine(GetDesiredSaveDirectory(), projectName);
+
+                if (Directory.Exists(projectPath)){
+                    await HandleInvalidResponse(
+                        response, 
+                        $"Invalid request, the specific project already exists at: {projectPath}, please choose another name."
+                    );
+                    return;
+                }
+
+                var scriptPath = Path.Combine(projectPath, fileName);
+                var file = File.Create(scriptPath);
+
+                ArgumentNullException.ThrowIfNull(file);
+
+                for (int i = 0; i < contents.Length; i++)
+                {
+                    await file.WriteAsync(UTF8.GetBytes(contents[i]).AsMemory(contents[i].Length, contents[i].Length));
+                }
+                file.Close();
+
+                var successMessage = UTF8.GetBytes($"Exported {fileName} successfully to {scriptPath}!");
+                await LocalServerManager.WriteResponse(response, successMessage);
+            }
+            catch (Exception ex)
+            {
+                await HandleInvalidResponse(response, ex.Message);
+            }
+        }
+
         public static async Task Load(HttpListenerResponse response)
         {
             try
@@ -642,6 +732,7 @@ namespace BrowserAutomationMaster.Managers
                 PrecompiledBase64Regex().IsMatch(b64string) &&
                 b64string.Length % 4 == 0;
         }
+
 
     }
 }
