@@ -4,7 +4,6 @@ using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using YamlDotNet.Core.Tokens;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
@@ -146,7 +145,11 @@ namespace BrowserAutomationMaster
                     string.Join(NLC, [
                         "Unable to start BAMM's GUI.",
                         "Please start BAMM without any arguments for your first run, unless instructed otherwise.",
-                        "Once you see the Main Menu, select \"Exit\", then you can run BAMM with arguments."
+                        $"Once you see the Main Menu, select \"GUI\".{NLC}",
+                        "Please note, you are seeing this because either:",
+                        "- 1. You are running BAMM for the first time.",
+                        "- 2. The userScripts directory has not been created, or has been corrupted.",
+                        "After this, you can run BAMM as normal."
                     ]),
                     status: 1
                 );
@@ -476,6 +479,10 @@ namespace BrowserAutomationMaster
                         RuntimeManager runtimeManager = new(parserResult.Value);
                         // CheckBrowserStackStatus(); 
                         await runtimeManager.RunScript();
+                        break;
+
+                    case MenuOption.GUI:
+                        await StartServer();
                         break;
 
                     case MenuOption.Help:
