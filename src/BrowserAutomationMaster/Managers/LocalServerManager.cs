@@ -503,7 +503,7 @@ namespace BrowserAutomationMaster.Managers
 
                     // Console.WriteLine($"{contentPair.Key} {contentPair.Value}{NLC}");
 
-                    var buffer = UTF8.GetBytes($"{{{contentPair.Key} {contentPair.Value}}}{NLC}");
+                    var buffer = UTF8.GetBytes($"{contentPair.Key} {contentPair.Value}{NLC}");
                     file.Write(buffer);
                 }
                 file.Close();
