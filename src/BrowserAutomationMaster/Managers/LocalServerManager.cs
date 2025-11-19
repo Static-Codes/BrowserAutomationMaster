@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -472,35 +473,16 @@ namespace BrowserAutomationMaster.Managers
                     return;
                 }
 
+                var scriptPath = Path.Combine(Parser.userScriptsDirectory, fileName);
 
-                for (int i = 0; i < contents.Length; i++)
+                if (File.Exists(scriptPath))
                 {
-                    if (!Parser.HandleLineValidation(fileName, contents[i], i))
-                    {
-                        await HandleInvalidResponse(
-                            response, 
-                            $"Invalid request, the specified file has syntax errors on line {i}\nLine:{contents[i]}"
-                        );
-                        return;
-                    }
-                }
-
-                var projectName = fileName[..^5]; // Returns the filePath minus ".bamc"
-
-                var projectPath = Path.Combine(Parser.userScriptsDirectory, projectName);
-
-                if (Directory.Exists(projectPath)){
                     await HandleInvalidResponse(
-                        response, 
-                        $"Invalid request, the specific project already exists at: {projectPath}, please choose another name."
+                        response,
+                        $"Invalid request, the specific script already exists at: {scriptPath}, please choose another name."
                     );
                     return;
                 }
-
-                // Creates a new directory for the project.
-                EnsureDirectoryExists(projectPath);
-
-                var scriptPath = Path.Combine(projectPath, fileName);
 
                 var file = File.Create(scriptPath);
 
@@ -508,16 +490,29 @@ namespace BrowserAutomationMaster.Managers
 
                 for (int i = 0; i < contents.Length; i++)
                 {
-                    await file.WriteAsync(UTF8.GetBytes(contents[i]).AsMemory(contents[i].Length, contents[i].Length));
+                    if (string.IsNullOrEmpty(contents[i]))
+                    {
+                        await HandleInvalidResponse(response, $"Unable to parse null or empty command on line {i + 1}");
+                    }
+
+                    var contentDict = JsonSerializer.Deserialize<Dictionary<string, string>>(contents[i]);
+
+                    ArgumentNullException.ThrowIfNull(contentDict);
+
+                    var contentPair = contentDict.First();
+
+                    // Console.WriteLine($"{contentPair.Key} {contentPair.Value}{NLC}");
+
+                    var buffer = UTF8.GetBytes($"{{{contentPair.Key} {contentPair.Value}}}{NLC}");
+                    file.Write(buffer);
                 }
                 file.Close();
-
-                var successMessage = UTF8.GetBytes($"Exported {fileName} successfully to {scriptPath}!");
+                var successMessage = UTF8.GetBytes($"{{\"Message:\": \"Exported {fileName} successfully to {scriptPath}!\"}}");
                 await LocalServerManager.WriteResponse(response, successMessage);
             }
             catch (Exception ex)
             {
-                await HandleInvalidResponse(response, ex.Message);
+                await HandleInvalidResponse(response, ex.StackTrace ?? ex.Message);
             }
         }
 

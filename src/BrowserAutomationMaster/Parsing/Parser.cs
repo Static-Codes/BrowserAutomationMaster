@@ -269,6 +269,7 @@ namespace BrowserAutomationMaster.Parsing
                 return true;
             }
 
+
             string[] lineArgs;
             string[] lineArgSpecialCases = ["add-header",  "fill-text", "fill-text-exp", "set-custom-useragent"];
 
@@ -279,6 +280,11 @@ namespace BrowserAutomationMaster.Parsing
             // Handle all others
             else
                 lineArgs = line.Split(" ");
+
+
+            foreach (var lineArg in lineArgs ){
+                Console.WriteLine(lineArg);
+            }
 
             string firstArg = lineArgs[0];
 
