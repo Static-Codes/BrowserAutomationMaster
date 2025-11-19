@@ -4,6 +4,7 @@ using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using YamlDotNet.Core.Tokens;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
@@ -140,6 +141,17 @@ namespace BrowserAutomationMaster
                 return true;
             }
             
+            if (pArgs.Any(arg => arg.Equals("--gui") && !Directory.Exists(userScriptsDirectory))){
+                WriteAndExit(
+                    string.Join(NLC, [
+                        "Unable to start BAMM's GUI.",
+                        "Please start BAMM without any arguments for your first run, unless instructed otherwise.",
+                        "Once you see the Main Menu, select \"Exit\", then you can run BAMM with arguments."
+                    ]),
+                    status: 1
+                );
+            }
+
             // If no display is set and the user attempts to user the GUI, browserstack will be set.
             if (pArgs.Any(arg => arg.Equals("--gui")) && !Linux.HasDisplayVarSet())
             {
@@ -158,14 +170,12 @@ namespace BrowserAutomationMaster
             if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
             {
                 await StartServer();
-                return true;
             }
 
             // Handles '--gui --port==X' command where X is a valid integer between 1 and 65535
-            if (pArgs.Length == 2 && pArgs[0].Equals("--gui") && IsMatches(GUIPortRegex(), pArgs[1], out string port))
+            else if (pArgs.Length == 2 && pArgs[0].Equals("--gui") && IsMatches(GUIPortRegex(), pArgs[1], out string port))
             {
                 await StartServer(port);
-                return true;
             }
 
             // Handles 'backup' command
@@ -183,10 +193,15 @@ namespace BrowserAutomationMaster
                 return true;
             }
 
-            if (pArgs[0].Equals("delete", CCIC))
+            // Handles invalid case of `bamm delete`
+            if (pArgs.Length == 1 && pArgs[0].Equals("delete", CCIC))
             {
-                if (pArgs.Length == 0)
-                    WriteAndExit("Invalid delete command format please specify the path to the file you wish to delete.", 1);
+                WriteAndExit("Invalid delete command format please specify the path to the file you wish to delete.", 1);
+            }
+
+            // Handles `bamm delete path/to/file.bamc`
+            else if (pArgs[0].Equals("delete", CCIC))
+            {
                 DeleteFile(pArgs[1]);
                 return true;
             }
@@ -200,7 +215,9 @@ namespace BrowserAutomationMaster
 
             // Handles 'run' command variations
             if (pArgs[0].Equals("run", CCIC))
+            {
                 return await HandleRunCommand(pArgs);
+            }
 
             // Handles 'uninstall' command
             if (pArgs[0].Equals("uninstall", CCIC))
@@ -276,7 +293,7 @@ namespace BrowserAutomationMaster
             string targetDir = pArgs[1].ToLower();
             string dirPath = targetDir switch
             {
-                "userscripts" => GetUserScriptDirectory(),
+                "userscripts" => userScriptsDirectory,
                 "compiled" => GetDesiredSaveDirectory(),
                 "config" => GetBAMConfigDirectory(),
                 _ => string.Empty

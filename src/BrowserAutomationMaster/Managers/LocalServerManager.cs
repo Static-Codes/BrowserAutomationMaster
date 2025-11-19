@@ -3,7 +3,6 @@ using BrowserAutomationMaster.Parsing;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -501,7 +500,7 @@ namespace BrowserAutomationMaster.Managers
 
                 var projectName = fileName[..^5]; // Returns the filePath minus ".bamc"
 
-                var projectPath = Path.Combine(GetDesiredSaveDirectory(), projectName);
+                var projectPath = Path.Combine(Parser.userScriptsDirectory, projectName);
 
                 if (Directory.Exists(projectPath)){
                     await HandleInvalidResponse(
@@ -511,7 +510,11 @@ namespace BrowserAutomationMaster.Managers
                     return;
                 }
 
+                // Creates a new directory for the project.
+                EnsureDirectoryExists(projectPath);
+
                 var scriptPath = Path.Combine(projectPath, fileName);
+
                 var file = File.Create(scriptPath);
 
                 ArgumentNullException.ThrowIfNull(file);

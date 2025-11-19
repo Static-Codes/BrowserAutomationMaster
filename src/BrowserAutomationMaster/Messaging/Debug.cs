@@ -1,4 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Parsing;
 using System.Diagnostics;
 using System.Runtime.Versioning;
 
@@ -15,7 +16,7 @@ namespace BrowserAutomationMaster.Messaging
                 Platform: {Environment.OSVersion.Platform}
                 Current Dir: {Environment.CurrentDirectory}
                 Installation Dir: {AppContext.BaseDirectory}
-                UserScripts Dir: {DirectoryManager.GetUserScriptDirectory()}".Replace("                ", "");
+                UserScripts Dir: {Parser.userScriptsDirectory}".Replace("                ", "");
         }
         
     }
