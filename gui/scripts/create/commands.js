@@ -12,7 +12,7 @@ const commandCollection = [
   },
 
   {
-    commandName: "Add Header",
+    commandName: "Add-Header",
     commandArgs: {
       header: null,
       // fileType: ["js", "css", "html", "md"],
@@ -29,14 +29,38 @@ const commandCollection = [
   },
 
   {
-    commandName: "browser",
+    commandName: "Add-Headers",
     commandArgs: {
-      targetPath: null,
-      mode: ["Read-Only", "Read-Write", "Full-Control"],
-      recursive: ["Yes", "No"],
+      header: null,
+      // fileType: ["js", "css", "html", "md"],
+      // encoding: ["UTF-8", "ASCII"],
     },
     commandDescription:
-      "Modifies the access permissions for a file or directory path.",
+      "Adds new headers to the browser instance for the given session." +
+      "<br>" +
+      "Example:" +
+      "<br>" +
+      '{ "headerName": "headerValue", "headerName2": "headerValue2" }',
+    placeholder:
+      '{ "headerName": "headerValue", "headerName2": "headerValue2" }',
+    disabledOnLoad: true,
+  },
+
+  {
+    commandName: "Click",
+    commandArgs: {
+      header: null,
+      // fileType: ["js", "css", "html", "md"],
+      // encoding: ["UTF-8", "ASCII"],
+    },
+    commandDescription:
+      "Adds new headers to the browser instance for the given session." +
+      "<br>" +
+      "Example:" +
+      "<br>" +
+      '{ "headerName": "headerValue", "headerName2": "headerValue2" }',
+    placeholder:
+      '{ "headerName": "headerValue", "headerName2": "headerValue2" }',
     disabledOnLoad: true,
   },
 
