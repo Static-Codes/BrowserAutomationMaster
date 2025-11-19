@@ -436,7 +436,7 @@ namespace BrowserAutomationMaster.Managers
             try
             {
                 var b64Contents = request.QueryString["contents"];
-                var fileName = request.QueryString["name"];
+                var fileName = request.QueryString["filename"];
 
                 if (b64Contents is null)
                 {
