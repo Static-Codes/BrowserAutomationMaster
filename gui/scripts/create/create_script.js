@@ -154,18 +154,47 @@ function loadCurrentScriptCommands() {
 }
 
 function populateCommandSelect() {
+  // 1. Check if the browser command is already in the loaded script
+  var browserExists = Object.values(commands).some((cmd) =>
+    cmd.includes('"browser":')
+  );
+
   commandCollection.forEach((command) => {
     var option = document.createElement("option");
     option.value = command.commandName;
-    option.disabled = command.disabledOnLoad;
     option.textContent = command.commandName;
 
-    if (command.commandName == "Browser") {
-      renderArguments(command);
-      option.selected = true;
+    if (command.commandName === "Browser") {
+      // --- HANDLE BROWSER OPTION ---
+      if (browserExists) {
+        // If script has a browser, disable this option
+        option.disabled = true;
+        option.selected = false;
+        // option.removeAttribute("selected");
+      } else {
+        // If script is empty, select this option and render inputs
+        option.disabled = false;
+        option.selected = true;
+        renderArguments(command);
+      }
+    } else {
+      // --- HANDLE ALL OTHER OPTIONS ---
+      if (browserExists) {
+        option.disabled = false;
+      } else {
+        option.disabled = command.disabledOnLoad;
+      }
     }
+
     commandSelect.appendChild(option);
   });
+
+  if (browserExists && commandCollection.length > 1) {
+    // Select the second item (Add-Header)
+    var nextCommand = commandCollection[1];
+    commandSelect.value = nextCommand.commandName;
+    renderArguments(nextCommand);
+  }
 }
 
 function refocusSelection() {
@@ -307,13 +336,21 @@ function setData(data) {
 }
 
 function updateCommandComboBoxState() {
-  document
-    .querySelectorAll("#command-select option")
-    .forEach((el) => el.removeAttribute("disabled"));
+  var browserExists = Object.values(commands).some((cmd) =>
+    cmd.includes('"browser":')
+  );
+
+  document.querySelectorAll("#command-select option").forEach((el) => {
+    if (el.value !== "Browser" || !browserExists) {
+      el.removeAttribute("disabled");
+    }
+  });
 
   var selector = document.querySelector("#command-select option:first-child");
-  selector.disabled = true;
-  selector.removeAttribute("selected");
+  if (selector) {
+    selector.disabled = true;
+    selector.removeAttribute("selected");
+  }
 }
 
 window.addEventListener("load", (e) => {
