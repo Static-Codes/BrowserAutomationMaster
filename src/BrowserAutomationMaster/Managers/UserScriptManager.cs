@@ -1,6 +1,7 @@
 ﻿using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
@@ -15,7 +16,7 @@ namespace BrowserAutomationMaster.Managers
         public UserScriptManager(string filePath, string method)
         {
             // Performs path validation 1/6 (Ensures userScriptDirectory's value is not null or empty)
-            userScriptDirectory = GetUserScriptDirectory();
+            userScriptDirectory = Parser.userScriptsDirectory;
             if (string.IsNullOrEmpty(userScriptDirectory)) {
                 WriteAndExit(
                     message: "Path to userScripts directory could not be determined, " +
@@ -351,7 +352,7 @@ take-screenshot ""youtube-feed.png""";
                     string filename = example.Key;
                     string contents = example.Value;
                     if (string.IsNullOrEmpty(filename) || string.IsNullOrEmpty(contents)) { continue; }
-                    string filepath = Path.Combine(GetUserScriptDirectory(), filename);
+                    string filepath = Path.Combine(Parser.userScriptsDirectory, filename);
                     if (File.Exists(filepath)) { continue; } // This is an unnecessary check but i felt the need to include it
                     File.WriteAllText(filepath, contents); // Writes the actual contents
                 }

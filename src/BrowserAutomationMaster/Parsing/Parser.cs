@@ -33,7 +33,7 @@ namespace BrowserAutomationMaster.Parsing
 
         public readonly static string[] validProtocols = ["http://", "https://", "file://"];
 
-        readonly static string userScriptsDirectory = DirectoryManager.GetUserScriptDirectory();
+        public readonly static string userScriptsDirectory = Path.Combine(DirectoryManager.AppDataDirectory, "userScripts");
 
         static string selectedFile = string.Empty;
 
@@ -62,6 +62,7 @@ namespace BrowserAutomationMaster.Parsing
                 UserScriptExamples.WriteScriptExamples();
                 return true; 
             }
+            
             else
             {
                 try
@@ -220,10 +221,6 @@ namespace BrowserAutomationMaster.Parsing
             );
         }
         
-        public static string[] ValidateBAMCFiles(string[] BAMCFiles)
-        {
-            return [.. BAMCFiles.Where(file => IsValidFile(file))];
-        }
 
         public static void HandleBAMCFileValidation(string[] BAMCFiles)
         {
@@ -808,6 +805,11 @@ namespace BrowserAutomationMaster.Parsing
                 "If you're reading this a menu option was incorrectly handled.\n\n" +
                 $"Please make a bug report {ISSUES_LINK}"
             );
+        }
+
+        public static string[] ValidateBAMCFiles(string[] BAMCFiles)
+        {
+            return [.. BAMCFiles.Where(file => IsValidFile(file))];
         }
     }
 }

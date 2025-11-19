@@ -294,7 +294,6 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
 
-        public static string GetUserScriptDirectory() { return Path.Combine(AppDataDirectory, "userScripts"); }
 
         private static string GetAppDataLinux(string appName)
         {
