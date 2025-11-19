@@ -744,7 +744,7 @@ namespace BrowserAutomationMaster.Parsing
             switch (selection)
             {
                 case MenuOption.Add:
-
+                    
                     string input = Input.WriteListFromOptions(["Select a File", "Exit"]);
 
                     if (input.Equals("Exit"))
@@ -786,14 +786,15 @@ namespace BrowserAutomationMaster.Parsing
                         MenuOption.Run, 
                         selectedFile
                     );
+                
+                case MenuOption.GUI:
+                    return KeyValuePair.Create(MenuOption.GUI, string.Empty);
+
 
                 // Add functionality to return back to the main menu after a completed action
                 case MenuOption.Help:
                     HandleHelpSelection();
-                    return KeyValuePair.Create(
-                        MenuOption.Help,
-                        string.Empty
-                    );
+                    return KeyValuePair.Create(MenuOption.Help, string.Empty);
 
                 case MenuOption.Exit:
                     Environment.Exit(0);

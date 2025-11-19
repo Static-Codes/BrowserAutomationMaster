@@ -380,22 +380,9 @@ namespace BrowserAutomationMaster.Managers
                 }
             }
 
-            catch (InsufficientMemoryException){
-                WriteAndExit(
-                        message:
-                            string.Join(string.Empty, [
-                                $"Port {port} on localhost is already in use, ",
-                                "as a result BAMM's GUI could not be loaded.\n\n",
-                                "Error Log:\n",
-                                $"Address '127.0.0.1:{port}' is already in use, ",
-                                "please use the following argument:\n",
-                                "bamm --gui --port==<PORT>\n",
-                                "Replace <PORT> with a number between 1 and 65535\n\n",
-                                "Example:\n",
-                                "bamm --gui --port==42069\n",
-                            ]),
-                        status: 1
-                    );
+            catch (InsufficientMemoryException)
+            {
+                WriteAndExit("Unable to start the handler associated with BAMM's GUI due to insufficient memory.\n\n", 1);
             }
 
             catch (Exception ex)

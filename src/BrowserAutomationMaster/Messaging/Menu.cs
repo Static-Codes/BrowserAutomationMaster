@@ -10,6 +10,7 @@ namespace BrowserAutomationMaster.Messaging
             Add,
             Compile,
             Run,
+            GUI,
             Help,
             Exit,
             Invalid
@@ -22,8 +23,9 @@ namespace BrowserAutomationMaster.Messaging
                 { 1, MenuOption.Add },
                 { 2, MenuOption.Compile },
                 { 3, MenuOption.Run },
-                { 4, MenuOption.Help },
-                { 5, MenuOption.Exit },
+                { 4, MenuOption.GUI },
+                { 5, MenuOption.Help },
+                { 6, MenuOption.Exit },
             };
 
             var accentColor = GetAccentColor().ToMarkup();
