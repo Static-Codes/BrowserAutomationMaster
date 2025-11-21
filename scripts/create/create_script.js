@@ -19,6 +19,7 @@ var validateScriptButton = document.querySelector(
 
 var nextIndexAfterDelete = 0;
 var scriptIsValidated = false;
+var jsMode = false;
 
 function addCommandToCommandList(commandText, addToLocalStorage = true) {
   try {
@@ -223,13 +224,59 @@ function removeSelectedCommand() {
   }
 
   var index = getIndexOfSelectedCommand();
+  var removedCommandText = commands[index];
 
-  if (commands[index].includes('"browser":')) {
+  if (removedCommandText.includes('"browser":')) {
     alert(
       "Unable to remove the browser command, this is a requirement for every script."
     );
     return;
   }
+
+  // --- JS MODE CLEANUP LOGIC ---
+  if (removedCommandText.includes("start-javascript")) {
+    // Indices to remove: [start-javascript, Add-JS-Code, end-javascript]
+    const indicesToRemove = [index];
+
+    // Looks for the next two commands: Add-JS-Code and End-Javascript
+    // Uses `commands` object (the backing data) to check content before removing elements
+    if (
+      commands[index + 1] &&
+      commands[index + 1].includes("javascript-code")
+    ) {
+      indicesToRemove.push(index + 1);
+    }
+    if (commands[index + 2] && commands[index + 2].includes("end-javascript")) {
+      indicesToRemove.push(index + 2);
+    }
+
+    // Removes elements from the DOM starting from the highest index (to preserve lower indices during removal)
+    indicesToRemove
+      .sort((a, b) => b - a)
+      .forEach((idx) => {
+        // Checks if the DOM element actually exists at that position before attempting removal
+        if (commandList.children[idx]) {
+          commandList.children[idx].remove();
+          console.log(`Deleted JS block command element at index ${idx}`);
+        }
+      });
+
+    jsMode = false; // Reset the state
+
+    // Re-indexes all remaining commands after bulk removal
+    reindexCommands();
+
+    // Refocuses selection to the command before the removed block
+    nextIndexAfterDelete = index > 0 ? index - 1 : 0;
+    var child = commandList.children[nextIndexAfterDelete];
+    if (child) {
+      child.classList.add("list-item");
+    }
+
+    // Exits the function here as the removal and re-indexing are complete
+    return;
+  }
+  // --- END JS MODE CLEANUP LOGIC ---
 
   var cmdCount = Object.keys(commands).length;
 
@@ -312,21 +359,35 @@ function renderArguments(command) {
       });
       argGroup.appendChild(optionsContainer);
     } else {
-      var textInput = document.createElement("input");
-      textInput.type = "text";
-      textInput.classList.add("arg-text-input");
-      textInput.name = argName;
+      // Using textarea for code blocks ---
+      if (command.isCodeBlock) {
+        var textAreaInput = document.createElement("textarea");
+        textAreaInput.classList.add("arg-text-input", "code-block-input");
+        textAreaInput.name = argName;
 
-      if (command.placeholder != null) {
-        textInput.placeholder = command.placeholder;
+        if (command.placeholder != null) {
+          textAreaInput.placeholder = command.placeholder;
+        } else {
+          textAreaInput.placeholder = `Enter value for ${argName}`;
+        }
+        argGroup.appendChild(textAreaInput);
       } else {
-        textInput.placeholder = `Enter value for ${argName}`;
+        var textInput = document.createElement("input");
+        textInput.type = "text";
+        textInput.classList.add("arg-text-input");
+        textInput.name = argName;
+
+        if (command.placeholder != null) {
+          textInput.placeholder = command.placeholder;
+        } else {
+          textInput.placeholder = `Enter value for ${argName}`;
+        }
+
+        argGroup.appendChild(textInput);
       }
 
-      argGroup.appendChild(textInput);
+      argsContainer.appendChild(argGroup);
     }
-
-    argsContainer.appendChild(argGroup);
   });
 }
 
@@ -384,6 +445,19 @@ executeButton.addEventListener("click", (e) => {
     return;
   }
 
+  if (jsMode && selectedCommandName !== "Add-JS-Code") {
+    alert(
+      "You are inside a JavaScript block. The next command must be 'Add-JS-Code'."
+    );
+    return;
+  }
+  if (!jsMode && selectedCommandName === "Add-JS-Code") {
+    alert(
+      "You must start a JavaScript block with 'Start-Javascript' before adding code."
+    );
+    return;
+  }
+
   var commandData = {
     arguments: {},
   };
@@ -409,11 +483,64 @@ executeButton.addEventListener("click", (e) => {
 
   console.log("--- Executing Command ---");
 
-  var jsonString = JSON.stringify(commandData.arguments);
+  var commandText;
 
-  addCommandToCommandList(jsonString, true);
+  if (selectedCommandName === "Start-Javascript") {
+    commandText = '{"start-javascript": ""}';
+  } else if (selectedCommandName === "End-Javascript") {
+    commandText = '{"end-javascript": ""}';
+  } else if (selectedCommandName === "Add-JS-Code") {
+    let rawCode = commandData.arguments["javascript-code"];
+    // let escapedCode = rawCode
+    //   .replace(/\\/g, "\\\\")
+    //   .replace(/"/g, '\\"')
+    //   .replace(/\n/g, "\\n")
+    //   .replace(/\r/g, "\\r");
+
+    // commandText = `{"add-to-js": "${escapedCode}"}`;
+    commandText = `{"add-to-js": "${rawCode}"}`;
+  } else {
+    // For all other commands (with arguments), stringify the arguments
+    commandText = JSON.stringify(commandData.arguments);
+  }
+
+  addCommandToCommandList(commandText, true);
+
+  // --- STATE TRANSITION LOGIC ---
+  if (selectedCommandName === "Start-Javascript") {
+    jsMode = true;
+    // Auto-switches to 'Add-JS-Code' and renders
+    var nextCommand = commandCollection.find(
+      (cmd) => cmd.commandName === "Add-JS-Code"
+    );
+    commandSelect.value = "Add-JS-Code";
+    renderArguments(nextCommand);
+  } else if (selectedCommandName === "Add-JS-Code") {
+    // Auto-switches to 'End-Javascript' and renders
+    jsMode = false; // Exits jsMode after codeblock is added, to allow the user to immediately add end-javascript
+    var nextCommand = commandCollection.find(
+      (cmd) => cmd.commandName === "End-Javascript"
+    );
+    commandSelect.value = "End-Javascript";
+    renderArguments(nextCommand);
+  }
+  // ------------------------------
 
   updateCommandComboBoxState();
+  var browserExists = Object.values(commands).some((cmd) =>
+    cmd.includes('"browser":')
+  );
+
+  if (browserExists && commandCollection.length > 1 && !jsMode) {
+    var nextCommand = commandCollection[1];
+    commandSelect.value = nextCommand.commandName;
+
+    renderArguments(nextCommand);
+
+    console.log(
+      `Switched combobox to: ${nextCommand.commandName} and rendered arguments.`
+    );
+  }
 });
 
 duplicateCommandButton.addEventListener("click", (e) => {
