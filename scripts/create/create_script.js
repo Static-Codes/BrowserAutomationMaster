@@ -350,6 +350,7 @@ function updateCommandComboBoxState() {
   if (selector) {
     selector.disabled = true;
     selector.removeAttribute("selected");
+    selector.selected = false;
   }
 }
 
