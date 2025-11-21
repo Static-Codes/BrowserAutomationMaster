@@ -352,8 +352,7 @@ namespace BrowserAutomationMaster.Managers
 
                 // ADD THIS FEATURE
                 // Would you like to open the GUI in your default browser?
-                // If yes, then open for the user 
-
+                // If yes, then open for the user
 
                 await HandleEndpointRequests();
                 listener.Close();
@@ -434,6 +433,16 @@ namespace BrowserAutomationMaster.Managers
 
         public static async Task Export(HttpListenerRequest request, HttpListenerResponse response)
         {
+            if (request.HttpMethod == "OPTIONS")
+            {
+                response.AddHeader("Access-Control-Allow-Origin", "*");
+                response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
+                response.StatusCode = (int)HttpStatusCode.NoContent; // 204 No Content
+                response.Close();
+                return;
+            }
+
             try
             {
                 var b64Contents = request.QueryString["contents"];
@@ -490,24 +499,56 @@ namespace BrowserAutomationMaster.Managers
 
                 for (int i = 0; i < contents.Length; i++)
                 {
-                    if (string.IsNullOrEmpty(contents[i]))
+                    string commandLine = contents[i];
+
+                    if (string.IsNullOrEmpty(commandLine))
                     {
                         await HandleInvalidResponse(response, $"Unable to parse null or empty command on line {i + 1}");
+                        continue;
                     }
 
-                    var contentDict = JsonSerializer.Deserialize<Dictionary<string, string>>(contents[i]);
+                    if (commandLine == "start-javascript" || commandLine == "end-javascript")
+                    {
+                        var simpleBuffer = UTF8.GetBytes($"{commandLine}{NLC}");
+                        file.Write(simpleBuffer);
+                        continue;
+                    }
 
-                    ArgumentNullException.ThrowIfNull(contentDict);
+                    try
+                    {
+                        var contentDict = JsonSerializer.Deserialize<Dictionary<string, string>>(commandLine);
 
-                    var contentPair = contentDict.First();
+                        ArgumentNullException.ThrowIfNull(contentDict);
 
-                    // Console.WriteLine($"{contentPair.Key} {contentPair.Value}{NLC}");
+                        var contentPair = contentDict.First();
+                        string key = contentPair.Key;
+                        string value = contentPair.Value;
 
-                    var buffer = UTF8.GetBytes($"{contentPair.Key} {contentPair.Value}{NLC}");
-                    file.Write(buffer);
+                        if (key is "add-to-js")
+                        {
+                            byte[] decodedBytes = System.Convert.FromBase64String(value);
+                            string decodedCode = UTF8.GetString(decodedBytes);
+
+                            var codeBuffer = UTF8.GetBytes($"{decodedCode}{NLC}");
+                            file.Write(codeBuffer);
+                        }
+                        else
+                        {
+                            var standardBuffer = UTF8.GetBytes($"{key} {value}{NLC}");
+                            file.Write(standardBuffer);
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        await HandleInvalidResponse(response, $"JSON Parsing Error on line {i + 1}: {ex.Message}. Content: {commandLine}");
+                    }
+                    catch (Exception ex)
+                    {
+                        await HandleInvalidResponse(response, $"Error processing command line {i + 1}: {ex.Message}");
+                    }
                 }
                 file.Close();
-                var successMessage = UTF8.GetBytes($"{{\"Message:\": \"Exported {fileName} successfully to {scriptPath}!\"}}");
+                var successMessage = UTF8.GetBytes($"{{\"Message\": \"Exported {fileName} successfully to {scriptPath}!\"}}");
                 await LocalServerManager.WriteResponse(response, successMessage);
             }
             catch (Exception ex)
@@ -685,6 +726,17 @@ namespace BrowserAutomationMaster.Managers
                 response: new BasicJsonResponse(Success: false) { Error = error },
                 items: Items
             );
+        }
+
+        public static string EscapeMultiLineBlock(string block)
+        {
+            return block
+                // 1. Escapes backslashes first, otherwise subsequent escapes will double them
+                .Replace("\\", "\\\\") 
+                // 2. Escapes double quotes within the code
+                .Replace("\"", "\\\"")
+                .Replace("\n", "\\n")
+                .Replace("\r", "\\r");
         }
 
         public static async Task HandleInvalidResponse(HttpListenerResponse response, string error)
