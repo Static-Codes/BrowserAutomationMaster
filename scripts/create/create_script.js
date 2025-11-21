@@ -55,6 +55,14 @@ function clearCurrentScriptState(commandsAdded) {
   }
 }
 
+function convertUTF8toBase64(str) {
+  const utf8Bytes = new TextEncoder().encode(str);
+  const binaryStr = utf8Bytes.reduce((acc, byte) => {
+    return acc + String.fromCharCode(byte);
+  }, "");
+  return btoa(binaryStr);
+}
+
 // FIXED: Now grabs content and calls addCommandToCommandList to append to the end.
 function duplicateSelectedCommand() {
   var selectedChild = document.querySelector(".list-item");
@@ -234,43 +242,76 @@ function removeSelectedCommand() {
   }
 
   // --- JS MODE CLEANUP LOGIC ---
-  if (removedCommandText.includes("start-javascript")) {
-    // Indices to remove: [start-javascript, Add-JS-Code, end-javascript]
-    const indicesToRemove = [index];
+  // Check if the removed command is START, ADD, or END.
+  let isJsBlockCommand =
+    removedCommandText.includes("start-javascript") ||
+    removedCommandText.includes("add-to-js") ||
+    removedCommandText.includes("end-javascript");
 
-    // Looks for the next two commands: Add-JS-Code and End-Javascript
-    // Uses `commands` object (the backing data) to check content before removing elements
+  if (isJsBlockCommand) {
+    // 1. Determine the STARTING index of the entire 3-command block.
+    let startIndex = index;
+    if (removedCommandText.includes("add-to-js")) {
+      // If removing the middle command, the block starts one index before.
+      startIndex = index - 1;
+    } else if (removedCommandText.includes("end-javascript")) {
+      // If removing the end command, the block starts two indices before.
+      startIndex = index - 2;
+    }
+
+    // Safety check: Ensure the startIndex is valid (not < 0)
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
+
+    // 2. Collect the indices for the expected block (start-js, add-js, end-js)
+    // We check for the explicit keys to ensure we're deleting a valid block structure.
+    const indicesToRemove = [];
+
+    // Check for the commands at startIndex, startIndex + 1, and startIndex + 2
     if (
-      commands[index + 1] &&
-      commands[index + 1].includes("javascript-code")
+      commands[startIndex] &&
+      commands[startIndex].includes("start-javascript")
     ) {
-      indicesToRemove.push(index + 1);
+      indicesToRemove.push(startIndex);
     }
-    if (commands[index + 2] && commands[index + 2].includes("end-javascript")) {
-      indicesToRemove.push(index + 2);
+    if (
+      commands[startIndex + 1] &&
+      commands[startIndex + 1].includes("add-to-js")
+    ) {
+      indicesToRemove.push(startIndex + 1);
+    }
+    if (
+      commands[startIndex + 2] &&
+      commands[startIndex + 2].includes("end-javascript")
+    ) {
+      indicesToRemove.push(startIndex + 2);
     }
 
-    // Removes elements from the DOM starting from the highest index (to preserve lower indices during removal)
-    indicesToRemove
-      .sort((a, b) => b - a)
-      .forEach((idx) => {
-        // Checks if the DOM element actually exists at that position before attempting removal
-        if (commandList.children[idx]) {
-          commandList.children[idx].remove();
-          console.log(`Deleted JS block command element at index ${idx}`);
-        }
-      });
+    // Only proceed if we found at least one part of the block to delete
+    if (indicesToRemove.length > 0) {
+      // Remove elements from the DOM starting from the highest index (to preserve lower indices during removal)
+      indicesToRemove
+        .sort((a, b) => b - a)
+        .forEach((idx) => {
+          // Checks if the DOM element actually exists at that position before attempting removal
+          if (commandList.children[idx]) {
+            commandList.children[idx].remove();
+            console.log(`Deleted JS block command element at index ${idx}`);
+          }
+        });
 
-    jsMode = false; // Reset the state
+      jsMode = false; // Reset the state
 
-    // Re-indexes all remaining commands after bulk removal
-    reindexCommands();
+      // Re-index all remaining commands after bulk removal
+      reindexCommands();
 
-    // Refocuses selection to the command before the removed block
-    nextIndexAfterDelete = index > 0 ? index - 1 : 0;
-    var child = commandList.children[nextIndexAfterDelete];
-    if (child) {
-      child.classList.add("list-item");
+      // Refocuses selection to the command before the removed block
+      nextIndexAfterDelete = startIndex > 0 ? startIndex - 1 : 0;
+      var child = commandList.children[nextIndexAfterDelete];
+      if (child) {
+        child.classList.add("list-item");
+      }
     }
 
     // Exits the function here as the removal and re-indexing are complete
@@ -385,9 +426,9 @@ function renderArguments(command) {
 
         argGroup.appendChild(textInput);
       }
-
-      argsContainer.appendChild(argGroup);
     }
+
+    argsContainer.appendChild(argGroup);
   });
 }
 
@@ -496,9 +537,10 @@ executeButton.addEventListener("click", (e) => {
     //   .replace(/"/g, '\\"')
     //   .replace(/\n/g, "\\n")
     //   .replace(/\r/g, "\\r");
+    let b64Code = convertUTF8toBase64(rawCode);
 
     // commandText = `{"add-to-js": "${escapedCode}"}`;
-    commandText = `{"add-to-js": "${rawCode}"}`;
+    commandText = `{"add-to-js": "${b64Code}"}`;
   } else {
     // For all other commands (with arguments), stringify the arguments
     commandText = JSON.stringify(commandData.arguments);
@@ -506,7 +548,8 @@ executeButton.addEventListener("click", (e) => {
 
   addCommandToCommandList(commandText, true);
 
-  // --- STATE TRANSITION LOGIC ---
+  let stateTransitionOccurred = false; // Flag to stop general selection logic
+
   if (selectedCommandName === "Start-Javascript") {
     jsMode = true;
     // Auto-switches to 'Add-JS-Code' and renders
@@ -515,23 +558,30 @@ executeButton.addEventListener("click", (e) => {
     );
     commandSelect.value = "Add-JS-Code";
     renderArguments(nextCommand);
+    stateTransitionOccurred = true;
   } else if (selectedCommandName === "Add-JS-Code") {
     // Auto-switches to 'End-Javascript' and renders
-    jsMode = false; // Exits jsMode after codeblock is added, to allow the user to immediately add end-javascript
+    jsMode = false;
     var nextCommand = commandCollection.find(
       (cmd) => cmd.commandName === "End-Javascript"
     );
     commandSelect.value = "End-Javascript";
     renderArguments(nextCommand);
+    stateTransitionOccurred = true; // Prevents the override below
   }
-  // ------------------------------
 
   updateCommandComboBoxState();
   var browserExists = Object.values(commands).some((cmd) =>
     cmd.includes('"browser":')
   );
 
-  if (browserExists && commandCollection.length > 1 && !jsMode) {
+  // Only runs general command selection if NO specific state transition just happened and jsMode is false
+  if (
+    browserExists &&
+    commandCollection.length > 1 &&
+    !jsMode &&
+    !stateTransitionOccurred
+  ) {
     var nextCommand = commandCollection[1];
     commandSelect.value = nextCommand.commandName;
 
