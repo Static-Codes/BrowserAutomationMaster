@@ -50,8 +50,8 @@
 
       fetch(
         loadScriptsURL, 
-        
         { 
+          // headers: {'Content-Type': 'application/json'},
           method: "GET",
           signal: AbortSignal.timeout(200)
         }
@@ -451,6 +451,7 @@
         }
       });
     </script>
+    
     <!-- Export Button Functionality -->
     <script>
       var exportScriptButton = document.querySelector(
@@ -505,9 +506,10 @@
         
         fetch(
           url,
-          { 
+          {
+            headers: {'Content-Type': 'application/json'},
             method: "GET",
-            signal: AbortSignal.timeout(5000)
+            signal: AbortSignal.timeout(10000)
           }
         )
         .then(response => {
@@ -521,11 +523,12 @@
           console.log(`Response: ${data}`);
         })
         .catch(error => {
-          console.error('Error fetching data:', error);
+          alert('An error occured while attempting to export your file.\nError:', error);
         });
 
       });
       
     </script>
+    
   </body>
 </html>
