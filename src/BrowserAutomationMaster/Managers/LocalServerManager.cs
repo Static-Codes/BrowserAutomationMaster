@@ -329,12 +329,12 @@ namespace BrowserAutomationMaster.Managers
 
                 var memoryInfo = GetMemoryInfo();
 
+                #pragma warning disable IDE0270 // Coalesce operator will break the current logic implementation, as such this warning can be ignored.
                 if (memoryInfo is null)
+                {
                     throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");
-                
-                // var _ = memoryInfo != null && memoryInfo.HasValue ? memoryInfo :
-                //     throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");
-                
+                }
+                #pragma warning restore IDE0270
 
                 if (memoryInfo.Value.TotalMemory < MINIMUM_GUI_MEMORY_MB){
                     throw new InsufficientMemoryException("Your system currently has less than 2GB of total RAM as such the GUI could not be loaded.");
