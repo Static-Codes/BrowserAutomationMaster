@@ -548,7 +548,7 @@ namespace BrowserAutomationMaster.Managers
                     }
                 }
                 file.Close();
-                var successMessage = UTF8.GetBytes($"{{\"Message\": \"Exported {fileName} successfully to {scriptPath}!\"}}");
+                var successMessage = UTF8.GetBytes($"{{ \"success\": true, \"message\": \"Exported {fileName} successfully to {scriptPath}!\"}}");
                 await LocalServerManager.WriteResponse(response, successMessage);
             }
             catch (Exception ex)
