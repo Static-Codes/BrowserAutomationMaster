@@ -53,7 +53,7 @@
         { 
           // headers: {'Content-Type': 'application/json'},
           method: "GET",
-          signal: AbortSignal.timeout(200)
+          // signal: AbortSignal.timeout(200)
         }
       )
       .then(response => {
@@ -414,18 +414,29 @@
       
       
       var selectedOption = commandSelect.children[0];
-      selectedOption.setAttribute("selected", "");
 
-      commandSelect.onchange = function(e) {
-          var newSelectedOption = this.querySelector(`option[value="${e.target.value}"]`);
-          if (selectedOption) {
-              selectedOption.removeAttribute("selected");
-          }
-          if (newSelectedOption) {
-              newSelectedOption.setAttribute("selected", "");
-              selectedOption = newSelectedOption;
-          }
+      if (selectedOption == null && commandItems.length != 0){
+        alert("A fatal error has occured, please click \"Restart GUI\", or restart BAMM.");
+        throw new Error("A fatal error has occured, please click \"Restart GUI\" or restart BAMM.");
       };
+
+      try {
+        selectedOption.setAttribute("selected", "");
+
+        commandSelect.onchange = function(e) {
+            var newSelectedOption = this.querySelector(`option[value="${e.target.value}"]`);
+            if (selectedOption) {
+                selectedOption.removeAttribute("selected");
+            }
+            if (newSelectedOption) {
+                newSelectedOption.setAttribute("selected", "");
+                selectedOption = newSelectedOption;
+            }
+        };
+      }
+    catch (error) {
+      console.error(`An exception occured while trying to reset the combobox.\nException: ${error.message}`)
+    }
 
       const createScriptBtn = document.querySelector("#resetScriptState");
       var commandsAdded = document.querySelectorAll("#command-list li");

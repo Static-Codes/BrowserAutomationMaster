@@ -414,6 +414,12 @@
       
       
       var selectedOption = commandSelect.children[0];
+
+      if (selectedOption == null && commandItems.length != 0){
+        alert("A fatal error has occured, please click \"Restart GUI\"");
+        throw new Error("A fatal error has occured, please click \"Restart GUI\"");
+      };
+
       selectedOption.setAttribute("selected", "");
 
       commandSelect.onchange = function(e) {
@@ -519,7 +525,7 @@
           return response.json();
         })
         .then(data => {
-          console.log(`Successfully saved file: ${filename}`)
+          alert(`Successfully saved file: ${filename}`)
           console.log(`Response: ${data}`);
         })
         .catch(error => {

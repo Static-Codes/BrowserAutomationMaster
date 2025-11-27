@@ -20,6 +20,16 @@ var validateScriptButton = document.querySelector(
 var nextIndexAfterDelete = 0;
 var scriptIsValidated = false;
 var jsMode = false;
+var featuresAllowed = false;
+var visitAdded = false;
+
+// List of all proxy-related feature commands
+const proxyFeatures = [
+  "use-http-proxy",
+  "use-https-proxy",
+  "use-socks4-proxy",
+  "use-socks5-proxy",
+];
 
 function addCommandToCommandList(commandText, addToLocalStorage = true) {
   try {
@@ -47,7 +57,8 @@ function addCommandToCommandList(commandText, addToLocalStorage = true) {
 
 function clearCurrentScriptState(commandsAdded) {
   setData({});
-
+  localStorage.clear();
+  window.location.reload(true);
   if (commandsAdded.length > 0) {
     for (var i = commandsAdded.length - 1; i >= 0; i--) {
       commandsAdded[i].remove();
@@ -63,7 +74,6 @@ function convertUTF8toBase64(str) {
   return btoa(binaryStr);
 }
 
-// FIXED: Now grabs content and calls addCommandToCommandList to append to the end.
 function duplicateSelectedCommand() {
   var selectedChild = document.querySelector(".list-item");
   if (!selectedChild) {
@@ -80,7 +90,6 @@ function duplicateSelectedCommand() {
     return;
   }
 
-  // Appends to the end then ensures it's selected and re-indexes the object.
   addCommandToCommandList(commandText, true);
 
   console.log(`Duplicated command and appended to end.`);
@@ -162,47 +171,92 @@ function loadCurrentScriptCommands() {
   }
 }
 
-function populateCommandSelect() {
-  // 1. Check if the browser command is already in the loaded script
-  var browserExists = Object.values(commands).some((cmd) =>
+function recalculateState() {
+  featuresAllowed = false;
+  visitAdded = false;
+
+  const scriptCommands = Object.values(commands);
+  const browserExists = scriptCommands.some((cmd) =>
     cmd.includes('"browser":')
   );
+
+  if (!browserExists) {
+    return;
+  }
+
+  visitAdded = scriptCommands.some((cmd) => cmd.includes('"visit":'));
+
+  featuresAllowed = browserExists && !visitAdded;
+}
+
+function populateCommandSelect() {
+  commandSelect.innerHTML = "";
+
+  recalculateState();
+
+  const browserExists = Object.values(commands).some((cmd) =>
+    cmd.includes('"browser":')
+  );
+  let selectedCommandName = commandSelect.value;
+  let hasSetInitialSelection = false;
 
   commandCollection.forEach((command) => {
     var option = document.createElement("option");
     option.value = command.commandName;
     option.textContent = command.commandName;
 
+    let isDisabled = true;
+
     if (command.commandName === "Browser") {
-      // --- HANDLE BROWSER OPTION ---
-      if (browserExists) {
-        // If script has a browser, disable this option
-        option.disabled = true;
-        option.selected = false;
-        // option.removeAttribute("selected");
-      } else {
-        // If script is empty, select this option and render inputs
-        option.disabled = false;
-        option.selected = true;
-        renderArguments(command);
+      isDisabled = browserExists;
+      if (!browserExists && !hasSetInitialSelection) {
+        selectedCommandName = command.commandName;
+        hasSetInitialSelection = true;
+      }
+    } else if (command.commandName === "Visit") {
+      isDisabled = !featuresAllowed || visitAdded;
+      if (!isDisabled && !hasSetInitialSelection) {
+        selectedCommandName = command.commandName;
+        hasSetInitialSelection = true;
+      }
+    } else if (command.commandName.includes("Feature:")) {
+      isDisabled = !featuresAllowed;
+      if (!isDisabled && !hasSetInitialSelection) {
+        selectedCommandName = command.commandName;
+        hasSetInitialSelection = true;
       }
     } else {
-      // --- HANDLE ALL OTHER OPTIONS ---
-      if (browserExists) {
-        option.disabled = false;
-      } else {
-        option.disabled = command.disabledOnLoad;
+      isDisabled = !visitAdded;
+      if (!isDisabled && !hasSetInitialSelection) {
+        selectedCommandName = command.commandName;
+        hasSetInitialSelection = true;
       }
     }
 
+    option.disabled = isDisabled;
     commandSelect.appendChild(option);
   });
 
-  if (browserExists && commandCollection.length > 1) {
-    // Select the second item (Add-Header)
-    var nextCommand = commandCollection[1];
-    commandSelect.value = nextCommand.commandName;
-    renderArguments(nextCommand);
+  const finalSelection = commandSelect.querySelector(
+    `option[value="${selectedCommandName}"]`
+  );
+
+  if (finalSelection && !finalSelection.disabled) {
+    commandSelect.value = selectedCommandName;
+  } else {
+    const firstAvailable = commandSelect.querySelector(
+      "option:not([disabled])"
+    );
+    if (firstAvailable) {
+      commandSelect.value = firstAvailable.value;
+    }
+  }
+
+  const finalSelectedCommand = commandCollection.find(
+    (cmd) => cmd.commandName === commandSelect.value
+  );
+  if (finalSelectedCommand) {
+    renderArguments(finalSelectedCommand);
   }
 }
 
@@ -221,6 +275,8 @@ function reindexCommands() {
 
   commands = newCommands;
   setData(commands);
+  recalculateState();
+  populateCommandSelect();
   console.log(getData());
 }
 
@@ -241,83 +297,58 @@ function removeSelectedCommand() {
     return;
   }
 
-  // --- JS MODE CLEANUP LOGIC ---
-  // Check if the removed command is START, ADD, or END.
   let isJsBlockCommand =
     removedCommandText.includes("start-javascript") ||
     removedCommandText.includes("add-to-js") ||
     removedCommandText.includes("end-javascript");
 
   if (isJsBlockCommand) {
-    // 1. Determine the STARTING index of the entire 3-command block.
     let startIndex = index;
     if (removedCommandText.includes("add-to-js")) {
-      // If removing the middle command, the block starts one index before.
       startIndex = index - 1;
     } else if (removedCommandText.includes("end-javascript")) {
-      // If removing the end command, the block starts two indices before.
       startIndex = index - 2;
     }
 
-    // Safety check: Ensure the startIndex is valid (not < 0)
     if (startIndex < 0) {
       startIndex = 0;
     }
 
-    // 2. Collect the indices for the expected block (start-js, add-js, end-js)
-    // We check for the explicit keys to ensure we're deleting a valid block structure.
     const indicesToRemove = [];
-
-    // Check for the commands at startIndex, startIndex + 1, and startIndex + 2
     if (
       commands[startIndex] &&
       commands[startIndex].includes("start-javascript")
-    ) {
+    )
       indicesToRemove.push(startIndex);
-    }
     if (
       commands[startIndex + 1] &&
       commands[startIndex + 1].includes("add-to-js")
-    ) {
+    )
       indicesToRemove.push(startIndex + 1);
-    }
     if (
       commands[startIndex + 2] &&
       commands[startIndex + 2].includes("end-javascript")
-    ) {
+    )
       indicesToRemove.push(startIndex + 2);
+
+    indicesToRemove
+      .sort((a, b) => b - a)
+      .forEach((idx) => {
+        if (commandList.children[idx]) {
+          commandList.children[idx].remove();
+        }
+      });
+
+    jsMode = false;
+
+    reindexCommands();
+    nextIndexAfterDelete = startIndex > 0 ? startIndex - 1 : 0;
+    var child = commandList.children[nextIndexAfterDelete];
+    if (child) {
+      child.classList.add("list-item");
     }
-
-    // Only proceed if we found at least one part of the block to delete
-    if (indicesToRemove.length > 0) {
-      // Remove elements from the DOM starting from the highest index (to preserve lower indices during removal)
-      indicesToRemove
-        .sort((a, b) => b - a)
-        .forEach((idx) => {
-          // Checks if the DOM element actually exists at that position before attempting removal
-          if (commandList.children[idx]) {
-            commandList.children[idx].remove();
-            console.log(`Deleted JS block command element at index ${idx}`);
-          }
-        });
-
-      jsMode = false; // Reset the state
-
-      // Re-index all remaining commands after bulk removal
-      reindexCommands();
-
-      // Refocuses selection to the command before the removed block
-      nextIndexAfterDelete = startIndex > 0 ? startIndex - 1 : 0;
-      var child = commandList.children[nextIndexAfterDelete];
-      if (child) {
-        child.classList.add("list-item");
-      }
-    }
-
-    // Exits the function here as the removal and re-indexing are complete
     return;
   }
-  // --- END JS MODE CLEANUP LOGIC ---
 
   var cmdCount = Object.keys(commands).length;
 
@@ -359,6 +390,14 @@ function renderArguments(command) {
   argKeys.forEach((argName) => {
     var argOptions = command.commandArgs[argName];
 
+    if (
+      Array.isArray(argOptions) &&
+      argOptions.length === 0 &&
+      !command.isCodeBlock
+    ) {
+      return;
+    }
+
     var argGroup = document.createElement("div");
     argGroup.classList.add("arg-group");
 
@@ -399,8 +438,8 @@ function renderArguments(command) {
         optionsContainer.appendChild(optionWrapper);
       });
       argGroup.appendChild(optionsContainer);
+      argsContainer.appendChild(argGroup);
     } else {
-      // Using textarea for code blocks ---
       if (command.isCodeBlock) {
         var textAreaInput = document.createElement("textarea");
         textAreaInput.classList.add("arg-text-input", "code-block-input");
@@ -426,9 +465,9 @@ function renderArguments(command) {
 
         argGroup.appendChild(textInput);
       }
-    }
 
-    argsContainer.appendChild(argGroup);
+      argsContainer.appendChild(argGroup);
+    }
   });
 }
 
@@ -437,23 +476,76 @@ function setData(data) {
   localStorage.setItem("commands", JSON.stringify(data));
 }
 
-function updateCommandComboBoxState() {
-  var browserExists = Object.values(commands).some((cmd) =>
-    cmd.includes('"browser":')
+function validateArguments(selectedCommandName, commandArgs) {
+  const selectedCommand = commandCollection.find(
+    (cmd) => cmd.commandName === selectedCommandName
   );
 
-  document.querySelectorAll("#command-select option").forEach((el) => {
-    if (el.value !== "Browser" || !browserExists) {
-      el.removeAttribute("disabled");
-    }
-  });
-
-  var selector = document.querySelector("#command-select option:first-child");
-  if (selector) {
-    selector.disabled = true;
-    selector.removeAttribute("selected");
-    selector.selected = false;
+  if (!selectedCommand) {
+    alert("Error: Command definition not found.");
+    return false;
   }
+
+  const argDefinitions = selectedCommand.commandArgs;
+
+  for (const [argKey, argValue] of Object.entries(commandArgs)) {
+    if (argDefinitions[argKey] === null) {
+      const isQuotedString =
+        argValue.startsWith('"') &&
+        argValue.endsWith('"') &&
+        argValue.length > 1;
+
+      if (selectedCommandName === "Wait-For-Seconds" && argKey === "seconds") {
+        const numericValue = parseFloat(argValue);
+        if (isNaN(numericValue) || !isFinite(numericValue)) {
+          alert(
+            `Validation Error: The value for '${argKey}' in 'Wait-For-Seconds' must be a valid number (e.g., 2 or 0.5) and must not be quoted.`
+          );
+          return false;
+        }
+      } else if (
+        selectedCommandName === "Add-Headers" &&
+        argKey === "headers"
+      ) {
+        if (!isQuotedString) {
+          alert(
+            `Validation Error: The value for 'headers' in 'Add-Headers' must be a single quoted JSON string (e.g., '"{\\"Header\\": \\"Value\\"}"').`
+          );
+          return false;
+        }
+        const jsonContent = argValue.slice(1, -1);
+        try {
+          JSON.parse(jsonContent);
+        } catch (e) {
+          alert(
+            `Validation Error: The content inside the quotes for 'headers' in 'Add-Headers' must be valid JSON.`
+          );
+          return false;
+        }
+      } else if (
+        (selectedCommand.placeholder &&
+          selectedCommand.placeholder.startsWith('"')) ||
+        selectedCommandName === "Add-Header" ||
+        selectedCommandName === "Click-At-Position" ||
+        selectedCommandName === "Fill-Text" ||
+        selectedCommandName === "Fill-Text-Exp" ||
+        selectedCommandName === "Open-New-Tab" ||
+        selectedCommandName === "Select-Option" ||
+        selectedCommandName.startsWith("Feature: use-") // Includes proxy features
+      ) {
+        if (!isQuotedString) {
+          alert(
+            `Validation Error: The value for '${argKey}' in '${selectedCommandName}' must be a quoted string (e.g., '"value"').`
+          );
+          return false;
+        }
+      } else if (selectedCommandName === "Add-JS-Code") {
+        continue;
+      }
+    }
+  }
+
+  return true;
 }
 
 window.addEventListener("load", (e) => {
@@ -522,6 +614,69 @@ executeButton.addEventListener("click", (e) => {
       commandData.arguments[arg.name] = arg.value;
     });
 
+  if (!validateArguments(selectedCommandName, commandData.arguments)) {
+    return;
+  }
+
+  const selectedCommand = commandCollection.find(
+    (cmd) => cmd.commandName === selectedCommandName
+  );
+  if (!selectedCommand) {
+    alert("Error: Command definition not found.");
+    return;
+  }
+
+  // --- Feature Command Validation for Duplicates and Proxies ---
+  if (selectedCommandName.startsWith("Feature:")) {
+    const selectedFeatureName = selectedCommandName
+      .toLowerCase()
+      .replace("feature: ", "");
+
+    // 1. Check for duplicate Feature command
+    const isDuplicateFeature = Object.values(commands).some((commandString) => {
+      try {
+        const commandObject = JSON.parse(commandString);
+        return commandObject.feature === selectedFeatureName;
+      } catch (e) {
+        return false;
+      }
+    });
+
+    if (isDuplicateFeature) {
+      alert(
+        `Validation Error: The feature command '${selectedCommandName}' can only be added once to the script.`
+      );
+      return;
+    }
+
+    // 2. Check for multiple proxy features
+    if (proxyFeatures.includes(selectedFeatureName)) {
+      let otherProxyExists = false;
+      for (const commandString of Object.values(commands)) {
+        try {
+          const commandObject = JSON.parse(commandString);
+          // Check if any *other* proxy feature is already in the list
+          if (
+            commandObject.feature &&
+            proxyFeatures.includes(commandObject.feature) &&
+            commandObject.feature !== selectedFeatureName
+          ) {
+            otherProxyExists = true;
+            break;
+          }
+        } catch (e) {}
+      }
+
+      if (otherProxyExists) {
+        alert(
+          "Validation Error: Only one proxy feature (http, https, socks4, or socks5) is allowed in a single script."
+        );
+        return;
+      }
+    }
+  }
+  // --- END Feature Command Validation ---
+
   console.log("--- Executing Command ---");
 
   var commandText;
@@ -532,64 +687,55 @@ executeButton.addEventListener("click", (e) => {
     commandText = '{"end-javascript": ""}';
   } else if (selectedCommandName === "Add-JS-Code") {
     let rawCode = commandData.arguments["javascript-code"];
-    // let escapedCode = rawCode
-    //   .replace(/\\/g, "\\\\")
-    //   .replace(/"/g, '\\"')
-    //   .replace(/\n/g, "\\n")
-    //   .replace(/\r/g, "\\r");
     let b64Code = convertUTF8toBase64(rawCode);
 
-    // commandText = `{"add-to-js": "${escapedCode}"}`;
     commandText = `{"add-to-js": "${b64Code}"}`;
+  } else if (selectedCommandName.startsWith("Feature:")) {
+    const featureName = selectedCommandName
+      .toLowerCase()
+      .replace("feature: ", "");
+
+    if (Object.keys(commandData.arguments).length > 0) {
+      const argValue =
+        commandData.arguments[Object.keys(commandData.arguments)[0]];
+      commandText = `{"feature": "${featureName}", "value": ${argValue}}`;
+    } else {
+      commandText = `{"feature": "${featureName}"}`;
+    }
   } else {
-    // For all other commands (with arguments), stringify the arguments
-    commandText = JSON.stringify(commandData.arguments);
+    const argKeys = Object.keys(commandData.arguments);
+
+    const formattedCommandName = selectedCommandName
+      .toLowerCase()
+      .replace(/: /g, "-")
+      .replace(/-/g, "-");
+
+    if (argKeys.length === 1 && selectedCommandName !== "Browser") {
+      const argValue = commandData.arguments[argKeys[0]];
+      const finalObject = {};
+      finalObject[formattedCommandName] = argValue;
+      commandText = JSON.stringify(finalObject);
+    } else {
+      commandText = JSON.stringify(commandData.arguments);
+    }
   }
 
   addCommandToCommandList(commandText, true);
 
-  let stateTransitionOccurred = false; // Flag to stop general selection logic
-
   if (selectedCommandName === "Start-Javascript") {
     jsMode = true;
-    // Auto-switches to 'Add-JS-Code' and renders
     var nextCommand = commandCollection.find(
       (cmd) => cmd.commandName === "Add-JS-Code"
     );
     commandSelect.value = "Add-JS-Code";
     renderArguments(nextCommand);
-    stateTransitionOccurred = true;
   } else if (selectedCommandName === "Add-JS-Code") {
-    // Auto-switches to 'End-Javascript' and renders
     jsMode = false;
     var nextCommand = commandCollection.find(
       (cmd) => cmd.commandName === "End-Javascript"
     );
     commandSelect.value = "End-Javascript";
     renderArguments(nextCommand);
-    stateTransitionOccurred = true; // Prevents the override below
-  }
-
-  updateCommandComboBoxState();
-  var browserExists = Object.values(commands).some((cmd) =>
-    cmd.includes('"browser":')
-  );
-
-  // Only runs general command selection if NO specific state transition just happened and jsMode is false
-  if (
-    browserExists &&
-    commandCollection.length > 1 &&
-    !jsMode &&
-    !stateTransitionOccurred
-  ) {
-    var nextCommand = commandCollection[1];
-    commandSelect.value = nextCommand.commandName;
-
-    renderArguments(nextCommand);
-
-    console.log(
-      `Switched combobox to: ${nextCommand.commandName} and rendered arguments.`
-    );
   }
 });
 
@@ -601,5 +747,4 @@ removeCommandButton.addEventListener("click", (e) => {
   removeSelectedCommand();
 });
 
-populateCommandSelect();
 loadCurrentScriptCommands();
