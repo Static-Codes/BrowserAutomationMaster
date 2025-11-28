@@ -2,6 +2,7 @@ using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -103,6 +104,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
            
             var psi = new ProcessStartInfo()
             {
+                // Currently has a bug where --print-architecture writes to std out, this needs to be adjusted likely with >/dev/null 2>&1
                 FileName = HasDPKG ? "dpkg" : (HasRPM ? "rpm" : "bin/bash"),
                 Arguments = HasDPKG ? "--print-architecture" : (HasRPM ? "--queryformat \"%{ARCH}\\n\" -qf /bin/ls" : "lscpu"),
                 RedirectStandardOutput = true,
@@ -175,11 +177,30 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
-        public static bool HasDisplayVarSet()
+        public static string? GetDistroNameString()
         {
-            if (!Platforms.IsUnixLike) { return true; } // This check doesnt need to include windows.
-            return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"));
+            var lsbrPresent = CommandExists("lsb_release");
+            var neofetchPresent = CommandExists("neofetch");
+            string? distroName;
+
+            if (lsbrPresent)
+            { 
+                distroName = RunLSBR(); 
+            }
+
+            else if (neofetchPresent)
+            {
+                distroName = RunNeofetch();
+            }
+
+            else 
+            {
+                distroName = RunOSR();
+            }
+
+            return distroName;
         }
+
 
         public static string? GetTerminalBackgroundColor()
         {
@@ -221,6 +242,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 WriteMessage($"Error reading terminal color: {ex.Message}");
                 return null;
             }
+        }
+
+        public static bool HasDisplayVarSet()
+        {
+            if (!Platforms.IsUnixLike) { return true; } // This check doesnt need to include windows.
+            return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"));
         }
 
         public static async Task InstallRequiredLinuxPackages(List<AppInfo> appsInfo)
@@ -491,6 +518,101 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
+        // /etc/os-release
+        private static string? RunOSR()
+        {
+            try
+            {
+                if (!File.Exists("/etc/os-release"))
+                {
+                    return null;
+                }
 
+                var contentArray = File.ReadAllLines("/etc/os-release");
+
+                var contentString = string.Join(NLC, contentArray);
+
+                var osrMatch = PrecompiledOSR1Regex().Match(contentString);
+
+                if (osrMatch.Success){
+                    return osrMatch.Groups[1].Value;
+                }
+
+                osrMatch = PrecompiledOSR2Regex().Match(contentString);
+
+                if (osrMatch.Success){
+                    return osrMatch.Groups[1].Value;
+                }
+            }
+            catch {
+                Warning.Write("Unable to determine detailed OS info for debugging purposes.");
+                Warning.Write("You may see the generic \"Linux\" identifier.");
+            }
+            return null;
+        }
+        
+        // lsb_release -a 
+        private static string? RunLSBR()
+        {
+            try
+            {
+                var lsbrResult = RunCommand("/bin/bash", "-c \"lsb_release -a\"");
+
+                var lsbrMatch = PrecompiledLSBRRegex().Match(lsbrResult);
+
+                if (!lsbrMatch.Success)
+                {
+                    return null;
+                }
+
+                return lsbrMatch.Groups[1].Value;
+            }
+            catch {
+                Warning.Write("Unable to determine detailed OS info for debugging purposes.");
+                Warning.Write("You may see the generic \"Linux\" identifier.");
+            }
+            // catch (Exception ex){}
+            return null;
+        }
+
+        // neofetch
+        private static string? RunNeofetch()
+        {
+            try
+            {
+                var nfTmpFilePath = GetTemporaryNeofetchPath();
+                RunCommand("/bin/bash", $"-c \"neofetch > {nfTmpFilePath}\"");
+
+                if (!File.Exists(nfTmpFilePath))
+                {
+                    return null;
+                }
+
+                var contentArray = File.ReadAllLines(nfTmpFilePath);
+
+                File.Delete(nfTmpFilePath); // Cleanup since this tmp file isnt needed
+                
+                var rawContentString = string.Join(NLC, contentArray);
+
+                var contentString = StripANSI(rawContentString);
+
+                var nfMatch = PrecompiledNFRegex().Match(contentString);
+                if (nfMatch.Success)
+                {
+                    return nfMatch.Groups[1].Value;
+                }
+                return null;
+            }
+            catch {
+                Warning.Write("Unable to determine detailed OS info for debugging purposes.");
+                Warning.Write("You may see the generic \"Linux\" identifier.");
+            }
+            // catch (Exception ex){}
+            return null;
+        }
+        private static string StripANSI(string text){
+            string ANSIPattern = @"\x1b\[[0-?]*[ -/]*[@-~]";
+            return Regex.Replace(text, ANSIPattern, string.Empty);
+        }
     }
 }
