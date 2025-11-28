@@ -20,6 +20,8 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private static MemoryInfo? memoryInfo = null;
 
+        private static int? CoreCount = null;
+
         private static string[] BuildScriptMenu(List<string> scriptPaths)
         {
             string[] menu = new string[scriptPaths.Count];
@@ -42,6 +44,7 @@ namespace BrowserAutomationMaster.Managers.Python
         {
             HasEnoughMemory();
             CPUInfoManager cpuInfoManager = new();
+            CoreCount = cpuInfoManager.Cores;
             if (!cpuInfoManager.HasEnoughCores())
             {
                 WriteAndExit(
@@ -62,6 +65,11 @@ namespace BrowserAutomationMaster.Managers.Python
                 .SelectMany(dir => Directory.GetFiles(dir, "*.py"))
                 .Where(File.Exists)
                 .Distinct()];
+        }
+
+        public static int GetCoreCount()
+        {
+            return CoreCount ?? 0;
         }
 
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]

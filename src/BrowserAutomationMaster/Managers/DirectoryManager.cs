@@ -291,7 +291,11 @@ namespace BrowserAutomationMaster.Managers
         }
 
         public static string GetPythonWheelDirectory() { return Path.Combine(AppDataDirectory, "wheels"); }
-
+        
+        public static string GetTemporaryNeofetchPath(){
+            return Path.Combine(AppDataDirectory, "neofetch.tmp");
+        }
+        
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
 
 

@@ -1,4 +1,4 @@
-using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
@@ -73,6 +73,18 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
+        public static string GetMacOSVersion()
+        {
+            var result = Linux.RunCommand("/bin/bash", "-c \"sw_vers -productVersion\"");
+            var match = PrecompiledMacOSVersionRegex().Match(result);
+
+            if (!match.Success)
+            {
+                return "Unknown";
+            }
+
+            return match.Groups[1].Value;
+        }
 
         [Obsolete("Unused but left for future references")]
         public static void HandleMultipleInstances(string procName)

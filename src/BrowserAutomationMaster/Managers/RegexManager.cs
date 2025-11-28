@@ -225,12 +225,27 @@ namespace BrowserAutomationMaster.Managers
         [GeneratedRegex(base64FormatPattern)]
         public static partial Regex PrecompiledBase64Regex();
 
-        // Used for LocalServerManager.ScanUsedLHPorts() (Windows)
+        // Used for LocalServerManager.ScanUsedLHPorts()
         [GeneratedRegex(@"(?:TCP|UDP)\s{4}(?:localhost|127.0.0.1):([0-9]{1,5})|(?:localhost|127.0.0.1):([0-9]{1,5})")]
         public static partial Regex PrecompiledNetStatRegex();
 
+        // MacOS Version Regex
+        [GeneratedRegex("^((11\\.0)|(11\\.[1-9]\\d*)|([12]\\d*))(\\.\\d+)*$")]
+        public static partial Regex PrecompiledMacOSVersionRegex();
 
         // Used in AppManager.OS.Linux
+        [GeneratedRegex(@"(?:Description:\s)([^\n]*)")]
+        public static partial Regex PrecompiledLSBRRegex();
+        
+        [GeneratedRegex(@"OS:\s(.*)")] 
+        public static partial Regex PrecompiledNFRegex();
+
+        [GeneratedRegex("PRETTY_NAME=\"(.*)\"")]
+        public static partial Regex PrecompiledOSR1Regex();
+
+        [GeneratedRegex("NAME=\"(.*)\"")]
+        public static partial Regex PrecompiledOSR2Regex();
+
         [GeneratedRegex(@"^(?:model name|Model)(?:	{1,2}):\s(?:Raspberry Pi\s)(?<model>.*)")]
         public static partial Regex PrecompiledRPIRegex();
     }
