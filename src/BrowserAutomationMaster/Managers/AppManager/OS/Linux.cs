@@ -431,6 +431,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static void RPICheck()
         {
+            if (!OperatingSystem.IsLinux())
+                return;
+
             try
             {
                 var cpuContents = File.ReadAllLines("/proc/cpuinfo");

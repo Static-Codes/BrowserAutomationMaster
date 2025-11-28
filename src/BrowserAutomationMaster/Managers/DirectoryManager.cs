@@ -326,86 +326,44 @@ namespace BrowserAutomationMaster.Managers
             return appDataDirectory;
         }
 
+        // ~/Library/Application Support/{appName}
         private static string GetAppDataMacOS(string appName)
         {
-            string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            string appDataDirectory;
+            string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
-            if (!string.IsNullOrEmpty(homeDirectory))
+            if (string.IsNullOrEmpty(homeDirectory))
             {
-                appDataDirectory = Path.Combine(
-                    homeDirectory,
-                    "Library",
-                    "Application Support",
-                    appName
+                throw new InvalidOperationException(
+                    "Could not determine the user's home directory (Environment.SpecialFolder.UserProfile was empty). " +
+                    "Cannot construct application data path for macOS."
                 );
-
             }
 
-            else
-            {
-                Write(
-                    message:
-                        $"BAM Manager (BAMM) could not automatically determine the user's home directory\n" +
-                        $"(UserProfile was empty)."
-                );
-                string username = Environment.UserName;
-                if (string.IsNullOrEmpty(username))
-                {
-                    Write(
-                        message: "BAM Manager (BAMM) was also unable to determine the active user's username automatically."
-                    );
-
-                    string response = Input.AskForInput(
-                        "Would you like to manually enter the username? [y/n]: "
-                    );
-
-                    bool manuallyEntering = response.Equals("y");
-
-                    if (manuallyEntering)
-                    {
-                        username = Input.AskForInput(
-                            "Please enter the exact username of the current active user: "
-                        );
-
-                        if (string.IsNullOrEmpty(username))
-                        {
-                            WriteAndExit(
-                                message:
-                                    "Invalid username provided. " +
-                                    "BAM Manager (BAMM) will now exit. " +
-                                    "Press any key to exit...",
-                                status: 1
-                            );
-                        }
-                    }
-                    else
-                    {
-                        WriteAndExit(
-                            message:
-                                "Username not provided. Press any key to exit...",
-                            status: 1
-                        );
-                    }
-                }
-                // Assuming username is a non null value, created using /Users/{username} structure
-                homeDirectory = $"/Users/{username}";
-                appDataDirectory = Path.Combine(
-                    homeDirectory,
-                    "Library",
-                    "Application Support",
-                    appName
-                );
-            }
+            string appDataDirectory = Path.Combine(
+                homeDirectory,
+                "Library",
+                "Application Support",
+                appName
+            );
 
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
 
+        // C:\Users\{username}\AppData\Roaming
         private static string GetAppDataWindows(string appName)
         {
             string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+            if (string.IsNullOrEmpty(appDataFolder))
+            {
+                throw new InvalidOperationException(
+                    "Could not determine the Windows Application Data folder (Environment.SpecialFolder.ApplicationData was empty)."
+                );
+            }
+
             string appDataDirectory = Path.Combine(appDataFolder, appName);
+
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
