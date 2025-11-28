@@ -84,7 +84,6 @@ namespace BrowserAutomationMaster.Managers
                     ])
                 );
 
-
             if (RuntimeManager.IsSupportedWindowsVersion())
                 Platforms.IsWindows = true;
 
