@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
