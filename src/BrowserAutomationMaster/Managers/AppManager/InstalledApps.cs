@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
