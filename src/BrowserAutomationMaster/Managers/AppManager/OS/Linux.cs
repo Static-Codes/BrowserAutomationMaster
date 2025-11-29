@@ -286,7 +286,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     (_, _) => null
                 };
 
-                if (PKM_CMD is null)
+                if (PKM_CMD == null)
                 {
                     Warning.Write("An error occured while attempting to retrieve the Package Manager associated with your Distribution.");
                     var response = Input.WriteListFromOptions(["Debian-Based", "Fedora-Based"], "operating system");
@@ -313,7 +313,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 var installCMD = $"-c \"sudo {installPrefix}";
 
                 var pyVersion = Installations.GetMissingPyVersion();
-                while (pyVersion is null || !PyVersionRegex.IsMatch(pyVersion))
+                while (pyVersion == null || !PyVersionRegex.IsMatch(pyVersion))
                 {
                     Warning.Write("Unable to detect the installed version of Python.");
                     pyVersion = Input.AskForInput(inputMessage);
@@ -330,7 +330,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     optionalPackages
                 ];
 
-                if (installPrefix is null)
+                if (installPrefix == null)
                     WriteAndExit($"Unable to install the following required Linux Packages:\n{string.Join('\n', packages)}", 1);
 
 
@@ -438,7 +438,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             {
                 var cpuContents = File.ReadAllLines("/proc/cpuinfo");
 
-                if (cpuContents is null)
+                if (cpuContents == null)
                     return;
 
 
@@ -448,12 +448,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                     var match = PrecompiledRPIRegex().Match(line);
 
-                    if (match is null) continue;
+                    if (match == null) continue;
                     if (match.Groups.Count == 0) continue;
 
                     match.Groups.TryGetValue("model", out var modelNameMatch);
 
-                    if (modelNameMatch is null) continue;
+                    if (modelNameMatch == null) continue;
                     if (!modelNameMatch.Success) continue;
 
                     var modelName = $"Raspberry Pi {modelNameMatch.Value}";
@@ -461,7 +461,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     // Checks if the partial model string is present in modelNameMatch.Value
                     var validatedMatches = RPIModels.Where(m => modelNameMatch.Value.Contains(m.Key));
 
-                    if (validatedMatches is null) {
+                    if (validatedMatches == null) {
                         WriteAndExit($"The {modelName} is not supported", status: 1);
                     }
 
@@ -497,7 +497,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 };
                 
                 using var proc = Process.Start(procStartInfo);
-                if (proc is null)
+                if (proc == null)
                     return string.Empty;
                 
                 string output = proc.StandardOutput.ReadToEnd();

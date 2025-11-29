@@ -24,7 +24,7 @@ namespace BrowserAutomationMaster.Managers
         public string GetRaspiModelName()
         {
             if (!IsRaspi) return string.Empty;
-            if (RaspiModelInfo is null) return string.Empty;
+            if (RaspiModelInfo == null) return string.Empty;
             return RaspiModelInfo.Value.Key;
         }
         
@@ -75,7 +75,7 @@ namespace BrowserAutomationMaster.Managers
                     status: 1
                 );
 
-            if (Platforms.CurrentArchitecture == Arm64)
+            if (Platforms.CurrentArchitecture is Arm64)
                 Warning.Write(
                     string.Format("{0}{1}{2}", [
                         "BAM Manager (BAMM) supports ARM64 architecture, ",

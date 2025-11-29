@@ -21,7 +21,7 @@ namespace BrowserAutomationMaster.Managers
         public static void CheckForMultipleInstances()
         {
             var curProc = Process.GetCurrentProcess();
-            if (curProc is null)
+            if (curProc == null)
             {
                 WriteAndExit(
                     "Unable to determine the number of open instances of BAMM.\n" +
@@ -67,7 +67,7 @@ namespace BrowserAutomationMaster.Managers
                     "Error Log:\n" +
                     "driverName has a size of 0 in PreventMemoryLeaks()";
 
-            if (selectedBrowser is null)
+            if (selectedBrowser == null)
                 WriteAndExit(errMessage, 1);
 
             var dBuilder = new StringBuilder();
@@ -194,7 +194,7 @@ namespace BrowserAutomationMaster.Managers
                     // Declaring required event handlers -> STDOut, STDErr
                     newProc.OutputDataReceived += (sender, args) =>
                     {
-                        if (args.Data is null)
+                        if (args.Data == null)
                             return;
                             
                         outputLines.Add(args.Data);
@@ -210,7 +210,7 @@ namespace BrowserAutomationMaster.Managers
 
                     newProc.ErrorDataReceived += (sender, args) =>
                     {
-                        if (args.Data is null)
+                        if (args.Data == null)
                             return;
                         
                         errorLines.Add(args.Data);

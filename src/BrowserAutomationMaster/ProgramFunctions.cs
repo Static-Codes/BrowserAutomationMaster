@@ -54,7 +54,7 @@ namespace BrowserAutomationMaster
             var versions = GetBrowserVersion();
 
             // Null check on BrowserVersionManager.browserVersions
-            if (versions is null)
+            if (versions == null)
                 Warning.Write(
                     "Unable to get most browser versions, please ensure you have an active internet connection.\n" +
                     $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n"
@@ -329,7 +329,7 @@ namespace BrowserAutomationMaster
             {
                 var content = await RequestManager.NetworkClient.Instance.GetStringAsync(GUI_DAEMON_LINK);
 
-                if (content is null)
+                if (content == null)
                     return WriteErrorAndReturnBool(msg, false);
 
                 var path = GetGUIDaemonPath();
@@ -442,10 +442,18 @@ namespace BrowserAutomationMaster
             }
         }
 
+        /// <summary> </summary>
+        /// <param name=""><param>
+        /// <returns></returns>
+        // private static async Task<bool> HandleRestoreCommand(string[] pArgs)
+        // {
+        //     var backupFile = GetDefaultBackupPath();
 
+        // }
+        
         /// <summary> Handle variations of 'bamm run' </summary>
         /// <param name="pArgs"></param>
-        /// <returns></returns>
+        /// <returns>A boolean result indicating a successful or failed execution.</returns>
         private static async Task<bool> HandleRunCommand(string[] pArgs)
         {
             var errorMessage =

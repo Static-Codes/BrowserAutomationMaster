@@ -12,7 +12,7 @@ namespace BrowserAutomationMaster.Helpers
 
         public static bool IsValidMember(Type type, string member)
         {
-            if (type is null) return false;
+            if (type == null) return false;
             try { return Enum.Parse(type, member) != null; }
             catch { return false; }
         }

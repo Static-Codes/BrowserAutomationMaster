@@ -106,7 +106,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 string rawChoice = Input.WriteListFromOptions(menu);
                 string? choice = Parser.GetFileNumber(rawChoice);
 
-                if (choice is null)
+                if (choice == null)
                     WriteAndExit(message, 1);
 
                 if (int.TryParse(choice, out int result) && result >= 1 && result <= scriptPaths.Count)

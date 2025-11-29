@@ -34,7 +34,7 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 ParentDirectory = Path.GetDirectoryName(ScriptFilePath);
 
-                if (ParentDirectory is null)
+                if (ParentDirectory == null)
                     return false;
 
                 VEnvPath = Path.Combine(ParentDirectory, "venv");
@@ -55,7 +55,7 @@ namespace BrowserAutomationMaster.Managers.Python
         public static VEnvManager CheckBSConfigAtRuntime(string scriptFilePath)
         {
             var config = LoadConfig();
-            if (config is null)
+            if (config == null)
                 WriteAndExit($"Unable to load BrowserStack Config from:{NLC}{GetBrowserStackConfigPath()}", 1);
             return new VEnvManager("browserstack-sdk python", scriptFilePath);
         }
@@ -115,8 +115,8 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private string GetVEnvStartArgs(string pythonPath)
         {
-            if (ParentDirectory is null)
-                throw new ArgumentException("ParentDirectory is null");
+            if (ParentDirectory == null)
+                throw new ArgumentException("ParentDirectory == null");
 
 
             if (Platforms.IsWindows || Platforms.IsRaspi)
@@ -143,12 +143,12 @@ namespace BrowserAutomationMaster.Managers.Python
             WriteSuccessMessage("Installing required project packages in the project's virtual environment, please wait..");
             await Task.Delay(1000);
 
-            if (ParentDirectory is null)
+            if (ParentDirectory == null)
                 WriteAndExit(
                     message:
                         "Unable to install the required Python packages for the current project, please try again.\n" +
                         $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        "Error log:\nParentDirectory is null in InstallProjectPackages()",
+                        "Error log:\nParentDirectory == null in InstallProjectPackages()",
                     status: 1
                 );
 
@@ -214,12 +214,12 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private async Task StartScriptExecution()
         {
-            if (ParentDirectory is null)
+            if (ParentDirectory == null)
                 WriteAndExit(
                     message:
                         "Unable to install the required Python packages for the current project, please try again.\n" +
                         $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        "Error log:\nParentDirectory is null in InstallProjectPackages()",
+                        "Error log:\nParentDirectory == null in InstallProjectPackages()",
                     status: 1
                 );
 
@@ -285,7 +285,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     message:
                         "Unable to run the requested test, please try again.\n" +
                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        "Error log:\nParentDirectory is null in VEnvManager.RunScript()",
+                        "Error log:\nParentDirectory == null in VEnvManager.RunScript()",
                     status: 1
                 );
 
@@ -294,13 +294,13 @@ namespace BrowserAutomationMaster.Managers.Python
 
             StackConfig = LoadConfig();
 
-            if (StackConfig is null)
+            if (StackConfig == null)
                 WriteAndExit
                 (
                     message:
                         "Unable to run the requested test, please try again.\n" +
                         $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        "Error log:\nStackConfig is null in VEnvManager.RunScript()",
+                        "Error log:\nStackConfig == null in VEnvManager.RunScript()",
                     status: 1
                 );
 

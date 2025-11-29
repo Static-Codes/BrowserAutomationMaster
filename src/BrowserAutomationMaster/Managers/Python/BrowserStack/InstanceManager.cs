@@ -90,7 +90,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             var versions = GetBrowserVersionsSupported(browserName, osName);
 
             var description = $"version of {rawOSName} that supports {browserName}";
-            if (versions is null)
+            if (versions == null)
                 WriteAndExit($"Unable to find a {description}, please try a different combination.", 1);
 
             // Will be used for defining DeviceName and DeviceOrientation if mobile
@@ -241,7 +241,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     .Build();
 
                 var yaml = serializer.Serialize(config);
-                if (yaml is null)
+                if (yaml == null)
                     WriteAndExit("Unable to generate browserstack.yml using the selected information, please try again.", 1);
                 EnsureDirectoryExists(browserStackDirectory);
                 File.WriteAllText(browserStackConfig, yaml);
