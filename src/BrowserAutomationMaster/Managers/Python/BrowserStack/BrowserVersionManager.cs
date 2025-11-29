@@ -29,7 +29,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 var requestManager = new RequestManager(uri, timeout: 10);
                 response = await requestManager.GetStringAsync();
 
-                if (response is null)
+                if (response == null)
                     return null;
 
                 using JsonDocument doc = JsonDocument.Parse(response);

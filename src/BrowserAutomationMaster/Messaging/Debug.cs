@@ -13,7 +13,7 @@ namespace BrowserAutomationMaster.Messaging
             var MiB_GiB_Factor = 1024.0; // A double is chosen here due to the precision of floating point division.
             var MB_GB_Factor = 1000.0;
 
-            if (memoryMiB is null)
+            if (memoryMiB == null)
             {
                 return "Unknown";
             }

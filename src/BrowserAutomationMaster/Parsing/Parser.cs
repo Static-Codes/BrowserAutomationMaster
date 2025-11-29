@@ -171,7 +171,7 @@ namespace BrowserAutomationMaster.Parsing
         {
             try
             {
-                if (userScriptsDirectory is null) { return []; }
+                if (userScriptsDirectory == null) { return []; }
                 return [.. Directory.GetFiles(userScriptsDirectory).Where(x => x.ToLower().EndsWith(".bamc"))];
             }
             catch (Exception ex)
@@ -365,7 +365,7 @@ namespace BrowserAutomationMaster.Parsing
             var rawInput = Input.WriteListFromOptions(menuOptions, "file");
             var input = GetFileNumber(rawInput);
 
-            if (input is null)
+            if (input == null)
                 WriteAndExit(panicText, 1);
 
             if (!int.TryParse(input, out int fileNumber))

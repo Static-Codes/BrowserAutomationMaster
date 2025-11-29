@@ -304,7 +304,7 @@ namespace BrowserAutomationMaster.Compilation
             
             var memoryInfo = GetMemoryInfo();
 
-            if (memoryInfo is null) return;
+            if (memoryInfo == null) return;
             
             var availableMemory = memoryInfo.Value.FreeMemory;
 
@@ -427,7 +427,7 @@ namespace BrowserAutomationMaster.Compilation
             if (config.browserPresent)
             {
                 var potentialUA = await UserAgentManager.GetUserAgent(config.selectedBrowser);
-                if (potentialUA is null)
+                if (potentialUA == null)
                     WriteErrorAndReturnNull("Unable to select custom user agent, please try again");
 
                 requestUserAgent = potentialUA!; // null check is done above.
@@ -1094,7 +1094,7 @@ namespace BrowserAutomationMaster.Compilation
                     );
                     return false;
                 }
-                if (uriResult is null)
+                if (uriResult == null)
                 {
                     WriteAndExit(
                         message:
@@ -1266,7 +1266,7 @@ namespace BrowserAutomationMaster.Compilation
             try
             {
                 string fileName = Path.GetFileName(filePath);
-                if (fileName is null)
+                if (fileName == null)
                 {
                     WriteAndExit(
                         message: failureMessage,

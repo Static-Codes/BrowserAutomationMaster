@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
@@ -31,7 +32,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 switch (compression)
                 {
-                    case "zip" when outputPath is null:
+                    case "zip" when outputPath == null:
                         if (!Directory.Exists(AppDataDirectory))
                             WriteAndExit($"Unable to create backup file, directory doesn't exist at: {AppDataDirectory}", 1);
 
@@ -252,7 +253,7 @@ namespace BrowserAutomationMaster.Managers
                 return WriteErrorAndReturnEmptyString(message);
             }
         }
-
+    
         public static string GetGUIDaemonPath() { return Path.Combine(AppDataDirectory, "guiDaemon.py"); }
       
         public static string GetGUIDirectoryPath() { return Path.Combine(AppDataDirectory, "gui"); }
@@ -304,7 +305,7 @@ namespace BrowserAutomationMaster.Managers
         
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
 
-
+        // ~/.config/BrowserAutomationMaster
         private static string GetAppDataLinux(string appName)
         {
             string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -332,7 +333,7 @@ namespace BrowserAutomationMaster.Managers
             return appDataDirectory;
         }
 
-        // ~/Library/Application Support/{appName}
+        // ~/Library/Application Support/BrowserAutomationMaster
         private static string GetAppDataMacOS(string appName)
         {
             string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -356,7 +357,7 @@ namespace BrowserAutomationMaster.Managers
             return appDataDirectory;
         }
 
-        // C:\Users\{username}\AppData\Roaming
+        // C:\Users\{username}\AppData\Roaming\BrowserAutomationMaster
         private static string GetAppDataWindows(string appName)
         {
             string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -374,5 +375,35 @@ namespace BrowserAutomationMaster.Managers
             return appDataDirectory;
         }
 
+        public static void RestoreFromBackup(string compression = "zip", string? backupFile = null)
+        {
+            // Compound assignment operator
+            backupFile ??= GetDefaultBackupPath();
+
+            if (!File.Exists(backupFile)) {
+                WriteAndExit("Unable to restore from backup, no backup file found.", 1);
+            }
+            
+            if (AppDataDirectory == null) {
+                WriteAndExit("Unable to restore from backup, AppDataDirectory returned null.", 1);
+            }
+
+            if (!Directory.Exists(AppDataDirectory)) {
+                WriteAndExit("Unable to restore from backup, AppDataDirectory doesn't exist.", 1);
+            }
+
+            var childDirectories = Directory.GetDirectories(AppDataDirectory) ?? [];
+            var childFiles = Directory.GetFiles(AppDataDirectory) ?? [];
+
+            if (childDirectories.Length == 0 && childFiles.Length == 0) {
+                WriteAndExit($"Unable to restore from backup, no directories or files found in:{NLC}{AppDataDirectory}", 1);
+            }
+
+            if (compression is not "zip") {
+                WriteAndExit($"Currently unsupported archive type: `{compression}` used in RestoreFromBackup()", 1);
+            }
+
+
+        }
     }
 }

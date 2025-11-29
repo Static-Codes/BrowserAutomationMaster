@@ -67,7 +67,7 @@ namespace BrowserAutomationMaster.Managers
 
                 var content = await response.Content.ReadAsByteArrayAsync();
 
-                if (content is null)
+                if (content == null)
                     return WriteErrorAndReturnBool(msg, false);
 
                 await File.WriteAllBytesAsync(GUI_ZIP_PATH, content);
@@ -123,7 +123,7 @@ namespace BrowserAutomationMaster.Managers
         /// <exception cref="PlatformNotSupportedException"></exception>
         public static IEnumerable<Group>? GetValues(GroupCollection? groups)
         {
-            if (groups is null || groups.Count == 0) 
+            if (groups == null || groups.Count == 0) 
                 return [];
 
             if (Platforms.IsWindows)
@@ -156,7 +156,7 @@ namespace BrowserAutomationMaster.Managers
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
 
-                if (request.Url is null)
+                if (request.Url == null)
                 {
                     Warning.Write("Unable to parse request, please try again.");
                     return;
@@ -283,7 +283,7 @@ namespace BrowserAutomationMaster.Managers
                     var groups = matches[i].Groups;
                     var values = GetValues(groups);
 
-                    if (values is null)
+                    if (values == null)
                         continue;
 
                     foreach (var value in values)
@@ -330,7 +330,7 @@ namespace BrowserAutomationMaster.Managers
                 var memoryInfo = GetMemoryInfo();
 
                 #pragma warning disable IDE0270 // Coalesce operator will break the current logic implementation, as such this warning can be ignored.
-                if (memoryInfo is null)
+                if (memoryInfo == null)
                 {
                     throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");
                 }
@@ -448,7 +448,7 @@ namespace BrowserAutomationMaster.Managers
                 var b64Contents = request.QueryString["contents"];
                 var fileName = request.QueryString["filename"];
 
-                if (b64Contents is null)
+                if (b64Contents == null)
                 {
                     await HandleInvalidResponse(response, "Invalid request, missing param \"contents\"");
                     return;
@@ -460,7 +460,7 @@ namespace BrowserAutomationMaster.Managers
                     return;
                 }
 
-                if (fileName is null)
+                if (fileName == null)
                 {
                     await HandleInvalidResponse(response, "Invalid request, this endpoint requires a filename ending in '.bamc' for the parameter \"name\"");
                     return;
@@ -524,7 +524,7 @@ namespace BrowserAutomationMaster.Managers
                         string key = contentPair.Key;
                         string value = contentPair.Value;
 
-                        if (key is "add-to-js")
+                        if (key == "add-to-js")
                         {
                             byte[] decodedBytes = System.Convert.FromBase64String(value);
                             string decodedCode = UTF8.GetString(decodedBytes);
@@ -608,7 +608,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 var b64Path = request.QueryString["path"];
 
-                if (b64Path is null)
+                if (b64Path == null)
                 {
                     await HandleInvalidResponse(response, "Invalid request, missing param \"path\"");
                     return;
@@ -665,7 +665,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 var b64Path = request.QueryString["path"];
 
-                if (b64Path is null)
+                if (b64Path == null)
                 {
                     await HandleInvalidResponse(response, "Invalid request, missing param \"path\"");
                     return;

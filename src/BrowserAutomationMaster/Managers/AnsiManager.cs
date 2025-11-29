@@ -74,7 +74,7 @@ namespace BrowserAutomationMaster.Managers
         public static string? ReadKey()
         {
             var keyInfo = AnsiConsole.Console.Input.ReadKey(true);
-            if (keyInfo is null) { return null; }
+            if (keyInfo == null) { return null; }
             return SanitizeNumericValue(keyInfo.Value.Key.ToString());
         }
         public static string SanitizeNumericValue(string value)
@@ -82,7 +82,7 @@ namespace BrowserAutomationMaster.Managers
             var result = new StringBuilder();
             for (var i = 0; i < value.Length - 1; i++)
             {
-                if (value[i] == 'D' && char.IsDigit(value[i + 1]))
+                if (value[i] is 'D' && char.IsDigit(value[i + 1]))
                 {
                     result.Append(value[i + 1]);
                     i++;

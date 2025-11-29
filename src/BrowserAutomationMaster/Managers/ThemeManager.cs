@@ -46,7 +46,7 @@ namespace BrowserAutomationMaster.Managers
 
                 var Ansi24BitColor = Linux.GetTerminalBackgroundColor();
 
-                if (Ansi24BitColor is null)
+                if (Ansi24BitColor == null)
                     return LightTheme;
 
                 (int r, int g, int b) = AnsiManager.FromXTerm(Ansi24BitColor);

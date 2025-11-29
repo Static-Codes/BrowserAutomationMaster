@@ -53,7 +53,7 @@ namespace BrowserAutomationMaster.Messaging
         public static object? WriteTextAndReturnInputType(string inputMessage, string panicMessage, Type desiredType, bool repeatUntilValid = false, bool isOptionNumber = false)
         {
             string rawInputString;
-            if (desiredType is null)
+            if (desiredType == null)
             {
                 WriteAndExit(
                     message:

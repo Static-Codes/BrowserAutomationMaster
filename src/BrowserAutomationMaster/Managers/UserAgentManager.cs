@@ -27,25 +27,25 @@ namespace BrowserAutomationMaster.Managers
                 {
                     var userAgentsObj = new UserAgents();
                     var jsonString = await userAgentsObj.LoadJSONString();
-                    if (jsonString is null)
+                    if (jsonString == null)
                     {
                         WriteAndExit(
                             message:
                                 $"BAM Manager (BAMM) was failed to user agent data, please try again." +
                                 $"If this error persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                                $"Error Log:\njsonString is null or empty",
+                                $"Error Log:\njsonString == null or empty",
                             status: 1
                         );
                     }
                     userAgentsData = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(jsonString);
 
-                    if (userAgentsData is null || userAgentsData.Count == 0)
+                    if (userAgentsData == null || userAgentsData.Count == 0)
                     {
                         WriteAndExit(
                             message:
                                 $"BAM Manager (BAMM) was failed to user agent data, please try again." +
                                 $"If this error persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                                $"Error Log:\nuserAgentsData is null or empty",
+                                $"Error Log:\nuserAgentsData == null or empty",
                             status: 1
                         );
                     }
@@ -78,7 +78,7 @@ namespace BrowserAutomationMaster.Managers
         {
             await LoadUserAgents();
 
-            if (userAgentsData is null || userAgentsData.Count == 0)
+            if (userAgentsData == null || userAgentsData.Count == 0)
             {
                 WriteAndExit(
                     message: 
@@ -120,7 +120,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 
                 var response = await RequestManager.NetworkClient.Instance.GetStringAsync(uri);
-                if (response is null)
+                if (response == null)
                     return null;
                 return response;
             }
@@ -158,10 +158,10 @@ namespace BrowserAutomationMaster.Managers
             var message =
                     "Unable to read contents from useragents.json\n" +
                     $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                    "Error Log:\nJSON contents is null.";
+                    "Error Log:\nJSON contents == null.";
 
             var contents = await RetrieveJSON();
-            if (contents is null)
+            if (contents == null)
                 WriteAndExit(message, 1);
 
             try
