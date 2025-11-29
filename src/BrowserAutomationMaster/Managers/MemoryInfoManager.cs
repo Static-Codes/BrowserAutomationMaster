@@ -2,7 +2,6 @@
 using Windows.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using BrowserAutomationMaster.Messaging;
 using System.Runtime.Versioning;
 using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -103,7 +102,6 @@ namespace BrowserAutomationMaster.Managers
     echo $FREE_MEM_MB";
 
             var scriptDirectory = Path.GetTempPath(); // Creates a temp file for {scriptFileName}
-            // string scriptFileName = "{scriptFileName}";
             var scriptFileName = "memcheck.sh";
             var scriptFilePath = Path.Combine(scriptDirectory, scriptFileName);
 
