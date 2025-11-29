@@ -395,5 +395,42 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         }
 
         #endregion
+
+        #region P/Invoke to Retrieve CPU Name
+        // PInvoke
+        public static string GetCPUName()
+        {
+            string CPURegPath = @"HARDWARE\DESCRIPTION\System\CentralProcessor\0";
+            string keyName = "ProcessorNameString";
+
+            string processorName = string.Empty;
+
+            try
+            {
+                using RegistryKey localMachine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                using RegistryKey? cpuKey = localMachine.OpenSubKey(CPURegPath);
+
+                if (cpuKey != null)
+                {
+                    object? value = cpuKey.GetValue(keyName);
+
+                    if (value != null)
+                    {
+                        // Explicit string cast here since the accessed key is a REG_SZ
+                        processorName = ((string)value).Trim();
+                    }
+                }
+            }
+
+            catch (Exception ex)
+            {
+                // Log or handle any potential exceptions (e.g., security access issues)
+                Console.WriteLine($"An error occurred while reading the registry: {ex.Message}");
+                processorName = string.Empty;
+            }
+
+            return processorName.Trim();
+        }
+        #endregion
     }
 }

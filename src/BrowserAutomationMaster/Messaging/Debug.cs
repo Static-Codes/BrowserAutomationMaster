@@ -2,6 +2,7 @@
 using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 using BrowserAutomationMaster.Parsing;
 using BrowserAutomationMaster.Managers.AppManager.OS;
+using BrowserAutomationMaster.Managers;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -21,9 +22,10 @@ namespace BrowserAutomationMaster.Messaging
                 memoryInfo!.Value.TotalMemory is not null
             ];
 
-            if (conditions.All(condition => condition)){
-                totalMemoryAmount = $"{memoryInfo!.Value.TotalMemory / 1024}GB";
-                freeMemoryAmount = $"{memoryInfo!.Value.FreeMemory / 1024}GB";
+            if (conditions.All(condition => condition))
+            {
+                totalMemoryAmount = $"{memoryInfo!.Value.TotalMemory / 1000}GB";
+                freeMemoryAmount = $"{memoryInfo!.Value.FreeMemory / 1000}GB";
             }
 
             if (Platforms.IsWindows)
@@ -35,11 +37,13 @@ namespace BrowserAutomationMaster.Messaging
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
+                    GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
+                    CPU Name: {CPUInfoManager.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
                     CPU Architecture: {Platforms.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
-                    Free RAM: {freeMemoryAmount}".Replace("                ", "");
+                    Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }
 
             else if (Platforms.IsOSX)
@@ -51,11 +55,13 @@ namespace BrowserAutomationMaster.Messaging
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
+                    GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
+                    CPU Name: {CPUInfoManager.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
                     CPU Architecture: {Platforms.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
-                    Free RAM: {freeMemoryAmount}".Replace("                ", "");
+                    Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }
 
             else if (Platforms.IsLinux)
@@ -67,23 +73,30 @@ namespace BrowserAutomationMaster.Messaging
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
+                    GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
+                    CPU Name: {CPUInfoManager.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
                     CPU Architecture: {Platforms.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
-                    Free RAM: {freeMemoryAmount}".Replace("                ", "");
+                    Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }
+            else
+            {
 
-            return @$"Platform: {Environment.OSVersion.Platform}
+                return @$"Platform: {Environment.OSVersion.Platform}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
+                    GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
+                    CPU Name: Unknown
                     CPU Core Count: {GetCoreCount()}
                     CPU Architecture: {Platforms.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
-                    Free RAM: {freeMemoryAmount}".Replace("                ", "");
+                    Free RAM: {freeMemoryAmount}".Replace("    ", "");
+            }
         }
-        
+
     }
 }
