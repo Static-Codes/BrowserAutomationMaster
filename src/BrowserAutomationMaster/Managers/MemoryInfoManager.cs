@@ -30,7 +30,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 _ when Platforms.IsWindows => CheckForWindows(),
                 _ when Platforms.IsOSX => CheckForOSX(),
-                _ when Platforms.IsLinux => CheckForLinux64(),
+                _ when Platforms.IsLinux => CheckForLinux(),
                 _ => null
             };
         }
@@ -102,9 +102,10 @@ namespace BrowserAutomationMaster.Managers
     echo $USED_MEM_MB
     echo $FREE_MEM_MB";
 
-            string scriptDirectory = Path.GetTempPath(); // Creates a temp file for {scriptFileName}
-            string scriptFileName = "{scriptFileName}";
-            string scriptFilePath = Path.Combine(scriptDirectory, scriptFileName);
+            var scriptDirectory = Path.GetTempPath(); // Creates a temp file for {scriptFileName}
+            // string scriptFileName = "{scriptFileName}";
+            var scriptFileName = "memcheck.sh";
+            var scriptFilePath = Path.Combine(scriptDirectory, scriptFileName);
 
             try
             {
@@ -155,7 +156,6 @@ namespace BrowserAutomationMaster.Managers
 
                 ProcessStartInfo scriptRunInfo = new() {
                     FileName = scriptFilePath,
-                    Arguments = "",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -231,7 +231,7 @@ namespace BrowserAutomationMaster.Managers
             return null;
         }
 
-        private static MemoryInfo? CheckForLinux64() {
+        private static MemoryInfo? CheckForLinux() {
             var output = "";
 
             var info = new ProcessStartInfo {

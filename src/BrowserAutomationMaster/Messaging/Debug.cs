@@ -8,25 +8,49 @@ namespace BrowserAutomationMaster.Messaging
 {
     public static class Debug
     {
+        private static string FormatMemory(double? memoryMiB)
+        {
+            var MiB_GiB_Factor = 1024.0; // A double is chosen here due to the precision of floating point division.
+            var MB_GB_Factor = 1000.0;
+
+            if (memoryMiB is null)
+            {
+                return "Unknown";
+            }
+
+            var memory = memoryMiB.Value;
+            double memoryGB = memoryMiB.Value / MB_GB_Factor;
+
+            // Checks if memory is greater than or equal to 1 GiB (1024 MiB)
+            if (memory >= MiB_GiB_Factor)
+            {
+                double memoryGiB = memoryMiB.Value / MiB_GiB_Factor;
+                return $"{memoryGiB:F1} GiB ({memoryGB:F1} GB)"; 
+            }
+            else
+            {
+                double memoryMB = memoryMiB.Value / MB_GB_Factor;
+                // Formats the long into MiB for smaller amounts (less than 1 GiB)
+                return $"{memory} MiB ({memoryMB:F1} GB)"; 
+            }
+        }
 
         public static string GetPlatformInfoForErrorLog()
         {
-            var memoryInfo = GetMemoryInfo();
+            var rawMemoryInfo = GetMemoryInfo();
             var totalMemoryAmount = "Unknown";
             var freeMemoryAmount = "Unknown";
 
-            bool[] conditions = [
-                memoryInfo is not null,
-                memoryInfo.HasValue,
-                memoryInfo!.Value.FreeMemory is not null,
-                memoryInfo!.Value.TotalMemory is not null
-            ];
 
-            if (conditions.All(condition => condition))
-            {
-                totalMemoryAmount = $"{memoryInfo!.Value.TotalMemory / 1000}GB";
-                freeMemoryAmount = $"{memoryInfo!.Value.FreeMemory / 1000}GB";
+            // Sanitizes rawMemoryInfo via pattern matching, modifies totalMemoryAmount and freeMemoryAmount
+            if (rawMemoryInfo is {
+                TotalMemory: not null,
+                FreeMemory: not null
+            } memoryInfo){ 
+                totalMemoryAmount = FormatMemory(memoryInfo.TotalMemory);
+                freeMemoryAmount = FormatMemory(memoryInfo.FreeMemory);
             }
+
 
             if (Platforms.IsWindows)
             {

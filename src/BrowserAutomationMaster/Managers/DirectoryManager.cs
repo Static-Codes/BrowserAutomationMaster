@@ -1,4 +1,5 @@
 ﻿using System.IO.Compression;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -231,6 +232,11 @@ namespace BrowserAutomationMaster.Managers
 
         private static string GetDefaultBackupPath(string compression = "zip")
         {
+            if (Platforms.IsUnixLike && !Linux.HasDisplayVarSet())
+            {
+                return Path.Combine("~", $"BAMM-Backup.{compression}");
+            }
+
             try
             {
                 var desktopDir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
