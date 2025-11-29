@@ -31,6 +31,8 @@
 
 - Added check in class `ProgramFunctions` to prevent the GUI server from starting if $DISPLAY is not set
 
+- Added `GetPhysicalSocketCount` function in class `Linux` in namespace `Managers.AppManager.OS`
+
 - Added functions to class `DirectoryManager` in namespace `BrowserAutomationMaster`
 
   - `GetProjectRequirementsPath`
@@ -62,7 +64,11 @@
 
 - Improved Python version detection in class `InstallationCheck` in namespace `BrowserAutomationMaster.Helpers`
 
+- Renamed function `CheckForLinux64` to `CheckForLinux` in class `MemoryInfoManager` in namespace `BrowserAutomationMaster.Managers`
+
 - Refactored all `== null` conditions to `is null` to utilize pattern matching, a feature that has been available since C# 7.
+
+- Refactored `Debug` class to include `FormatMemory` function and improved debug log significantly.
 
 - Refactored `PackageManager` class in namespace `BrowserAutomationMaster.Managers` to use externally hosted JSON, instead of embedded json.
 
@@ -79,6 +85,7 @@
 
 - Refactored `UninstallationManager` class in namespace `BrowserAutomationMaster.Managers` to properly execute the uninstallation process on Linux (MacOS still has to manually uninstall)
 
+- Split `GetPhysicalCoreCountUnixLike` function in class `CPUInfoManager` into `GetPhysicalCoreCountLinux` and `GetPhysicalCoreCountMac`
 </details>
 
 ### New Action Commands:
