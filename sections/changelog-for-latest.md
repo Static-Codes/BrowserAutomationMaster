@@ -89,6 +89,7 @@
 
 - `bamm --bs` - Instructs BAMM to use [BrowserStack](https://browserstack.com) to run the compiled scripts, works on all platforms except ChromeOS, as chromebooks are too underpowered to run selenium.
 - `bamm --editbsconf` - Edit and Overwrite Browserstack's YAML Config via an interactive process. (For advanced users)
+- `bamm --force-error` - Forces a verbose error message.
 - `bamm --gui` - Starts the Graphical User Interface for BAMM.
 - `bamm --nohwc` - Instructs BAMM not to check your system's hardware for compatibility, this should not be done unless you've already verified BAMM can run on your machine.
 - `bamm --platform-debug` - Displays information on the operating system and machine currently running BAMM.
