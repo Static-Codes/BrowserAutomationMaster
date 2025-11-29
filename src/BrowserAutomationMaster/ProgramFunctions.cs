@@ -107,17 +107,20 @@ namespace BrowserAutomationMaster
 
             if (pArgs.Any(arg => arg.Equals("--platform-debug")))
             {
-                Console.WriteLine("====================================");
-                Console.WriteLine("IsARMel: {0}", Platforms.IsARMel);
-                Console.WriteLine("IsARMhf: {0}", Platforms.IsARMhf);
-                Console.WriteLine("IsChromeOS: {0}", Platforms.IsChromeOS);
-                Console.WriteLine("IsLinux: {0}", Platforms.IsLinux);
-                Console.WriteLine("IsOSX: {0}", Platforms.IsOSX);
-                Console.WriteLine("IsRaspi: {0}", Platforms.IsRaspi);
-                Console.WriteLine("Raspi Model: {0}", Platforms.GetRaspiModelName());
-                Console.WriteLine("IsUnixLike: {0}", Platforms.IsUnixLike);
-                Console.WriteLine("IsWindows: {0}", Platforms.IsWindows);
-                Console.WriteLine("===================================={0}{1}", NLC, NLC);
+                Warning.Write(string.Join(NLC, [
+                    "---------------- INTERNAL PLATFORM DEBUG INFO ----------------",
+                    $"IsARMel: {Platforms.IsARMel}",
+                    $"IsARMhf: {Platforms.IsARMhf}",
+                    $"IsChromeOS: {Platforms.IsChromeOS}",
+                    $"IsLinux: {Platforms.IsLinux}",
+                    $"IsOSX: {Platforms.IsOSX}",
+                    $"IsRaspi: {Platforms.IsRaspi}",
+                    $"Raspi Model: {Platforms.GetRaspiModelName()}",
+                    $"IsUnixLike: {Platforms.IsUnixLike}",
+                    $"IsWindows: {Platforms.IsWindows}",
+                    NLC, 
+                    NLC,
+                ]));
             }
 
             if (Platforms.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
@@ -138,6 +141,11 @@ namespace BrowserAutomationMaster
             {
                 HandleBSOverwriteCommand();
                 return true;
+            }
+
+            if (pArgs.Any(arg => arg.Equals("--force-error")))
+            {
+                WriteAndExit("", 0);
             }
             
             if (pArgs.Any(arg => arg.Equals("--gui") && !Directory.Exists(userScriptsDirectory))){

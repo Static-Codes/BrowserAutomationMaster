@@ -33,7 +33,7 @@ namespace BrowserAutomationMaster.Managers
     public class CPUInfoManager()
     {
         public int Cores { get; set; } = CPUCoreManager.GetCoreCount();
-
+        
         // Minimum cores supported: 2
         // Minimum cores recommended: 4
         // Ensure all requiredInstructions
@@ -98,8 +98,53 @@ namespace BrowserAutomationMaster.Managers
             return unsupportedInstructions.Count == 0; // The application will exit if this returns false
         }
 
+        public static string GetCPUName()
+        {
+            string? processName;
+            string? processArgs;
+
+            if (Platforms.IsWindows){
+                return GetCPUName();
+            }
+
+            else if (Platforms.IsUnixLike) {
+                processName = "/bin/bash";
+                processArgs = "-c \"lscpu | grep 'Model name:' | sed -r 's/Model name:\\s{1,}//g'\"";
+            }
+
+            else {
+                throw new PlatformNotSupportedException("Unsupported OS.");
+            }
+
+            var psi = new ProcessStartInfo()
+            {
+                FileName = processName,
+                Arguments = processArgs,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+            };
+
+            try
+            {
+                using var process = ProcessFactory.SpawnProcess(psi, "get cpu name", runSync: true, timeout: 10, writeSTDInOut: false).Result;
+                var (ExitCode, STDOut, STDErr) = ProcessFactory.GetProcessResponse(process).Result;
+
+                if (ExitCode == 0 || STDOut.Count == 1 || STDErr.Count == 0) {
+                    return STDOut[0];
+                }
+
+            }
+            catch (Exception e) {
+                Warning.Write($"Unable to determine CPU name.\n\nError Log:\n{e.Message}");
+            }
+
+            return "Unknown";
+        }
+
         // Used for syntax purposes 
-        // if (IsMissingInstructions) is more clear
         public static bool IsMissingInstructions() {
             if (!ContainsNeededInstructions()) 
                 return true;
@@ -140,20 +185,20 @@ namespace BrowserAutomationMaster.Managers
         {
             return instruction switch
             {
-                RequiredCPUInstruction.X64 => X64_EXPLANATION,
-                RequiredCPUInstruction.AES => AES_EXPLANATION,
-                RequiredCPUInstruction.AVX => AVX_EXPLANATION,
-                RequiredCPUInstruction.AVX2 => AVX2_EXPLANATION,
-                RequiredCPUInstruction.BMI1 => BMI_EXPLANATION,
-                RequiredCPUInstruction.BMI2 => BMI_EXPLANATION,
-                RequiredCPUInstruction.FMA => FMA_EXPLANATION,
-                RequiredCPUInstruction.LZCNT => LZCNT_EXPLANATION,
-                RequiredCPUInstruction.PCLMULQDQ => PCLMULQDQ_EXPLANATION,
-                RequiredCPUInstruction.POPCNT => POPCNT_EXPLANATION,
-                RequiredCPUInstruction.SSE2 => SSE2_EXPLANATION,
-                RequiredCPUInstruction.SSE3 => SSE3_EXPLANATION,
-                RequiredCPUInstruction.SSSE3 => SSE3_EXPLANATION,
-                RequiredCPUInstruction.SSE4 => SSE4_EXPLANATION,
+                X64 => X64_EXPLANATION,
+                AES => AES_EXPLANATION,
+                AVX => AVX_EXPLANATION,
+                AVX2 => AVX2_EXPLANATION,
+                BMI1 => BMI_EXPLANATION,
+                BMI2 => BMI_EXPLANATION,
+                FMA => FMA_EXPLANATION,
+                LZCNT => LZCNT_EXPLANATION,
+                PCLMULQDQ => PCLMULQDQ_EXPLANATION,
+                POPCNT => POPCNT_EXPLANATION,
+                SSE2 => SSE2_EXPLANATION,
+                SSE3 => SSE3_EXPLANATION,
+                SSSE3 => SSE3_EXPLANATION,
+                SSE4 => SSE4_EXPLANATION,
                 _ => "Invalid instruction provided, this shouldn't be trigger unless there is a bug in CPUInfoManager.GetExplanationForInstruction()",
             };
         }
