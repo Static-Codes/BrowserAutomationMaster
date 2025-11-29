@@ -108,7 +108,7 @@ namespace BrowserAutomationMaster
             if (pArgs.Any(arg => arg.Equals("--platform-debug")))
             {
                 Warning.Write(string.Join(NLC, [
-                    "---------------- INTERNAL PLATFORM DEBUG INFO ----------------",
+                    "---------------- PLATFORM CLASS DEBUG INFO ----------------",
                     $"IsARMel: {Platforms.IsARMel}",
                     $"IsARMhf: {Platforms.IsARMhf}",
                     $"IsChromeOS: {Platforms.IsChromeOS}",
