@@ -107,7 +107,13 @@ namespace BrowserAutomationMaster.Managers
                 return GetCPUName();
             }
 
-            else if (Platforms.IsUnixLike) {
+            else if (Platforms.IsOSX)
+            {
+                processName = "/bin/bash";
+                processArgs = "-c \"sysctl -n machdep.cpu.brand_string\"";
+            }
+
+            else if (Platforms.IsLinux) {
                 processName = "/bin/bash";
                 processArgs = "-c \"lscpu | grep 'Model name:' | sed -r 's/Model name:\\s{1,}//g'\"";
             }
@@ -211,37 +217,108 @@ namespace BrowserAutomationMaster.Managers
         public static int GetCoreCount()
         {
             if (Platforms.IsWindows)
+            {
                 return Win.GetPhysicalCoreCount();
-            
-            if (Platforms.IsUnixLike) 
-                return GetPhysicalCoreCountUnixLike();  
-            
+            }
+
+            if (Platforms.IsLinux)
+            {
+                return GetPhysicalCoreCountLinux();
+            }
+
+            if (Platforms.IsOSX)
+            {
+                return GetPhysicalCoreCountMacOS();
+            }
+
             ThrowUnsupportedPlatformException();
             return 0; // This wont be executed, roslyn has no idea an exception has been thrown, so this is required.
         }
-        private static int GetPhysicalCoreCountUnixLike()
+
+        private static (int, int) GetCPUTopologyLinux()
+        {
+            const string cpuInfoPath = "/proc/cpuinfo";
+
+            if (!File.Exists(cpuInfoPath))
+            {
+                Warning.Write(
+                    string.Join(NLC, [
+                        "Unable to access /proc/cpuinfo to determine CPU topology.",
+                $"Continuing under the assumption the current system is single socket (may cause issues).{NLC}",
+                $"Error Log: /proc/cpuinfo was not found. Please make a bug report at {ISSUES_LINK}"
+                    ]
+                ));
+                return (-1, -1);
+            }
+
+            var uniqueIDs = new HashSet<string>();
+            var uniqueCoreCombos = new HashSet<string>();
+
+            string? currentPhysicalID = null;
+            string? currentCoreID = null;
+
+            try
+            {
+                var lines = File.ReadLines(cpuInfoPath);
+
+                foreach (var line in lines)
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        if (currentPhysicalID != null && currentCoreID != null)
+                        {
+                            uniqueCoreCombos.Add(currentPhysicalID);
+                            uniqueCoreCombos.Add($"{currentPhysicalID}-{currentCoreID}");
+                        }
+                        currentPhysicalID = null;
+                        currentCoreID = null;
+                        continue;
+                    }
+
+                    if (line.StartsWith("physical id"))
+                    {
+                        currentPhysicalID = line.Split(':')[1].Trim();
+                    }
+                    else if (line.StartsWith("core id"))
+                    {
+                        currentCoreID = line.Split(':')[1].Trim();
+                    }
+                }
+
+                if (currentPhysicalID != null && currentCoreID != null)
+                {
+                    uniqueIDs.Add(currentPhysicalID);
+                    uniqueCoreCombos.Add($"{currentPhysicalID}-{currentCoreID}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Warning.Write(
+                    string.Join(NLC, [
+                        "Unable to read /proc/cpuinfo due to an exception.",
+                        $"Continuing under the assumption the current system is single socket.{NLC}",
+                        $"Error Log:{NLC}{ex.Message}"
+                    ]
+                ));
+                return (-1, -1);
+            }
+
+            return (uniqueIDs.Count, uniqueCoreCombos.Count);
+        }
+
+        private static int GetPhysicalCoreCountMacOS()
         {
             string actionString = "determine the amount of physical CPU cores on your system";
 
-            var psi = Platforms.IsLinux switch
+            var psi = new ProcessStartInfo
             {
-                true => new ProcessStartInfo()
-                {
-                    FileName = "/bin/bash",
-                    Arguments = $"-c \"lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l\"", // lscpu doesnt require sudo privileges on linux but sysctl does since it handles linux kernel data.
-                },
-
-                false => new ProcessStartInfo()
-                {
-                    FileName = "/usr/sbin/sysctl",
-                    Arguments = "-n hw.physicalcpu",
-                }
+                FileName = "/usr/sbin/sysctl",
+                Arguments = "-n hw.physicalcpu",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
             };
-
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
-            psi.UseShellExecute = false;
-            psi.CreateNoWindow = true;
 
             using Process process = ProcessFactory.SpawnProcess(psi, actionString, writeSTDInOut: false, runSync: true, timeout: 10).Result;
             (var ExitCode, var STDOut, var STDErr) = ProcessFactory.GetProcessResponse(process).Result;
@@ -249,6 +326,37 @@ namespace BrowserAutomationMaster.Managers
             var response = ProcessFactory.GetProcessResponse(process).Result;
 
             return (int)HandleSingleLineProcessOutput(actionString, STDOut, typeof(int));
+
+        }
+
+        private static int GetPhysicalCoreCountLinux()
+        {
+            var valueNotFoundMsg = string.Join(NLC, [
+                $"Unable to determine the amount of physical CPU cores on your system.{NLC}",
+                $"Error Log:{NLC}socketCount returned -1, indicating a failure to query /proc/cpuinfo",
+                $"If this issue persists please make a bug report at {ISSUES_LINK}"  
+            ]);
+
+            var socketErrorMsg =
+                $"BAMM does not support multi socket systems, " +
+                "please disable one of these sockets in your bios or use a different machine.{NLC}";
+
+
+            (var socketCount, var coreCount) = GetCPUTopologyLinux();
+            Console.WriteLine("socketCount: {0}", socketCount);
+            Console.WriteLine("coreCount: {0}", coreCount);
+
+            if (socketCount == -1)
+            {
+                WriteAndExit(valueNotFoundMsg, 1);
+            }
+
+            if (socketCount > 1)
+            {
+                WriteAndExit(socketErrorMsg, 1);
+            }
+
+            return coreCount;
 
         }
 
