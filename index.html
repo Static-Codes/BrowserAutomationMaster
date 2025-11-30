@@ -275,7 +275,7 @@
             </a>
           </li>
           <li>
-            <a href="#0" title="Terminate GUI">
+            <a href="#0" id="terminate-gui" title="Terminate GUI">
               <svg id="terminate" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 1.5c-5.8 0-10.5 4.7-10.5 10.5s4.7 10.5 10.5 10.5 10.5-4.7 10.5-10.5S17.8 1.5 12 1.5zm0 18c-4.14 0-7.5-3.36-7.5-7.5s3.36-7.5 7.5-7.5 7.5 3.36 7.5 7.5-3.36 7.5-7.5 7.5zM11 7h2v6h-2zM11 15h2v2h-2z"/>
               </svg>
@@ -540,6 +540,7 @@
       });
       
     </script>
+
     <script>
       var restartGUIButton = document.querySelector("#restart-gui");
       if (restartGUIButton == null){
@@ -548,7 +549,7 @@
       }
       restartGUIButton.addEventListener("click", (e) => {
         fetch(restartGUIURL,
-          {  
+          { 
             method: "GET",
             signal: AbortSignal.timeout(10000)
           }
@@ -560,6 +561,34 @@
         })
         .then(data => {
           alert(`Successfully restarted GUI.`)
+          console.log(`Response: ${data}`);
+        })
+        .catch(error => {
+          alert('An error occured while attempting to restart the GUI.\nError:', error);
+        });
+
+      });
+    </script>
+    <script>
+      var terminateGUIButton = document.querySelector("#terminate-gui");
+      if (terminateGUIButton == null){
+        alert("The export button was not found, please make a bug report, if you are reading this.");
+        throw new Error("The export button was not found, please make a bug report, if you are reading this.");
+      }
+      terminateGUIButton.addEventListener("click", (e) => {
+        fetch(terminateGUIURL,
+          { 
+            method: "GET",
+            signal: AbortSignal.timeout(10000)
+          }
+        ).then(response => {
+          if (!response.ok) {
+            throw new Error(`Invalid HTTP status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          alert(`Successfully terminated GUI.`)
           console.log(`Response: ${data}`);
         })
         .catch(error => {
