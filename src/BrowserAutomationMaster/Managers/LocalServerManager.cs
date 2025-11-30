@@ -206,6 +206,13 @@ namespace BrowserAutomationMaster.Managers
                     case "/validate":
                         await Validate(request, response);
                         break;
+                    
+                    case "/version":
+                        await WriteResponse(response, UTF8.GetBytes(string.Join("", [
+                            $"{{\"version\": \"{UpdateManager.CurrentVersion}\", ", 
+                            $"\"is_latest\": {(UpdateManager.CurrentVersion == UpdateManager.LatestVersion).ToString().ToLower()}}}"
+                        ])));
+                        break;
 
                     default:
                         Warning.Write($"Invalid route provided: {request.Url.AbsolutePath}");
