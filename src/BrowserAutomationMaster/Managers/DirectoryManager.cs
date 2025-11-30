@@ -375,32 +375,82 @@ namespace BrowserAutomationMaster.Managers
             return appDataDirectory;
         }
 
-        public static void RestoreFromBackup(string compression = "zip", string? backupFile = null)
+        private static void HandleRestoreConfirmation(string response, ref bool isConfirmed)
         {
+            if (Input.ConditionAccepted(response))
+            {
+                isConfirmed = true;
+            }
+
+            if (!isConfirmed)
+            {
+                WriteAndExit("Unable to restore from backup due to a user cancellation.", 1);
+            }
+            
+        }
+        public static void RestoreFromBackup(string compression = "zip", string? backupFile = null, bool overwriteConfirmed = false)
+        {
+            if (compression is not "zip") {
+                WriteAndExit($"Currently unsupported archive type: `{compression}` used in RestoreFromBackup()", 1);
+            }
+
             // Compound assignment operator
             backupFile ??= GetDefaultBackupPath();
 
-            if (!File.Exists(backupFile)) {
+            if (!File.Exists(backupFile))
+            {
                 WriteAndExit("Unable to restore from backup, no backup file found.", 1);
             }
-            
-            if (AppDataDirectory == null) {
+
+            if (AppDataDirectory == null)
+            {
                 WriteAndExit("Unable to restore from backup, AppDataDirectory returned null.", 1);
             }
 
-            if (!Directory.Exists(AppDataDirectory)) {
-                WriteAndExit("Unable to restore from backup, AppDataDirectory doesn't exist.", 1);
-            }
+            EnsureDirectoryExists(AppDataDirectory);
 
             var childDirectories = Directory.GetDirectories(AppDataDirectory) ?? [];
             var childFiles = Directory.GetFiles(AppDataDirectory) ?? [];
 
-            if (childDirectories.Length == 0 && childFiles.Length == 0) {
-                WriteAndExit($"Unable to restore from backup, no directories or files found in:{NLC}{AppDataDirectory}", 1);
+            bool directoryIsNotEmpty = childDirectories.Length != 0 || childFiles.Length != 0;
+            bool finalOverwriteFlag = overwriteConfirmed; // Makes a copy as to not operate with a potentially stale or improper state
+
+            if (directoryIsNotEmpty && !finalOverwriteFlag) 
+            {
+                var response = Input.AskForInput(string.Join(NLC, [
+                    $"{AppDataDirectory} is not empty.",
+                    "Would you like to overwrite its contents? [y/n]: "]
+                ));
+
+                // Prompts the user to confirm the overwrite if files already exist within the intended backup location.
+                HandleRestoreConfirmation(response, ref finalOverwriteFlag);
             }
 
-            if (compression is not "zip") {
-                WriteAndExit($"Currently unsupported archive type: `{compression}` used in RestoreFromBackup()", 1);
+            var extension = Path.GetExtension(backupFile);
+            if (extension is null || !extension.Equals(".zip", OIC)) 
+            {
+                WriteAndExit($"Currently unsupported archive type used in RestoreFromBackup()", 1);
+            }
+
+            try
+            {
+                ZipFile.ExtractToDirectory(backupFile, AppDataDirectory, finalOverwriteFlag);
+            }
+            catch (FileNotFoundException)
+            {
+                WriteAndExit("Unable to restore from backup, unable to locate backup.", 1);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                WriteAndExit("Unable to restore from backup, the target directory was not found.", 1);
+            }
+            catch (IOException ex) when (ex.Message.Contains("already exists"))
+            {
+                WriteAndExit("Unable to restore from backup, the files already exist and cannot be overwritten.", 1);
+            }
+            catch (Exception ex)
+            {
+                WriteAndExit($"Unable to restore from backup, an unknown error occurred during backup restoration: {ex.Message}", 1);
             }
 
 
