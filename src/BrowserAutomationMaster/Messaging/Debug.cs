@@ -72,7 +72,6 @@ namespace BrowserAutomationMaster.Messaging
 
             else if (Platforms.IsOSX)
             {
-                // Make this a part of the Debug class and implement bamm info
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
                     macOS Version: {MacOS.GetMacOSVersion()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
@@ -90,7 +89,6 @@ namespace BrowserAutomationMaster.Messaging
 
             else if (Platforms.IsLinux)
             {
-                // Make this a part of the Debug class and implement bamm info
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
                     Distro Name: {Linux.GetDistroNameString()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}

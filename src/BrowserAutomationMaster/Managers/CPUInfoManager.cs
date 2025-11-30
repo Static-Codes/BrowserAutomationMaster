@@ -244,14 +244,14 @@ namespace BrowserAutomationMaster.Managers
                 Warning.Write(
                     string.Join(NLC, [
                         "Unable to access /proc/cpuinfo to determine CPU topology.",
-                $"Continuing under the assumption the current system is single socket (may cause issues).{NLC}",
-                $"Error Log: /proc/cpuinfo was not found. Please make a bug report at {ISSUES_LINK}"
+                        $"Continuing under the assumption the current system is single socket (may cause issues).{NLC}",
+                        $"Error Log: /proc/cpuinfo was not found. Please make a bug report at {ISSUES_LINK}"
                     ]
                 ));
                 return (-1, -1);
             }
 
-            var uniqueIDs = new HashSet<string>();
+            var uniqueSocketIDs = new HashSet<string>();
             var uniqueCoreCombos = new HashSet<string>();
 
             string? currentPhysicalID = null;
@@ -267,9 +267,10 @@ namespace BrowserAutomationMaster.Managers
                     {
                         if (currentPhysicalID != null && currentCoreID != null)
                         {
-                            uniqueCoreCombos.Add(currentPhysicalID);
                             uniqueCoreCombos.Add($"{currentPhysicalID}-{currentCoreID}");
                         }
+
+                        // Resets IDs before the next logical processor block.
                         currentPhysicalID = null;
                         currentCoreID = null;
                         continue;
@@ -278,6 +279,10 @@ namespace BrowserAutomationMaster.Managers
                     if (line.StartsWith("physical id"))
                     {
                         currentPhysicalID = line.Split(':')[1].Trim();
+                        if (currentPhysicalID != null)
+                        {
+                            uniqueSocketIDs.Add(currentPhysicalID);
+                        }
                     }
                     else if (line.StartsWith("core id"))
                     {
@@ -287,7 +292,7 @@ namespace BrowserAutomationMaster.Managers
 
                 if (currentPhysicalID != null && currentCoreID != null)
                 {
-                    uniqueIDs.Add(currentPhysicalID);
+                    // Note from me in the past: uniqueSocketIDs was already populated inside the loop, DO NOT reintroduce a critical logic flaw!
                     uniqueCoreCombos.Add($"{currentPhysicalID}-{currentCoreID}");
                 }
             }
@@ -303,7 +308,8 @@ namespace BrowserAutomationMaster.Managers
                 return (-1, -1);
             }
 
-            return (uniqueIDs.Count, uniqueCoreCombos.Count);
+            // Return the count of unique sockets and unique cores.
+            return (uniqueSocketIDs.Count, uniqueCoreCombos.Count);
         }
 
         private static int GetPhysicalCoreCountMacOS()
@@ -331,7 +337,7 @@ namespace BrowserAutomationMaster.Managers
 
         private static int GetPhysicalCoreCountLinux()
         {
-            var valueNotFoundMsg = string.Join(NLC, [
+            var socketNotFoundMsg = string.Join(NLC, [
                 $"Unable to determine the amount of physical CPU cores on your system.{NLC}",
                 $"Error Log:{NLC}socketCount returned -1, indicating a failure to query /proc/cpuinfo",
                 $"If this issue persists please make a bug report at {ISSUES_LINK}"  
@@ -341,19 +347,28 @@ namespace BrowserAutomationMaster.Managers
                 $"BAMM does not support multi socket systems, " +
                 "please disable one of these sockets in your bios or use a different machine.{NLC}";
 
+            var coresNotFoundMsg = string.Join(NLC, [
+                $"Unable to determine the amount of physical CPU cores on your system.{NLC}",
+                $"Error Log:{NLC}coreCount returned 0, indicating a failure to query /proc/cpuinfo",
+                $"Unless you have created a way to run a pc without a CPU, please make a bug report at {ISSUES_LINK}"  
+            ]);
+
 
             (var socketCount, var coreCount) = GetCPUTopologyLinux();
-            Console.WriteLine("socketCount: {0}", socketCount);
-            Console.WriteLine("coreCount: {0}", coreCount);
 
             if (socketCount == -1)
             {
-                WriteAndExit(valueNotFoundMsg, 1);
+                WriteAndExit(socketNotFoundMsg, 1);
             }
 
             if (socketCount > 1)
             {
                 WriteAndExit(socketErrorMsg, 1);
+            }
+
+            if (coreCount == 0)
+            {
+                WriteAndExit(coresNotFoundMsg, 1);
             }
 
             return coreCount;
