@@ -5,7 +5,6 @@ using System.IO.Compression;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -28,13 +27,6 @@ namespace BrowserAutomationMaster.Managers
 
         private static bool isRunning = true;
         public static bool IsRunning() { return isRunning; }
-        
-        // public static void Terminate(HttpListenerResponse response)
-        // {
-        //     isRunning = false;
-        //     HandleValidResponse(response, []).GetAwaiter().GetResult();
-        // }
-
 
         public static void AddOptionResponseHeaders(HttpListenerResponse response)
         {
@@ -200,18 +192,6 @@ namespace BrowserAutomationMaster.Managers
 
                     case "/load":
                         await Load(response);
-                        break;
-
-                    case "/restart":
-                        Console.WriteLine("Works");
-                        Restart(out var started);
-                        if (started) { 
-                            await HandleValidResponse(response, []);
-                        }
-                        else { 
-                            await HandleInvalidResponse(response, "Unable to restart"); 
-                        }
-                        
                         break;
 
                     case "/terminate":
@@ -584,34 +564,6 @@ namespace BrowserAutomationMaster.Managers
             catch (Exception ex)
             {
                 await HandleInvalidResponse(response, ex.Message);
-            }
-        }
-
-        public static void Restart(out bool started)
-        {
-
-            (string name, string args) = LocalServerManager.GetProcessNameAndArgs(restart: true);
-
-            var psi = new ProcessStartInfo()
-            {
-                FileName = name,
-                Arguments = args,
-                UseShellExecute = true, 
-                RedirectStandardOutput = false, 
-                RedirectStandardError = false,
-                RedirectStandardInput = false,
-                CreateNoWindow = false
-            };
-
-            try
-            {
-                Process.Start(psi);
-                started = true;
-                Environment.Exit(0); 
-            }
-            catch (Exception ex)
-            {
-                throw new ApplicationException($"Restart failed: {ex.Message}", ex);
             }
         }
         
