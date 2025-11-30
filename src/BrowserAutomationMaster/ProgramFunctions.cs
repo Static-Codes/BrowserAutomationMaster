@@ -224,6 +224,12 @@ namespace BrowserAutomationMaster
                 return true;
             }
 
+            // Handles `restore` command variations
+            if (pArgs.Length == 1 && pArgs[0].Equals("restore")) {
+                RestoreFromBackup();
+                return true;
+            }
+
             // Handles 'run' command variations
             if (pArgs[0].Equals("run", CCIC))
             {
@@ -274,9 +280,14 @@ namespace BrowserAutomationMaster
             if (pArgs.Length == 1)
                 ArchiveAppDataDirectory();
                 
-            if (pArgs.Length == 2)
-                ArchiveAppDataDirectory(pArgs[1]);
+            if (pArgs.Length == 2){
+                WriteAndExit(string.Join(NLC, [
+                    "Currently BAMM does not support custom paths for your backup.",
+                    "Please remove the second argument to continue."
+                ]), 1);
+                // ArchiveAppDataDirectory(pArgs[1]); // Re-add this later when restore functionality is improved
 
+            }
         }
 
 
@@ -397,7 +408,7 @@ namespace BrowserAutomationMaster
         private static async Task HandleHardwareCheck(string[] pArgs)
         {
             // Skip compatibility checks if the user is not attempting to compile or run scripts.
-            string[] nonUserScriptArgs = ["backup", "clear", "help", "uninstall", "validate"];
+            string[] nonUserScriptArgs = ["backup", "clear", "help", "restore", "uninstall", "validate"];
 
             string[] bypassCLIArgs = ["--bs", "--nohwc", "--editbsconf"];
 
