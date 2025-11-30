@@ -343,6 +343,17 @@ namespace BrowserAutomationMaster.Managers
 
             {
                 new Command(
+                    name: "restore",
+                    description: "Looks for a backup of BAMM's data, if found a restoration is attempted.",
+                    examples: [
+                        "bamm restore",
+                    ],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
                     name: "run",
                     description:
                         "Runs any python file however it is strongly recommended to ONLY use this command for scripts compiled using BAMM, " +
