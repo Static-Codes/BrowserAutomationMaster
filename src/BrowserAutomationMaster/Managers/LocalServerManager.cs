@@ -29,10 +29,11 @@ namespace BrowserAutomationMaster.Managers
         private static bool isRunning = true;
         public static bool IsRunning() { return isRunning; }
         
-        public static void Terminate()
-        {
-            isRunning = false;
-        }
+        // public static void Terminate(HttpListenerResponse response)
+        // {
+        //     isRunning = false;
+        //     HandleValidResponse(response, []).GetAwaiter().GetResult();
+        // }
 
 
         public static void AddOptionResponseHeaders(HttpListenerResponse response)
@@ -202,7 +203,15 @@ namespace BrowserAutomationMaster.Managers
                         break;
 
                     case "/restart":
-                        await Restart(response);
+                        Console.WriteLine("Works");
+                        Restart(out var started);
+                        if (started) { 
+                            await HandleValidResponse(response, []);
+                        }
+                        else { 
+                            await HandleInvalidResponse(response, "Unable to restart"); 
+                        }
+                        
                         break;
 
                     case "/terminate":
@@ -578,30 +587,34 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
-        public static async Task Restart(HttpListenerResponse response)
+        public static void Restart(out bool started)
         {
-            var actionText = "restart the HTTP Server associated with BAMM's GUI";
+
+            (string name, string args) = LocalServerManager.GetProcessNameAndArgs(restart: true);
+
+            var psi = new ProcessStartInfo()
+            {
+                FileName = name,
+                Arguments = args,
+                UseShellExecute = true, 
+                RedirectStandardOutput = false, 
+                RedirectStandardError = false,
+                RedirectStandardInput = false,
+                CreateNoWindow = false
+            };
+
             try
             {
-                (string name, string args) = LocalServerManager.GetProcessNameAndArgs(restart: true);
-                var psi = new ProcessStartInfo()
-                {
-                    FileName = name,
-                    Arguments = args,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    RedirectStandardInput = true,
-                };
-                using var process = await ProcessFactory.SpawnProcess(psi, actionText, timeout: 30);
-                (var ExitCode, var STDOut, var STDErr) = await ProcessFactory.GetProcessResponse(process);
+                Process.Start(psi);
+                started = true;
+                Environment.Exit(0); 
             }
             catch (Exception ex)
             {
-                await HandleInvalidResponse(response, ex.Message);
+                throw new ApplicationException($"Restart failed: {ex.Message}", ex);
             }
         }
-
+        
         public static async Task Upload(HttpListenerRequest request, HttpListenerResponse response)
         {
             try
