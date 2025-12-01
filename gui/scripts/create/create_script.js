@@ -473,6 +473,16 @@ function renderArguments(command) {
   });
 }
 
+function safeB64Encode(str) {
+  var utf8Bytes = new TextEncoder().encode(str);
+  let binaryString = "";
+  var len = utf8Bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binaryString += String.fromCharCode(utf8Bytes[i]);
+  }
+  return btoa(binaryString);
+}
+
 function setData(data) {
   localStorage.removeItem("commands");
   localStorage.setItem("commands", JSON.stringify(data));
@@ -552,6 +562,80 @@ function validateArguments(selectedCommandName, commandArgs) {
   }
 
   return true;
+}
+
+function validateScriptContents() {
+  var commandEntries = Object.values(commands);
+  if (commandEntries === "undefined" || commandEntries.length === 0) {
+    createAlert(
+      "error",
+      "Please add commands before trying to validate a script's contents."
+    );
+    throw new Error(
+      "Please add commands before trying to validate a script's contents."
+    );
+  }
+
+  var scriptLines = [];
+  try {
+    for (const rawEntry of commandEntries) {
+      const parsedObj = JSON.parse(rawEntry);
+      const rawValue = Object.values(parsedObj)[0];
+
+      scriptLines.push(rawValue);
+    }
+  } catch (e) {
+    createAlert("error", `Error processing script commands: ${e.message}`);
+    console.error("Script Command Processing Error:", e);
+    return;
+  }
+
+  const rawContents = scriptLines.join("\n");
+
+  let b64Contents;
+  try {
+    b64Contents = safeB64Encode(rawContents);
+  } catch (e) {
+    createAlert("error", "Failed to Base64 encode script contents.");
+    console.error("Base64 Encoding Error:", e);
+    return;
+  }
+
+  const finalUrl = `${validateScriptURL}?contents=${b64Contents}`;
+
+  fetch(finalUrl, {
+    method: "GET",
+    signal: AbortSignal.timeout(5000),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Invalid HTTP status: ${response.status} ${response.statusText}`
+        );
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (data.success) {
+        createAlert("info", "Script validation successful.");
+        console.log("Validation details:", data.details);
+      } else {
+        createAlert(
+          "error",
+          `Script validation failed: ${data.details || "No details provided."}`
+        );
+        console.error("Validation failed response:", data);
+      }
+    })
+    .catch((error) => {
+      const errorMessage =
+        error.message || "A network or connection error occurred.";
+      createAlert(
+        "error",
+        `Validation request failed.<br/>Error: ${errorMessage}`
+      );
+      console.error("Validation Fetch Error:", error);
+    });
 }
 
 window.addEventListener("load", (e) => {
@@ -755,6 +839,10 @@ duplicateCommandButton.addEventListener("click", (e) => {
 
 removeCommandButton.addEventListener("click", (e) => {
   removeSelectedCommand();
+});
+
+validateScriptButton.addEventListener("click", (e) => {
+  validateScriptContents();
 });
 
 loadCurrentScriptCommands();
