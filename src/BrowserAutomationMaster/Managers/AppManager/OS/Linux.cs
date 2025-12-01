@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
@@ -67,18 +68,23 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     ("RedHat Package Manager (rpm)", rpmApps)
                 };
 
-                AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
 
-                foreach (var (Name, Apps) in appSources)
+                if (GlobalConfig.ShowAppCheck)
                 {
-                    if (Apps.Count == 0)
-                        Warning.Write($"No apps found for: {Name}");
 
-                    else if (Apps.Count == 1)
-                        WriteSuccessMessage($"Found 1 app from: {Name}");
+                    AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
+                    
+                    foreach (var (Name, Apps) in appSources)
+                    {
+                        if (Apps.Count == 0)
+                            Warning.Write($"No apps found for: {Name}");
 
-                    else
-                        WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}");
+                        else if (Apps.Count == 1)
+                            WriteSuccessMessage($"Found 1 app from: {Name}");
+
+                        else
+                            WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}");
+                    }
                 }
 
                 AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.

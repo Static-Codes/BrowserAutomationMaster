@@ -101,8 +101,9 @@
 - `bamm --nohwc` - Instructs BAMM not to check your system's hardware for compatibility, this should not be done unless you've already verified BAMM can run on your machine.
 - `bamm --platform-debug` - Displays information on the operating system and machine currently running BAMM.
 - `bamm --query-display` - Displays the status of the $DISPLAY variable, use this to check if your system supports BAMM's GUI.
+- `bamm --version` - Displays the current version of BAMM, and whether there's a new version available.
 - `bamm backup` - Backs up all application files to `BAMM-Backup.zip`.
-- `bamm restore` - Looks for a backup of BAMM's data, if found a restoration is attempted.
+- `bamm restore` - Looks for a backup of BAMM's data, if the data is found, a restoration is attempted.
 
 
 
