@@ -172,21 +172,10 @@ namespace BrowserAutomationMaster.Managers
                 switch (request.Url.AbsolutePath)
                 {
                     case "/":
-                        var mainRouteBytes = UTF8.GetBytes("Load GUI");
-                        await WriteResponse(response, mainRouteBytes);
+                        Redirect(response);
                         break;
-
-                    case "/app":
-                        // LOAD THE GUI HERE
-                        break;
-
-                    case "/create":
-                        throw new NotImplementedException("Implement me");
 
                     case "/export":
-                        // This executes UserScriptManager.AddScript(), pass it to the newly created Export() method in EndpointFunctions
-                        //UserScriptManager _ = new(path, "add");
-                        // throw new NotImplementedException("Implement me");
                         await Export(request, response);
                         break;
 
@@ -344,7 +333,7 @@ namespace BrowserAutomationMaster.Managers
                 listener.Prefixes.Add(url);
                 listener.Start();
                 Console.WriteLine("Started GUI Server on {0}\n", url);
-                Console.WriteLine("To access the GUI visit {0}\n", GetMainGUIPage());
+                Console.WriteLine("To access the GUI visit {0}\n", GetMainGUIPage(includeProtocol: true));
 
                 // ADD THIS FEATURE
                 // Would you like to open the GUI in your default browser?
@@ -573,7 +562,230 @@ namespace BrowserAutomationMaster.Managers
                 await HandleInvalidResponse(response, ex.Message);
             }
         }
-        
+
+        // public static async Task Redirect(HttpListenerResponse response)
+        // {
+        //     string rawPathLocation = GetMainGUIPage(includeProtocol: true);
+        //     string pathToRead = GetMainGUIPage(includeProtocol: false);
+
+        //     string pathContents;
+
+        //     string backupHTML = $@"
+        //     <html>
+        //     <head>
+        //         <link rel='stylesheet' href='file://{GetGUISidebarCSSPath()}'/>
+        //     </head>
+        //     <body>
+        //         <div style='color: white; width: 100vw; text-align: center'>
+        //             <h1 style='margin-top: 15vw'>Please click the button below to load the GUI.</h1>
+        //             <br />
+        //         </div>
+        //         <style>
+        //             .continue-btn {{
+        //             display: block;
+        //             width: 100vw;
+        //             padding: 12px;
+        //             margin-top: 25px;
+        //             border: none;
+        //             border-radius: var(--border-radius);
+        //             background-color: var(--blue);
+        //             font-size: 1rem;
+        //             font-weight: 700;
+        //             }}
+        //         </style>
+        //         <div style='display: flex; margin: auto; width: 10%'>
+        //             <h2 class='continue-btn'><a href='{rawPathLocation}'>Load GUI</a></h2>
+        //         </div>
+        //     </body>
+        //     </html>
+        //     ";
+
+
+
+        //     if (!File.Exists(pathToRead))
+        //     {
+        //         response.StatusCode = 404;
+        //         response.Close();
+        //         return;
+        //     }
+
+        //     byte[]? buffer;
+        //     try 
+        //     {
+        //         buffer = UTF8.GetBytes(backupHTML);
+        //     }
+
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine(
+        //             string.Join(NLC, [
+        //                 "The following exception occured while trying to redirect to the main GUI page\n",
+        //                 $"Error log:\n{ex.Message}"
+        //             ]
+        //         ));
+        //         pathContents = await File.ReadAllTextAsync(pathToRead);
+
+        //         string stylesAbsPath = GetGUIStylesPath(); 
+        //         string scriptsAbsPath = GetGUIScriptsPath();
+
+        //         // Captures the starting quote mark into Group 1 ($1).
+        //         string pattern = @"(href|src)\s*=\s*(['""])(styles\/|scripts\/)";
+
+        //         // Replaces local paths with absolute paths due to the abnormal start location.
+
+        //         // Windows Replacements:
+        //         // "scripts/ -> "file:///C:/Users/username/.config/BrowserAutomationMaster/gui/scripts/
+        //         // "styles/  -> "file:///C:/Users/username/.config/BrowserAutomationMaster/gui/styles/
+
+        //         // Unix Replacements:
+        //         // "scripts/ -> "file:///home/username/.config/BrowserAutomationMaster/gui/scripts/
+        //         // "styles/  -> "file:///home/username/.config/BrowserAutomationMaster/gui/styles/
+
+        //         // Makes the following replacements
+        //         // href='file:///{AbsolutePath}
+        //         // href="file:///{AbsolutePath}
+        //         // src='file:///{AbsolutePath}
+        //         // src="file:///{AbsolutePath}
+
+        //         pathContents = Regex.Replace(
+        //             pathContents, 
+        //             pattern, 
+        //             match =>
+        //             {
+        //                 string attribute = match.Groups[1].Value; 
+        //                 string quote = match.Groups[2].Value; 
+        //                 string pathPrefix = match.Groups[3].Value;
+
+        //                 string absolutePath;
+
+        //                 if (pathPrefix.Equals("styles/", StringComparison.OrdinalIgnoreCase))
+        //                 {
+        //                     absolutePath = stylesAbsPath;
+        //                 }
+
+        //                 // Handles scripts/
+        //                 else
+        //                 {
+        //                     absolutePath = scriptsAbsPath;
+        //                 }
+
+
+        //                 Console.WriteLine("attribute: {0}", attribute);
+        //                 Console.WriteLine("quote: {0}", quote);
+        //                 Console.WriteLine("pathPrefix: {0}", pathPrefix);
+        //                 Console.WriteLine("stylesAbsPath: {0}", stylesAbsPath);
+        //                 Console.WriteLine("scriptsAbsPath: {0}", scriptsAbsPath);
+        //                 Console.WriteLine("absolutePath: {0}", absolutePath);
+
+        //                 return $"{attribute}={quote}file://{absolutePath}";
+        //             }, 
+        //             RegexOptions.IgnoreCase
+        //         );
+
+        //         buffer = UTF8.GetBytes(pathContents);
+        //     }
+
+
+        //     response.StatusCode = 200;
+        //     response.ContentType = "text/html; charset=utf-8";
+        //     response.ContentLength64 = buffer.Length;
+        //     response.OutputStream.Write(buffer, 0, buffer.Length);
+        //     response.Close();
+        //     return;
+        // }
+
+        public static void Redirect(HttpListenerResponse response)
+        {
+            string absolutePath = GetMainGUIPage(includeProtocol: false);
+
+            string instructionalHTML = $@"
+    <html>
+    <head>
+        <title>Local GUI Access Required</title>
+        <style>
+            body {{ background-color: #1e1e1e; color: #f4f4f4; font-family: sans-serif; padding: 20px; text-align: center; }}
+            .container {{ max-width: 600px; margin: 50px auto; border: 1px solid #333; padding: 30px; border-radius: 8px; background-color: #252526; }}
+            .path-box {{ background-color: #000; padding: 15px; border-radius: 4px; overflow-wrap: break-word; font-family: monospace; text-align: left; margin: 20px 0; }}
+            .instructions {{ text-align: left; margin-top: 20px; }}
+            .path-link {{ color: #007acc; text-decoration: none; word-break: break-all; }}
+            .copy-btn {{ background-color: #007acc; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-left: 10px; }}
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <h1>GUI Access Instructions</h1>
+            <p>The GUI file cannot be served directly due to browser security restrictions on local files.</p>
+            <p>To launch the GUI, please manually open the following file:</p>
+            <div class='path-box' id='filePathBox'>
+                {absolutePath}
+                <button class='copy-btn' onclick=""navigator.clipboard.writeText('{absolutePath.Replace(@"\", @"\\")}')"">Copy Path</button>
+            </div>
+            
+            <div class='instructions'>
+                <h2>Steps to follow:</h2>
+                <ol>
+                    <li>Copy the full path above (using the button).</li>
+                    <li>Open a new browser window.</li>
+                    <li>Paste the path into the address bar and press Enter.</li>
+                </ol>
+                <p>
+                    For convenience, you may also try clicking this direct link, but browsers may block it: 
+                    <a class='path-link' href='file://{absolutePath.Replace("\\", "/")}'>file://{absolutePath.Replace("\\", "/")}</a>
+                </p>
+            </div>
+            <script>
+                function fallbackCopyTextToClipboard(text) {{
+                    var textArea = document.createElement(""textarea"");
+                    textArea.value = text;
+                    textArea.style.position = ""fixed"";
+                    textArea.style.left = ""-999999px"";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {{
+                        document.execCommand('copy');
+                        alert('Path copied to clipboard!');
+                    }} catch (err) {{
+                        console.error('Failed to copy text: ', err);
+                    }}
+                    document.body.removeChild(textArea);
+                }}
+
+                document.querySelector('.copy-btn').onclick = function() {{
+                    const text = '{absolutePath.Replace(@"\", @"\\")}';
+                    if (navigator.clipboard && navigator.clipboard.writeText) {{
+                        navigator.clipboard.writeText(text).then(function() {{
+                            alert('Path copied to clipboard!');
+                        }}, function(err) {{
+                            console.error('Async: Could not copy text: ', err);
+                            fallbackCopyTextToClipboard(text);
+                        }});
+                    }} else {{
+                        fallbackCopyTextToClipboard(text);
+                    }}
+                }};
+            </script>
+        </div>
+    </body>
+    </html>
+    ";
+
+            byte[] buffer = UTF8.GetBytes(instructionalHTML);
+
+            response.StatusCode = 200;
+            response.ContentType = "text/html; charset=utf-8";
+            response.ContentLength64 = buffer.Length;
+
+            try
+            {
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            finally
+            {
+                response.Close();
+            }
+        }
+
         public static async Task Upload(HttpListenerRequest request, HttpListenerResponse response)
         {
             try

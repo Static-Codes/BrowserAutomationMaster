@@ -242,7 +242,9 @@ namespace BrowserAutomationMaster.Managers
             {
                 var desktopDir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
                 if (string.IsNullOrEmpty(desktopDir))
+                {
                     return desktopDir;
+                }
 
                 var fileName = $"BAMM-Backup.{compression}";
                 return Path.Combine(desktopDir, fileName);
@@ -254,24 +256,68 @@ namespace BrowserAutomationMaster.Managers
             }
         }
     
-        public static string GetGUIDaemonPath() { return Path.Combine(AppDataDirectory, "guiDaemon.py"); }
+        public static string GetGUIDaemonPath() 
+        { 
+            return Path.Combine(AppDataDirectory, "guiDaemon.py"); 
+        }
       
-        public static string GetGUIDirectoryPath() { return Path.Combine(AppDataDirectory, "gui"); }
+        public static string GetGUIDirectoryPath() 
+        { 
+            return Path.Combine(AppDataDirectory, "gui"); 
+        }
 
-        public static string GetMainGUIPage() { return Path.Combine(GetGUIDirectoryPath(), "index.html"); }
+        public static string GetGUIScriptsPath()
+        {
+            return Path.Join(GetGUIDirectoryPath(), "scripts", "/");
+        }
 
-        public static string GetGUIZipPath() { return Path.Combine(AppDataDirectory, "gui.zip"); }
+        public static string GetGUIStylesPath()
+        {
+            return Path.Join(GetGUIDirectoryPath(), "styles", "/");
+        }
 
-        public static string GetLinuxPackageFile() { return Path.Combine(AppDataDirectory, "PKGS_INSTALLED"); }
+        public static string GetGUISidebarCSSPath()
+        {
+            return Path.Combine(GetGUIStylesPath(), "sidebar.css");
+        }
 
-        public static string GetPackagesPath() { return Path.Combine(AppDataDirectory, "packages.json"); }
+        public static string GetMainGUIPage(bool includeProtocol = false) 
+        {
+            if (includeProtocol)
+            {
+                // Opted for Join over Combine since a oot check is done to prevent protocol or file prefixes.
+                return Path.Join("file://", GetGUIDirectoryPath(), "index.html");
+            }
+            else
+            {
+                return Path.Combine(GetGUIDirectoryPath(), "index.html");
+            }
+        }
+
+
+        public static string GetGUIZipPath() 
+        { 
+            return Path.Combine(AppDataDirectory, "gui.zip"); 
+        }
+
+        public static string GetLinuxPackageFile() { 
+            return Path.Combine(AppDataDirectory, "PKGS_INSTALLED"); 
+        }
+
+        public static string GetPackagesPath() 
+        { 
+            return Path.Combine(AppDataDirectory, "packages.json"); 
+        }
 
         public static string GetProjectRequirementsPath(string ParentDirectory)
         {
             return Path.Combine(ParentDirectory, "requirements.txt");
         }
 
-        public static string GetProjectVEnvPath(string ParentDirectory) { return Path.Combine(ParentDirectory, "venv"); }
+        public static string GetProjectVEnvPath(string ParentDirectory) 
+        { 
+            return Path.Combine(ParentDirectory, "venv"); 
+        }
 
         public static string GetProjectVEnvPythonPath(string ParentDirectory)
         {
