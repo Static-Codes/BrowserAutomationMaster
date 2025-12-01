@@ -189,9 +189,9 @@ namespace BrowserAutomationMaster.Managers
                         isRunning = false;
                         return; // The use of return ends this functions execution whereas break only exits the current switch statement.
 
-                    case "/upload" when request.HttpMethod.Equals("GET"):
-                        await Upload(request, response);
-                        break;
+                    // case "/upload" when request.HttpMethod.Equals("GET"):
+                    //     await Upload(request, response);
+                    //     break;
 
                     case "/validate":
                         await Validate(request, response);
@@ -660,6 +660,8 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
+        // This is fully functional but was removed for time sake.
+        [Obsolete("Removed support, since this project needs to have a final alpha release soon.")]
         public static async Task Upload(HttpListenerRequest request, HttpListenerResponse response)
         {
             try
