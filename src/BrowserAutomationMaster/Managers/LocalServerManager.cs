@@ -184,8 +184,9 @@ namespace BrowserAutomationMaster.Managers
                         break;
 
                     case "/terminate":
-                        isRunning = false;
                         await WriteResponse(response, UTF8.GetBytes("{ \"terminated\": true }"));
+                        await Task.Delay(50);
+                        isRunning = false;
                         return; // The use of return ends this functions execution whereas break only exits the current switch statement.
 
                     case "/upload" when request.HttpMethod.Equals("GET"):
