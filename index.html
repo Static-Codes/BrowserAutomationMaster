@@ -10,6 +10,7 @@
     />
     <link href="styles/sidebar.css" rel="stylesheet" />
     <link href="styles/create_script.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" rel="stylesheet">
 
     <!-- GUI Port Management -->
     <script>
@@ -46,6 +47,7 @@
       var exportScriptURL = `${baseServerURL}/export`
       var restartGUIURL = `${baseServerURL}/restart`
       var terminateGUIURL = `${baseServerURL}/terminate`
+      var versionViewURL = `${baseServerURL}/version`
       var localUserScripts = null;
 
       fetch(
@@ -234,7 +236,7 @@
             </a>
           </li>
 
-          <li>
+          <!-- <li>
             <a id="loadScript" href="#load" title="View Existing Script">
               <svg aria-hidden="true" id="upload" viewBox="0 0 24 24">
                 <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
@@ -250,7 +252,7 @@
               </svg>
               <span>Delete Existing Script</span>
             </a>
-          </li>
+          </li> -->
 
           <li>
             <a href="#0" title="Export Current Script">
@@ -261,19 +263,20 @@
             </a>
           </li>
 
-          <!-- New Section Start Here -->
+          <!-- New Section Starts Here -->
           <li class="menu-heading">
             <h3>Settings</h3>
           </li>
 
-          <li>
+          <!-- <li>
             <a href="#" id="restart-gui" title="Restart GUI">
               <svg id="restart" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
               </svg>
               <span>Restart GUI</span>
             </a>
-          </li>
+          </li> -->
+          
           <li>
             <a href="#0" id="terminate-gui" title="Terminate GUI">
               <svg id="terminate" viewBox="0 0 24 24" aria-hidden="true">
@@ -283,13 +286,14 @@
             </a>
           </li>
           <li>
-            <a href="#0" title="View Version Info">
+            <a href="#0" id="viewVersion" title="View Version Info">
               <svg id="version" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
               </svg>
               <span>View Version Info</span>
             </a>
           </li>
+
           <li>
             <a href="#0" title="Report a Bug">
               <svg id="report" viewBox="0 0 16 16">
@@ -384,6 +388,56 @@
       </div>
     </section>
 
+
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script>
+      function createAlert(alertType, message) {
+        var validAlertTypes = ["error", "info", "warning"];
+        if (!validAlertTypes.includes(alertType)) {
+          alert(
+            "Invalid alert type passed to createAlert(), please make a bug report."
+          );
+          throw new Error(
+            "Invalid alert type passed to createAlert(), please make a bug report."
+          );
+        }
+
+        if (message == null || message == "") {
+          alert("Invalid message passed to createAlert(), please make a bug report");
+          throw new Error(
+            "Invalid message passed to createAlert(), please make a bug report"
+          );
+        }
+        
+        var darkModeStatus = localStorage.getItem("dark-mode");
+        const notyf = new Notyf({
+          duration: 3000,
+          position: {
+            x: "center",
+            y: "center",
+          },
+          types: [
+            {
+              type: alertType,
+              background: `${"black" ? darkModeStatus == "false" : "white"}`,
+              icon: {
+                className: "material-icons",
+                tagName: "i",
+                text: "warning",
+              },
+            },
+            {
+              type: "error",
+              background: `${"black" ? darkModeStatus == "false" : "white"}`,
+              duration: 3000,
+              dismissible: true,
+            },
+          ],
+        });
+        var notification = notyf.success(message);
+        return notification;
+      }
+    </script>
     <script src="scripts/sidebar.js"></script>
     <script src="scripts/create/commands.js"></script>
     <script src="scripts/create/create_script.js"></script>
@@ -541,6 +595,7 @@
       
     </script>
     
+    <!-- Terminate GUI Button Functionality -->
     <script>
       var terminateGUIButton = document.querySelector("#terminate-gui");
       if (terminateGUIButton == null){
@@ -550,6 +605,7 @@
       terminateGUIButton.addEventListener("click", (e) => {
         fetch(terminateGUIURL,
           { 
+            headers: {'Content-Type': 'application/json'},
             method: "GET",
             signal: AbortSignal.timeout(10000)
           }
@@ -564,6 +620,42 @@
           console.log(`Response: ${data}`);
         })
         .catch(error => {
+          alert('An error occured while attempting to terminate the GUI.\nError:', error);
+        });
+
+      });
+    </script>
+
+    <!-- Version Info Button Functionality -->
+    <script>
+      var viewVersionButton = document.querySelector("#viewVersion");
+      if (viewVersionButton == null){
+        alert("The terminate button was not found, please make a bug report, if you are reading this.");
+        throw new Error("The terminate button was not found, please make a bug report, if you are reading this.");
+      }
+      viewVersionButton.addEventListener("click", (e) => {
+        fetch(versionViewURL,
+          {
+            // referrerPolicy: "no-referrer",
+            method: "GET",
+            headers: { "Accept": 'application/json, */*' },
+            signal: AbortSignal.timeout(10000)
+          }
+        ).then(response => {
+          if (!response.ok) {
+            throw new Error(`Invalid HTTP status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          createAlert("info", "This is a test");
+          // var dataObj = Object 
+          //data["version"];
+          // alert(`Successfully terminated GUI.`)
+          console.log(`Response: ${data}`);
+        })
+        .catch(error => {
+          createAlert("info", "This is a test");
           alert('An error occured while attempting to terminate the GUI.\nError:', error);
         });
 
