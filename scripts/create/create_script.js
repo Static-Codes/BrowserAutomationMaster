@@ -580,9 +580,10 @@ function validateScriptContents() {
   try {
     for (const rawEntry of commandEntries) {
       const parsedObj = JSON.parse(rawEntry);
+      const key = Object.keys(parsedObj)[0]; 
       const rawValue = Object.values(parsedObj)[0];
 
-      scriptLines.push(rawValue);
+      scriptLines.push(`${key} ${rawValue}`);
     }
   } catch (e) {
     createAlert("error", `Error processing script commands: ${e.message}`);
