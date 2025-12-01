@@ -91,14 +91,8 @@ namespace BrowserAutomationMaster.Managers
             return false;
         }
 
-        public static (string name, string args) GetProcessNameAndArgs(bool scan = false, bool restart = false)
+        public static (string name, string args) GetProcessNameAndArgs(bool scan = false)
         {
-            if (!scan && !restart)
-                WriteAndExit("Both scan and restart are set to false in a call to GetProcessNameAndArgs(), please fix this before continuing.", 1);
-
-            if (restart)
-                return (GetInterpreterFromPath(), GetGUIDaemonPath());
-
             if (scan && Platforms.IsChromeOS || Platforms.IsUnixLike) 
                 return ("netstat", "-ltu");
             
