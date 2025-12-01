@@ -565,6 +565,13 @@ function validateArguments(selectedCommandName, commandArgs) {
 }
 
 function validateScriptContents() {
+  if (commands === "undefined") {
+    createAlert(
+      "error",
+      "Please add commands before trying to validate a script's contents."
+    );
+  }
+
   var commandEntries = Object.values(commands);
   if (commandEntries === "undefined" || commandEntries.length === 0) {
     createAlert(
@@ -576,26 +583,25 @@ function validateScriptContents() {
     );
   }
 
-  var scriptLines = [];
-  try {
-    for (const rawEntry of commandEntries) {
-      const parsedObj = JSON.parse(rawEntry);
-      const key = Object.keys(parsedObj)[0]; 
-      const rawValue = Object.values(parsedObj)[0];
+  var scriptLines = JSON.stringify(commandEntries);
 
-      scriptLines.push(`${key} ${rawValue}`);
-    }
-  } catch (e) {
-    createAlert("error", `Error processing script commands: ${e.message}`);
-    console.error("Script Command Processing Error:", e);
-    return;
-  }
+  // try {
+  //   for (const rawEntry of commandEntries) {
+  //     const parsedObj = JSON.parse(rawEntry);
+  //     const key = Object.keys(parsedObj)[0];
+  //     const rawValue = Object.values(parsedObj)[0];
 
-  const rawContents = scriptLines.join("\n");
+  //     scriptLines.push(`${key} ${rawValue}`);
+  //   }
+  // } catch (e) {
+  //   createAlert("error", `Error processing script commands: ${e.message}`);
+  //   console.error("Script Command Processing Error:", e);
+  //   return;
+  // }
 
   let b64Contents;
   try {
-    b64Contents = safeB64Encode(rawContents);
+    b64Contents = safeB64Encode(scriptLines);
   } catch (e) {
     createAlert("error", "Failed to Base64 encode script contents.");
     console.error("Base64 Encoding Error:", e);
@@ -725,7 +731,7 @@ executeButton.addEventListener("click", (e) => {
       .toLowerCase()
       .replace("feature: ", "");
 
-    // 1. Check for duplicate Feature command
+    // Checks for duplicate Feature command
     const isDuplicateFeature = Object.values(commands).some((commandString) => {
       try {
         const commandObject = JSON.parse(commandString);
