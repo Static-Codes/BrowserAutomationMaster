@@ -64,24 +64,24 @@ window.onload = function () {
     switchLabelText.textContent = "Dark";
   }
 
-  function getFileNameSelected() {
-    var selectElement = document.querySelector("#command-select");
-    if (selectElement == null) {
-      alert("Combobox element not found, please make a bug report.");
-      throw new Error("");
-    }
+  // function getFileNameSelected() {
+  //   var selectElement = document.querySelector("#command-select");
+  //   if (selectElement == null) {
+  //     alert("Combobox element not found, please make a bug report.");
+  //     throw new Error("");
+  //   }
 
-    var selectedOption = selectElement.querySelector(`option[selected]`);
-    if (!selectedOption) {
-      alert("No selected option found, please make a bug report.");
-      throw new Error("");
-    }
+  //   var selectedOption = selectElement.querySelector(`option[selected]`);
+  //   if (!selectedOption) {
+  //     alert("No selected option found, please make a bug report.");
+  //     throw new Error("");
+  //   }
 
-    var scriptName = Object.keys(localUserScripts).at((script) =>
-      script.includes(selectedOption.textContent)
-    );
-    return scriptName;
-  }
+  //   var scriptName = Object.keys(localUserScripts).at((script) =>
+  //     script.includes(selectedOption.textContent)
+  //   );
+  //   return scriptName;
+  // }
 
   // function swapToViewSection() {
   //   if (

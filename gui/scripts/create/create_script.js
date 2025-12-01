@@ -77,14 +77,15 @@ function convertUTF8toBase64(str) {
 function duplicateSelectedCommand() {
   var selectedChild = document.querySelector(".list-item");
   if (!selectedChild) {
-    alert("Please select an element to duplicate.");
+    createAlert("warning", "Please select an element to duplicate.");
     throw new Error("No element selected");
   }
 
   var commandText = selectedChild.textContent;
 
   if (commandText.includes('"browser":')) {
-    alert(
+    createAlert(
+      "warning",
       "Unable to duplicate the browser command, only one of these commands may be present in any given script."
     );
     return;
@@ -123,7 +124,7 @@ function getData() {
 function getIndexOfSelectedCommand() {
   try {
     if (Object.keys(commands).length === 0) {
-      alert("No commands present in the current script.");
+      createAlert("error", "No commands present in the current script.");
       throw new Error("No commands present in the current script.");
     }
     var child = document.querySelector(".list-item");
@@ -283,7 +284,7 @@ function reindexCommands() {
 function removeSelectedCommand() {
   var selectedChild = document.querySelector(".list-item");
   if (!selectedChild) {
-    alert("Please select an element to remove.");
+    createAlert("error", "Please select an element to remove.");
     throw new Error("No element selected");
   }
 
@@ -291,7 +292,8 @@ function removeSelectedCommand() {
   var removedCommandText = commands[index];
 
   if (removedCommandText.includes('"browser":')) {
-    alert(
+    createAlert(
+      "error",
       "Unable to remove the browser command, this is a requirement for every script."
     );
     return;
@@ -482,7 +484,7 @@ function validateArguments(selectedCommandName, commandArgs) {
   );
 
   if (!selectedCommand) {
-    alert("Error: Command definition not found.");
+    createAlert("error", "Command definition not found.");
     return false;
   }
 
@@ -498,8 +500,9 @@ function validateArguments(selectedCommandName, commandArgs) {
       if (selectedCommandName === "Wait-For-Seconds" && argKey === "seconds") {
         const numericValue = parseFloat(argValue);
         if (isNaN(numericValue) || !isFinite(numericValue)) {
-          alert(
-            `Validation Error: The value for '${argKey}' in 'Wait-For-Seconds' must be a valid number (e.g., 2 or 0.5) and must not be quoted.`
+          createAlert(
+            "error",
+            `The value for '${argKey}' in 'Wait-For-Seconds' must be a valid number (i.e, 2 or 0.5) and must not be quoted.`
           );
           return false;
         }
@@ -508,8 +511,9 @@ function validateArguments(selectedCommandName, commandArgs) {
         argKey === "headers"
       ) {
         if (!isQuotedString) {
-          alert(
-            `Validation Error: The value for 'headers' in 'Add-Headers' must be a single quoted JSON string (e.g., '"{\\"Header\\": \\"Value\\"}"').`
+          createAlert(
+            "error",
+            `The value for 'headers' in 'Add-Headers' must be a single quoted JSON string (i.e., '"{\\"Header\\": \\"Value\\"}"').`
           );
           return false;
         }
@@ -517,8 +521,9 @@ function validateArguments(selectedCommandName, commandArgs) {
         try {
           JSON.parse(jsonContent);
         } catch (e) {
-          alert(
-            `Validation Error: The content inside the quotes for 'headers' in 'Add-Headers' must be valid JSON.`
+          createAlert(
+            "error",
+            `The content inside the quotes for 'headers' in 'Add-Headers' must be valid JSON.`
           );
           return false;
         }
@@ -534,8 +539,9 @@ function validateArguments(selectedCommandName, commandArgs) {
         selectedCommandName.startsWith("Feature: use-") // Includes proxy features
       ) {
         if (!isQuotedString) {
-          alert(
-            `Validation Error: The value for '${argKey}' in '${selectedCommandName}' must be a quoted string (e.g., '"value"').`
+          createAlert(
+            "error",
+            `The value for '${argKey}' in '${selectedCommandName}' must be a quoted string (i.e., '"value"').`
           );
           return false;
         }
@@ -574,18 +580,20 @@ commandSelect.addEventListener("change", (event) => {
 executeButton.addEventListener("click", (e) => {
   var selectedCommandName = commandSelect.value;
   if (!selectedCommandName) {
-    alert("Please select a command first.");
+    createAlert("error", "Please select a command first.");
     return;
   }
 
   if (jsMode && selectedCommandName !== "Add-JS-Code") {
-    alert(
+    createAlert(
+      "error",
       "You are inside a JavaScript block. The next command must be 'Add-JS-Code'."
     );
     return;
   }
   if (!jsMode && selectedCommandName === "Add-JS-Code") {
-    alert(
+    createAlert(
+      "error",
       "You must start a JavaScript block with 'Start-Javascript' before adding code."
     );
     return;
@@ -622,7 +630,7 @@ executeButton.addEventListener("click", (e) => {
     (cmd) => cmd.commandName === selectedCommandName
   );
   if (!selectedCommand) {
-    alert("Error: Command definition not found.");
+    createAlert("error", "Error: Command definition not found.");
     return;
   }
 
@@ -643,19 +651,20 @@ executeButton.addEventListener("click", (e) => {
     });
 
     if (isDuplicateFeature) {
-      alert(
-        `Validation Error: The feature command '${selectedCommandName}' can only be added once to the script.`
+      createAlert(
+        "error",
+        `The feature command '${selectedCommandName}' can only be added once to the script.`
       );
       return;
     }
 
-    // 2. Check for multiple proxy features
+    // Check for multiple proxy features
     if (proxyFeatures.includes(selectedFeatureName)) {
       let otherProxyExists = false;
       for (const commandString of Object.values(commands)) {
         try {
           const commandObject = JSON.parse(commandString);
-          // Check if any *other* proxy feature is already in the list
+          // Check if any proxy features are already in the list
           if (
             commandObject.feature &&
             proxyFeatures.includes(commandObject.feature) &&
@@ -668,8 +677,9 @@ executeButton.addEventListener("click", (e) => {
       }
 
       if (otherProxyExists) {
-        alert(
-          "Validation Error: Only one proxy feature (http, https, socks4, or socks5) is allowed in a single script."
+        createAlert(
+          "error",
+          "Only one proxy feature (http, https, socks4, or socks5) is allowed in a single script."
         );
         return;
       }
@@ -677,7 +687,7 @@ executeButton.addEventListener("click", (e) => {
   }
   // --- END Feature Command Validation ---
 
-  console.log("--- Executing Command ---");
+  console.log("--- Adding Command ---");
 
   var commandText;
 

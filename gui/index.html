@@ -11,6 +11,12 @@
     <link href="styles/sidebar.css" rel="stylesheet" />
     <link href="styles/create_script.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" rel="stylesheet">
+    <style>
+    /* Overrides the default width for alerts. */
+    .notyf__toast.notyf--type-info {
+      width: 350px !important; 
+    } 
+    </style>
 
     <!-- GUI Port Management -->
     <script>
@@ -470,7 +476,7 @@
       var selectedOption = commandSelect.children[0];
 
       if (selectedOption == null && commandItems.length != 0){
-        alert("A fatal error has occured, please click \"Restart GUI\", or restart BAMM.");
+        createAlert('error', "A fatal error has occured, please click \"Restart GUI\", or restart BAMM.");
         throw new Error("A fatal error has occured, please click \"Restart GUI\" or restart BAMM.");
       };
 
@@ -524,7 +530,7 @@
       );
 
       if (exportScriptButton == null){
-        alert("The export button was not found, please make a bug report, if you are reading this.");
+        createAlert('error', "The export button was not found, please make a bug report, if you are reading this.");
         throw new Error("The export button was not found, please make a bug report, if you are reading this.");
       }
       exportScriptButton.addEventListener("click", (e) => {
@@ -533,7 +539,7 @@
         console.log(commandArray);
         if (commandArray == {} || commandArray == null)
         {
-          alert(
+          createAlert('error',
             "Unable to access commands from local storage, please ensure atleast 2 commands are present before attempting to export a script. " +
             "If this issue persists, please make a bug report."
           );
@@ -553,7 +559,7 @@
         var commandString = Object.values(commandArray).join('\n');
 
         if (commandString == null || commandString == ""){
-          alert(
+          createAlert('error',
             "Unable to sanitize commands from local storage, please ensure atleast 2 commands are present before attempting to export a script. " +
             "If this issue persists, please make a bug report."
           );
@@ -584,11 +590,11 @@
           return response.json();
         })
         .then(data => {
-          alert(`Successfully saved file: ${filename}`)
+          createAlert('info', `Successfully saved file: ${filename}`)
           console.log(`Response: ${data}`);
         })
         .catch(error => {
-          alert('An error occured while attempting to export your file.\nError:', error);
+          createAlert('error', 'An error occured while attempting to export your file.\nError:', error.message);
         });
 
       });
@@ -599,7 +605,7 @@
     <script>
       var terminateGUIButton = document.querySelector("#terminate-gui");
       if (terminateGUIButton == null){
-        alert("The terminate button was not found, please make a bug report, if you are reading this.");
+        createAlert('error', "The terminate button was not found, please make a bug report, if you are reading this.");
         throw new Error("The terminate button was not found, please make a bug report, if you are reading this.");
       }
       terminateGUIButton.addEventListener("click", (e) => {
@@ -616,11 +622,11 @@
           return response.json();
         })
         .then(data => {
-          alert(`Successfully terminated GUI.`)
+          createAlert('info', 'Successfully terminated GUI Server.');
           console.log(`Response: ${data}`);
         })
         .catch(error => {
-          alert('An error occured while attempting to terminate the GUI.\nError:', error);
+          createAlert('error', 'An error occured while attempting to terminate the GUI.<br/>Error:', error.message);
         });
 
       });
@@ -629,14 +635,17 @@
     <!-- Version Info Button Functionality -->
     <script>
       var viewVersionButton = document.querySelector("#viewVersion");
-      if (viewVersionButton == null){
-        alert("The terminate button was not found, please make a bug report, if you are reading this.");
+      
+      if (viewVersionButton == null)
+      {
+        createAlert('error', "The terminate button was not found, please make a bug report, if you are reading this.");
         throw new Error("The terminate button was not found, please make a bug report, if you are reading this.");
       }
-      viewVersionButton.addEventListener("click", (e) => {
+
+      viewVersionButton.addEventListener("click", (e) => 
+      {
         fetch(versionViewURL,
           {
-            // referrerPolicy: "no-referrer",
             method: "GET",
             headers: { "Accept": 'application/json, */*' },
             signal: AbortSignal.timeout(10000)
@@ -648,15 +657,23 @@
           return response.json();
         })
         .then(data => {
-          createAlert("info", "This is a test");
-          // var dataObj = Object 
-          //data["version"];
-          // alert(`Successfully terminated GUI.`)
-          console.log(`Response: ${data}`);
+          var version = data.version;
+          var isLatest = data.is_latest;
+          
+          if (version === 'undefined' || isLatest === 'undefined')
+          {
+            createAlert("error", "Unable to show version info, please use the --version argument when opening BAMM.");
+            console.error("version or isLatest is null.");
+            throw new Error("Unable to show version info, please use the --version argument when opening BAMM.");
+          }
+
+          var statusMessage = isLatest ? "Yes" : "No (UPDATE REQUIRED)";
+          var message = `BAMM Version: ${version}<br/>Is Latest: ${statusMessage}`;
+
+          createAlert("info", message);
         })
         .catch(error => {
-          createAlert("info", "This is a test");
-          alert('An error occured while attempting to terminate the GUI.\nError:', error);
+          createAlert("error", `Unable to show version info, please use the --version argument when opening BAMM.\\nError:${error.message}`);
         });
 
       });
