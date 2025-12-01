@@ -399,6 +399,10 @@ namespace BrowserAutomationMaster.Managers
             catch
             {
                 response.StatusCode = (int)HttpStatusCode.Conflict;
+            }
+
+            finally
+            {
                 response.Close();
             }
         }
