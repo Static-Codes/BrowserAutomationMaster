@@ -45,7 +45,7 @@ def main():
     platform_options = [
         ("All Platforms", None),
         ("Win", "x64"),
-        ("Win", "ARM64"),
+        ("Win", "arm64"),
         ("Linux", "x64", "deb"),
         ("Linux", "x64", "rpm"),
         ("Linux", "ARM", "deb"),

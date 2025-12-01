@@ -228,7 +228,7 @@ namespace BrowserAutomationMaster.Managers
         // Used for LocalServerManager.ScanUsedLHPorts()
         [GeneratedRegex(@"(?:TCP|UDP)\s{4}(?:localhost|127.0.0.1):([0-9]{1,5})|(?:localhost|127.0.0.1):([0-9]{1,5})")]
         public static partial Regex PrecompiledNetStatRegex();
-
+        
         // MacOS Version Regex
         [GeneratedRegex("^((11\\.0)|(11\\.[1-9]\\d*)|([12]\\d*))(\\.\\d+)*$")]
         public static partial Regex PrecompiledMacOSVersionRegex();
