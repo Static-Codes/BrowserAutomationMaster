@@ -713,45 +713,104 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
+
         public static async Task Validate(HttpListenerRequest request, HttpListenerResponse response)
         {
             try
             {
-                var b64Path = request.QueryString["path"];
+                var b64Contents = request.QueryString["contents"];
 
-                if (b64Path == null)
+                if (b64Contents == null)
                 {
-                    await HandleInvalidResponse(response, "Invalid request, missing param \"path\"");
+                    await HandleInvalidResponse(response, "Invalid request, missing param \"contents\"");
                     return;
                 }
 
-                if (!IsB64(b64Path))
+                if (!IsB64(b64Contents))
                 {
-                    await HandleInvalidResponse(response, "Invalid request, this endpoint requires a base64 string for the parameter \"path\"");
+                    await HandleInvalidResponse(response, "Invalid request, this endpoint requires a base64 string for the parameter \"contents\"");
                     return;
                 }
 
 
-                var pathBytes = System.Convert.FromBase64String(b64Path);
-                var filePath = UTF8.GetString(pathBytes);
-
-                if (!File.Exists(filePath) || !filePath.EndsWith(".bamc", OIC))
+                var b64contentBytes = System.Convert.FromBase64String(b64Contents);
+                var contentString = UTF8.GetString(b64contentBytes);
+                
+                if (contentString == null)
                 {
-                    await HandleInvalidResponse(response, "Invalid request, specified file doesn't exist.");
+                    await HandleInvalidResponse(response, "Invalid request, unable to split content lines, contentString is null.");
                     return;
                 }
 
-                if (!Parser.IsValidFile(filePath))
-                {
-                    await HandleInvalidResponse(response, "The .BAMC file you submitted contains invalid syntax, please check your terminal for more information.");
+                var contents = contentString.Split('\n');
+
+                if (contents == null || contents.Length == 0){
+                    await HandleInvalidResponse(response, "Invalid request, unable to split content lines, contents contains no new line characters.");
                     return;
                 }
 
-                await HandleValidResponse(response, []);
+                var finalBuffer = new List<string>();
+                for (int i = 0; i < contents.Length; i++)
+                {
+                    string commandLine = contents[i];
+
+                    if (string.IsNullOrEmpty(commandLine))
+                    {
+                        await HandleInvalidResponse(response, $"Unable to parse null or empty command on line {i + 1}");
+                        continue;
+                    }
+
+                    if (commandLine == "start-javascript" || commandLine == "end-javascript")
+                    {
+                        // var jsBlockBuffer = UTF8.GetBytes($"{commandLine}{NLC}");
+                        finalBuffer.Add($"{commandLine}{NLC}");
+                        continue;
+                    }
+
+                    try
+                    {
+                        var contentDict = JsonSerializer.Deserialize<Dictionary<string, string>>(commandLine);
+
+                        ArgumentNullException.ThrowIfNull(contentDict);
+
+                        var contentPair = contentDict.First();
+                        string key = contentPair.Key;
+                        string value = contentPair.Value;
+
+                        if (key == "add-to-js")
+                        {
+                            byte[] decodedBytes = System.Convert.FromBase64String(value);
+                            string decodedCode = UTF8.GetString(decodedBytes);
+
+                            // var codeBuffer = UTF8.GetBytes($"{decodedCode}{NLC}");
+                            finalBuffer.Add($"{decodedCode}{NLC}");
+                        }
+                        else
+                        {
+                            // var standardBuffer = UTF8.GetBytes($"{key} {value}{NLC}");
+                            finalBuffer.Add($"{key} {value}{NLC}");
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        await HandleInvalidResponse(response, $"JSON Parsing Error on line {i + 1}: {ex.Message}. Content: {commandLine}");
+                    }
+                    catch (Exception ex)
+                    {
+                        await HandleInvalidResponse(response, $"Error processing command line {i + 1}: {ex.Message}");
+                    }
+                }
+
+                // Another subpar solution, but I will be starting finals shortly so this will have to do.
+                // This isnt inherently a critical performance flaw, but it does use added memory to convert a List<string> to a string[]. 
+                Parser.IsValidFileContents([.. finalBuffer ]);
+
+                var successMessage = UTF8.GetBytes($"{{ \"success\": true");
+                await LocalServerManager.WriteResponse(response, successMessage);
             }
             catch (Exception ex)
             {
-                await HandleInvalidResponse(response, ex.Message);
+                await HandleInvalidResponse(response, ex.StackTrace ?? ex.Message);
             }
         }
 

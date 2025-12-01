@@ -726,6 +726,308 @@ namespace BrowserAutomationMaster.Parsing
             }
         }
         
+        // Used in EndpointFunctions.Validate
+        // This is extremely sloppy, I'm the first one to acknowledge so, 
+        // I could create a temp file with the contents streamed in then call IsValidFile(), 
+        // but im quite busy so this will have to do.
+        public static bool IsValidFileContents(string[] lines)
+        {
+            List<string> usedFeatures = [];
+            var fileName = "new_file.bamc";
+
+            try
+            {
+                var browserBlockFinished = false;
+                var featureBlockFinished = false;
+                var visitBlockFinished = false;
+                var jsBlockFinished = true; // Starts off as true and will change below
+
+                var currentJSBlockContent = string.Empty;
+                var jsError = string.Empty;
+
+                int lineCurrentJSBlockStarts = 0; // Will be modified assuming a javascript block is provided.
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+
+                    var line = lines[i];
+
+                    if (!jsBlockFinished)
+                    {
+                        BuildJSBlock(fileName, line, [.. lines], i, ref currentJSBlockContent, ref lineCurrentJSBlockStarts, ref jsBlockFinished, ref jsError);
+                        continue;
+                    }
+
+                    string[] lineArgs = line.Split(" ");
+
+                    if (lineArgs.Length == 0)
+                        return false;
+
+                    var firstArg = lineArgs[0];
+
+
+                    #region Start of Browser Feature Check
+
+                    // If a browser command is present in any line but the first line that contains characters.
+                    if (firstArg.Equals("browser") && i != 0 && browserBlockFinished)
+                    {
+                        return WriteErrorAndReturnBool(
+                            message: $"BAM Manager (BAMM) ran into a BAMC validation error:\n" +
+                                     $"File: \"{fileName}\"\n" +
+                                     $"Invalid 'browser' command location on line {i + 1}.\n" +
+                                     "'browser' command must be placed at the top of the file.\n",
+                            returnBool: false
+                        );
+                    }
+
+                    if (firstArg.Equals("browser") && !browserBlockFinished && !BrowserRegex.IsMatch(line))
+                    {
+                        // The error message here appears to be the same as the first one, 
+                        // but the failure reason is different.
+                        return WriteErrorAndReturnBool(
+                            message: $"BAM Manager (BAMM) ran into a BAMC validation error:\n" +
+                                     $"File: \"{fileName}\"\n" +
+                                     $"Invalid browser name on \"browser\" command on line {i + 1}.\n" +
+                                     $"Valid Commands:\n{GetValidBrowserCommands()}",
+                            returnBool: false
+                        );
+                    }
+
+                    if (firstArg.Equals("browser") && BrowserRegex.IsMatch(line))
+                    {
+                        browserBlockFinished = true;
+                        continue;
+                    }
+
+                    #endregion End of Browser Feature Check
+
+
+                    #region Start of Invalid Feature Check
+
+                    // If a feature name is provided after defining non feature actions
+                    else if (firstArg.Equals("feature") && featureBlockFinished)
+                        return WriteErrorAndReturnBool(
+                            message:
+                                $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                                $"File: \"{fileName}\"\n" +
+                                $"Invalid 'feature' command location on line {i + 1}.\n" +
+                                $"All 'feature' commands must be placed before any other command, except 'browser'.\n",
+                            returnBool: false
+                        );
+
+                    // If a duplicate feature name is provided -> feature "duplicate-name"
+                    else if (firstArg.Equals("feature") && usedFeatures.Contains(line))
+                        ExitOnDuplicateCommand(fileName, line, i);
+
+
+                    // If an invalid feature name is provided -> feature "invalid-name"
+                    else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg)))
+                        return WriteErrorAndReturnBool(
+                            message:
+                                "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                                $"File: \"{fileName}\"\n" +
+                                $"Unknown feature command on line {i + 1}:\n{line}\n\n" +
+                                $"For more information please see, {DOCUMENTATION_LINK}",
+                            returnBool: false
+                        );
+
+                    #endregion Start of Invalid Feature Check
+
+
+                    # region Start of Proxy Feature Check
+
+                    var invalidProxyFeatureMessage =
+                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                        $"File: \"{fileName}\"\n" +
+                        $"Invalid syntax on line {i + 1}\n" +
+                        $"Line: {line}\n" +
+                        $"Valid Syntax: {firstArg} \"use-x-proxy\" USER:PASS@IP:PORT\n" +
+                        "Replace x is one of the following:\n" +
+                        "   -> http\n" +
+                        "   -> https\n" +
+                        "   -> socks4\n" +
+                        "   -> socks5\n" +
+                        $"If no authentication is required: NULL:NULL@IP:PORT\n";
+
+
+                    var intendedToUseProxyMessage =
+                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                        $"File: \"{fileName}\"\n" +
+                        $"Invalid syntax on line {i + 1}\n" +
+                        $"Line: {line}" + "\n\n" +
+                        "If you were attempting to add a proxy to your .BAMC file, please run one of the following commands:\n" +
+                        "bamm help use-http-proxy\n" +
+                        "bamm help use-https-proxy\n" +
+                        "bamm help use-socks4-proxy\n" +
+                        "bamm help use-socks5-proxy\n";
+
+                    // Loose check for a line containing -> feature use....-proxy
+                    // This is not sanitized and is treated as such until IsValidProxyFormat() is called below.
+                    var potentialProxyLine =
+                        firstArg.Equals("feature") &&
+                        lineArgs.Length == 3 &&
+                        line.Contains("use") &&
+                        line.Contains("-proxy");
+
+                    // Checks if use-x-proxy is found where x can be one of the 4 proxy types from intendedToUseProxyMessage
+                    var proxyFeatureFound =
+                        lineArgs.Any(arg => proxyFeatureArgs.Contains(arg.Replace('"', ' ').Trim()));
+
+                    if (potentialProxyLine && !proxyFeatureFound)
+                        return WriteErrorAndReturnBool(intendedToUseProxyMessage, false);
+
+
+                    Action AddValidatedProxy() => () =>
+                    {
+                        string proxyFeatureString = lineArgs[1].Replace('"', ' ').Trim();
+                        string proxyString = lineArgs[2].Replace("\"", "");
+
+                        // Only one Proxy feature command is permitted per script.
+                        if (usedFeatures.Any(feature => feature.Contains(proxyFeatureString)))
+                            ExitOnDuplicateCommand(fileName, line, i);
+
+                        if (!IsValidProxyFormat(proxyString))
+                            WriteAndExit(invalidProxyFeatureMessage, 1);
+
+                        usedFeatures.Add(line);
+
+                    };
+
+                    if (potentialProxyLine && proxyFeatureFound)
+                    {
+                        AddValidatedProxy();
+                        continue;
+                    }
+
+                    #endregion End of Proxy Feature Check
+
+
+                    #region Start of Visit Feature Check
+                    
+                    if (firstArg.Equals("visit") && visitBlockFinished)
+                        return true;
+
+                    List<string> invalidLines = [];
+
+                    if (firstArg.Equals("visit"))
+                    {
+                        List<string> passedLines = [.. lines.Take(i + 1)];
+                        string[] availableCommands = ["browser", "feature", "visit"];
+
+                        invalidLines = [..
+                            passedLines.Where(
+                                line => !availableCommands.Any(prefix => line.Trim().StartsWith(prefix)) &&
+                                !line.Trim().StartsWith("//") // Ignores comments
+                        
+                            )
+                        ];
+                    }
+
+                    if (invalidLines.Count > 0)
+                        WriteAndExit(
+                            message:
+                                GenerateErrorMessage(fileName, line, i,
+                                    issueText:
+                                        $"A 'visit' command must be placed after 'browser' and 'feature' commands." +
+                                        $"\n\nExample:\n\n" +
+                                        "browser \"firefox\"\n" +
+                                        "feature \"run-headless\"\n" +
+                                        "feature \"disable-pycache\"\n" +
+                                        "visit \"https://google.com\"\n"
+                                ),
+                            status: 1
+                        );
+
+                    #endregion End of Visit Feature Check
+
+
+                    #region Start of JS Feature Check
+
+                    else if (line.StartsWith("start-javascript"))
+                        jsBlockFinished = false;
+
+                    else if (line.StartsWith("end-javascript"))
+                    {
+                        jsBlockFinished = true;
+                        currentJSBlockContent = string.Empty;
+                    }
+
+                    else if (!HandleLineValidation(fileName, line, i + 1))
+                        return false;
+
+                    // Ignores comments
+                    if (!line.StartsWith("//"))
+                        // This flag will be used to ensure all 'feature' commands are placed before all other commands, excluding 'browser'.
+                        featureBlockFinished = true;
+
+                    #endregion End of JS Feature Check
+
+                }
+
+                // Leaving this outside the for loop saves 1 execution cycle per valid line within a .BAMC file
+                // Support for async and bypass-cloudflare were removed in BAMM v1.0.0A3
+                // This will be uncommented if support is reintroduced.
+
+                //if (
+                //    usedFeatures.Any(x => x.Contains("async")) &&
+                //    usedFeatures.Any(x => x.Contains("bypass-cloudflare"))
+                //)
+                //    return WriteErrorAndReturnBool(
+                //        message:
+                //            $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                //            $"File: \"{fileName}\"\n\n" +
+                //            $"Error: Script cannot contain both \"async\" and \"bypass-cloudflare\"\n",
+                //        returnBool: false
+                //    );
+
+                return true;
+            }
+
+            catch (FileNotFoundException)
+            {
+                return WriteErrorAndReturnBool(
+                    message:
+                        $"BAMC Validation Error:\n\n" +
+                        $"Error: File not found: '{fileName}'.\n",
+                    returnBool: false
+                );
+            }
+
+            catch (UnauthorizedAccessException)
+            {
+                return WriteErrorAndReturnBool(
+                    message:
+                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                        $"Permission was denied for '{fileName}'.\n",
+                    false
+                );
+            }
+
+            // Handles locked files, network errors, etc.
+            catch (IOException ex)
+            {
+                return WriteErrorAndReturnBool(
+                    message:
+                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                        $"An IO Exception occurred while validating: '{fileName}'\n" +
+                        $"Error: {ex.Message}\n",
+                    returnBool: false
+                );
+            }
+
+            // General catchall (LOG MORE SEVERLY IF HIT) 
+            catch (Exception ex)
+            {
+                return WriteErrorAndReturnBool(
+                    message:
+                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                        $"A fatal error occurred while validating:'{fileName}'\n" +
+                        $"Error: {ex}\n",
+                    returnBool: false
+                );
+            }
+        }
+        
 
         public static KeyValuePair<MenuOption, string> New()
         {
