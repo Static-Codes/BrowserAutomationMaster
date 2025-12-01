@@ -11,6 +11,7 @@ namespace BrowserAutomationMaster.Managers
     public partial class Config
     {
         public required Theme ThemeType { get; set; }
+        public bool ShowAppCheck { get; set; }
         public bool ShowCpuCheck { get; set; }
         public bool ShowMemoryCheck { get; set; }
         public bool ShowUpdateCheck { get; set; }
@@ -60,6 +61,7 @@ namespace BrowserAutomationMaster.Managers
         {
             AutoCopyPath = false,
             RunOnCompile = false,
+            ShowAppCheck = false,
             ShowCpuCheck = true,
             ShowMemoryCheck = true,
             ShowUpdateCheck = true,
@@ -72,6 +74,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 "[messaging]", new List<KeyValuePair<string, string>>()
                 {
+                    KeyValuePair.Create("show_app_check", "false"),
                     KeyValuePair.Create("show_cpu_check", "true"),
                     KeyValuePair.Create("show_memory_check", "true"),
                     KeyValuePair.Create("show_update_check", "false"),

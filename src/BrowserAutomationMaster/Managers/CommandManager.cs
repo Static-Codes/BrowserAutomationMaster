@@ -55,7 +55,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 new Command(
                     name: "--nohwc",
-                    description: 
+                    description:
                         "Instructs BAMM not to check your system's hardware for compatibility, " +
                         "this should not be done unless you've already verified BAMM can run on your machine.",
                     examples: [ "bamm --nohwc" ],
@@ -94,6 +94,7 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+            
             {
                 new Command(
                     name: "--platform-debug",
@@ -106,6 +107,16 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+
+            {
+                new Command(
+                    name: "--version",
+                    description: "Displays the current version of BAMM, and whether there's a new version available.",
+                    examples: [ "bamm --version" ],
+                    type: CommandType.Argument
+                )
+            },
+
             {
                 new Command(
                     name: "add",

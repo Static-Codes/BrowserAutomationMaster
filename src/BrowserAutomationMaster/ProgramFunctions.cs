@@ -189,6 +189,17 @@ namespace BrowserAutomationMaster
                 await StartServer(port);
             }
 
+            else if (pArgs.Any(arg => arg.Equals("--version"))) 
+            {
+                Warning.Write(
+                    string.Join(NLC, [
+                        $"Version: {CurrentVersion}",
+                        $"Is Latest: {CurrentVersion == LatestVersion}"
+                    ])
+                );
+                Environment.Exit(0);
+            }
+
             // Handles 'backup' command
             if (pArgs[0].Equals("backup", CCIC))
             {
@@ -410,7 +421,7 @@ namespace BrowserAutomationMaster
             // Skip compatibility checks if the user is not attempting to compile or run scripts.
             string[] nonUserScriptArgs = ["backup", "clear", "help", "restore", "uninstall", "validate"];
 
-            string[] bypassCLIArgs = ["--bs", "--nohwc", "--editbsconf"];
+            string[] bypassCLIArgs = ["--bs", "--nohwc", "--editbsconf", "--version"];
 
             bool bypassCheck1 = pArgs.Any(arg => nonUserScriptArgs.Contains(arg));
             bool bypassCheck2 = pArgs.Any(arg => bypassCLIArgs.Contains(arg));
