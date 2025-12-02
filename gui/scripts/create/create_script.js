@@ -565,13 +565,6 @@ function validateArguments(selectedCommandName, commandArgs) {
 }
 
 function validateScriptContents() {
-  if (commands === "undefined") {
-    createAlert(
-      "error",
-      "Please add commands before trying to validate a script's contents."
-    );
-  }
-
   var commandEntries = Object.values(commands);
   if (commandEntries === "undefined" || commandEntries.length === 0) {
     createAlert(
@@ -583,25 +576,28 @@ function validateScriptContents() {
     );
   }
 
-  var scriptLines = JSON.stringify(commandEntries);
+  var scriptLines = [];
+  try {
+    for (const rawEntry of commandEntries) {
+      const parsedObj = JSON.parse(rawEntry);
 
-  // try {
-  //   for (const rawEntry of commandEntries) {
-  //     const parsedObj = JSON.parse(rawEntry);
-  //     const key = Object.keys(parsedObj)[0];
-  //     const rawValue = Object.values(parsedObj)[0];
+      const key = Object.keys(parsedObj)[0];
 
-  //     scriptLines.push(`${key} ${rawValue}`);
-  //   }
-  // } catch (e) {
-  //   createAlert("error", `Error processing script commands: ${e.message}`);
-  //   console.error("Script Command Processing Error:", e);
-  //   return;
-  // }
+      const rawValue = Object.values(parsedObj)[0];
+
+      scriptLines.push(`${key} ${rawValue}`);
+    }
+  } catch (e) {
+    createAlert("error", `Error processing script commands: ${e.message}`);
+    console.error("Script Command Processing Error:", e);
+    return;
+  }
+
+  const rawContents = scriptLines.join("\n");
 
   let b64Contents;
   try {
-    b64Contents = safeB64Encode(scriptLines);
+    b64Contents = safeB64Encode(rawContents);
   } catch (e) {
     createAlert("error", "Failed to Base64 encode script contents.");
     console.error("Base64 Encoding Error:", e);
@@ -625,11 +621,11 @@ function validateScriptContents() {
     .then((data) => {
       if (data.success) {
         createAlert("info", "Script validation successful.");
-        console.log("Validation details:", data.details);
+        console.log("Validation details:", data);
       } else {
         createAlert(
           "error",
-          `Script validation failed: ${data.details || "No details provided."}`
+          `Script validation failed, ${data.error || "No details provided."}`
         );
         console.error("Validation failed response:", data);
       }
