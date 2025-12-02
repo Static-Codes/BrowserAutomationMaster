@@ -713,9 +713,10 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
-
         public static async Task Validate(HttpListenerRequest request, HttpListenerResponse response)
         {
+            bool responseHandled = false;
+
             try
             {
                 var b64Contents = request.QueryString["contents"];
@@ -723,29 +724,34 @@ namespace BrowserAutomationMaster.Managers
                 if (b64Contents == null)
                 {
                     await HandleInvalidResponse(response, "Invalid request, missing param \"contents\"");
+                    responseHandled = true;
                     return;
                 }
 
                 if (!IsB64(b64Contents))
                 {
                     await HandleInvalidResponse(response, "Invalid request, this endpoint requires a base64 string for the parameter \"contents\"");
+                    responseHandled = true;
                     return;
                 }
 
 
                 var b64contentBytes = System.Convert.FromBase64String(b64Contents);
                 var contentString = UTF8.GetString(b64contentBytes);
-                
+
                 if (contentString == null)
                 {
                     await HandleInvalidResponse(response, "Invalid request, unable to split content lines, contentString is null.");
+                    responseHandled = true;
                     return;
                 }
 
                 var contents = contentString.Split('\n');
 
-                if (contents == null || contents.Length == 0){
+                if (contents == null || contents.Length == 0)
+                {
                     await HandleInvalidResponse(response, "Invalid request, unable to split content lines, contents contains no new line characters.");
+                    responseHandled = true;
                     return;
                 }
 
@@ -757,62 +763,78 @@ namespace BrowserAutomationMaster.Managers
                     if (string.IsNullOrEmpty(commandLine))
                     {
                         await HandleInvalidResponse(response, $"Unable to parse null or empty command on line {i + 1}");
+                        responseHandled = true;
                         continue;
                     }
 
                     if (commandLine == "start-javascript" || commandLine == "end-javascript")
                     {
-                        // var jsBlockBuffer = UTF8.GetBytes($"{commandLine}{NLC}");
                         finalBuffer.Add($"{commandLine}{NLC}");
                         continue;
                     }
 
                     try
                     {
-                        var contentDict = JsonSerializer.Deserialize<Dictionary<string, string>>(commandLine);
+                        int firstSpaceIndex = commandLine.IndexOf(' ');
+                        if (firstSpaceIndex <= 0)
+                        {
+                            throw new FormatException("Missing command value separator. Expected format: 'key value'");
+                        }
 
-                        ArgumentNullException.ThrowIfNull(contentDict);
-
-                        var contentPair = contentDict.First();
-                        string key = contentPair.Key;
-                        string value = contentPair.Value;
+                        string key = commandLine[..firstSpaceIndex].Trim();
+                        string value = commandLine[(firstSpaceIndex + 1)..].Trim();
 
                         if (key == "add-to-js")
                         {
                             byte[] decodedBytes = System.Convert.FromBase64String(value);
                             string decodedCode = UTF8.GetString(decodedBytes);
 
-                            // var codeBuffer = UTF8.GetBytes($"{decodedCode}{NLC}");
                             finalBuffer.Add($"{decodedCode}{NLC}");
                         }
                         else
                         {
-                            // var standardBuffer = UTF8.GetBytes($"{key} {value}{NLC}");
                             finalBuffer.Add($"{key} {value}{NLC}");
                         }
                     }
                     catch (JsonException ex)
                     {
                         await HandleInvalidResponse(response, $"JSON Parsing Error on line {i + 1}: {ex.Message}. Content: {commandLine}");
+                        responseHandled = true;
                     }
                     catch (Exception ex)
                     {
                         await HandleInvalidResponse(response, $"Error processing command line {i + 1}: {ex.Message}");
+                        responseHandled = true;
                     }
                 }
 
-                // Another subpar solution, but I will be starting finals shortly so this will have to do.
-                // This isnt inherently a critical performance flaw, but it does use added memory to convert a List<string> to a string[]. 
-                Parser.IsValidFileContents([.. finalBuffer ]);
+                if (responseHandled) { return; }
 
-                var successMessage = UTF8.GetBytes($"{{ \"success\": true");
-                await LocalServerManager.WriteResponse(response, successMessage);
+                byte[]? message = null;
+                if (Parser.IsValidFileContents([.. finalBuffer])){
+                    message = UTF8.GetBytes($"{{ \"success\": true }}");
+                }
+                else {
+                    message = UTF8.GetBytes($"{{\"success\": false, \"error\": \"Please check BAMM's output for more information.\"}}");
+                }
+
+                await LocalServerManager.WriteResponse(response, message);
+                response.Close();
+                responseHandled = true;
             }
             catch (Exception ex)
             {
-                await HandleInvalidResponse(response, ex.StackTrace ?? ex.Message);
+                if (!responseHandled)
+                {
+                    await HandleInvalidResponse(response, ex.StackTrace ?? ex.Message);
+                }
+                else
+                {
+                    Console.WriteLine($"Exception caught, but response already sent/closed: {ex.Message}");
+                }
             }
         }
+
 
     }
 
