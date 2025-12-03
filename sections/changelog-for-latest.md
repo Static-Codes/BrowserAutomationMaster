@@ -130,10 +130,10 @@ There are two versions for Windows. You most likely need the **x64** version.
 ### Linux 🐧
 
 - `bamm.v1.0.0A5.linux-x64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on Intel and AMD CPUs from the last 20 years.
-- `bamm.v1.0.0A5.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on `M-Series Macs` or newer `Surface Laptops`.
-- `bamm.v1.0.0A5-linux-arm.deb` : For **32-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on older chromebooks.
+- `bamm.v1.0.0A5.linux-arm64.deb`: For **64-bit Debian-based** Linux distributions, such as Ubuntu, Linux Mint, or Pop!\_OS on `M-Series Macs`, newer `Surface Laptops`, and `Raspberry Pi`.
+- `bamm.v1.0.0A5-linux-arm.deb` : For **32-bit Debian-based** Linux distributions, running on older chromebooks or other armv7 device, tested on crouton using Debian 12.
 
 - `bamm.v1.0.0A5.linux-x64.rpm`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Intel and AMD CPUs from the last 20 years.
 - `bamm.v1.0.0A5.linux-arm64.rpm`: For **64-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on Macs or newer Surface Laptops.
-- `bamm.v1.0.0A5.linux-arm.rpm`: For **32-bit Fedora-based** Linux distributions, such as CentOS, Oracle Linux, or Qubes on older chromebooks.
+- `bamm.v1.0.0A5.linux-arm.rpm`: For **32-bit Fedora-based** Linux distributions, running on older chromebooks or other ARMv7 device, tested on crouton using Fedora Server 43.
 
