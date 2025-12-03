@@ -94,7 +94,7 @@
 
 ### New CLI Arguments:
 
-- `bamm --bs` - Instructs BAMM to use [BrowserStack](https://browserstack.com) to run the compiled scripts, works on all platforms except ChromeOS, as chromebooks are too underpowered to run selenium.
+- `bamm --bs` - Instructs BAMM to use [BrowserStack](https://browserstack.com) to run the compiled scripts. This works on all platforms, but is the default for Raspberry Pi and ChromeOS, as they are too underpowered to run selenium.
 - `bamm --editbsconf` - Edit and Overwrite Browserstack's YAML Config via an interactive process. (For advanced users)
 - `bamm --force-error` - Forces a verbose error message, which is helpful for making a bug report.
 - `bamm --gui` - Starts the Graphical User Interface for BAMM.
