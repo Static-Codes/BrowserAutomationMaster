@@ -8,10 +8,18 @@ class Platform:
         self.package_type = package_type
 
     def get_commands(self):
+        rid_map = {
+            "Win": "win",
+            "OSX": "osx",
+        }
+        rid_prefix = rid_map.get(self.name)
+        
         if self.name in ["Win", "OSX"]:
+            rid = f"{rid_prefix}-{self.architecture.lower()}"
+            
             return [
-                f"dotnet publish -c Release -r {self.name.lower()}-"
-                f"{self.architecture} --self-contained true"
+                f"dotnet publish -c Release -r {rid} "
+                f"--self-contained true /p:PublishSingleFile=true"
             ]
 
         elif self.name == "Linux":
@@ -23,13 +31,12 @@ class Platform:
 
             rid = rid_map.get(self.architecture)
 
-            if not rid:
+            if not rid or not self.package_type:
                 return []
 
             return [
-                f"dotnet {self.package_type.lower()} --runtime {rid} "
-                f"--configuration Release -- "
-                f"-p:Build{self.package_type.capitalize()}Package=true"
+                f"dotnet publish --runtime {rid} "
+                f"--configuration Release -p:Build{self.package_type.capitalize()}Package=true"
             ]
 
         return []
@@ -45,7 +52,7 @@ def main():
     platform_options = [
         ("All Platforms", None),
         ("Win", "x64"),
-        ("Win", "arm64"),
+        ("Win", "ARM64"),
         ("Linux", "x64", "deb"),
         ("Linux", "x64", "rpm"),
         ("Linux", "ARM", "deb"),
@@ -68,7 +75,6 @@ def main():
     print("Welcome to the BAMM Publisher!\n")
     menu_text = ""
 
-    # Building the menu
     for index, option in enumerate(platform_options):
         if option[0] == "All Platforms":
             menu_text += f"{index+1}. All Platforms\n"
@@ -80,7 +86,6 @@ def main():
                 f"{package_info}\n"
             )
 
-    # Choosing a menu option
     choice_index: int
     while True:
         raw_choice = input(
@@ -108,13 +113,15 @@ def main():
         commands = selected_platform.get_commands()
 
     target_directory = getcwd()
+    nologo_flag = " /nologo" 
 
     for cmd in commands:
-        print(f"\nExecuting: {cmd}\nTarget Directory: {target_directory}")
+        full_cmd = cmd + nologo_flag 
+        print(f"\nExecuting: {full_cmd}\nTarget Directory: {target_directory}")
 
         try:
             process = run(
-                cmd,
+                full_cmd, 
                 shell=True,
                 check=True,
                 text=True,
@@ -138,15 +145,18 @@ def main():
             if e.stderr.strip():
                 print(f"StdErr:\n{e.stderr.strip()}\n")
 
-            if "linux" in cmd:
+            if "BuildDebPackage" in cmd:
                 error += (
-                    "\nIf you are compiling for a Debian based Linux, please ensure dotnet-deb is installed by running.\n"
-                    "dotnet tool install --global dotnet-deb --version 0.1.232"
-                    
-                    "\nIf you are compiling for a Fedora based Linux, please ensure dotnet-deb is installed by running.\n"
-                    "dotnet tool install --global dotnet-rpm --version 0.1.232"
+                    "\nIf you are compiling for a **Debian** based Linux, please ensure the necessary tool/build target "
+                    "is installed, such as `dotnet tool install --global dotnet-deb --version 0.1.232`."
                 )
-            print(error)
+            elif "BuildRpmPackage" in cmd:
+                error += (
+                    "\nIf you are compiling for a **Fedora/RHEL** based Linux, please ensure the necessary tool/build target "
+                    "is installed, such as `dotnet tool install --global dotnet-rpm --version 0.1.232`."
+                )
+            
+            print(error) 
 
         except FileNotFoundError:
             print(f"Error: Command '{cmd.split()[0]}' not found.")
