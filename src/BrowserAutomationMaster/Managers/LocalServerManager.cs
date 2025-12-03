@@ -301,7 +301,6 @@ namespace BrowserAutomationMaster.Managers
 
             try
             {
-
                 var usedLHPorts = await ScanForUsedLHPorts();
 
                 if (usedLHPorts.Contains(port))
@@ -363,6 +362,19 @@ namespace BrowserAutomationMaster.Managers
             catch (InsufficientMemoryException)
             {
                 WriteAndExit("Unable to start the handler associated with BAMM's GUI due to insufficient memory.\n\n", 1);
+            }
+
+            catch (ObjectDisposedException)
+            {
+                WriteAndExit(
+                    message:
+                        string.Join(NLC, [
+                            "The GUI server has been terminated, please restart BAMM to use the GUI.",
+                            "If you did not terminate the GUI, this is likely a bug.",
+                            $"If this issue persists, please make a bug report at {ISSUES_LINK}"
+                        ]),
+                    status: 1
+                );
             }
 
             catch (Exception ex)
