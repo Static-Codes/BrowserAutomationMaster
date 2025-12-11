@@ -3,6 +3,11 @@ $releases_url = "https://api.github.com/repos/Static-Codes/BrowserAutomationMast
 $download_url = [string]::Empty
 $desktop_path = [Environment]::GetFolderPath("Desktop")
 
+if ([Security.Principal.WindowsIdentity]::GetCurrent().Groups.IsWellKnown('BuiltinAdministratorsSid') -eq $false) {
+    echo "Since you are not running Powershell/Windows Terminal as an Administrator, the installer does not have the required permissions to continue."
+    break
+}
+
 If ([string]::IsNullOrEmpty($desktop_path)){
     echo "The BAMM for Windows Installer is unable to determine the path of the current machine's desktop, please try again."
     break
@@ -87,8 +92,9 @@ try {
     $message = [string]::Format("Successfully downloaded the latest version of the installer to: {0}", $download_path)
     echo $message;
 
-    echo "Installing BAMM, please accept the UAC prompt, when requested; this will allow the installer the required permissions to complete the installation."
-    Start-Sleep -Seconds 3
+    echo "Starting the installer, please wait.."
+    Start-Sleep -Seconds 2
+    
     Start-Process -FilePath $download_path
     echo "Successfully started installation process, once the installation process is complete, feel free to delete the installer from your desktop."
     Start-Sleep -Seconds 3
