@@ -2,7 +2,6 @@
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
@@ -78,10 +77,10 @@ namespace BrowserAutomationMaster.Managers
                     status: 1
                 );
             }
+
             async void asyncWrap() { await HandleCLIArgs(method, filePath, scriptPath); }
             Task.Run(asyncWrap);
         }
-
 
         public void AddScript(string sourceFilePath, string fileName)
         {
@@ -174,6 +173,7 @@ namespace BrowserAutomationMaster.Managers
                     break;
             }
         }
+
     }
 
     public static class UserScriptExamples
