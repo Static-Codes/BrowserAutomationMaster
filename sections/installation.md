@@ -10,7 +10,7 @@
     # 1. Determines the version of Windows you are using, either ARM64 or x64
     # 2. Downloads the appropriate version of BAMM.
     # 3. Starts the installer, but does not explicitly install BAMM, you can manually cancel if you change your mind.
-    irm https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/Installers/Windows/install.sh | iex 
+    irm https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/Installers/Windows/install.ps1 | iex 
     ```
    
 - **Linux/MacOS**
