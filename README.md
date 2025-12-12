@@ -3,9 +3,7 @@
 
 A custom scripting language that compiles into Python 3.9+ code.
 
-Selenium automation in Python can involve a lot of repetitive code and detailed setup.  
-
-BAM Manager simplifies that process by allowing you to write automation scripts in a more concise, readable, and English-like language.  
+BAM Manager (BAMM) simplifies Selenium by allowing you to write automation scripts in a more concise, readable, and English-like language.  
 
 This language is known as **BAMC** **(BAM Config)**. 
 
@@ -15,16 +13,16 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
 
 ## Quick Start Guide 🚀
-- To get started with Browser Automation Master, please follow the [Quick Start Guide](https://static-codes.github.io/BAMM-Docs/)
+- To get started with BAMM, please follow the [Quick Start Guide](https://static-codes.github.io/BAMM-Docs/)
 
 
 ## Table of Contents 📖
 
-### [Installation](sections/installation.md)
+### [Installation/Uninstallation](sections/installation.md)
 
 ### [Examples](examples/)
 
-### [Compile BrowserAutomationMaster from Source](sections/compile.md)
+### [Compile BAMM from Source](sections/compile.md)
 
 ### [Roadmap](sections/roadmap.md)
 
