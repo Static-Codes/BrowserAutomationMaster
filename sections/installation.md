@@ -10,7 +10,7 @@
     # 1. Determines the version of Windows you are using, either ARM64 or x64
     # 2. Downloads the appropriate version of BAMM.
     # 3. Starts the installer, but does not explicitly install BAMM, you can manually cancel if you change your mind.
-    irm "https://bamm-install-hosted.vercel.app/windows" | iex 
+    irm "https://bamm-install.vercel.app/windows" | iex 
     ```
    
 - **Linux/MacOS**
@@ -23,7 +23,7 @@
   # 3. Downloads the appropriate package for BAMM.
   # 4. Installs the downloaded package.
   
-  curl -sL "https://bamm-install-hosted.vercel.app/unix" | /bin/bash
+  curl -sL "https://bamm-install.vercel.app/unix" | /bin/bash
   ```
 
 ## Opening BAMM 🚀
