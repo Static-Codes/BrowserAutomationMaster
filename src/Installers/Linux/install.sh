@@ -10,6 +10,15 @@ IS_ARMV8=false
 ###### Start of OS vars ######
 DEBIAN_DISTROS=("debian" "ubuntu" "pop" "linuxmint" "kali" "raspbian")
 FEDORA_DISTROS=("fedora" "centos" "rhel" "almalinux" "rocky" "oracle")
+IS_OSX=false
+
+if [ "$(uname -s)" = "Darwin" ]; then
+    IS_OSX=true
+fi
+
+if [ $IS_OSX = "true" ]; then
+    show_error_and_exit "Please use the macOS installer for BAMM, located at https://bamm-install.vercel.app/macos"
+fi
 
 OS_ID=$(cat /etc/os-release | grep "^ID=") || "Not Found"
 
@@ -26,7 +35,6 @@ fi
 
 IS_DEBIAN=false
 IS_FEDORA=false
-IS_OSX=false
 ###### End of OS vars ######
 
 
@@ -46,9 +54,7 @@ if [ "$CPU_ARCH" = "aarch64" ]; then
     IS_ARMV8=true
 fi
 
-if [ "$(uname -s)" = "Darwin" ]; then
-    IS_OSX=true
-fi
+
 
 for i in "${DEBIAN_DISTROS[@]}"; do
     if [[ $i =~ $DISTRO_NAME ]]; then
