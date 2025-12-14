@@ -1,3 +1,6 @@
+# DONT FORGET TO BUNDLE USING HOMEBREW!!!!
+# https://docs.brew.sh/Cask-Cookbook
+
 # Get the current version of macOS
 # Check if that version is >= 11
 # Get the current cpu architecture
