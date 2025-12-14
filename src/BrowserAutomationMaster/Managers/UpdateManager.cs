@@ -15,7 +15,7 @@ namespace BrowserAutomationMaster.Managers
 {
     public class UpdateManager()
     {
-        public const string CurrentVersion = "v1.0.0A5";
+        public const string CurrentVersion = "v1.0.0A6";
         // Assuming current is latest until further checks are done.
         public static string LatestVersion { get; set; } = CurrentVersion; 
         public static async Task CheckForUpdate()
@@ -90,12 +90,11 @@ namespace BrowserAutomationMaster.Managers
 
             if (versionIndex == -1) { 
                 Write(
-                    message: 
-                    $"BAM Manager (BAMM) was unable to check github for the latest version, " +
-                    $"if this issue persists, and you are positive your network connection is stable, " +
+                    "BAM Manager (BAMM) was unable to check github for the latest version, " +
+                    "if this issue persists, and you are positive your network connection is stable, " +
                     $"please make a bug report at {ISSUES_LINK}\n" +
-                    $"Error log:\n\n" +
-                    $"Unable to parse version from latest release response."
+                    $"Error log:{NLC}" +
+                    "Unable to parse version from latest release response."
                 ); 
             }
             else if (versionIndex < url.Length - 1) { 
@@ -160,8 +159,8 @@ namespace BrowserAutomationMaster.Managers
             {
                 uri = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.rpm"),
-                    Architecture.X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.rpm"),
+                    Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.rpm"),
+                    X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.rpm"),
                     _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-cpu-bypass flag.")
 
                 };

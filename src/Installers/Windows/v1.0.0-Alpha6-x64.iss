@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "BAM Manager (BAMM)"
-#define MyAppVersion "1.0.0-Alpha5"
+#define MyAppVersion "1.0.0-Alpha6"
 #define MyAppExeName "bamm.exe"
 #define MyAppAssocName "BAMM Config"
 #define MyAppAssocExt ".bamc"
@@ -20,8 +20,8 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
-OutputDir=..\..\Published Builds\BAMM-v1.0.0A5-x64
-OutputBaseFilename=BAMM-v1.0.0A5-x64-Setup
+OutputDir=..\..\Published Builds\BAMM-v1.0.0A6-x64
+OutputBaseFilename=BAMM-v1.0.0A6-x64-Setup
 SolidCompression=yes
 WizardStyle=modern
 
