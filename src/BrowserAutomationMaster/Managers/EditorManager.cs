@@ -238,7 +238,6 @@ namespace BrowserAutomationMaster.Managers
         {
             if (!File.Exists(FilePath))
             {
-                // Use standard exception handling instead of WriteAndExit
                 throw new FileNotFoundException("Unable to open the specified file, it has yet to be created.", FilePath);
             }
 
