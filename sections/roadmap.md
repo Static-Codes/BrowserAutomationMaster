@@ -70,7 +70,15 @@ For more complex scenarios, you'll be able to add multiple cookies using a JSON 
 add-cookies {"name": "value", "name2": "value2"}
 ```
 
-### 4. Set Property
+
+### 4. Add an Extension
+For situations that require external extensions, this command would allow the user to add a given extension to their active browser instance.
+```
+add-extension "path/to/firefox_extension.xpi"
+add-extension "path/to/chrome_extension.crx"
+```
+
+### 5. Set Property
 This command will allow you to dynamically change properties of HTML elements.
 ```
 set-element-property "selector" "property" "value"
@@ -129,12 +137,11 @@ Where `v` is the version (For example: 3.9)
   wait-for-seconds 0.3
   end-loop
   ```
+
    
 ## User Experience Enhancements
 - Allow users the ability to open a new explorer/finder window to that directory, provided there's at least 100MB of RAM available.
-- Reintroduce 32bit system support (win-x86, osx-x86, linux-x86)
 - Update documentation to reflect the new commands [here](changelog-for-latest.md)
-- Finish GUI
 
 ## LSP (Language Server Protocol)
 - This will allow you to create bamm scripts with syntax highlighting and other features similar to pylance.
