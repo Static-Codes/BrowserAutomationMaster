@@ -13,7 +13,7 @@
     irm "https://bamm-install.vercel.app/windows" | iex 
     ```
    
-- **Linux/MacOS**
+- **Linux**
   - Open a terminal and execute the following command:
   <br></br>
   ```
@@ -23,7 +23,7 @@
   # 3. Downloads the appropriate package for BAMM.
   # 4. Installs the downloaded package.
   
-  curl -sL "https://bamm-install.vercel.app/unix" | /bin/bash
+  curl -sL "https://bamm-install.vercel.app/linux" | /bin/bash
   ```
 
 ## Opening BAMM 🚀
