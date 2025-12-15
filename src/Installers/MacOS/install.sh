@@ -137,9 +137,9 @@ read -r -p "Would you like to bypass Apple Gatekeeper now? (Y/n): " confirm < /d
 # Uses pattern matching to confirm the user input.
 if [[ $confirm =~ ^[yY]$ ]]; then
     xattr -d com.apple.quarantine "${FINAL_BINARY_PATH}" # Executes the bypass command
-    BYPASS_EXIT_CODE=$?
+    GATEKEEPER_BYPASSED=$?
 
-    if [ "$BYPASS_EXIT_CODE" -eq 0 ]; then
+    if [ "$GATEKEEPER_BYPASSED" = 0 ]; then
         show_success "Successfully removed Apple Gatekeeper Quarantine."
     else
         show_warning "Failed to remove the Apple Gatekeeper Quarantine."
@@ -148,7 +148,7 @@ else
     show_warning "The installation was successful, but BAMM is still protected by Apple Gatekeeper, you will need to add an exception manually to open BAMM."
 fi
 
-if [ $GATEKEEPER_BYPASSED -eq 0 ]; then
+if [ $GATEKEEPER_BYPASSED = 0 ]; then
     show_success "Removed the Apple Gatekeeper Quarantine on BAMM."
 else
     show_warning "Failed to remove the Apple Gatekeeper Quarantine, please ensure this restriction is removed before attempting to open BAMM."
