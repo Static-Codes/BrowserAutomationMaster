@@ -16,10 +16,14 @@
 
 
 
-get_macos_version() {
-    sw_vers -productVersion | cut -d '.' -f 1,2
-}
 
+
+
+binary_exists() {
+    if [ ! -f "$1" ]; then
+        show_error_and_exit "The BAMM installer for macOS was unable to download the latest release, if this issue persists, please make a bug report at $BUG_REPORT_LINK"
+    fi
+}
 
 check_cpu() 
 {
@@ -37,6 +41,10 @@ check_cpu()
     fi
 }
 
+download_binary() {
+    curl -sL "${DOWNLOAD_URL}" -o "${DOWNLOAD_LOCATION}/${APP_NAME}" || show_error_and_exit "Unable to download the latest release of BAMM, please make a bug report at $BUG_REPORT_LINK"
+}
+
 # Credits to Lukechilds (https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c)
 get_latest_release() {
   curl -s "https://api.github.com/repos/static-codes/browserautomationmaster/releases/latest" |
@@ -44,11 +52,9 @@ get_latest_release() {
     sed -E 's/.*"([^"]+)".*/\1/'
 }
 
-
-download_binary() {
-    curl -sL "${DOWNLOAD_URL}" -o "${DOWNLOAD_LOCATION}/${APP_NAME}" || show_error_and_exit "Unable to download the latest release of BAMM, please make a bug report at $BUG_REPORT_LINK"
+get_macos_version() {
+    sw_vers -productVersion | cut -d '.' -f 1,2
 }
-
 
 show_error() {
     echo "[ERROR]: $1"
@@ -59,6 +65,10 @@ show_error_and_exit() {
     exit
 }
 
+show_info() {
+    echo "[INFO]: $1"
+}
+
 show_warning() {
     echo "[WARNING]: $1"
 }
@@ -67,11 +77,7 @@ show_success() {
     echo "[SUCCESS]: $1"
 }
 
-show_info() {
-    echo "[INFO]: $1"
-}
-
-
+# ---- VARIABLES ----
 APP_NAME=""
 ARCH=""
 BASE_RELEASE_URL="https://github.com/Static-Codes/BrowserAutomationMaster/releases/download"
@@ -88,20 +94,19 @@ if echo "$MACOS_VERSION < 11.0" | bc -l | grep -q 1; then
     show_info "Please ensure macOS 11 or later is installed, or try using the latest Windows version through Bootcamp." 
 fi
 
-check_cpu
+check_cpu # Checks the CPU and assigns values to required variables
 
-LATEST_RELEASE=$(get_latest_release)
+LATEST_RELEASE=$(get_latest_release) # Grabs the lastest release (v.X.X.XAX) (Example: v.1.0.0A6)
 
-
+# Null checks on macOS version and Latest Release tag
 if [ -z "$MACOS_VERSION" ] || [ -z "$LATEST_RELEASE" ]; then
     show_error_and_exit "The BAMM Installer for macOS was unable to determine the latest release URL. If this issue persists, please make a bug report at $BUG_REPORT_LINK"
 fi
 
 
-REQUIRES_RENAME=false
-
 # The binary for Apple M Series machines is named bamm-silicon.
 # To align with the rest of the guide in the main repo, it needs to be renamed.
+REQUIRES_RENAME=false
 if [ "$APP_NAME" = "bamm-silicon" ]; then
     REQUIRES_RENAME=true
 fi
@@ -113,6 +118,8 @@ echo "=============================================="
 show_info "Installing BAMM ${LATEST_RELEASE} for ${MAC_TYPE} Macs (${ARCH})"
 show_info "Downloading from: ${DOWNLOAD_URL}"
 show_info "Downloading to ${DOWNLOAD_LOCATION}/${APP_NAME}"
+download_binary # Downloads the binary
+binary_exists # Checks that the binary exists, exits with an error if not.
 show_success "Downloaded BAMM ${LATEST_RELEASE} for ${MAC_TYPE} Macs (${ARCH})"
 
 
@@ -128,7 +135,7 @@ show_info "The binary requires executable permissions, please wait."
 chmod +x "${FINAL_BINARY_PATH}"
 show_success "The binary was given the required executable permissions, continuing."
 
-
+# Gatekeeper Confirmation
 show_warning "The binary is currently protected by Apple Gatekeeper."
 show_info "You will be asked if you want to bypass this, please note, this is not a requirement to complete the install, but it is a requirement to run BAMM"
 
@@ -142,20 +149,12 @@ if [[ $confirm =~ ^[yY]$ ]]; then
     GATEKEEPER_BYPASSED=$?
 
     if [ "$GATEKEEPER_BYPASSED" = 0 ]; then
-        show_success "Successfully removed Apple Gatekeeper Quarantine."
+        show_success "Removed Apple Gatekeeper Quarantine."
     else
         show_warning "Failed to remove the Apple Gatekeeper Quarantine."
     fi
 else
     show_warning "The installation was successful, but BAMM is still protected by Apple Gatekeeper, you will need to add an exception manually to open BAMM."
-fi
-
-if [ $GATEKEEPER_BYPASSED = 0 ]; then
-    show_success "Removed the Apple Gatekeeper Quarantine on BAMM."
-else
-    show_warning "Failed to remove the Apple Gatekeeper Quarantine, please ensure this restriction is removed before attempting to open BAMM."
-    show_info "To remove the Apple Gatekeeper Quarantine (if present) enter the following command:"
-    echo xattr -d com.apple.quarantine "${FINAL_BINARY_PATH}"
 fi
 
 show_success "Installation complete, thank you for choosing BAMM. - Static" 
