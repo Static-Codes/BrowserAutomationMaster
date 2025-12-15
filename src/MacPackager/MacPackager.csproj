@@ -82,4 +82,8 @@
 		<PackageReference Include="Spectre.Console" Version="0.50.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BrowserAutomationMaster\BrowserAutomationMaster.csproj" />
+  </ItemGroup>
+
 </Project>

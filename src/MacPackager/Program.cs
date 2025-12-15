@@ -1,10 +1,12 @@
-﻿namespace MacPackager
+﻿using System.Threading.Tasks;
+
+namespace MacPackager
 {
-    internal class Program
+    internal class Program 
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            Console.WriteLine(await PlistManager.GetPlistContent());
         }
     }
 }

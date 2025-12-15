@@ -40,7 +40,7 @@ namespace BrowserAutomationMaster.Managers
                 WriteSuccessMessage($"BAM Manager (BAMM) is currently running the latest release ({LatestVersion})");
         }
 
-        private static async Task<string> GetLatestVersion()
+        public static async Task<string> GetLatestVersion()
         {
             HttpResponseMessage? response = new();
             try
