@@ -12,7 +12,25 @@
     # 3. Starts the installer, but does not explicitly install BAMM, you can manually cancel if you change your mind.
     irm "https://bamm-install.vercel.app/windows" | iex 
     ```
-   
+- **macOS**
+  - Open terminal and execute the following command:
+  <br></br>
+  ```
+  # Downloads and executes the installer script which does the following:
+  # 1. Determines your macOS version, and validates its atleast 11.0
+  # 2. Determines your CPU Architecture
+  # 3. Downloads the appropriate binary for your CPU's Architecture
+  # 4. Starts the installer, and downloads the binary to your Desktop.
+  # 5. Checks if the binary is restricted by Apple Gatekeeper
+  
+  # If the installer is restricted:
+  # You will be prompted whether or not you want the installer to lift the restriction.
+  # Apple advises against this, as malware can be written for macOS.
+  # The alternative is paying $99/year for an Apple Developer Account, which is not feasible for such a small project.
+
+  curl -sL "https://bamm-install.vercel.app/macos" | bin/bash
+  ```
+  
 - **Linux**
   - Open a terminal and execute the following command:
   <br></br>
