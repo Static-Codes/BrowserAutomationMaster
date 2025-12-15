@@ -73,6 +73,7 @@ show_info() {
 
 
 APP_NAME=""
+ARCH=""
 BASE_RELEASE_URL="https://github.com/Static-Codes/BrowserAutomationMaster/releases/download"
 BUG_REPORT_LINK="https://github.com/Static-Codes/BrowserAutomationMaster/issues"
 DOWNLOAD_LOCATION="$HOME/Desktop"
@@ -91,8 +92,7 @@ LATEST_RELEASE=$(get_latest_release)
 
 
 if [ -z "$MACOS_VERSION" ] || [ -z "$LATEST_RELEASE" ]; then
-    echo "The BAMM Installer for macOS was unable to determine the latest release URL. If this issue persists, please make a bug report at $BUG_REPORT_LINK"
-    return 1
+    show_error_and_exit "The BAMM Installer for macOS was unable to determine the latest release URL. If this issue persists, please make a bug report at $BUG_REPORT_LINK"
 fi
 
 
@@ -136,7 +136,6 @@ read -r -p "Would you like to bypass Apple Gatekeeper now? (Y/n): " confirm
 # Uses pattern matching to confirm the user input. If the
 if [[ ! $confirm  =~ [Yy] ]]; then
     show_warning "The installation was successful, but BAMM is still protected by Apple Gatekeeper, you will need to add an exception manually to open BAMM."
-    return 0
 else 
     xattr -d com.apple.quarantine "${FINAL_BINARY_PATH}"
     # All other comparisons were done with boolean operators, but this one liner is much more concise. 
