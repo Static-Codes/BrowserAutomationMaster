@@ -130,7 +130,8 @@ show_success "The binary was given the required executable permissions, continui
 show_warning "The binary is currently protected by Apple Gatekeeper."
 show_info "You will be asked if you want to bypass this, please note, this is not a requirement to complete the install, but it is a requirement to run BAMM"
 
-read -r -p "Would you like to bypass Apple Gatekeeper now? (Y/n): " confirm
+# Attempting to redirect the current terminal's console input via /dev/tty
+read -r -p "Would you like to bypass Apple Gatekeeper now? (Y/n): " confirm < /dev/tty
 
 
 # Uses pattern matching to confirm the user input. If the
