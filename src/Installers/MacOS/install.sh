@@ -88,6 +88,8 @@ if echo "$MACOS_VERSION < 11.0" | bc -l | grep -q 1; then
     show_info "Please ensure macOS 11 or later is installed, or try using the latest Windows version through Bootcamp." 
 fi
 
+check_cpu
+
 LATEST_RELEASE=$(get_latest_release)
 
 
