@@ -127,14 +127,14 @@ chmod +x "${FINAL_BINARY_PATH}"
 show_success "The binary was given the required executable permissions, continuing."
 
 # Gatekeeper Check and Confirmation (if present)
-GATEKEEPER_PROTECTED=$(has_quarantine_attribute "$FINAL_BINARY_PATH")
-
-if [ "$GATEKEEPER_PROTECTED" = 0 ]; then 
+if has_quarantine_attribute "$FINAL_BINARY_PATH"; then
     show_warning "The binary is currently protected by Apple Gatekeeper."
     show_info "You will be asked if you want to bypass this, please note, this is not a requirement to complete the install, but it is a requirement to run BAMM"
 
     # Attempting to redirect the current terminal's console input via /dev/tty
     read -r -p "Would you like to bypass Apple Gatekeeper now? (Y/n): " confirm < /dev/tty
+else
+    show_info "The downloaded release is not quarantined by Apple Gatekeeper, skipping bypass confirmation."
 fi
 
 # Uses pattern matching to confirm the user input.
