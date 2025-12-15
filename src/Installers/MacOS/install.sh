@@ -134,14 +134,18 @@ show_info "You will be asked if you want to bypass this, please note, this is no
 read -r -p "Would you like to bypass Apple Gatekeeper now? (Y/n): " confirm < /dev/tty
 
 
-# Uses pattern matching to confirm the user input. If the
-if [[ ! $confirm  =~ [Yy] ]]; then
+# Uses pattern matching to confirm the user input.
+if [[ $confirm =~ ^[yY]$ ]]; then
+    xattr -d com.apple.quarantine "${FINAL_BINARY_PATH}" # Executes the bypass command
+    BYPASS_EXIT_CODE=$?
+
+    if [ "$BYPASS_EXIT_CODE" -eq 0 ]; then
+        show_success "Successfully removed Apple Gatekeeper Quarantine."
+    else
+        show_warning "Failed to remove the Apple Gatekeeper Quarantine."
+    fi
+else
     show_warning "The installation was successful, but BAMM is still protected by Apple Gatekeeper, you will need to add an exception manually to open BAMM."
-else 
-    xattr -d com.apple.quarantine "${FINAL_BINARY_PATH}"
-    # All other comparisons were done with boolean operators, but this one liner is much more concise. 
-    # $? returns the exit code associated with the last executed command.
-    GATEKEEPER_BYPASSED=$?
 fi
 
 if [ $GATEKEEPER_BYPASSED -eq 0 ]; then
