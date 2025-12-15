@@ -129,7 +129,7 @@ show_success "The binary was given the required executable permissions, continui
 # Gatekeeper Check and Confirmation (if present)
 GATEKEEPER_PROTECTED=$(has_quarantine_attribute "$FINAL_BINARY_PATH")
 
-if [ "$GATEKEEPER_PROTECTED" -eq 0 ]; then 
+if [ "$GATEKEEPER_PROTECTED" = 0 ]; then 
     show_warning "The binary is currently protected by Apple Gatekeeper."
     show_info "You will be asked if you want to bypass this, please note, this is not a requirement to complete the install, but it is a requirement to run BAMM"
 
