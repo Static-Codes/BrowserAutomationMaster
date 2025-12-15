@@ -1,24 +1,5 @@
 #!/bin/bash
 
-# DONT FORGET TO BUNDLE USING HOMEBREW!!!!
-# https://docs.brew.sh/Cask-Cookbook
-
-# Get the current version of macOS
-# Check if that version is >= 11
-# Get the current cpu architecture
-# Assign the correct download url associated with the current cpu architecture
-# Download the binary
-# If the user is on silicon, the download needs to be renamed from bamm-silicon to bamm
-
-# Give the user instructions on
-# 1. How to give the appropriate permissions to the binary ('chmod +x')
-# 2. How to bypass gatekeeper if they wish
-
-
-
-
-
-
 binary_exists() 
 {
     show_info "Validating download binary at: $FINAL_BINARY_PATH"
@@ -56,6 +37,13 @@ get_latest_release() {
 
 get_macos_version() {
     sw_vers -productVersion | cut -d '.' -f 1,2
+}
+
+has_quarantine_attribute() {
+    # If xattr -p returns a non-zero exit code, the restriction is not currently present.
+    # Using /dev/null suppresses the "No such xattr: com.apple.quarantine" error message.
+    xattr -p com.apple.quarantine "$1" 2>/dev/null
+    return $?
 }
 
 show_error() {
@@ -138,13 +126,16 @@ show_info "The binary requires executable permissions, please wait."
 chmod +x "${FINAL_BINARY_PATH}"
 show_success "The binary was given the required executable permissions, continuing."
 
-# Gatekeeper Confirmation
-show_warning "The binary is currently protected by Apple Gatekeeper."
-show_info "You will be asked if you want to bypass this, please note, this is not a requirement to complete the install, but it is a requirement to run BAMM"
+# Gatekeeper Check and Confirmation (if present)
+GATEKEEPER_PROTECTED=$(has_quarantine_attribute "$FINAL_BINARY_PATH")
 
-# Attempting to redirect the current terminal's console input via /dev/tty
-read -r -p "Would you like to bypass Apple Gatekeeper now? (Y/n): " confirm < /dev/tty
+if [ "$GATEKEEPER_PROTECTED" -eq 0 ]; then 
+    show_warning "The binary is currently protected by Apple Gatekeeper."
+    show_info "You will be asked if you want to bypass this, please note, this is not a requirement to complete the install, but it is a requirement to run BAMM"
 
+    # Attempting to redirect the current terminal's console input via /dev/tty
+    read -r -p "Would you like to bypass Apple Gatekeeper now? (Y/n): " confirm < /dev/tty
+fi
 
 # Uses pattern matching to confirm the user input.
 if [[ $confirm =~ ^[yY]$ ]]; then
