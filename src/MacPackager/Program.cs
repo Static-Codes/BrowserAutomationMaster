@@ -4,9 +4,11 @@ namespace MacPackager
 {
     internal class Program 
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            Console.WriteLine(await PlistManager.GetPlistContent());
+            // Console.WriteLine(await PlistManager.GetPlistContent());
+            var bundleManager = new BundleManager();
+            bundleManager.BuildBundle();
         }
     }
 }

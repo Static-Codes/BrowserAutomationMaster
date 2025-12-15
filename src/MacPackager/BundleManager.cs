@@ -91,8 +91,8 @@ namespace MacPackager
                             {
                                 new DirectoryContents()
                                 {
-                                    FilePath = "BAMM",
-                                    FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT"
+                                    FilePath = "bamm",
+                                    FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
                                 }
                             }
                         },
@@ -117,20 +117,49 @@ namespace MacPackager
 
         // Apparently IReadOnlyList isn't just semantic, it provides methods associated with a readonly element.
         private IReadOnlyList<BundleStructure> GetBundleStructure() => bundleStructure;
-        public void BuildBundle() 
-        {
-            var BundleDirectoryStructure = GetBundleStructure();
 
+        public void BuildBundle()
+        {
+            var bundleDirectoryStructure = GetBundleStructure();
+
+            // Ensures MACOS_RELEASE/ exists
             DirectoryManager.EnsureDirectoryExists(PARENT_DIRECTORY);
 
-            foreach (var directory in BundleDirectoryStructure) 
+            foreach (var bundle in bundleDirectoryStructure)
             {
-                var CHILD_DIR = directory.DirectoryName;
-                var GRANDCHILD_DIRS = directory.Subdirectory;
+                // Start building from PARENT_DIRECTORY/BAMM.app
+                BuildDirectory(PARENT_DIRECTORY, bundle.DirectoryName, bundle.Subdirectory);
+            }
+        }
 
-                var CHILD_PATH = Path.Combine(PARENT_DIRECTORY, CHILD_DIR);
-                var GRANDCHILD_PATHS = new string[] {};
-                
+        // THIS IS RECURSIVE, HANDLE ACCORDINGLY.
+        private void BuildDirectory(string parentPath, string currentDirName, SubDirectory subStructure)
+        {
+            // PARENT_DIRECTORY/BAMM.app
+            var currentDirPath = Path.Combine(parentPath, currentDirName);
+            DirectoryManager.EnsureDirectoryExists(currentDirPath);
+            
+            // Inserts /MACOS_RELEASE/BAMM.app/Contents/Info.plist
+            if (subStructure.DirectoryContents != null)
+            {
+                foreach (var file in subStructure.DirectoryContents)
+                {
+                    var filePath = Path.Combine(currentDirPath, file.FilePath);
+                    Console.WriteLine($"Writing file: {filePath}");
+                    File.WriteAllText(filePath, file.FileContents);
+                }
+            }
+
+            // Inserts 
+            // /MACOS_RELEASE/BAMM.app/Contents/MacOS/bamm 
+            // /MACOS_RELEASE/BAMM.app/Contents/Resources/AppIcon.icns
+            if (subStructure.SubDirectories != null)
+            {
+                foreach (var subDir in subStructure.SubDirectories)
+                {
+                    // currentDirPath overwrites the previously value of parentPath, then the child is created with the appropriate structure.
+                    BuildDirectory(currentDirPath, subDir.DirectoryName, subDir);
+                }
             }
         }
 
