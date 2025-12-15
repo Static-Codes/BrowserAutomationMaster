@@ -6,6 +6,6 @@
 
 #### - [Repo](https://github.com/hansalemaos/a_selenium_click_on_coords/) | [Github](https://github.com/hansalemaos) | [Linkedin](https://www.linkedin.com/in/johannes-fischer-1b6186147/)
 
-### Thanks to Luke for the basis of the Linux installer 
+### Thanks to Luke for a function in the Unix installers
 
 #### - [Gist](https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c) | [Github](https://github.com/lukechilds) | [Twitter](https://twitter.com/lukechilds)
