@@ -119,7 +119,7 @@ show_info "Installing BAMM ${LATEST_RELEASE} for ${MAC_TYPE} Macs (${ARCH})"
 show_info "Downloading from: ${DOWNLOAD_URL}"
 show_info "Downloading to ${DOWNLOAD_LOCATION}/${APP_NAME}"
 download_binary # Downloads the binary
-binary_exists "$FINAL_BINARY_PATH" # Checks that the binary exists, exits with an error if not.
+binary_exists "${DOWNLOAD_LOCATION}/${APP_NAME}" # Checks that the binary exists, exits with an error if not.
 show_success "Downloaded BAMM ${LATEST_RELEASE} for ${MAC_TYPE} Macs (${ARCH})"
 
 
