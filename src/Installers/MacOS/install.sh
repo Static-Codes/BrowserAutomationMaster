@@ -127,28 +127,41 @@ chmod +x "${FINAL_BINARY_PATH}"
 show_success "The binary was given the required executable permissions, continuing."
 
 # Gatekeeper Check and Confirmation (if present)
+
+# Preemptively ensuring an empty input is handled, before it causes an error. (This would happen if the user presses enter without entering an option)
+confirm=${confirm:-n}
+
 if has_quarantine_attribute "$FINAL_BINARY_PATH"; then
     show_warning "The binary is currently protected by Apple Gatekeeper."
     show_info "You will be asked if you want to bypass this, please note, this is not a requirement to complete the install, but it is a requirement to run BAMM"
 
     # Attempting to redirect the current terminal's console input via /dev/tty
     read -r -p "Would you like to bypass Apple Gatekeeper now? (Y/n): " confirm < /dev/tty
+    
+    # Uses pattern matching to confirm the user input.
+    if [[ $confirm =~ ^[yY]$ ]]; then
+    
+        # If the confirms their intent to bypass, the command is executed below
+        xattr -d com.apple.quarantine "${FINAL_BINARY_PATH}"
+        GATEKEEPER_BYPASSED=$?
+
+        # Displays a success or warning message, associated with the bypass attempt.
+        if [ "$GATEKEEPER_BYPASSED" = 0 ]; then
+            show_success "Removed Apple Gatekeeper Quarantine."
+        else
+            show_warning "Failed to remove the Apple Gatekeeper Quarantine."
+        fi
+
+    else
+        show_warning "The installation was successful, but BAMM is still protected by Apple Gatekeeper, you will need to add an exception to open BAMM."
+        show_info "Please run the command below to lift the restrictions imposed by Apple Gatekeeper:"
+        echo "xattr -d com.apple.quarantine \"${FINAL_BINARY_PATH}\""
+    fi
+
+
+# No restrictions are present, as such the installation completed with no issues. (This is the most likely outcome)
 else
     show_info "The downloaded release is not quarantined by Apple Gatekeeper, skipping bypass confirmation."
-fi
-
-# Uses pattern matching to confirm the user input.
-if [[ $confirm =~ ^[yY]$ ]]; then
-    xattr -d com.apple.quarantine "${FINAL_BINARY_PATH}" # Executes the bypass command
-    GATEKEEPER_BYPASSED=$?
-
-    if [ "$GATEKEEPER_BYPASSED" = 0 ]; then
-        show_success "Removed Apple Gatekeeper Quarantine."
-    else
-        show_warning "Failed to remove the Apple Gatekeeper Quarantine."
-    fi
-else
-    show_warning "The installation was successful, but BAMM is still protected by Apple Gatekeeper, you will need to add an exception manually to open BAMM."
 fi
 
 show_success "Installation complete, thank you for choosing BAMM. - Static" 
