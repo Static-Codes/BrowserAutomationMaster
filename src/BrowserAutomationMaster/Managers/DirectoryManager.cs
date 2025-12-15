@@ -8,7 +8,7 @@ using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {
-    class DirectoryManager
+    public class DirectoryManager
     {
         public static string AppDataDirectory { get; private set; } = GetAppDataDirectory();
         public static void ArchiveAppDataDirectory(string compression = "zip", string? outputPath = null)
