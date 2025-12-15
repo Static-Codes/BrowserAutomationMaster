@@ -19,7 +19,9 @@
 
 
 
-binary_exists() {
+binary_exists() 
+{
+    show_info "Validating download binary at: $FINAL_BINARY_PATH"
     if [ ! -f "$1" ]; then
         show_error_and_exit "The BAMM installer for macOS was unable to download the latest release, if this issue persists, please make a bug report at $BUG_REPORT_LINK"
     fi
@@ -114,12 +116,13 @@ fi
 
 # Downloading the binary
 DOWNLOAD_URL="${BASE_RELEASE_URL}/${LATEST_RELEASE}/${APP_NAME}"
+BINARY_PATH="${DOWNLOAD_LOCATION}/${APP_NAME}"
 echo "=============================================="
 show_info "Installing BAMM ${LATEST_RELEASE} for ${MAC_TYPE} Macs (${ARCH})"
 show_info "Downloading from: ${DOWNLOAD_URL}"
 show_info "Downloading to ${DOWNLOAD_LOCATION}/${APP_NAME}"
 download_binary # Downloads the binary
-binary_exists "${DOWNLOAD_LOCATION}/${APP_NAME}" # Checks that the binary exists, exits with an error if not.
+binary_exists "$BINARY_PATH" # Checks that the binary exists, exits with an error if not.
 show_success "Downloaded BAMM ${LATEST_RELEASE} for ${MAC_TYPE} Macs (${ARCH})"
 
 
