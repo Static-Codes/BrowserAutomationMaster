@@ -423,22 +423,6 @@ namespace MacPackager
                 WriteAndExit("[ERROR]: The length of the provided file is less than 4 bytes, this indicates it is not a valid binary.", 1);
             }
 
-            // Console.WriteLine("[INFO]: Resetting stream position prior to comparison.");
-
-            // binaryStream.Position = 0;
-
-            // WriteSuccessMessage("[SUCCESS]: Resetting stream position prior to comparison.");
-
-            // // Console.WriteLine($"[INFO]: {binaryStream.Length} bytes detected in the provided file.");
-            // Console.WriteLine($"[INFO]: Creating a 4 byte array for comparison.");
-
-            // Console.WriteLine("[INFO]: Copying bytes to newly created array.");
-            // using var tempStream = new MemoryStream();
-            // binaryStream.CopyTo(tempStream);
-
-            // byte[] first4Bytes = tempStream.ToArray();
-            // WriteSuccessMessage($"[SUCCESS]: Copied 4 bytes to newly created byte array.");
-
             byte[] first4Bytes = new byte[4];
             try 
             {
