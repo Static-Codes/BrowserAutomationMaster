@@ -145,6 +145,15 @@ namespace MacPackager
                 // Start building from PARENT_DIRECTORY/BAMM.app
                 BuildDirectory(PARENT_DIRECTORY, bundle.DirectoryName, bundle.Subdirectory);
             }
+
+            WriteSuccessMessage("[SUCCESS]: Completed the BAMM for macOS application bundle process");
+            
+            if (ClipboardHelper.TrySetText(PARENT_DIRECTORY))
+            {
+                WriteSuccessMessageAndExit("[SUCCESS]: Copied the path of the application bundle to your clipboard.", 0);   
+            }
+
+            Warning.Write($"[WARNING]: Failed to copy the path of the application bundle to your clipboard, it can be found at: {PARENT_DIRECTORY}");
         }
 
         // THIS IS RECURSIVE, HANDLE ACCORDINGLY.
@@ -284,10 +293,12 @@ namespace MacPackager
                     status: 1
                 );
             }
-            return memoryStream;
+
 
             // DEBUGGING ONLY
             // File.WriteAllBytes("AppIcon.icns", Encoding.UTF8.GetBytes(reader.ReadToEnd()));
+
+            return memoryStream;
         }
 
         // Currently only used for AppIcon.icns, however, will work for all embedded project resources if needbe.
