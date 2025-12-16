@@ -49,6 +49,11 @@ namespace MacPackager
         public required MemoryStream? FileContents { get; init; }
     }
 
+    readonly struct BundleConfig() 
+    {
+
+    }
+
     public class BundleManager
     {
         private static readonly string filePath = Input.AskForInput("Please enter the path to a valid standalone binary of BAMM compiled for macOS: ");
@@ -163,9 +168,9 @@ namespace MacPackager
             var currentDirPath = Path.Combine(parentPath, currentDirName);
             
             if (parentPath.EndsWith("MACOS_RELEASE")) {
-                Console.WriteLine($"[INFO]: Creating base bundle directory at: {currentDirPath}");
+                Console.WriteLine($"[INFO]: Creating base application bundle directory at: {currentDirPath}");
             } else {
-                Console.WriteLine($"[INFO]: Creating new bundle directory at: {currentDirPath}");
+                Console.WriteLine($"[INFO]: Creating new directory for application bundle at: {currentDirPath}");
             }
 
             DirectoryManager.EnsureDirectoryExists(currentDirPath);
@@ -193,13 +198,15 @@ namespace MacPackager
 
                     catch (Exception ex)
                     {
-                        WriteAndExit(
+                        WriteAndExit
+                        (
                             string.Join(NLC, [ 
                                 "A fatal error occured while writing a file to the application bundle.",
                                 $"File Location: {filePath}",
                                 $"Error Log: {ex.StackTrace ?? ex.Message}",
                             ]), 
-                            status: 1
+                            status: 1,
+                            writePlatformDebugInfo: false
                         );
                     }
 
@@ -290,13 +297,15 @@ namespace MacPackager
 
             catch (Exception ex) 
             {
-                WriteAndExit(
+                WriteAndExit
+                (
                     string.Join(NLC, [
                         $"[ERROR]: An exception occured while trying to retrieve the contents of: {resourceName}",
                         "Error Log:",
                         ex.StackTrace ?? ex.Message,
                     ]), 
-                    status: 1
+                    status: 1,
+                    writePlatformDebugInfo: false
                 );
             }
 
@@ -319,19 +328,29 @@ namespace MacPackager
 
                 if (resourceStream == null) 
                 {
-                    WriteAndExit(string.Join(NLC, [
-                        $"[ERROR]: An exception occured while trying to retrieve the contents of: {resourceName}",
-                        "Error Log:",
-                        "resourceStream returned null"
-                    ]), status: 1);
+                    WriteAndExit
+                    (
+                        string.Join(NLC, [
+                            $"[ERROR]: An exception occured while trying to retrieve the contents of: {resourceName}",
+                            "Error Log:",
+                            "resourceStream returned null"
+                        ]), 
+                        status: 1,
+                        writePlatformDebugInfo: false
+                    );
                 }
             }
             catch (Exception ex)
             {
-                WriteAndExit(string.Join(NLC, [
-                    $"[ERROR]: An exception occured while trying to retrieve the contents of: {resourceName}",
-                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
-                ]), status: 1);
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        $"[ERROR]: An exception occured while trying to retrieve the contents of: {resourceName}",
+                        $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
             }
 
             return resourceStream;
@@ -363,10 +382,15 @@ namespace MacPackager
 
             catch (Exception ex)
             {
-                WriteAndExit(string.Join(NLC, [
-                    $"[ERROR]: An exception occured while trying to read the contents of: {filePath}",
-                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
-                ]), status: 1);
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        $"[ERROR]: An exception occured while trying to read the contents of: {filePath}",
+                        $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
             }
 
             Console.WriteLine("[INFO]: Creating a temporary MemoryStream object.");
@@ -383,10 +407,15 @@ namespace MacPackager
 
             catch (Exception ex)
             {
-                WriteAndExit(string.Join(NLC, [
-                    $"[ERROR]: An exception occured while trying to copying the generic Stream object.",
-                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
-                ]), status: 1);
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        $"[ERROR]: An exception occured while trying to copying the generic Stream object.",
+                        $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
             }
 
             WriteSuccessMessage("[SUCCESS]: Sending macOS binary contents to the BAMM for macOS Publisher.");
@@ -400,12 +429,22 @@ namespace MacPackager
         {
             if (Path.HasExtension(filePath)) 
             {
-                WriteAndExit("[ERROR]: The provided file is not a valid standalone binary for macOS, it contains a file extension.", 1);
+                WriteAndExit
+                (
+                    message: "[ERROR]: The provided file is not a valid standalone binary for macOS, it contains a file extension.", 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
             }
 
             if (!File.Exists(filePath)) 
             {
-                WriteAndExit("[ERROR]: The provided file does not exist.", 1);
+                WriteAndExit
+                (
+                    message: "[ERROR]: The provided file does not exist.", 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
             }
 
             
@@ -416,10 +455,15 @@ namespace MacPackager
                 
                 if (binaryStream is null)
                 {
-                    WriteAndExit(string.Join(NLC, [
-                        "[ERROR]: An exception occured while trying to validate the provided file.",
-                        "Error Log: binaryStream is null."
-                    ]), status: 1);
+                    WriteAndExit
+                    (
+                        string.Join(NLC, [
+                            "[ERROR]: An exception occured while trying to validate the provided file.",
+                            "Error Log: binaryStream is null."
+                        ]), 
+                        status: 1,
+                        writePlatformDebugInfo: false
+                    );
                 }
 
                 WriteSuccessMessage("[SUCCESS]: Read the first 4 bytes of the provided file.");
@@ -427,17 +471,27 @@ namespace MacPackager
 
             catch (Exception ex)
             {
-                WriteAndExit(string.Join(NLC, [
-                    $"[ERROR]: An exception occured while trying to validate the provided file.",
-                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
-                ]), status: 1);
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        $"[ERROR]: An exception occured while trying to validate the provided file.",
+                        $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
             }
 
 
 
             if (binaryStream.Length < 4)
             {
-                WriteAndExit("[ERROR]: The length of the provided file is less than 4 bytes, this indicates it is not a valid binary.", 1);
+                WriteAndExit
+                (
+                    message: "[ERROR]: The length of the provided file is less than 4 bytes, this indicates it is not a valid binary.", 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
             }
 
             byte[] first4Bytes = new byte[4];
@@ -449,10 +503,16 @@ namespace MacPackager
             }
 
             catch (Exception ex) {
-                WriteAndExit(string.Join(NLC, [
-                    $"[ERROR]: An exception occured while trying to validate the provided file.",
-                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
-                ]), status: 1);
+                WriteAndExit
+                (
+                    string.Join(NLC, 
+                    [
+                        $"[ERROR]: An exception occured while trying to validate the provided file.",
+                        $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false,
+                );
             }
 
             Console.WriteLine("[INFO]: Disposing of leftover stream.");
@@ -460,15 +520,22 @@ namespace MacPackager
             WriteSuccessMessage("[SUCCESS]: Disposed of leftover stream.");
 
 
-            Console.WriteLine("[INFO]: Comparing the 4 scanned bytes to documented Apple Magic Numbers for x64 CPU Architecture (0xcffaedfe).");
+            Console.WriteLine("[INFO]: Comparing the 4 copied bytes to documented Apple Magic Numbers for x64 CPU Architecture (0xcffaedfe).");
             var appleMagicNumbers = new byte[4] { 0xcf, 0xfa, 0xed, 0xfe };
             var isMachOBinary = first4Bytes.SequenceEqual(appleMagicNumbers);
 
             if (isMachOBinary) {
                 WriteSuccessMessage("[SUCCESS]: The provided file is a valid macOS binary!");
-            } else {
-                WriteAndExit("[ERROR]: The provided file is not a valid macOS binary as it did not match the documented Apple Magic Numbers for x64 CPU Architecture (0xcffaedfe).", 1);
+                return;
             }
+
+            WriteAndExit
+            (
+                "[ERROR]: The provided file is not a valid macOS binary, as it did not match the documented Apple Magic Numbers for x64 CPU Architecture (0xcffaedfe).", 
+                status: 1,
+                writePlatformDebugInfo: false
+            );
+            
         }
     }
 }

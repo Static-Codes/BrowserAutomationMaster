@@ -32,9 +32,14 @@ namespace BrowserAutomationMaster.Messaging
         }
 
         [DoesNotReturn]
-        public static void WriteAndExit(string message, int status)
+        public static void WriteAndExit(string message, int status, bool writePlatformDebugInfo = true)
         {
-            var output = $"{message}\n{GetPlatformInfoForErrorLog()}";
+            var output = writePlatformDebugInfo switch 
+            {
+                true => $"{message}\n{GetPlatformInfoForErrorLog()}",
+                false => message
+            };
+
             WriteMessage(output, isError: true);
             ReadKey();
             Environment.Exit(status);
