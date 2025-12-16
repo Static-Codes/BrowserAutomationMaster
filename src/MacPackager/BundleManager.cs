@@ -511,7 +511,7 @@ namespace MacPackager
                         $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
                     ]), 
                     status: 1,
-                    writePlatformDebugInfo: false,
+                    writePlatformDebugInfo: false
                 );
             }
 
