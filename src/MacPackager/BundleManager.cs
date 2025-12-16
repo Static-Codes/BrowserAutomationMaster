@@ -161,7 +161,13 @@ namespace MacPackager
         {
             // PARENT_DIRECTORY/BAMM.app
             var currentDirPath = Path.Combine(parentPath, currentDirName);
-            Console.WriteLine($"[INFO]: Creating base bundle directory at: {currentDirPath}");
+            
+            if (parentPath.EndsWith("MACOS_RELEASE")) {
+                Console.WriteLine($"[INFO]: Creating base bundle directory at: {currentDirPath}");
+            } else {
+                Console.WriteLine($"[INFO]: Creating new bundle directory at: {currentDirPath}");
+            }
+
             DirectoryManager.EnsureDirectoryExists(currentDirPath);
             
 
