@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -69,21 +69,20 @@
 		<RpmDesktopName>$(CommonDesktopName)</RpmDesktopName>
 	</PropertyGroup>
 
-
-
 	<ItemGroup>
-	  <Content Include="bamm.ico" />
+		<Content Include="bamm.ico" />
+		<EmbeddedResource Include="AppIcon.icns" />
 	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Packaging.Targets" Version="0.1.232">
+	<ItemGroup>
+    	<PackageReference Include="Packaging.Targets" Version="0.1.232">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		<PackageReference Include="Spectre.Console" Version="0.50.0" />
-  </ItemGroup>
+  	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\BrowserAutomationMaster\BrowserAutomationMaster.csproj" />
-  </ItemGroup>
+  	<ItemGroup>
+    	<ProjectReference Include="..\BrowserAutomationMaster\BrowserAutomationMaster.csproj" />
+  	</ItemGroup>
 
 </Project>

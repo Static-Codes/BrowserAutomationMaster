@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace MacPackager
+﻿namespace MacPackager
 {
     internal class Program 
     {
@@ -8,7 +6,8 @@ namespace MacPackager
         {
             // Console.WriteLine(await PlistManager.GetPlistContent());
             var bundleManager = new BundleManager();
-            bundleManager.BuildBundle();
+            // bundleManager.BuildBundle();
+
         }
     }
 }

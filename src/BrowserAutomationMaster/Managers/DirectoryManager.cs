@@ -34,8 +34,9 @@ namespace BrowserAutomationMaster.Managers
                 {
                     case "zip" when outputPath == null:
                         if (!Directory.Exists(AppDataDirectory))
+                        {
                             WriteAndExit($"Unable to create backup file, directory doesn't exist at: {AppDataDirectory}", 1);
-
+                        }
 
                         if (string.IsNullOrEmpty(backupPath))
                         {
@@ -57,7 +58,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 var message =
                     "Unable to create a backup file.\n" +
-                    $"If this issue persists, please make a bug report at {ConstantManager.ISSUES_LINK}" +
+                    $"If this issue persists, please make a bug report at {ISSUES_LINK}" +
                     $"Error Log:\n{ex.Message}";
 
                 WriteAndExit(message, 1);
@@ -66,26 +67,29 @@ namespace BrowserAutomationMaster.Managers
 
         public static void DeleteDirectory(string directory)
         {
-            if (string.IsNullOrWhiteSpace(directory)) { return; }
+            if (string.IsNullOrWhiteSpace(directory)) 
+            { 
+                return; 
+            }
+
             if (!Directory.Exists(directory))
             {
                 WriteAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to locate:\n{directory}\nPlease ensure this directory exists.",
+                    message: $"\nBAM Manager (BAMM) was unable to locate:{NLC}{directory}{NLC}Please ensure this directory exists.",
                     status: 1
                 );
             }
             try
             {
                 Directory.Delete(directory, true);
-                WriteSuccessMessage(
-                    message: $"BAM Manager (BAMM) successfully deleted directory:\n{directory}\n"
-                );
+                WriteSuccessMessage($"BAM Manager (BAMM) successfully deleted directory:{NLC}{directory}{NLC}");
             }
+
             catch (IOException e)
             {
                 WriteAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
-                             $"File: {directory}\n\nException:\n\n{e.Message}",
+                    message: $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.{NLC}" +
+                             $"File: {directory}{NLC}Exception:{NLC}{e.Message}",
                     status: 1
                 );
             }
@@ -93,7 +97,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 WriteAndExit(
                     message:
-                        $"\nBAM Manager (BAMM) was unable to continue, permission denied.\n" +
+                        $"\nBAM Manager (BAMM) was unable to continue, permission denied.{NLC}" +
                         $"File: {directory}\n\nException:\n\n{e.Message}",
                     status: 1
                 );

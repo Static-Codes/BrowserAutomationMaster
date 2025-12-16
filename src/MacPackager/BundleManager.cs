@@ -1,4 +1,9 @@
 using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Messaging;
+using System.Reflection;
+using System.Text;
+using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace MacPackager
 {
@@ -28,8 +33,8 @@ namespace MacPackager
                     {
                         new DirectoryContents 
                         {
-                            FilePath = "",
-                            FileContents = ""
+                            FileName = "",
+                            FileContents = null
                         }
                     }
                 };
@@ -39,15 +44,18 @@ namespace MacPackager
 
     public struct DirectoryContents 
     {
-        public required string FilePath { get; init; }
-        public required string FileContents { get; init; }
+        public required string FileName { get; init; }
+        public required MemoryStream? FileContents { get; init; }
     }
 
     public class BundleManager
     {
+
+        private static readonly Assembly assembly = Assembly.GetExecutingAssembly();
         // Uses $HOME on Unix-based machines and %USERPROFILE% on Windows-based machines
         private static readonly string USER_PROFILE_DIR = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         private static readonly string PARENT_DIRECTORY = Path.Combine(USER_PROFILE_DIR, "MACOS_RELEASE");
+        private static readonly string BINARY_NAME = "bamm";
         
         // Directory Structure:
         //    BAMM.app/
@@ -57,7 +65,10 @@ namespace MacPackager
         //        │   └── bamm
         //        └── Resources/
         //            └── AppIcon.icns
-        private readonly List<BundleStructure> bundleStructure =
+
+        // Apparently IReadOnlyList is not just semantic
+        // It removes all reference to the original members that are unavailable on readonly types.
+        private readonly IReadOnlyList<BundleStructure> bundleStructure =
         [
             // MACOS_RELEASE/BAMM.app
             new BundleStructure()
@@ -74,7 +85,7 @@ namespace MacPackager
                     {
                         new DirectoryContents()
                         {
-                            FilePath = "Info.plist",
+                            FileName = "Info.plist",
                             // Normally I'd avoid using sync calls of async functions, but I dont really have a choice here.
                             FileContents = PlistManager.GetPlistContent().GetAwaiter().GetResult()
                         }
@@ -91,8 +102,9 @@ namespace MacPackager
                             {
                                 new DirectoryContents()
                                 {
-                                    FilePath = "bamm",
-                                    FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
+                                    FileName = "bamm",
+                                    // FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
+                                    FileContents = null
                                 }
                             }
                         },
@@ -105,8 +117,8 @@ namespace MacPackager
                             {
                                 new DirectoryContents()
                                 {
-                                    FilePath = "AppIcon.icns", 
-                                    FileContents = "INSERT CONTENTS FOR AppIcon.icns"
+                                    FileName = "AppIcon.icns", 
+                                    FileContents = GetAppIconStream()
                                 },
                             }
                         }
@@ -137,22 +149,50 @@ namespace MacPackager
         {
             // PARENT_DIRECTORY/BAMM.app
             var currentDirPath = Path.Combine(parentPath, currentDirName);
+            Console.WriteLine("[INFO]: Creating base bundle directory at: {currentDirPath}");
             DirectoryManager.EnsureDirectoryExists(currentDirPath);
             
+
             // Inserts /MACOS_RELEASE/BAMM.app/Contents/Info.plist
             if (subStructure.DirectoryContents != null)
             {
                 foreach (var file in subStructure.DirectoryContents)
                 {
-                    var filePath = Path.Combine(currentDirPath, file.FilePath);
-                    Console.WriteLine($"Writing file: {filePath}");
-                    File.WriteAllText(filePath, file.FileContents);
+                    var filePath = Path.Combine(currentDirPath, file.FileName);
+                    
+                    
+                    if (file.FileContents == null) 
+                    {
+                        Warning.Write($"[WARNING]: {file.FileName} was not provided any contents, skipping.");
+                        continue;
+                    }
+
+                    try 
+                    {
+                        DisplayStatus(filePath, completed: false); 
+                        File.WriteAllBytes(filePath, file.FileContents.ToArray());
+                    }
+
+                    catch (Exception ex)
+                    {
+                        WriteAndExit(
+                            string.Join(NLC, [ 
+                                "A fatal error occured while writing a file to the application bundle.",
+                                $"File Location: {filePath}",
+                                $"Error Log: {ex.StackTrace ?? ex.Message}",
+                            ]), 
+                            status: 1
+                        );
+                    }
+
+                    DisplayStatus(filePath, completed: true);
+
                 }
             }
 
-            // Inserts 
-            // /MACOS_RELEASE/BAMM.app/Contents/MacOS/bamm 
-            // /MACOS_RELEASE/BAMM.app/Contents/Resources/AppIcon.icns
+            // Inserts:
+            // 1. -> /MACOS_RELEASE/BAMM.app/Contents/MacOS/bamm
+            // 2. -> /MACOS_RELEASE/BAMM.app/Contents/Resources/AppIcon.icns
             if (subStructure.SubDirectories != null)
             {
                 foreach (var subDir in subStructure.SubDirectories)
@@ -161,6 +201,118 @@ namespace MacPackager
                     BuildDirectory(currentDirPath, subDir.DirectoryName, subDir);
                 }
             }
+        }
+
+        private void DisplayStatus(string filePath, bool completed = false)
+        {
+            if (filePath.EndsWith("Info.plist")) 
+            {
+                if (!completed)
+                {
+                    Console.WriteLine($"[INFO]: Writing the required metadata for the application bundle to: {filePath}");
+                    return;
+                }
+
+                Success.WriteSuccessMessage($"[SUCCESS]: Wrote the required metadata for the application bundle to: {filePath}");
+                return;
+            }
+
+            else if (filePath.EndsWith(BINARY_NAME))
+            {
+                if (!completed) 
+                {
+                    Console.WriteLine($"[INFO]: Copying the standalone binary to the application bundle at: {filePath}");
+                    return;
+                }
+
+                Console.WriteLine($"[SUCCESS]: Copied the standalone binary to the application bundle at: {filePath}");
+                return;
+            }
+
+            else if (filePath.EndsWith("AppIcon.icns"))
+            {
+                if (!completed)
+                {
+                    Console.WriteLine($"[INFO]: Writing the icon for the application bundle to: {filePath}");
+                    return;
+                }
+
+                Console.WriteLine($"[SUCCESS]: Wrote the icon for the application bundle to: {filePath}");
+                return;
+            }
+
+            else 
+            {
+                if (!completed)
+                {
+                    Console.WriteLine($"[INFO]: Adding a file to the application bundle at: {filePath}");
+                    return;
+                }
+
+                Console.WriteLine($"[SUCCESS]: Added a file to the application bundle at: {filePath}");
+                return;
+            }
+        }
+
+        public static MemoryStream GetAppIconStream()
+        {
+            var resourceName = "AppIcon.icns";
+            var resourcePattern = "MacPackager.AppIcon.icns";
+
+            var bundleManager = new BundleManager();
+            using var stream = bundleManager.GetEmbeddedResource(resourceName, resourcePattern);
+            var memoryStream = new MemoryStream();
+            
+            // Obligitory cleanup to prevent a corrupted output.
+            try 
+            {
+                stream.CopyTo(memoryStream);
+                memoryStream.Position = 0;
+            }
+
+            catch (Exception ex) 
+            {
+                WriteAndExit(
+                    string.Join(NLC, [
+                        $"[ERROR]: An exception occured while trying to retrieve the contents of: {resourceName}",
+                        "Error Log:",
+                        ex.StackTrace ?? ex.Message,
+                    ]), 
+                    status: 1
+                );
+            }
+            return memoryStream;
+
+            // File.WriteAllBytes("AppIcon.icns", Encoding.UTF8.GetBytes(reader.ReadToEnd()));
+        }
+
+        private Stream GetEmbeddedResource(string resourceName, string resourcePattern) 
+        {
+            // var resourcePattern = "*MacPackager*.*AppIcon*.icns";
+            Stream? resourceStream = null;
+
+            try
+            {
+                resourceStream = assembly.GetManifestResourceStream(resourcePattern);
+
+                if (resourceStream == null) 
+                {
+                    WriteAndExit(string.Join(NLC, [
+                        $"[ERROR]: An exception occured while trying to retrieve the contents of: {resourceName}",
+                        "Error Log:",
+                        "resourceStream returned null"
+                    ]), status: 1);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteAndExit(string.Join(NLC, [
+                    $"[ERROR]: An exception occured while trying to retrieve the contents of: {resourceName}",
+                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                ]), status: 1);
+            }
+
+            return resourceStream;
         }
 
     }
