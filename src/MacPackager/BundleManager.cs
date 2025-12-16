@@ -1,25 +1,24 @@
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using System.Reflection;
-using System.Text;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace MacPackager
 {
-    public struct BundleStructure
+    public readonly struct BundleStructure
     {
         public required string DirectoryName { get; init; }
 
         public required SubDirectory Subdirectory { get; init; }
     }
 
-    public struct SubDirectory()
+    public readonly struct SubDirectory()
     {
         public required string DirectoryName { get; init; }
 
         public required List<DirectoryContents> DirectoryContents { get; init; }
-        public List<SubDirectory> SubDirectories = [];
+        public required List<SubDirectory> SubDirectories { get; init; }
 
         // Meant to act similiarly to string.Empty, and will be used for comparisons.
         public static SubDirectory Empty
@@ -29,20 +28,21 @@ namespace MacPackager
                 return new SubDirectory
                 {
                     DirectoryName = "",
-                    DirectoryContents = new List<DirectoryContents>()
-                    {
+                    DirectoryContents =
+                    [
                         new DirectoryContents 
                         {
                             FileName = "",
                             FileContents = null
                         }
-                    }
+                    ],
+                    SubDirectories = []
                 };
             }
         }
     }
 
-    public struct DirectoryContents 
+    public readonly struct DirectoryContents 
     {
         public required string FileName { get; init; }
         public required MemoryStream? FileContents { get; init; }
@@ -81,48 +81,50 @@ namespace MacPackager
                     DirectoryName = "Contents",
                     
                     // MACOS_RELEASE/BAMM.app/Contents/Info.plist
-                    DirectoryContents = new List<DirectoryContents>
-                    {
+                    DirectoryContents =
+                    [
                         new DirectoryContents()
                         {
                             FileName = "Info.plist",
                             // Normally I'd avoid using sync calls of async functions, but I dont really have a choice here.
                             FileContents = PlistManager.GetPlistContent().GetAwaiter().GetResult()
                         }
-                    },
+                    ],
                     
-                    SubDirectories = new List<SubDirectory>
-                    {
+                    SubDirectories =
+                    [
                         // MACOS_RELEASE/BAMM.app/Contents/MacOS/
                         new SubDirectory
                         {
                             DirectoryName = "MacOS",
                             // This uses used by the CFBundleExecutable key in Info.plist
-                            DirectoryContents = new List<DirectoryContents>
-                            {
+                            DirectoryContents =
+                            [
                                 new DirectoryContents()
                                 {
                                     FileName = "bamm",
                                     // FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
                                     FileContents = null
                                 }
-                            }
+                            ],
+                            SubDirectories = []
                         },
                         
                         // MACOS_RELEASE/BAMM.app/Contents/Resources/
                         new SubDirectory
                         {
                             DirectoryName = "Resources",
-                            DirectoryContents = new List<DirectoryContents>
-                            {
+                            DirectoryContents =
+                            [
                                 new DirectoryContents()
                                 {
                                     FileName = "AppIcon.icns", 
                                     FileContents = GetAppIconStream()
                                 },
-                            }
+                            ],
+                            SubDirectories = []
                         }
-                    }
+                    ]
                 }
             }
         ];
@@ -145,7 +147,7 @@ namespace MacPackager
         }
 
         // THIS IS RECURSIVE, HANDLE ACCORDINGLY.
-        private void BuildDirectory(string parentPath, string currentDirName, SubDirectory subStructure)
+        private static void BuildDirectory(string parentPath, string currentDirName, SubDirectory subStructure)
         {
             // PARENT_DIRECTORY/BAMM.app
             var currentDirPath = Path.Combine(parentPath, currentDirName);
@@ -203,7 +205,7 @@ namespace MacPackager
             }
         }
 
-        private void DisplayStatus(string filePath, bool completed = false)
+        private static void DisplayStatus(string filePath, bool completed = false)
         {
             if (filePath.EndsWith("Info.plist")) 
             {
@@ -259,8 +261,7 @@ namespace MacPackager
             var resourceName = "AppIcon.icns";
             var resourcePattern = "MacPackager.AppIcon.icns";
 
-            var bundleManager = new BundleManager();
-            using var stream = bundleManager.GetEmbeddedResource(resourceName, resourcePattern);
+            using var stream = GetEmbeddedResource(resourceName, resourcePattern);
             var memoryStream = new MemoryStream();
             
             // Obligitory cleanup to prevent a corrupted output.
@@ -286,7 +287,7 @@ namespace MacPackager
             // File.WriteAllBytes("AppIcon.icns", Encoding.UTF8.GetBytes(reader.ReadToEnd()));
         }
 
-        private Stream GetEmbeddedResource(string resourceName, string resourcePattern) 
+        private static Stream GetEmbeddedResource(string resourceName, string resourcePattern) 
         {
             // var resourcePattern = "*MacPackager*.*AppIcon*.icns";
             Stream? resourceStream = null;
@@ -315,5 +316,63 @@ namespace MacPackager
             return resourceStream;
         }
 
+        // Reads the first 7 bytes of the file at the specified path, checking for Apple's Magic Numbers (0xcffaedfe) 
+        // https://en.wikipedia.org/wiki/Mach-O#Header
+        private static void ValidateBinaryType(string filePath) 
+        {
+            if (Path.HasExtension(filePath)) 
+            {
+                WriteAndExit("[ERROR]: The provided file is not a valid standalone binary for macOS, it contains a file extension.", 1);
+            }
+
+            if (!File.Exists(filePath)) 
+            {
+                WriteAndExit("[ERROR]: The provided file does not exist.", 1);
+            }
+
+            Stream? stream = null;
+            try
+            {
+                stream = new FileStream(filePath, FileMode.Open);
+
+                if (stream is null)
+                {
+                    WriteAndExit(string.Join(NLC, [
+                        "[ERROR]: An exception occured while trying to validate the provided file.",
+                        "Error Log: stream is null."
+                    ]), status: 1);
+                }
+            }
+
+            catch (Exception ex)
+            {
+                WriteAndExit(string.Join(NLC, [
+                    $"[ERROR]: An exception occured while trying to validate the provided file.",
+                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                ]), status: 1);
+            }
+
+
+
+            if (stream.Length < 4)
+            {
+                WriteAndExit("[ERROR]: The length of the provided file is less than 4 bytes, this indicates it is not a valid binary.", 1);
+            }
+
+            byte[] buffer = [];
+
+            stream.Read(buffer, 0, 4); 
+
+            // DEBUG (REMOVE IN NEXT COMMIT)
+            foreach (byte b in buffer)
+            {
+                Console.Write(b);
+            }
+
+            stream.Position = 0; // This likely isn't required, but for my own sanity I will include it.
+            stream.Dispose();
+
+            // ADD CHECK HERE FOR BYTES
+        }
     }
 }
