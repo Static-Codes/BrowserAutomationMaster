@@ -49,11 +49,6 @@ namespace MacPackager
         public required MemoryStream? FileContents { get; init; }
     }
 
-    readonly struct BundleConfig() 
-    {
-
-    }
-
     public class BundleManager
     {
         private static readonly string filePath = Input.AskForInput("Please enter the path to a valid standalone binary of BAMM compiled for macOS: ");
@@ -62,6 +57,14 @@ namespace MacPackager
         private static readonly string USER_PROFILE_DIR = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         private static readonly string PARENT_DIRECTORY = Path.Combine(USER_PROFILE_DIR, "MACOS_RELEASE");
         private static readonly string BINARY_NAME = "bamm";
+        
+        
+        
+        private Dictionary<string, string?> defaultBuildConfig = new() {
+            { "MacOSBinaryPath", "" },
+            { "CPUType", "x86_64" },
+        };
+        
         
         // Directory Structure:
         //    BAMM.app/
@@ -137,6 +140,8 @@ namespace MacPackager
 
         // Apparently IReadOnlyList isn't just semantic, it provides methods associated with a readonly element.
         private IReadOnlyList<BundleStructure> GetBundleStructure() => bundleStructure;
+
+
 
         public void BuildBundle()
         {
@@ -425,7 +430,7 @@ namespace MacPackager
 
         // Reads the first 7 bytes of the file at the specified path, checking for Apple's Magic Numbers (0xcffaedfe) 
         // https://en.wikipedia.org/wiki/Mach-O#Header
-        private static void ValidateBinaryType(string filePath) 
+        public static void ValidateBinaryType(string filePath) 
         {
             if (Path.HasExtension(filePath)) 
             {
