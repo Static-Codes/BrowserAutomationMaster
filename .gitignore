@@ -8,3 +8,5 @@ src/BrowserAutomationMaster/.vscode/tasks.json
 src/.vscode/launch.json
 src/.vscode/tasks.json
 /src/Published Builds
+src/MacPackager/.vscode/launch.json
+src/MacPackager/.vscode/tasks.json

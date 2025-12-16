@@ -24,8 +24,8 @@ namespace MacPackager
             var indexOfAChar = latestVersion.IndexOf('A');
             var shortVersion = latestVersion[..indexOfAChar];
 
-            var InfoPlist = await CreateInfoPlistStreamAsync(applicationName, bundleIdentifier, shortVersion, latestVersion, categoryType);
-
+            // Letting the Dotnet Garbage Collector handle the disposal of the object to prevent shooting myself in the foot (introducing a memory leak).
+            using var InfoPlist = await CreateInfoPlistStreamAsync(applicationName, bundleIdentifier, shortVersion, latestVersion, categoryType);
             return InfoPlist;
 
         }
@@ -41,7 +41,7 @@ namespace MacPackager
                 Async = true,
                 CloseOutput = false, // Preventing the stream from premature disposal
                 Indent = true,
-                IndentChars = "^I" // Horizontal tab, can also be written as \t
+                IndentChars = "\t" // Horizontal tab, can also be written as \t
             };
 
             using var writer = XmlWriter.Create(memoryStream, settings);
@@ -94,12 +94,11 @@ namespace MacPackager
             #endregion
 
             # region "Flushing and Return"
-            // I SPENT SO LONG ON THIS, ITS NOT DOCUMENTED
             await writer.FlushAsync(); // Flushes the contents of writer to memoryStream
             
             // By default, the MemoryStream's position is the index of the last byte in the Stream.
             // A reset is required to return the correct value.
-            memoryStream.Position = 0; 
+            memoryStream.Position = 0;
 
             // FOR THE LOVE OF GOD PLEASE DON'T INTRODUCE A MEMORYLEAK BY FORGETTING TO DISPOSE OF THIS, YOU HAVE ONE JOB, KEEP IT CLEAN!
             return memoryStream; 

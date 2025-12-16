@@ -3,17 +3,18 @@ using BrowserAutomationMaster.Messaging;
 using System.Reflection;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 namespace MacPackager
 {
-    public readonly struct BundleStructure
+    readonly struct BundleStructure
     {
         public required string DirectoryName { get; init; }
 
         public required SubDirectory Subdirectory { get; init; }
     }
 
-    public readonly struct SubDirectory()
+    readonly struct SubDirectory()
     {
         public required string DirectoryName { get; init; }
 
@@ -42,7 +43,7 @@ namespace MacPackager
         }
     }
 
-    public readonly struct DirectoryContents 
+    readonly struct DirectoryContents 
     {
         public required string FileName { get; init; }
         public required MemoryStream? FileContents { get; init; }
@@ -50,7 +51,7 @@ namespace MacPackager
 
     public class BundleManager
     {
-
+        private static readonly string filePath = Input.AskForInput("Please enter the path to a valid standalone binary of BAMM compiled for macOS: ");
         private static readonly Assembly assembly = Assembly.GetExecutingAssembly();
         // Uses $HOME on Unix-based machines and %USERPROFILE% on Windows-based machines
         private static readonly string USER_PROFILE_DIR = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -104,7 +105,7 @@ namespace MacPackager
                                 {
                                     FileName = "bamm",
                                     // FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
-                                    FileContents = null
+                                    FileContents = GetMacOSBinaryContents(filePath)
                                 }
                             ],
                             SubDirectories = []
@@ -151,7 +152,7 @@ namespace MacPackager
         {
             // PARENT_DIRECTORY/BAMM.app
             var currentDirPath = Path.Combine(parentPath, currentDirName);
-            Console.WriteLine("[INFO]: Creating base bundle directory at: {currentDirPath}");
+            Console.WriteLine($"[INFO]: Creating base bundle directory at: {currentDirPath}");
             DirectoryManager.EnsureDirectoryExists(currentDirPath);
             
 
@@ -215,7 +216,7 @@ namespace MacPackager
                     return;
                 }
 
-                Success.WriteSuccessMessage($"[SUCCESS]: Wrote the required metadata for the application bundle to: {filePath}");
+                WriteSuccessMessage($"[SUCCESS]: Wrote the required metadata for the application bundle to: {filePath}");
                 return;
             }
 
@@ -227,7 +228,7 @@ namespace MacPackager
                     return;
                 }
 
-                Console.WriteLine($"[SUCCESS]: Copied the standalone binary to the application bundle at: {filePath}");
+                WriteSuccessMessage($"[SUCCESS]: Copied the standalone binary to the application bundle at: {filePath}");
                 return;
             }
 
@@ -239,7 +240,7 @@ namespace MacPackager
                     return;
                 }
 
-                Console.WriteLine($"[SUCCESS]: Wrote the icon for the application bundle to: {filePath}");
+                WriteSuccessMessage($"[SUCCESS]: Wrote the icon for the application bundle to: {filePath}");
                 return;
             }
 
@@ -251,11 +252,12 @@ namespace MacPackager
                     return;
                 }
 
-                Console.WriteLine($"[SUCCESS]: Added a file to the application bundle at: {filePath}");
+                WriteSuccessMessage($"[SUCCESS]: Added a file to the application bundle at: {filePath}");
                 return;
             }
         }
 
+        // Calls GetEmbeddedResource("AppIcon.icns", "MacPackager.AppIcon.icns")
         public static MemoryStream GetAppIconStream()
         {
             var resourceName = "AppIcon.icns";
@@ -284,9 +286,11 @@ namespace MacPackager
             }
             return memoryStream;
 
+            // DEBUGGING ONLY
             // File.WriteAllBytes("AppIcon.icns", Encoding.UTF8.GetBytes(reader.ReadToEnd()));
         }
 
+        // Currently only used for AppIcon.icns, however, will work for all embedded project resources if needbe.
         private static Stream GetEmbeddedResource(string resourceName, string resourcePattern) 
         {
             // var resourcePattern = "*MacPackager*.*AppIcon*.icns";
@@ -316,6 +320,63 @@ namespace MacPackager
             return resourceStream;
         }
 
+
+        // Validates that the file at filePath is a valid macOS binary, if so, it returns a MemoryStream of its contents.
+        private static MemoryStream GetMacOSBinaryContents(string filePath)
+        {   
+            // Ensures the file exists, and is a valid macOS binary
+            // Will error out if an exception occurs
+            ValidateBinaryType(filePath);
+
+            Stream? stream = null;
+
+            Console.WriteLine("[INFO]: Opened a stream object to read the contents of the selected file.");
+
+            try
+            {
+                stream = new FileStream(filePath, FileMode.Open);
+
+                if (stream is null)
+                {
+                    throw new EndOfStreamException("Stream returned a null value.");
+                }
+
+                WriteSuccessMessage($"[SUCCESS]: Read {stream.Length} bytes from the selected file.");
+            }
+
+            catch (Exception ex)
+            {
+                WriteAndExit(string.Join(NLC, [
+                    $"[ERROR]: An exception occured while trying to read the contents of: {filePath}",
+                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                ]), status: 1);
+            }
+
+            Console.WriteLine("[INFO]: Creating a temporary MemoryStream object.");
+            using var memoryStream = new MemoryStream();
+            WriteSuccessMessage($"[SUCCESS]: Created the required MemoryStream object.");
+
+            Console.WriteLine("[INFO]: Copying the generic Stream object to the more useful MemoryStream object.");
+            Warning.Write("[WARNING]: This transfers around ~70MB of data, this may take up to five minutes on slow machines, please be patient.");
+            
+            try 
+            {
+                stream.CopyTo(memoryStream); // This copies ~70MB of data, it may take awhile
+            }
+
+            catch (Exception ex)
+            {
+                WriteAndExit(string.Join(NLC, [
+                    $"[ERROR]: An exception occured while trying to copying the generic Stream object.",
+                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                ]), status: 1);
+            }
+
+            WriteSuccessMessage("[SUCCESS]: Sending macOS binary contents to the BAMM for macOS Publisher.");
+            return memoryStream;
+        }
+
+
         // Reads the first 7 bytes of the file at the specified path, checking for Apple's Magic Numbers (0xcffaedfe) 
         // https://en.wikipedia.org/wiki/Mach-O#Header
         private static void ValidateBinaryType(string filePath) 
@@ -330,18 +391,21 @@ namespace MacPackager
                 WriteAndExit("[ERROR]: The provided file does not exist.", 1);
             }
 
-            Stream? stream = null;
+            
+            Stream? binaryStream = null;
             try
             {
-                stream = new FileStream(filePath, FileMode.Open);
-
-                if (stream is null)
+                binaryStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4);
+                
+                if (binaryStream is null)
                 {
                     WriteAndExit(string.Join(NLC, [
                         "[ERROR]: An exception occured while trying to validate the provided file.",
-                        "Error Log: stream is null."
+                        "Error Log: binaryStream is null."
                     ]), status: 1);
                 }
+
+                WriteSuccessMessage("[SUCCESS]: Read the first 4 bytes of the provided file.");
             }
 
             catch (Exception ex)
@@ -354,25 +418,56 @@ namespace MacPackager
 
 
 
-            if (stream.Length < 4)
+            if (binaryStream.Length < 4)
             {
                 WriteAndExit("[ERROR]: The length of the provided file is less than 4 bytes, this indicates it is not a valid binary.", 1);
             }
 
-            byte[] buffer = [];
+            // Console.WriteLine("[INFO]: Resetting stream position prior to comparison.");
 
-            stream.Read(buffer, 0, 4); 
+            // binaryStream.Position = 0;
 
-            // DEBUG (REMOVE IN NEXT COMMIT)
-            foreach (byte b in buffer)
+            // WriteSuccessMessage("[SUCCESS]: Resetting stream position prior to comparison.");
+
+            // // Console.WriteLine($"[INFO]: {binaryStream.Length} bytes detected in the provided file.");
+            // Console.WriteLine($"[INFO]: Creating a 4 byte array for comparison.");
+
+            // Console.WriteLine("[INFO]: Copying bytes to newly created array.");
+            // using var tempStream = new MemoryStream();
+            // binaryStream.CopyTo(tempStream);
+
+            // byte[] first4Bytes = tempStream.ToArray();
+            // WriteSuccessMessage($"[SUCCESS]: Copied 4 bytes to newly created byte array.");
+
+            byte[] first4Bytes = new byte[4];
+            try 
             {
-                Console.Write(b);
+                Console.WriteLine($"[INFO]: Copying the first 4 bytes of the provided file to a byte array.");
+                binaryStream.Read(first4Bytes, 0, 4);
+                WriteSuccessMessage("[SUCCESS: Copied the first 4 bytes of the provided file to a byte array.");
             }
 
-            stream.Position = 0; // This likely isn't required, but for my own sanity I will include it.
-            stream.Dispose();
+            catch (Exception ex) {
+                WriteAndExit(string.Join(NLC, [
+                    $"[ERROR]: An exception occured while trying to validate the provided file.",
+                    $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                ]), status: 1);
+            }
 
-            // ADD CHECK HERE FOR BYTES
+            Console.WriteLine("[INFO]: Disposing of leftover stream.");
+            binaryStream.Dispose();
+            WriteSuccessMessage("[SUCCESS]: Disposed of leftover stream.");
+
+
+            Console.WriteLine("[INFO]: Comparing the 4 scanned bytes to documented Apple Magic Numbers for x64 CPU Architecture (0xcffaedfe).");
+            var appleMagicNumbers = new byte[4] { 0xcf, 0xfa, 0xed, 0xfe };
+            var isMachOBinary = first4Bytes.SequenceEqual(appleMagicNumbers);
+
+            if (isMachOBinary) {
+                WriteSuccessMessage("[SUCCESS]: The provided file is a valid macOS binary!");
+            } else {
+                WriteAndExit("[ERROR]: The provided file is not a valid macOS binary as it did not match the documented Apple Magic Numbers for x64 CPU Architecture (0xcffaedfe).", 1);
+            }
         }
     }
 }
