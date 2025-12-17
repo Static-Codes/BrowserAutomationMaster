@@ -266,8 +266,6 @@ namespace MacPackager
                     break;
 
                 default:
-                    buildConfig[key] = value;
-                    //WriteSuccessMessage($"[SUCCESS]: Updated {key} in `{CONFIG_FILE_PATH}` to {value}");
                     break;
             }
         }
@@ -275,9 +273,9 @@ namespace MacPackager
         public override string ToString()
         {
             return @$"
-            MacOSBinaryPath: {buildConfig["MacOSBinaryPath"]}
-            CPUTarget: {buildConfig["CPUTarget"]}
-            ";
+                -> MacOSBinaryPath: {buildConfig["MacOSBinaryPath"]}
+                -> CPUTarget: {buildConfig["CPUTarget"]}
+            ".Replace("                ", "");
         }
     }
 }

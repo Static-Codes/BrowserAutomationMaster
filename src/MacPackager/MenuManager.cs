@@ -16,6 +16,7 @@ namespace MacPackager
             GUI,
             Help,
             NewConfig,
+            ShowConfig,
             Exit,
             Invalid
         }
@@ -27,9 +28,10 @@ namespace MacPackager
                 { 1, MenuOption.BuildPackage },
                 { 2, MenuOption.EditConfig },
                 { 3, MenuOption.NewConfig },
-                { 4, MenuOption.GUI },
-                { 5, MenuOption.Help },
-                { 6, MenuOption.Exit },
+                { 5, MenuOption.ShowConfig },
+                { 6, MenuOption.GUI },
+                { 7, MenuOption.Help },
+                { 8, MenuOption.Exit },
             };
 
             var accentColor = GetAccentColor().ToMarkup();
@@ -40,7 +42,7 @@ namespace MacPackager
                 background: bgColor,
                 decoration: Decoration.Bold
             );
-
+            
             var selectionPrompt = new SelectionPrompt<string>()
                 .HighlightStyle(new Style(
                     foreground: GetForeground(),
@@ -65,7 +67,12 @@ namespace MacPackager
         {
             while (true) 
             {
-                string command = WriteListFromOptions([.. CommandList.Select(cmd => cmd.Name), "Exit App"]);
+                string[] options = [.. CommandList.Select(cmd => cmd.Name), "Exit App"];
+                string command = WriteListFromOptions(
+                    options: options,
+                    noun: "command",
+                    pageSize: options.Length
+                );
                 ShowCommandDetails(command.Trim());
 
                 string choice = AskForInput(

@@ -407,8 +407,16 @@ namespace MacPackager
                     case MenuOption.NewConfig:
                         HandleNewConfigCommand();
                         break;
+                    
+                    case MenuOption.ShowConfig:
+                        ReassignNullBuildConfigManager(forceRefresh: true);
+                        WriteSuccessMessage("Current Config Contents:");
+                        // ReassignNullBuildConfigManager() ensure this wont be null.
+                        Warning.Write(buildConfigManager!.ToString());
+                        break;
 
                     case MenuOption.Help:
+                        HandleHelpSelection();
                         break; // Help menu handles its own loop
 
                     case MenuOption.Invalid:

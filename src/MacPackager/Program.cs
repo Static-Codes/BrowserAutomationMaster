@@ -9,7 +9,7 @@ bool shouldExit = HandleCLIArguments(args);
 
 if (!shouldExit)
 {
-    RunMenuLoop(args);
+    RunMenuLoop();
 }
 
 // var bundleManager = new BundleManager();

@@ -42,12 +42,19 @@ namespace MacPackager
 
             {
                 new Command(
-                    name: "--query-display",
-                    description: "Displays whether or not your system has the $DISPLAY variable set, does not work on Windows!",
-                    examples: ["bamm-macos-packager --query-display"]
+                    name: "--new-config",
+                    description:
+                        string.Join(NLC, [
+                            "Overwrites the contents of the current build config (if present) with the default build config values.",
+                            "This can be useful for situations where you have a missing or malformed build config."
+                        ]),
+                    examples: [
+                        "bamm --new-config",
+                        "bamm --new-config"
+                    ]
                 )
             },
-            
+
             {
                 new Command(
                     name: "--platform-debug",
@@ -59,6 +66,15 @@ namespace MacPackager
                     examples: [ "bamm-macos-packager --platform-debug" ]
                 )
             },
+
+            {
+                new Command(
+                    name: "--query-display",
+                    description: "Displays whether or not your system has the $DISPLAY variable set, does not work on Windows!",
+                    examples: ["bamm-macos-packager --query-display"]
+                )
+            },
+            
 
             {
                 new Command(
@@ -79,21 +95,6 @@ namespace MacPackager
                     examples: [ "bamm add \"path/to/external/file.bamc\"", ]
                 )
             },
-
-            {
-                new Command(
-                    name: "--new-config",
-                    description:
-                        string.Join(NLC, [
-                            "Overwrites the contents of the current build config (if present) with the default build config values.",
-                            "This can be useful for situations where you have a missing or malformed build config."
-                        ]),
-                    examples: [
-                        "bamm --new-config",
-                        "bamm --new-config"
-                    ]
-                )
-            }
         };
 
         public static bool CommandExists(string name)
