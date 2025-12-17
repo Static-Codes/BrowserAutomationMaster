@@ -47,6 +47,7 @@ namespace BrowserAutomationMaster.Managers
         {
             return ToSpectreColor(GlobalConfig.ThemeType.AccentColor);
         }
+        
         public static Color GetForeground(bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
             return (isSuccess, isWarning, isError) switch
