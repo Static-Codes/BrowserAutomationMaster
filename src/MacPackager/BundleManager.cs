@@ -51,7 +51,7 @@ namespace MacPackager
 
     public class BundleManager
     {
-        private static readonly string filePath = Input.AskForInput("Please enter the path to a valid standalone binary of BAMM compiled for macOS: ");
+        private static readonly string filePath = Input.AskForInput("[INPUT]: Please enter the path to a valid standalone binary of BAMM compiled for macOS: ");
         private static readonly Assembly assembly = Assembly.GetExecutingAssembly();
         // Uses $HOME on Unix-based machines and %USERPROFILE% on Windows-based machines
         private static readonly string USER_PROFILE_DIR = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -444,12 +444,15 @@ namespace MacPackager
 
             if (!File.Exists(filePath)) 
             {
-                WriteAndExit
-                (
-                    message: "[ERROR]: The provided file does not exist.", 
-                    status: 1,
-                    writePlatformDebugInfo: false
-                );
+                // Writes the initial text in red for emphasis.
+                Write("[ERROR]: The provided file does not exist at: ", noNewLines: true);
+
+                // Writes the provided filePath in yellow for clarity.
+                Warning.Write(filePath, noNewLines: true);
+
+                // Trailing new-line char for uniform output.
+                Console.Write(NLC);
+                Environment.Exit(1);
             }
 
             

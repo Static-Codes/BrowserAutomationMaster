@@ -36,9 +36,41 @@ namespace MacPackager
         {
             ReassignNullBuildConfigManager();
 
+            var binaryPathKey = "MacOSBinaryPath";
+
             // ReassignNullBuildConfigManager() handles the null check for this.
-            string path = buildConfigManager!.GetValue("MacOSBinaryPath");
-                    
+            string path = buildConfigManager!.GetValue(binaryPathKey);
+            
+            if (string.IsNullOrEmpty(path)) 
+            {
+                // Writes the first part of the message in red for emphasis.
+                Write($"[ERROR]: A value was not set for the key ", noNewLines: true);
+                
+                // Writes the binaryPathKey in yellow for for clarity.
+                Warning.Write(binaryPathKey, noNewLines: true);
+
+                // Writes the remainder of the message in red for uniform formatting.
+                Write(" ", noNewLines: true);
+                Write("in the build config.");
+
+                // Displays the first part of the message in white.
+                Console.Write("[INFO]: This can be done by selecting ");
+
+                // Writes the name of the menu option in yellow for emphasis.
+                Warning.Write("EditConfig", noNewLines: true);
+                
+                // Writes the text below in white
+                Console.Write(" in the ");
+
+                // Writes the location in yellow for emphasis.
+                Write("Main Menu", noNewLines: true);
+
+                // Writes the final text required for uniform formatting in white.
+                Console.WriteLine('.');
+                Console.WriteLine(NLC);
+                return;
+            }
+
             if (!File.Exists(path))
             {
                 WriteAndExit
@@ -53,7 +85,7 @@ namespace MacPackager
                 );
             }
 
-            BundleManager bundleManager = new BundleManager();
+            var bundleManager = new BundleManager();
             bundleManager.BuildBundle();
         }
 
@@ -163,7 +195,6 @@ namespace MacPackager
             return false;
         }
 
-
         public static bool HandleEditConfigCommand() 
         {
             ReassignNullBuildConfigManager();
@@ -184,10 +215,6 @@ namespace MacPackager
 
                 var selectedKeysValue = buildConfigManager.GetValue(selection);
 
-                var newValue = AskForInput("Please enter a new value for the specified key: ");
-
-                Console.Clear();
-
                 // White text for the message type header.
                 Console.Write($"[INFO]: Current value for key ");
 
@@ -195,7 +222,7 @@ namespace MacPackager
                 Warning.Write(selection, noNewLines: true);
                 
                 // Closes the line with white text
-                Console.Write(": \"");
+                Console.Write(": ");
 
                 // Changes an empty or null string to a more verbose NOT SET
                 if (string.IsNullOrEmpty(selectedKeysValue)) 
@@ -207,8 +234,34 @@ namespace MacPackager
                 Write($"{selectedKeysValue}", noNewLines: true);
 
                 // Writes the closing quote in white and adds a newline that was removed from the call above.
-                Console.WriteLine('"');
                 Console.WriteLine(NLC);
+                Console.Write(NLC);
+                
+                var newValue = AskForInput("[INPUT]: Please enter a new value for the specified key: ");
+
+                Console.Clear();
+
+                // White text for the message type header.
+                Console.Write($"[INFO]: Current value for key ");
+
+                // Writes the key name in yellow
+                Warning.Write(selection, noNewLines: true);
+                
+                // Closes the line with white text
+                Console.Write(": ");
+
+                // Changes an empty or null string to a more verbose NOT SET
+                if (string.IsNullOrEmpty(selectedKeysValue)) 
+                {
+                    selectedKeysValue = "NOT SET";
+                }
+                
+                // Outputs red text for clarity to indicate to the user this action will change the value.
+                Write($"{selectedKeysValue}", noNewLines: true);
+
+                // Writes the closing quote in white and adds a newline that was removed from the call above.
+                Console.WriteLine(NLC);
+                Console.Write(NLC);
 
                 // White text for the message type header.
                 Console.Write($"[INFO]: New value for key ");
@@ -216,15 +269,15 @@ namespace MacPackager
                 // Writes the key name in yellow
                 Warning.Write(selection, noNewLines: true);
                 
-                // Writes the text between the key and value in white
-                Console.Write(": \"");
+                // Writes the colon between the key and value in white
+                Console.Write(": ");
 
                 // Outputs green text for clarity 
                 WriteSuccessMessage($"{newValue}", noNewLines: true);
 
-                // Writes the closing quote in white and adds a newline that was removed from the call above.
-                Console.WriteLine('"');
+                // Trailing new-line chars for uniform output.
                 Console.WriteLine(NLC);
+                Console.Write(NLC);
 
                 // Displays a warning
                 Warning.Write
@@ -236,16 +289,19 @@ namespace MacPackager
                     ])
                 );
 
-                // Trailing new-line char for uniform output.
+                // Trailing new-line chars for uniform output.
                 Console.Write(NLC);
 
                 // Asks for confirmation
                 var confirmation = AskForInput($"[CONFIRM]: Are you sure you want to update the value? [y/n]: ");
+                
+                // Trailing new-line chars for uniform output.
+                Console.WriteLine(NLC);
 
                 if (ConditionAccepted(confirmation))
                 {
 
-                    buildConfigManager.UpdateValue(selection, selectedKeysValue);
+                    buildConfigManager.UpdateValue(selection, newValue);
                     WriteSuccessMessage($"[SUCCESS]: Updated value of key '{selection}' from to '{newValue}'.");
                 }
                 
@@ -256,6 +312,8 @@ namespace MacPackager
                 
                 var choice = AskForInput("[CONFIRM]: Would you like to continue editing the Build Config? [y/n]: ");
                 isRunning = ConditionAccepted(choice);
+
+                Console.Clear();
             }
 
             return true;
@@ -326,6 +384,7 @@ namespace MacPackager
                 switch (result)
                 {
                     case MenuOption.BuildPackage:
+                        HandleBuildCommand();
                         break;
 
                     case MenuOption.EditConfig:
@@ -361,6 +420,8 @@ namespace MacPackager
                 if (isRunning)
                 {
                     string input = AskForInput($"{NLC}[CONFIRM]: Would you like to exit The BAMM for macOS Packager? [y/n]:");
+                    Console.Clear();
+
                     if (ConditionAccepted(input))
                     {
                         isRunning = false;

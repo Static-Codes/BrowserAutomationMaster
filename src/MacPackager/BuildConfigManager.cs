@@ -132,12 +132,15 @@ namespace MacPackager
 
         private Dictionary<string, string> LoadBuildConfig()
         {
-            if (!File.Exists(CONFIG_FILE_PATH)) return new Dictionary<string, string>(defaultBuildConfig);
+            if (!File.Exists(CONFIG_FILE_PATH)) 
+            {
+                return new Dictionary<string, string>(defaultBuildConfig);
+            }
 
             try
             {
                 string jsonString = File.ReadAllText(CONFIG_FILE_PATH);
-                return JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString) ?? new Dictionary<string, string>(defaultBuildConfig);
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString) ?? defaultBuildConfig;
             }
             catch
             {
@@ -170,10 +173,43 @@ namespace MacPackager
             {
                 case "MacOSBinaryPath":
                     try
-                    {
+                    {   
+                        // For uniformity clearing previous output will avoid incorrect spacing.
+                        Console.Clear();
+
+                        // Writes the initial text in white.
+                        Console.Write("[INFO]: Validating provided binary path: ");
+
+                        // Writes the path to binary in yellow for clarity.
+                        Warning.Write(value, noNewLines: true);
+
+                        // New line chars for uniform output.
+                        Console.WriteLine(NLC);
+
                         ValidateBinaryType(value);
+
+                        
                         buildConfig[key] = value;
-                        WriteSuccessMessage($"[SUCCESS]: Updated '{key}' in '{CONFIG_FILE_PATH}' to '{value}'");
+
+                        var newContents = JsonSerializer.Serialize(buildConfig, serializerOptions);
+
+                        File.WriteAllText(CONFIG_FILE_PATH, newContents);
+
+                        // Green text for the header.
+                        WriteSuccessMessage($"[SUCCESS]: Updated ", noNewLines: true);
+
+                        // Displays the key in yellow.
+                        Warning.Write(key, noNewLines: true);
+
+                        // Continues the line with green text for uniformity.
+                        WriteSuccessMessage($" in build config with the value ", noNewLines: true);
+
+                        // Finishes the line with yellow text for clarity.
+                        Warning.Write(value, noNewLines: true);
+
+                        // Empty lines for formatting
+                        Console.WriteLine();
+                        Console.WriteLine();
                     }
                     catch (Exception ex)
                     {
@@ -181,7 +217,7 @@ namespace MacPackager
                         (
                             string.Join(' ', 
                             [
-                                $"[ERROR]: Validation failed for value `{key}` in `{CONFIG_FILE_PATH}`",
+                                $"[ERROR]: Validation failed for value `{key}` in the build config.",
                                 $"[ERROR LOG]: '{value}' is not a valid path.",
                                 $"[ERROR STACK]: {ex.StackTrace ?? ex.Message})"
                             ]),
@@ -195,7 +231,7 @@ namespace MacPackager
                     if (value.Equals("x64", OIC) || value.Equals("ARM64", OIC))
                     {
                         buildConfig[key] = value;
-                        WriteSuccessMessage($"[SUCCESS]: Updated {key} in `{CONFIG_FILE_PATH}` to {value}");
+                        WriteSuccessMessage($"[SUCCESS]: Updated {key} in build config to {value}");
                         break;
                     }
 
@@ -213,7 +249,7 @@ namespace MacPackager
 
                 default:
                     buildConfig[key] = value;
-                    WriteSuccessMessage($"[SUCCESS]: Updated {key} in `{CONFIG_FILE_PATH}` to {value}");
+                    //WriteSuccessMessage($"[SUCCESS]: Updated {key} in `{CONFIG_FILE_PATH}` to {value}");
                     break;
             }
         }
