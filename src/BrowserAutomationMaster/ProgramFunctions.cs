@@ -440,8 +440,6 @@ namespace BrowserAutomationMaster
             RuntimeManager.SetMemoryInfo();
             
         }
-        /// <summary>Runs the main menu loop for BAMM.</summary>
-        /// <param name="pArgs">Program Arguments (args)</param>
 
 
         /// <summary> Handles variations of 'bamm help' </summary>
