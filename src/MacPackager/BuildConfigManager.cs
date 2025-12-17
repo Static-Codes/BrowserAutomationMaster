@@ -148,19 +148,27 @@ namespace MacPackager
             }
         }
 
-        private Dictionary<string, string> CreateAndReturnDefaultConfig(bool overwrite)
+        public void UpdateConfigContents() 
         {
-            Console.WriteLine("[INFO]: Writing default config.");
-            WriteDefaultConfig(overwrite);
-            WriteSuccessMessage($"[SUCCESS]: Wrote the default config to `{CONFIG_FILE_NAME}`.");
-
-            // Mandatory warnings
-            Warning.Write("[WARNING]: You will have to select \"MacOSBinaryPath\" under \"EditConfig\" before building.");
-            Warning.Write("[WARNING]: You will have to select \"CPUTarget\" under \"EditConfig\" if targeting Apple Silicon.");
-            
-            return defaultBuildConfig;
+            try 
+            {
+                var newContents = JsonSerializer.Serialize(buildConfig, serializerOptions);
+                File.WriteAllText(CONFIG_FILE_PATH, newContents);
+            }
+            catch (Exception ex)
+            {
+                 WriteAndExit
+                (
+                    string.Join(NLC, 
+                    [
+                        $"[ERROR]: Unable to write the updated build config.", 
+                        $"[ERROR LOG]: {ex.StackTrace ?? ex.Message}",
+                    ]),
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
         }
-
         public void UpdateValue(string key, string value)
         {
             if (!buildConfig.ContainsKey(key))
@@ -191,9 +199,7 @@ namespace MacPackager
                         
                         buildConfig[key] = value;
 
-                        var newContents = JsonSerializer.Serialize(buildConfig, serializerOptions);
-
-                        File.WriteAllText(CONFIG_FILE_PATH, newContents);
+                        UpdateConfigContents();
 
                         // Green text for the header.
                         WriteSuccessMessage($"[SUCCESS]: Updated ", noNewLines: true);
@@ -227,20 +233,32 @@ namespace MacPackager
                     }
                     break;
 
-                case "CPUType":
-                    if (value.Equals("x64", OIC) || value.Equals("ARM64", OIC))
+                case "CPUTarget":
+
+                    if (value.Equals(buildConfig[key])) 
+                    {
+                        WriteAndExit
+                        (
+                            $"[ERROR]: Unable to update {key}. The new value provided is equal to the previous value.",
+                            status: 1,
+                            writePlatformDebugInfo: false
+                        );
+                    }
+
+                    if (value.Equals("x64") || value.Equals("ARM64"))
                     {
                         buildConfig[key] = value;
+                        UpdateConfigContents();
                         WriteSuccessMessage($"[SUCCESS]: Updated {key} in build config to {value}");
-                        break;
+                        return;
                     }
 
                     WriteAndExit
                     (
                         string.Join(NLC, 
                         [
-                            $"[ERROR]: An invalid value was provided for CPUType while trying to update `{key}` in `{CONFIG_FILE_PATH}`",
-                            $"[ERROR LOG]: Invalid value for CPUType: '{value}', Must be 'x64' or 'ARM64'."
+                            $"[ERROR]: An invalid value was provided for CPUTarget while trying to update the build config.",
+                            $"[ERROR LOG]: Invalid value for CPUTarget: '{value}', only 'x64' and 'ARM64' are supported, these values are case sensitive."
                         ]),
                         status: 1,
                         writePlatformDebugInfo: false
@@ -258,7 +276,7 @@ namespace MacPackager
         {
             return @$"
             MacOSBinaryPath: {buildConfig["MacOSBinaryPath"]}
-            CPUType: {buildConfig["CPUType"]}
+            CPUTarget: {buildConfig["CPUTarget"]}
             ";
         }
     }

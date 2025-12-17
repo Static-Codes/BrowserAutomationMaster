@@ -62,7 +62,7 @@ namespace MacPackager
         
         private Dictionary<string, string?> defaultBuildConfig = new() {
             { "MacOSBinaryPath", "" },
-            { "CPUType", "x86_64" },
+            { "CPUTarget", "x86_64" },
         };
         
         

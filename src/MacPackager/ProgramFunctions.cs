@@ -236,7 +236,7 @@ namespace MacPackager
                 // Writes the closing quote in white and adds a newline that was removed from the call above.
                 Console.WriteLine(NLC);
                 Console.Write(NLC);
-                
+
                 var newValue = AskForInput("[INPUT]: Please enter a new value for the specified key: ");
 
                 Console.Clear();
@@ -302,7 +302,6 @@ namespace MacPackager
                 {
 
                     buildConfigManager.UpdateValue(selection, newValue);
-                    WriteSuccessMessage($"[SUCCESS]: Updated value of key '{selection}' from to '{newValue}'.");
                 }
                 
                 else 
