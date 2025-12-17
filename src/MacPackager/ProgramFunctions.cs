@@ -30,6 +30,12 @@ namespace MacPackager
             }
         }
 
+        public static BuildConfigManager? GetBuildConfigManager() {
+            if (buildConfigManager is null){
+                return null;
+            }
+            return buildConfigManager;
+        }
 
         /// <summary> Handles the Build menu option and 'build' CLI argument. </summary>
         public static void HandleBuildCommand()

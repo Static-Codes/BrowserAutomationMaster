@@ -51,17 +51,17 @@ namespace MacPackager
 
     public class BundleManager
     {
-        private static readonly string filePath = Input.AskForInput("[INPUT]: Please enter the path to a valid standalone binary of BAMM compiled for macOS: ");
         private static readonly Assembly assembly = Assembly.GetExecutingAssembly();
         // Uses $HOME on Unix-based machines and %USERPROFILE% on Windows-based machines
         private static readonly string USER_PROFILE_DIR = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         private static readonly string PARENT_DIRECTORY = Path.Combine(USER_PROFILE_DIR, "MACOS_RELEASE");
         private static readonly string BINARY_NAME = "bamm";
+        private const string BINARY_KEY_PATH = "MacOSBinaryPath";
         
         
         
         private readonly Dictionary<string, string?> defaultBuildConfig = new() {
-            { "MacOSBinaryPath", "" },
+            { BINARY_KEY_PATH, "" },
             { "CPUTarget", "x86_64" },
         };
         
@@ -77,9 +77,8 @@ namespace MacPackager
 
         // Apparently IReadOnlyList is not just semantic
         // It removes all reference to the original members that are unavailable on readonly types.
-        private readonly IReadOnlyList<BundleStructure> bundleStructure =
+        private readonly IReadOnlyList<BundleStructure> bundleStructure = 
         [
-            // MACOS_RELEASE/BAMM.app
             new BundleStructure()
             {
                 DirectoryName = "BAMM.app",
@@ -113,7 +112,7 @@ namespace MacPackager
                                 {
                                     FileName = "bamm",
                                     // FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
-                                    FileContents = GetMacOSBinaryContents(filePath)
+                                    FileContents = GetMacOSBinaryContents()
                                 }
                             ],
                             SubDirectories = []
@@ -137,8 +136,6 @@ namespace MacPackager
                 }
             }
         ];
-
-        // Apparently IReadOnlyList isn't just semantic, it provides methods associated with a readonly element.
         private IReadOnlyList<BundleStructure> GetBundleStructure() => bundleStructure;
 
 
@@ -363,11 +360,18 @@ namespace MacPackager
 
 
         // Validates that the file at filePath is a valid macOS binary, if so, it returns a MemoryStream of its contents.
-        private static MemoryStream GetMacOSBinaryContents(string filePath)
+        private static MemoryStream GetMacOSBinaryContents()
         {   
+            var buildConfigManager = ProgramFunctions.GetBuildConfigManager();
+
+            // Compound assignment via null coalesce.
+            buildConfigManager ??= ProgramFunctions.ReassignNullBuildConfigManager(forceRefresh: true);
+
+            var binaryPath = buildConfigManager.GetValue(BINARY_KEY_PATH);
+
             // Ensures the file exists, and is a valid macOS binary
             // Will error out if an exception occurs
-            ValidateBinaryType(filePath);
+            ValidateBinaryType(binaryPath);
 
             Stream? stream = null;
 
@@ -375,7 +379,7 @@ namespace MacPackager
 
             try
             {
-                stream = new FileStream(filePath, FileMode.Open);
+                stream = new FileStream(binaryPath, FileMode.Open);
 
                 if (stream is null)
                 {
@@ -390,8 +394,9 @@ namespace MacPackager
                 WriteAndExit
                 (
                     string.Join(NLC, [
-                        $"[ERROR]: An exception occured while trying to read the contents of: {filePath}",
-                        $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                        $"[ERROR]: An exception occured while trying to read the contents of: {binaryPath}",
+                        $"[ERROR LOG]: {ex.Message}",
+                        $"[STACKTRACE]: {ex.StackTrace ?? "None Available."}"
                     ]), 
                     status: 1,
                     writePlatformDebugInfo: false
@@ -430,8 +435,18 @@ namespace MacPackager
 
         // Reads the first 7 bytes of the file at the specified path, checking for Apple's Magic Numbers (0xcffaedfe) 
         // https://en.wikipedia.org/wiki/Mach-O#Header
-        public static void ValidateBinaryType(string filePath) 
+        public static void ValidateBinaryType(string? filePath) 
         {
+            if (filePath is null)
+            {
+                WriteAndExit
+                (
+                    message: "[ERROR]: The build config does not contain a path to a valid standalone binary for macOS.", 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            };
+
             if (Path.HasExtension(filePath)) 
             {
                 WriteAndExit

@@ -20,7 +20,7 @@ namespace MacPackager
             { "CPUTarget", "x64" },
         };
 
-        private readonly Dictionary<string, string> buildConfig;
+        public readonly Dictionary<string, string> buildConfig;
 
         public readonly JsonSerializerOptions serializerOptions = new() { WriteIndented = true };
         public BuildConfigManager()
