@@ -60,7 +60,7 @@ namespace MacPackager
         
         
         
-        private Dictionary<string, string?> defaultBuildConfig = new() {
+        private readonly Dictionary<string, string?> defaultBuildConfig = new() {
             { "MacOSBinaryPath", "" },
             { "CPUTarget", "x86_64" },
         };

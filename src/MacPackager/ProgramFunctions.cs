@@ -374,7 +374,7 @@ namespace MacPackager
             return buildConfigManager;
         }
 
-        public static void RunMenuLoop(string[] args)
+        public static void RunMenuLoop()
         {
             bool isRunning = true;
             while (isRunning)
