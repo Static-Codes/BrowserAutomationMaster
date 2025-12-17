@@ -101,7 +101,7 @@ namespace MacPackager
                 {
                     WriteAndExit
                     (
-                        message: "[ERROR]: The operation was cancelled by the user, The BAMM for macOS Packager will exit now.",
+                        message: "[ERROR]: The operation was cancelled by the user, press any key to exit The BAMM for macOS Packager.",
                         status: 0,
                         writePlatformDebugInfo: false
                     );
