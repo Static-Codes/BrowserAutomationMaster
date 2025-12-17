@@ -33,7 +33,7 @@
 		<CommonPackageVersion>$(PackageVersion)</CommonPackageVersion>
 		<CommonPackageSummary>Custom scripting language for Web Automation that compiles for Python</CommonPackageSummary>
 		<CommonPackageLicense>MIT</CommonPackageLicense>
-		<CommonDesktopName>BAMM for macOS Publisher</CommonDesktopName>
+		<CommonDesktopName>BAMM for macOS Packager</CommonDesktopName>
 		<RepositoryUrl>https://github.com/Static-Codes/BrowserAutomationMaster/</RepositoryUrl>
 	</PropertyGroup>
 

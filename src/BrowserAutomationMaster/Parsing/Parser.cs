@@ -242,7 +242,8 @@ namespace BrowserAutomationMaster.Parsing
         
         public static void HandleHelpSelection()
         {
-            while (true) {
+            while (true) 
+            {
                 string command = Input.WriteListFromOptions([.. CommandList.Select(cmd => cmd.Name), "Exit App"]);
                 Help.ShowCommandDetails(command.Trim());
 

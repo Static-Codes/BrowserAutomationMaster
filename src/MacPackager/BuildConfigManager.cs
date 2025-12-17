@@ -1,32 +1,36 @@
 using System.Text.Json;
 using BrowserAutomationMaster.Messaging;
-using YamlDotNet.Core.Tokens;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Input;
 using static BrowserAutomationMaster.Messaging.Success;
 using static MacPackager.BundleManager;
 
 namespace MacPackager 
 {
-    public class BuildConfig
+    public class BuildConfigManager
     {
         private static readonly string BASE_APPLICATION_DIR = AppContext.BaseDirectory;
         private const string CONFIG_FILE_NAME = "buildConfig.json";
         private static readonly string CONFIG_FILE_PATH = Path.Combine(BASE_APPLICATION_DIR, CONFIG_FILE_NAME);
 
-        private Dictionary<string, string> defaultBuildConfig = new() {
+        private readonly Dictionary<string, string> defaultBuildConfig = new() 
+        {
             { "MacOSBinaryPath", "" },
             { "CPUTarget", "x64" },
         };
 
-        private Dictionary<string, string> buildConfig;
+        private readonly Dictionary<string, string> buildConfig;
 
-        public BuildConfig()
+        public readonly JsonSerializerOptions serializerOptions = new() { WriteIndented = true };
+        public BuildConfigManager()
         {
             buildConfig = LoadBuildConfig();
         }
 
-        private string GetValue(string key) 
+        // public Dictionary<string, string> GetBuildConfig() { return buildConfig; }
+
+        public string GetValue(string key) 
         {
             var value = 
                 buildConfig
@@ -36,6 +40,12 @@ namespace MacPackager
 
             if (string.IsNullOrEmpty(value))
             {
+                Warning.Write($"[WARNING]: Please ensure that the Build Config has a value for the key '{key}'.");
+                Console.WriteLine($"[INFO]: The config is located at '{CONFIG_FILE_PATH}'.");
+                Console.WriteLine($"[INFO]: The config can be edited using the \"EditConfig\" menu option.");
+                Console.WriteLine($"[INFO]: If you prefer using the CLI, you can use the following command.");
+                WriteSuccessMessage("[SYNTAX]: bamm-macos-publisher --edit-config");
+
                 WriteAndExit
                 (
                     message: 
@@ -53,12 +63,60 @@ namespace MacPackager
 
         }
 
-        private void WriteDefaultConfig()
+        public string[] GetKeys() 
         {
+            if (buildConfig.Keys is null) 
+            {
+                Warning.Write($"[WARNING]: Please ensure that the Build Config exists.");
+                Console.WriteLine($"[INFO]: The config should be located at '{CONFIG_FILE_PATH}'.");
+                Console.WriteLine($"[INFO]: If this issue persists, please open The BAMM for macOS Packager, and select \"New Config\".");
+
+                WriteAndExit
+                (
+                    message: $"[ERROR]: Unable to retrieve the keys from the Build Config.",
+                    status: 1, 
+                    writePlatformDebugInfo: false
+                );
+            }
+
+            return [.. buildConfig.Keys];
+        }
+        public void WriteDefaultConfig(bool overwriteExisting = true)
+        {
+            // The warning and confirmation are not required if the file doesn't already exist.
+            if (!File.Exists(CONFIG_FILE_PATH) && overwriteExisting)
+            {
+                overwriteExisting = false;
+            }
+
+            if (overwriteExisting)
+            {
+                Warning.Write
+                (
+                    string.Join(", ", [
+                        "[WARNING]: This is a potentially destructive action",
+                        "it should only be used if you are experiencing failed builds,"
+                    ])
+                );
+
+                var choice = AskForInput("Would you like to override the current build config? [y/n]: ");
+                if (ConditionRejected(choice)) 
+                {
+                    WriteAndExit
+                    (
+                        message: "[ERROR]: The operation was cancelled by the user, The BAMM for macOS Packager will exit now.",
+                        status: 0,
+                        writePlatformDebugInfo: false
+                    );
+                }
+            }
+
             try
             {
-                string jsonString = JsonSerializer.Serialize(defaultBuildConfig, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(CONFIG_FILE_NAME, jsonString);
+                Console.WriteLine($"[INFO]: Writing default build config.{NLC}");
+                string jsonString = JsonSerializer.Serialize(defaultBuildConfig, serializerOptions);
+                File.WriteAllText(CONFIG_FILE_PATH, jsonString);
+                WriteSuccessMessage($"[SUCCESS]: Wrote default build config to '{CONFIG_FILE_PATH}'.");
             }
             catch (Exception ex)
             {
@@ -77,18 +135,19 @@ namespace MacPackager
 
         private Dictionary<string, string> LoadBuildConfig()
         {   
-            if (!File.Exists(CONFIG_FILE_PATH))
-            {
-                Warning.Write($"[WARNING]: '{CONFIG_FILE_NAME}' was not found."); 
-                Console.WriteLine($"[INFO]: Writing default config to '{CONFIG_FILE_PATH}'.");
-                WriteDefaultConfig();
-                return defaultBuildConfig.ToDictionary(k => k.Key, k => k.Value ?? string.Empty);
-            }
-            
             try
             {
+                // Throws an early (recoverable) exception, if the config file is not present.
+                // If this exception is thrown the code outside the conditional is not executed.
+                // The Build Config is created within the catch block below.
+                if (!File.Exists(CONFIG_FILE_PATH))
+                {
+                    Warning.Write($"[WARNING]: '{CONFIG_FILE_NAME}' was not found, using default.");
+                    return defaultBuildConfig;
+                }
+            
                 // Loads the config (if present)
-                string jsonString = File.ReadAllText(CONFIG_FILE_NAME);
+                string jsonString = File.ReadAllText(CONFIG_FILE_PATH);
                 var loadedConfig = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString);
 
                 var buildConfig = new Dictionary<string, string>(defaultBuildConfig.Count);
@@ -111,30 +170,28 @@ namespace MacPackager
             
             catch (Exception ex)
             {
-                    Warning.Write(string.Join(NLC, 
-                    [
-                        $"[WARNING]: Failed to read or deserialize the buildConfig '{CONFIG_FILE_NAME}'.", 
-                        $"[WARNING LOG]: {ex.StackTrace ?? ex.Message}",
-                    ]));
+                Warning.Write($"[WARNING]: Failed to parse the build config, the file might be corrupted.");
+                Warning.Write($"[WARNING LOG]: {ex.Message}");
 
-                    // Writing the default config as a backup
-                    Console.WriteLine("[INFO]: Writing default config.");
-                    WriteDefaultConfig();
-                    WriteSuccessMessage($"[SUCCESS]: Wrote the default config to `{CONFIG_FILE_NAME}`.");
-
-                    // Binary Path warning
-                    Console.WriteLine("[INFO]: The following warning is a requirement for all users regardless of their CPU target.");
-                    Warning.Write("[WARNING]: You will have to select \"Change Config Binary Path\" from the main menu, before you are able to build.");
-                    
-                    // CPU Target warning
-                    Console.WriteLine("[INFO]: If you are bundling a macOS binary for Apple Silicon, please read the warning below, otherwise you can ignore it.");
-                    Warning.Write("[WARNING]: You will have to select \"Change Config CPU Target\" from the main menu, before you are able to build.");
-                    return defaultBuildConfig;
-                }
+                return CreateAndReturnDefaultConfig(overwrite: false);
+            }
             
         }
 
-        private void UpdateValue(string key, string value)
+        private Dictionary<string, string> CreateAndReturnDefaultConfig(bool overwrite)
+        {
+            Console.WriteLine("[INFO]: Writing default config.");
+            WriteDefaultConfig(overwrite);
+            WriteSuccessMessage($"[SUCCESS]: Wrote the default config to `{CONFIG_FILE_NAME}`.");
+
+            // Mandatory warnings
+            Warning.Write("[WARNING]: You will have to select \"MacOSBinaryPath\" under \"EditConfig\" before building.");
+            Warning.Write("[WARNING]: You will have to select \"CPUTarget\" under \"EditConfig\" if targeting Apple Silicon.");
+            
+            return defaultBuildConfig;
+        }
+
+        public void UpdateValue(string key, string value)
         {
             if (!buildConfig.ContainsKey(key))
             {
@@ -196,7 +253,10 @@ namespace MacPackager
 
         public override string ToString()
         {
-            return $"MacOSBinaryPath: {buildConfig["MacOSBinaryPath"]}\nCPUType: {buildConfig["CPUType"]}";
+            return @$"
+            MacOSBinaryPath: {buildConfig["MacOSBinaryPath"]}
+            CPUType: {buildConfig["CPUType"]}
+            ";
         }
     }
 }

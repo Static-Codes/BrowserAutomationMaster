@@ -423,7 +423,7 @@ namespace MacPackager
                 );
             }
 
-            WriteSuccessMessage("[SUCCESS]: Sending macOS binary contents to the BAMM for macOS Publisher.");
+            WriteSuccessMessage("[SUCCESS]: Sending macOS binary contents to the BAMM for macOS Packager.");
             return memoryStream;
         }
 

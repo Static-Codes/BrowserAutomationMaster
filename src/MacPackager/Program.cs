@@ -1,18 +1,22 @@
-﻿using BrowserAutomationMaster.Managers;
+﻿
+using static MacPackager.ProgramFunctions;
 
-namespace MacPackager
+Console.Title = $"BAMM for macOS Packager (BETA)";
+
+Initialize(args);
+
+bool shouldExit = HandleCLIArguments(args);
+
+if (!shouldExit)
 {
-    internal class Program 
-    {
-        static void Main(string[] args)
-        {
-            PlatformManager.SetPlatform();
-            var bundleManager = new BundleManager();
-            bundleManager.BuildBundle();
-            
-            // Path to test:
-            // "/home/nerdy/repos/BrowserAutomationMaster/src/BrowserAutomationMaster/bin/Release/net8.0/osx-x64/publish/bamm"
-
-        }
-    }
+    RunMenuLoop(args);
 }
+
+// var bundleManager = new BundleManager();
+// bundleManager.BuildBundle();
+            
+// Path to test:
+// "/home/nerdy/repos/BrowserAutomationMaster/src/BrowserAutomationMaster/bin/Release/net8.0/osx-x64/publish/bamm"
+
+    
+

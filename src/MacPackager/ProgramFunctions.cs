@@ -1,45 +1,67 @@
-using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Managers.Python;
-using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
-using BrowserAutomationMaster.Parsing;
-using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
-using static BrowserAutomationMaster.Managers.ConfigManager;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Win;
 using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
-using static BrowserAutomationMaster.Managers.LocalServerManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Menu;
+using static BrowserAutomationMaster.Messaging.Input;
 using static BrowserAutomationMaster.Messaging.Success;
-using static BrowserAutomationMaster.Parsing.Parser;
-
+using static MacPackager.Menu;
 
 namespace MacPackager
 {
     public class ProgramFunctions
     {
+
+        static BuildConfigManager? buildConfigManager;
+
         /// <summary>Handles all of the initial application setup and prerequisite checks.</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
-        public static async Task InitializeAsync(string[] args)
+        public static void Initialize(string[] args)
         {
             // Sets PlatformManager.PlatformName to be used across the session duration.
             SetPlatform();
 
             if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
-                Win.VerifyRootDrive(args);
-            
-            await HandleHardwareCheck(args);
+            {
+                VerifyRootDrive(args);
+            }
         }
 
+
+        /// <summary> Handles the Build menu option and 'build' CLI argument. </summary>
+        public static void HandleBuildCommand()
+        {
+            ReassignNullBuildConfigManager();
+
+            // ReassignNullBuildConfigManager() handles the null check for this.
+            string path = buildConfigManager!.GetValue("MacOSBinaryPath");
+                    
+            if (!File.Exists(path))
+            {
+                WriteAndExit
+                (
+                    string.Join(' ', [
+                        "[ERROR]:",
+                        "The BAMM Packager for macOS was unable to find the provided file, " +
+                        $"please ensure the file below exists:{NLC}{path}"
+                    ]),
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
+
+            BundleManager bundleManager = new BundleManager();
+            bundleManager.BuildBundle();
+        }
+
+        
         /// <summary>Processes any CLI arguments and returns execution status.</summary>
         /// <param name="pArgs">Program Arguments (args)</param>
         /// <returns>True if BAMM is to be terminated | False if execution is to continue.</returns>
-        public static async Task<bool> HandleCLIArguments(string[] pArgs)
+        public static bool HandleCLIArguments(string[] pArgs)
         {
             if (pArgs.Length == 0) 
                 return false; // No args, proceed to main menu loop.
@@ -69,134 +91,56 @@ namespace MacPackager
             }
 
             // Queries whether or not
-            if (Platforms.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
+            if (Platforms.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display")))
+            {
                 Console.WriteLine("====================================");
-                Console.WriteLine("$DISPLAY Set: {0}", Linux.HasDisplayVarSet());
+                Console.WriteLine("$DISPLAY Set: {0}", HasDisplayVarSet());
                 Console.WriteLine("===================================={0}{1}", NLC, NLC);
             }
 
-            // Handles --bs command (does nothing if on chromeOS)
-            if (pArgs[0].Equals("--bs", CCIC))
+            // Handles `--edit-config` command
+            if (pArgs[0].Equals("--edit-config"))
             {
-                SetBrowserStackStatus(status: true);
-                return false;
+                if (buildConfigManager is null) 
+                {
+                    WriteAndExit(
+                        string.Join(NLC, [
+                            "Invalid 'validate' command.", 
+                            "Valid Syntax:",
+                            "bamm-macos-publisher validate path/to/apple-binary"
+                        ]), 
+                        status: 1, 
+                        writePlatformDebugInfo: false
+                    );
+                }
+
+                // Will return true
+                return HandleEditConfigCommand();
             }
 
-            // Handles `--editbsconf` command
-            if (pArgs[0].Equals("--editbsconf"))
-            {
-                HandleBSOverwriteCommand();
-                return true;
-            }
-
+            // Forces an explicit error, which is useful for debugging.
             if (pArgs.Any(arg => arg.Equals("--force-error")))
             {
-                WriteAndExit("", 0);
-            }
-            
-            if (pArgs.Any(arg => arg.Equals("--gui") && !Directory.Exists(userScriptsDirectory))){
-                WriteAndExit(
-                    string.Join(NLC, [
-                        "Unable to start BAMM's GUI.",
-                        "Please start BAMM without any arguments for your first run, unless instructed otherwise.",
-                        $"Once you see the Main Menu, select \"GUI\".{NLC}",
-                        "Please note, you are seeing this because either:",
-                        "- 1. You are running BAMM for the first time.",
-                        "- 2. The userScripts directory has not been created, or has been corrupted.",
-                        "After this, you can run BAMM as normal."
-                    ]),
-                    status: 1
+                WriteAndExit
+                (
+                    message: string.Empty, 
+                    status: 0, 
+                    writePlatformDebugInfo: true
                 );
             }
 
-            // If no display is set and the user attempts to user the GUI, browserstack will be set.
-            if (pArgs.Any(arg => arg.Equals("--gui")) && !Linux.HasDisplayVarSet())
-            {
-                Warning.Write($"Unable to query $DISPLAY, BAMM's GUI will not work.");
-                SetBrowserStackStatus(true);
-            }
-
-            // Downloads a local copy of the GUI (If one is not already present) from:
-            // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip
-            else if (pArgs[0].Equals("--gui") && !Directory.Exists(GetGUIDirectoryPath()))
-            {
-                await HandleGUIDownload();
-            }
-
-            // Handles '--gui' command using default port (8008)
-            if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
-            {
-                await StartServer();
-            }
-
-            // Handles '--gui --port==X' command where X is a valid integer between 1 and 65535
-            else if (pArgs.Length == 2 && pArgs[0].Equals("--gui") && IsMatches(GUIPortRegex(), pArgs[1], out string port))
-            {
-                await StartServer(port);
-            }
-
+            // Displays the latest release version of BAMM.
             else if (pArgs.Any(arg => arg.Equals("--version"))) 
             {
-                Warning.Write(
-                    string.Join(NLC, [
-                        $"Version: {CurrentVersion}",
-                        $"Is Latest: {CurrentVersion == LatestVersion}"
-                    ])
-                );
+                Warning.Write($"[INFO]: Latest Version Available: {CurrentVersion == LatestVersion}");
                 Environment.Exit(0);
             }
 
-            // Handles 'backup' command
-            if (pArgs[0].Equals("backup", CCIC))
-            {
-                // ADD A CHECK HERE REGARDING THE USERS ARCHIVING CHOICE (ZIP, GZIP, TAR.GZ, etc)
-                HandleBackupCommand(pArgs);
-                return true;
-            }
-
-            // Handles 'clear' command variations
-            if (pArgs[0].Equals("clear", CCIC)) // CCIC = StringComparison.CurrentCultureIgnoreCase
-            {
-                HandleClearCommand(pArgs);
-                return true;
-            }
-
-            // Handles invalid case of `bamm delete`
-            if (pArgs.Length == 1 && pArgs[0].Equals("delete", CCIC))
-            {
-                WriteAndExit("Invalid delete command format please specify the path to the file you wish to delete.", 1);
-            }
-
-            // Handles `bamm delete path/to/file.bamc`
-            else if (pArgs[0].Equals("delete", CCIC))
-            {
-                DeleteFile(pArgs[1]);
-                return true;
-            }
 
             // Handles 'help' command variations
-            else if (pArgs[0].Equals("help", CCIC))
+            else if (pArgs[0].Equals("help", CCIC) || pArgs[0].Equals("--help"))
             {
                 HandleHelpCommand(pArgs);
-                return true;
-            }
-
-            // Handles `restore` command variations
-            if (pArgs.Length == 1 && pArgs[0].Equals("restore")) {
-                RestoreFromBackup();
-                return true;
-            }
-
-            // Handles 'run' command variations
-            if (pArgs[0].Equals("run", CCIC))
-            {
-                return await HandleRunCommand(pArgs);
-            }
-
-            // Handles 'uninstall' command
-            if (pArgs[0].Equals("uninstall", CCIC))
-            {
-                UninstallationManager.Uninstall();
                 return true;
             }
 
@@ -204,191 +148,77 @@ namespace MacPackager
             if (pArgs[0].Equals("validate", CCIC))
             {
                 if (pArgs.Length != 2)
-                    WriteAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", 1);
-                
-                if (IsValidFile(pArgs[1]))
-                    WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
-                else
-                    WriteAndExit("Selected file has invalid syntax.", 1);
+                {
+                    
+                    Write(message: "[ERROR]: Invalid 'validate' command.");
+                    Console.WriteLine("[INFO]: See validate syntax below.");
+                    WriteSuccessMessage("[SYNTAX]: bamm-macos-publisher validate path/to/apple-binary");
+                    Environment.Exit(1);
+                }
 
+                BundleManager.ValidateBinaryType(pArgs[1]);
                 return true;
             }
 
             return false;
         }
 
-        /// <summary></summary>
-        /// <param name="pArgs"></param>
-        private static void HandleBackupCommand(string[] pArgs)
+
+        public static bool HandleEditConfigCommand() 
         {
-            if (pArgs.Length > 2)
+            ReassignNullBuildConfigManager();
+
+            bool isRunning = true;
+            while (isRunning)
             {
-                var message =
-                    "Invalid 'backup' command.\n\n" +
-                    "Valid commands:\n" +
-                    "bamm backup # backups to the desktop or $HOME directory." +
-                    "bamm backup path/to/desired/backupFile.zip # Creates a backup file at the specified location.";
+                // ReassignNullBuildConfigManager() handles the null check for this.
+                var commands = buildConfigManager!.GetKeys();
 
-                Write(message);
-                ReadKey();
-                return;
-            }
+                // This is used in the menu text.
+                var noun = "key";
 
-            if (pArgs.Length == 1)
-                ArchiveAppDataDirectory();
-                
-            if (pArgs.Length == 2){
-                WriteAndExit(string.Join(NLC, [
-                    "Currently BAMM does not support custom paths for your backup.",
-                    "Please remove the second argument to continue."
-                ]), 1);
-                // ArchiveAppDataDirectory(pArgs[1]); // Re-add this later when restore functionality is improved
+                // The default pageSize for WriteListFromOptions is 3, so that is the fallback value.
+                var pageSize = Math.Max(3, commands.Length);
 
-            }
-        }
+                var selection = WriteListFromOptions(commands, noun, pageSize);
 
+                var selectedKeysValue = buildConfigManager.GetValue(selection);
 
-        ///<summary>Handles 'bamm --editbsconf'</summary>
-        ///<param name="pArgs">Program Arguments</param>
-        private static void HandleBSOverwriteCommand()
-        {
-            if (InstanceManager.PromptConfigOverride())
-                InstanceManager.WriteConfig(fileNotFound: false);
-        }
+                var newValue = AskForInput("Please enter a new value for the specified key.");
 
+                // White text for the message type header.
+                Console.Write($"[INFO]: Current value for key '{selection}': ");
 
-        /// <summary>Handles variations of 'bamm clear'</summary>
-        /// <param name="pArgs">Program Arguments (args)</param>
-        private static void HandleClearCommand(string[] pArgs)
-        {
-            if (pArgs.Length != 2)
-            {
-                Write(
-                    "Invalid 'clear' command.\n\nValid commands:\nbamm clear userScripts\nbamm clear compiled\nbamm clear config\n\nPress any key to continue...");
-                ReadKey();
-                return;
-            }
+                // Outputs red text for clarity to indicate to the user this action will change the value.
+                Write(selectedKeysValue);
 
-            string targetDir = pArgs[1].ToLower();
-            string dirPath = targetDir switch
-            {
-                "userscripts" => userScriptsDirectory,
-                "compiled" => GetDesiredSaveDirectory(),
-                "config" => GetBAMConfigDirectory(),
-                _ => string.Empty
-            };
+                // White text for the message type header.
+                Console.Write($"[INFO]: New value for key '{selection}': ");
 
-            if (string.IsNullOrEmpty(dirPath))
-            {
-                Write("Invalid 'clear' target. Use 'userScripts', 'compiled', or 'config'.");
-                ReadKey();
-                return;
-            }
+                // Outputs red text for clarity to indicate to the user this action will change the value.
+                WriteSuccessMessage(newValue);
 
-            string input = Input.AskForInput($"Are you sure you want to delete the '{targetDir}' directory? [y/n]:\n");
-            if (input.Equals("y", OIC))
-                DeleteDirectory(dirPath);
-        }
-
-        private static async Task<bool> HandleDaemonDownload()
-        {
-            var msg = "Unable to download the GUI Daemon, any attempt to use the 'Restart GUI' button will throw an error.";
-            try
-            {
-                var content = await RequestManager.NetworkClient.Instance.GetStringAsync(GUI_DAEMON_LINK);
-
-                if (content == null)
-                    return WriteErrorAndReturnBool(msg, false);
-
-                var path = GetGUIDaemonPath();
-                File.WriteAllText(path, content);
-                return File.Exists(path);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return WriteErrorAndReturnBool(msg, false);
-            }
-        }
-
-        private static async Task<bool> HandleGUIDownload()
-        {
-            try
-            {
-                bool daemonDownloaded = false; // Prevents the requirement for nesting
-
-                if (File.Exists(GetGUIDaemonPath())) // If the Daemon is already downloaded, continue
-                    daemonDownloaded = true;
-
-                else // Downloads a local copy of the GUI from ConstantManager.GUI_DAEMON_LINK
-                    daemonDownloaded = await HandleDaemonDownload();
-
-
-                if (!daemonDownloaded) // If the daemonDownload flag isnt true, execution ends.
-                    return false;
-
-                if (!File.Exists(GetGUIDaemonPath())) // If the daemon wasn't downloaded, execution ends.
-                    return false;
-
-                WriteSuccessMessage("Successfully downloaded the GUI Daemon, downloading GUI now..");
-                await Task.Delay(300);
-
-                if (!await DownloadGUI())
-                    return false;
-
-                WriteSuccessMessage("Successfully downloaded gui.zip from project repository, please wait while it's extracted.");
-                await Task.Delay(300);
-
-                if (!ExtractGUI())
-                    return false;
-
-                WriteSuccessMessage("Successfully extracted GUI, please wait while the HTTP Server starts..");
-            }
-            catch (Exception ex)
-            {
-                WriteAndExit(
-                    message:
-                        string.Join(
-                            string.Empty, [
-                                "Unable to download the required GUI files, ",
-                                "if this issue persists, ",
-                                $"please make a bug report at {ISSUES_LINK}\n\n",
-                                $"Error Log:\n{ex.Message}"
-                            ]
-                        ),
-                    status: 1
+                Warning.Write
+                (
+                    string.Join(", ", [
+                        "[WARNING]: Please note, while this change can be reversed", 
+                        "it may cause a previously working build process to fail",
+                        "if an incorrect value is provided."
+                    ])
                 );
+
+                var confirmation = AskForInput($"[CONFIRM]: Are you sure you want to update the value for the key '{selection}'? [y/n]: ");
+
+                buildConfigManager.UpdateValue(selection, selectedKeysValue);
+                
+                WriteSuccessMessage($"[SUCCESS]: Updated value of key '{selection}' from to '{newValue}'.");
+                
+                var choice = AskForInput("[CONFIRM]: Would you like to continue editing the Build Config? [y/n]: ");
+                isRunning = ConditionAccepted(choice);
             }
+
             return true;
         }
-
-        private static async Task HandleHardwareCheck(string[] pArgs)
-        {
-            // Skip compatibility checks if the user is not attempting to compile or run scripts.
-            string[] nonUserScriptArgs = ["backup", "clear", "help", "restore", "uninstall", "validate"];
-
-            string[] bypassCLIArgs = ["--bs", "--nohwc", "--editbsconf", "--version"];
-
-            bool bypassCheck1 = pArgs.Any(arg => nonUserScriptArgs.Contains(arg));
-            bool bypassCheck2 = pArgs.Any(arg => bypassCLIArgs.Contains(arg));
-
-            bool doHardwareCheck = !bypassCheck1 && !bypassCheck2;
-
-            if (GlobalConfig.ShowUpdateCheck) {
-                await CheckForUpdate();
-            }
-
-            if (doHardwareCheck) {
-                RuntimeManager.DoRuntimeCheck();
-                return;
-            }
-
-            RuntimeManager.SetMemoryInfo();
-            
-        }
-        /// <summary>Runs the main menu loop for BAMM.</summary>
-        /// <param name="pArgs">Program Arguments (args)</param>
-
 
         /// <summary> Handles variations of 'bamm help' </summary>
         /// <param name="pArgs">Program Arguments (args)</param>
@@ -396,77 +226,87 @@ namespace MacPackager
         {
             if (pArgs.Length == 1)
             {
-                Write(string.Join(
-                    string.Empty, [
-                        "Invalid command: 'bamm help'\n\nTo see available entries for the 'help' command, ",
-                        "run bamm without arguments then select the Help tab.\n\n"
+                Write($"[ERROR]: Invalid command '{pArgs[0]}'{NLC}");
+                
+                Console.WriteLine(
+                    string.Join(' ', [
+                        "[INFO]:",
+                        "To see available entries for the 'help' // '--help' command,",
+                        "run the packager without arguments then select the Help option in the main menu."
                     ])
                 );
+
                 ReadKey();
             }
+
             else if (pArgs.Length == 2)
             {
-                Help.ShowCommandDetails(pArgs[1]);
+                ShowCommandDetails(pArgs[1]);
             }
         }
 
-        /// <summary> </summary>
-        /// <param name=""><param>
-        /// <returns></returns>
-        // private static async Task<bool> HandleRestoreCommand(string[] pArgs)
-        // {
-        //     var backupFile = GetDefaultBackupPath();
-
-        // }
-        
-        /// <summary> Handle variations of 'bamm run' </summary>
-        /// <param name="pArgs"></param>
-        /// <returns>A boolean result indicating a successful or failed execution.</returns>
-        private static async Task<bool> HandleRunCommand(string[] pArgs)
+        public static void HandleNewConfigCommand() 
         {
-            var errorMessage =
-                "Invalid 'run' command.\n" +
-                "Please provide a valid path to a Python script.\n\n" +
-                "Valid Syntax:\n" +
-                "bamm run 'path/to/file.py'";
+            ReassignNullBuildConfigManager();
 
-            if (pArgs.Length == 2 && File.Exists(pArgs[1]))
+            if (buildConfigManager is null) 
             {
-                var runtimeManager = new RuntimeManager(pArgs[1]);
-                await runtimeManager.RunScript();
+                Write("[ERROR]: An exception occured while attempt to load the Build Config Manager");
+                WriteAndExit
+                (
+                    message: "[ERROR LOG]: Variable 'buildConfigManager' failed a null check.",
+                    status: 1, 
+                    writePlatformDebugInfo: false
+                );
             }
 
-            else { WriteAndExit(errorMessage, 1); }
-
-            return true;
+            buildConfigManager.WriteDefaultConfig();
+            
+            // Mandatory warnings
+            Warning.Write("[WARNING]: You will have to select \"MacOSBinaryPath\" under \"EditConfig\" before building.");
+            Warning.Write("[WARNING]: You will have to select \"CPUTarget\" under \"EditConfig\" if targeting Apple Silicon.");
         }
 
-        public static async Task RunMenuLoop(string[] args)
+        public static BuildConfigManager ReassignNullBuildConfigManager()
+        {
+            if (buildConfigManager is null) 
+            {
+                buildConfigManager = new BuildConfigManager();
+            }
+            return buildConfigManager;
+        }
+
+        public static void RunMenuLoop(string[] args)
         {
             bool isRunning = true;
             while (isRunning)
             {
-                KeyValuePair<MenuOption, string> parserResult = Parser.New();
-                switch (parserResult.Key)
+                MenuOption result = NewMenu();
+                switch (result)
                 {
-                    case MenuOption.Add:
-                        string response = Input.AskForInput("Would you like to compile the newly added file? [y/n]:");
-                        if (Input.ConditionAccepted(response))
-                            await New(parserResult.Value, args);
+                    case MenuOption.BuildPackage:
                         break;
 
-                    case MenuOption.Compile:
-                        await New(parserResult.Value, args);
-                        break;
-
-                    case MenuOption.Run:
-                        RuntimeManager runtimeManager = new(parserResult.Value);
-                        // CheckBrowserStackStatus(); 
-                        await runtimeManager.RunScript();
+                    case MenuOption.EditConfig:
+                        HandleEditConfigCommand();
                         break;
 
                     case MenuOption.GUI:
-                        await StartServer();
+                        WriteAndExit
+                        (
+                            message:
+                                string.Join(' ', [
+                                    "[ERROR]:",
+                                    "The BAMM for macOS Packager does not currently have a Graphical User Interface,",
+                                    "this command currently serves as a placeholder for future updates."
+                                ]),
+                            status: 0,
+                            writePlatformDebugInfo: false
+                        );
+                        break; // Purely to appease the c# static compiler.
+
+                    case MenuOption.NewConfig:
+                        HandleNewConfigCommand();
                         break;
 
                     case MenuOption.Help:
@@ -479,9 +319,11 @@ namespace MacPackager
 
                 if (isRunning)
                 {
-                    string input = Input.AskForInput("\nWould you like to exit BAM Manager (BAMM)? [y/n]:");
-                    if (Input.ConditionAccepted(input))
+                    string input = AskForInput($"{NLC}Would you like to exit The BAMM for macOS Packager? [y/n]:");
+                    if (ConditionAccepted(input))
+                    {
                         isRunning = false;
+                    }
                 }
             }
         }
