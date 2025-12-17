@@ -26,8 +26,14 @@ namespace BrowserAutomationMaster.Messaging
             );
         }
 
-        public static void Write(string message)
+        public static void Write(string message, bool noNewLines = false)
         {
+            if (noNewLines)
+            {
+                WriteMessageNoNewLines(message, isError: true);
+                return;
+            }
+            
             WriteMessage(message, isError: true);
         }
 

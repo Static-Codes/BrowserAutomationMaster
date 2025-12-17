@@ -247,6 +247,41 @@ namespace BrowserAutomationMaster.Managers
             }
         }
         
+        public static void WriteMessageNoNewLines(string message, bool isSuccess = false, bool isWarning = false, bool isError = false)
+        {
+            
+            SetAnsiColors(isSuccess, isWarning, isError);
+
+            var lines = message.Split('\n');
+
+            // Handles line breaks by padding each line to fill the background
+            for (int i = 0; i < lines.Length; i++)
+            {
+                // Sanitizing line contents
+                string[] replacements = ["\r",  "\n", "||"];
+
+
+                var line = lines[i];
+                foreach (var replacement in replacements)
+                {
+                    line = line.Replace(replacement, "");
+                }
+                
+                if (line.Equals("\n") || string.IsNullOrEmpty(line))
+                {
+                    continue; 
+                }
+
+                // var paddedLine = line.PadRight(Console.WindowWidth);
+
+               
+                // Writing char by char to avoid FormatException
+                foreach (char c in line)
+                {
+                    AnsiConsole.Write(c);
+                }
+            }
+        }
 
 
     }

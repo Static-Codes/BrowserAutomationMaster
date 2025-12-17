@@ -184,20 +184,49 @@ namespace MacPackager
 
                 var selectedKeysValue = buildConfigManager.GetValue(selection);
 
-                var newValue = AskForInput("Please enter a new value for the specified key.");
+                var newValue = AskForInput("Please enter a new value for the specified key: ");
+
+                Console.Clear();
 
                 // White text for the message type header.
-                Console.Write($"[INFO]: Current value for key '{selection}': ");
+                Console.Write($"[INFO]: Current value for key ");
 
+                // Writes the key name in yellow
+                Warning.Write(selection, noNewLines: true);
+                
+                // Closes the line with white text
+                Console.Write(": \"");
+
+                // Changes an empty or null string to a more verbose NOT SET
+                if (string.IsNullOrEmpty(selectedKeysValue)) 
+                {
+                    selectedKeysValue = "NOT SET";
+                }
+                
                 // Outputs red text for clarity to indicate to the user this action will change the value.
-                Write(selectedKeysValue);
+                Write($"{selectedKeysValue}", noNewLines: true);
+
+                // Writes the closing quote in white and adds a newline that was removed from the call above.
+                Console.WriteLine('"');
+                Console.WriteLine(NLC);
 
                 // White text for the message type header.
-                Console.Write($"[INFO]: New value for key '{selection}': ");
+                Console.Write($"[INFO]: New value for key ");
+                
+                // Writes the key name in yellow
+                Warning.Write(selection, noNewLines: true);
+                
+                // Writes the text between the key and value in white
+                Console.Write(": \"");
 
-                // Outputs red text for clarity to indicate to the user this action will change the value.
-                WriteSuccessMessage(newValue);
+                // Outputs green text for clarity 
+                WriteSuccessMessage($"{newValue}", noNewLines: true);
 
+                // Writes the closing quote in white and adds a newline that was removed from the call above.
+                Console.WriteLine('"');
+                Console.WriteLine(NLC);
+
+                // Displays a warning
                 Warning.Write
                 (
                     string.Join(", ", [
@@ -207,11 +236,23 @@ namespace MacPackager
                     ])
                 );
 
-                var confirmation = AskForInput($"[CONFIRM]: Are you sure you want to update the value for the key '{selection}'? [y/n]: ");
+                // Trailing new-line char for uniform output.
+                Console.Write(NLC);
 
-                buildConfigManager.UpdateValue(selection, selectedKeysValue);
+                // Asks for confirmation
+                var confirmation = AskForInput($"[CONFIRM]: Are you sure you want to update the value? [y/n]: ");
+
+                if (ConditionAccepted(confirmation))
+                {
+
+                    buildConfigManager.UpdateValue(selection, selectedKeysValue);
+                    WriteSuccessMessage($"[SUCCESS]: Updated value of key '{selection}' from to '{newValue}'.");
+                }
                 
-                WriteSuccessMessage($"[SUCCESS]: Updated value of key '{selection}' from to '{newValue}'.");
+                else 
+                {
+                    Write("[ERROR]: The operation was cancelled by the user.");
+                }
                 
                 var choice = AskForInput("[CONFIRM]: Would you like to continue editing the Build Config? [y/n]: ");
                 isRunning = ConditionAccepted(choice);
@@ -319,7 +360,7 @@ namespace MacPackager
 
                 if (isRunning)
                 {
-                    string input = AskForInput($"{NLC}Would you like to exit The BAMM for macOS Packager? [y/n]:");
+                    string input = AskForInput($"{NLC}[CONFIRM]: Would you like to exit The BAMM for macOS Packager? [y/n]:");
                     if (ConditionAccepted(input))
                     {
                         isRunning = false;

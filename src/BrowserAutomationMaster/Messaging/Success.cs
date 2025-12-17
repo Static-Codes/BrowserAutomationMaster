@@ -5,7 +5,14 @@ namespace BrowserAutomationMaster.Messaging
 {
     public class Success
     {
-        public static void WriteSuccessMessage(string message) {
+        public static void WriteSuccessMessage(string message, bool noNewLines = false) 
+        {
+            if (noNewLines) 
+            {
+                WriteMessageNoNewLines(message, isSuccess: true);
+                return;
+            }
+
             WriteMessage(message, isSuccess: true);
         }
         public static void WriteSuccessMessageAndExit(string message, int exitCode) 

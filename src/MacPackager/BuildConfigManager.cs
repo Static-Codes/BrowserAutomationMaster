@@ -30,15 +30,12 @@ namespace MacPackager
 
         // public Dictionary<string, string> GetBuildConfig() { return buildConfig; }
 
-        public string GetValue(string key) 
+        public string GetValue(string key, bool failIfEmpty = false)
         {
-            var value = 
-                buildConfig
-                .Where(k => k.Key == key)
-                .Select(k => k.Value)
-                .FirstOrDefault();
+            // Attempts to
+            buildConfig.TryGetValue(key, out var value);
 
-            if (string.IsNullOrEmpty(value))
+            if (failIfEmpty && string.IsNullOrEmpty(value))
             {
                 Warning.Write($"[WARNING]: Please ensure that the build config has a value for the key '{key}'.");
                 Console.WriteLine($"[INFO]: The build config is located at '{CONFIG_FILE_PATH}'.");
@@ -59,7 +56,7 @@ namespace MacPackager
                 );
             }
              
-            return value;
+            return value ?? string.Empty;
 
         }
 
@@ -165,7 +162,7 @@ namespace MacPackager
         {
             if (!buildConfig.ContainsKey(key))
             {
-                Console.WriteLine($"Error: Key '{key}' does not exist in build config.");
+                Console.WriteLine($"[ERROR]: The key '{key}' does not exist in build config.");
                 return;
             }
 
@@ -184,8 +181,8 @@ namespace MacPackager
                         (
                             string.Join(' ', 
                             [
-                                $"[ERROR]:Validation failed for value `{key}` in `{CONFIG_FILE_PATH}`",
-                                $"[ERROR LOG]: '{value}' is not a valid choice.",
+                                $"[ERROR]: Validation failed for value `{key}` in `{CONFIG_FILE_PATH}`",
+                                $"[ERROR LOG]: '{value}' is not a valid path.",
                                 $"[ERROR STACK]: {ex.StackTrace ?? ex.Message})"
                             ]),
                             status: 1,
