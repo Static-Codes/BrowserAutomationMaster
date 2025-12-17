@@ -40,9 +40,9 @@ namespace MacPackager
 
             if (string.IsNullOrEmpty(value))
             {
-                Warning.Write($"[WARNING]: Please ensure that the Build Config has a value for the key '{key}'.");
-                Console.WriteLine($"[INFO]: The config is located at '{CONFIG_FILE_PATH}'.");
-                Console.WriteLine($"[INFO]: The config can be edited using the \"EditConfig\" menu option.");
+                Warning.Write($"[WARNING]: Please ensure that the build config has a value for the key '{key}'.");
+                Console.WriteLine($"[INFO]: The build config is located at '{CONFIG_FILE_PATH}'.");
+                Console.WriteLine($"[INFO]: It can be edited using the \"EditConfig\" menu option.");
                 Console.WriteLine($"[INFO]: If you prefer using the CLI, you can use the following command.");
                 WriteSuccessMessage("[SYNTAX]: bamm-macos-publisher --edit-config");
 
@@ -134,48 +134,18 @@ namespace MacPackager
         }
 
         private Dictionary<string, string> LoadBuildConfig()
-        {   
+        {
+            if (!File.Exists(CONFIG_FILE_PATH)) return new Dictionary<string, string>(defaultBuildConfig);
+
             try
             {
-                // Throws an early (recoverable) exception, if the config file is not present.
-                // If this exception is thrown the code outside the conditional is not executed.
-                // The Build Config is created within the catch block below.
-                if (!File.Exists(CONFIG_FILE_PATH))
-                {
-                    Warning.Write($"[WARNING]: '{CONFIG_FILE_NAME}' was not found, using default.");
-                    return defaultBuildConfig;
-                }
-            
-                // Loads the config (if present)
                 string jsonString = File.ReadAllText(CONFIG_FILE_PATH);
-                var loadedConfig = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString);
-
-                var buildConfig = new Dictionary<string, string>(defaultBuildConfig.Count);
-
-
-                foreach (var kvp in defaultBuildConfig)
-                {
-                    if (loadedConfig != null && loadedConfig.TryGetValue(kvp.Key, out string? value) && value != null)
-                    {
-                        buildConfig.Add(kvp.Key, value);
-                        continue;
-                    }
-                    
-                    buildConfig.Add(kvp.Key, kvp.Value ?? string.Empty);
-                    
-                }
-                return buildConfig;
-
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString) ?? new Dictionary<string, string>(defaultBuildConfig);
             }
-            
-            catch (Exception ex)
+            catch
             {
-                Warning.Write($"[WARNING]: Failed to parse the build config, the file might be corrupted.");
-                Warning.Write($"[WARNING LOG]: {ex.Message}");
-
-                return CreateAndReturnDefaultConfig(overwrite: false);
+                return new Dictionary<string, string>(defaultBuildConfig);
             }
-            
         }
 
         private Dictionary<string, string> CreateAndReturnDefaultConfig(bool overwrite)

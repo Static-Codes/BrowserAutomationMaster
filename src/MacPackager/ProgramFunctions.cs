@@ -247,7 +247,7 @@ namespace MacPackager
 
         public static void HandleNewConfigCommand() 
         {
-            ReassignNullBuildConfigManager();
+            ReassignNullBuildConfigManager(forceRefresh: true);
 
             if (buildConfigManager is null) 
             {
@@ -260,16 +260,16 @@ namespace MacPackager
                 );
             }
 
-            buildConfigManager.WriteDefaultConfig();
+            buildConfigManager.WriteDefaultConfig(overwriteExisting: true);
             
             // Mandatory warnings
             Warning.Write("[WARNING]: You will have to select \"MacOSBinaryPath\" under \"EditConfig\" before building.");
             Warning.Write("[WARNING]: You will have to select \"CPUTarget\" under \"EditConfig\" if targeting Apple Silicon.");
         }
 
-        public static BuildConfigManager ReassignNullBuildConfigManager()
+        public static BuildConfigManager ReassignNullBuildConfigManager(bool forceRefresh = false)
         {
-            if (buildConfigManager is null) 
+            if (buildConfigManager is null || forceRefresh) 
             {
                 buildConfigManager = new BuildConfigManager();
             }
