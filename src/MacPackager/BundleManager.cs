@@ -368,7 +368,7 @@ namespace MacPackager
 
 
         // Validates that the file at filePath is a valid macOS binary, if so, it returns a MemoryStream of its contents.
-        private static MemoryStream GetMacOSBinaryContents(string? binaryPath = null)
+        private static MemoryStream GetMacOSBinaryContents(string? binaryPath = null, string? target = null)
         {   
             if (binaryPath is null) 
             {
@@ -378,11 +378,22 @@ namespace MacPackager
                 buildConfigManager ??= ProgramFunctions.ReassignNullBuildConfigManager(forceRefresh: true);
 
                 binaryPath = buildConfigManager.GetValue(BINARY_KEY_PATH);
+                target = buildConfigManager.GetValue(CPU_KEY_PATH);
+            }
+
+            if (target is null) 
+            {
+                Write("[ERROR]: No value for CPUTarget was specified.");
+                Console.WriteLine("[INFO]: To set CPUTarget, please edit the build config, or specify add one of the following arguments.");
+                WriteSuccessMessage("--target=x64");
+                WriteSuccessMessage("--target=ARM64");
+                Console.WriteLine("[INFO]: The BAMM for macOS Packager will exit now.");
+                Environment.Exit(1);
             }
 
             // Ensures the file exists, and is a valid macOS binary
             // Will error out if an exception occurs
-            ValidateBinaryType(binaryPath);
+            ValidateBinaryType(binaryPath, target);
 
             Stream? stream = null;
 
@@ -443,15 +454,42 @@ namespace MacPackager
             return memoryStream;
         }
 
+        // Compares the specific target parameter to the 
+        private static bool IsCorrectCPUTarget(string binaryPath, string? target, bool isIntelCPUTarget, bool isSiliconCPUTarget) 
+        {
+            Dictionary<string, bool> CORRECT_TARGETS = new() {
+                { "ARM64", isSiliconCPUTarget },
+                { "x64", isIntelCPUTarget }
+            };
 
-        // Reads the first 4 bytes of the file at the specified path, checking for Apple's Magic Numbers (0xcffaedfe) 
+            foreach (var CORRECT_TARGET in CORRECT_TARGETS) 
+            {
+                if (CORRECT_TARGET.Value && target != null)
+                {
+                    if (!target.Equals(CORRECT_TARGET.Key)) 
+                    {
+                        Write("[ERROR]: An incorrect value for CPUTarget was passed.");
+
+                        Console.WriteLine($"[INFO]: The provided binary contains header bytes for {CORRECT_TARGET.Key}, please restart using the correct value.");
+                        Console.WriteLine($"[INFO]: This can be done by running either of the following commands.");
+                        Console.Write(NLC);
+
+                        WriteSuccessMessage($"[SUCCESS]: bamm-macos-packager build --binary='{binaryPath}' --target={CORRECT_TARGET.Key}", noNewLines: true);
+                        Console.Write(NLC);
+                        WriteSuccessMessage($"[SUCCESS]: bamm-macos-packager validate-{CORRECT_TARGET.Key.ToLower()} --binary='{binaryPath}'");
+
+                        Environment.Exit(1);
+                    }
+                    return true; 
+                }
+            }
+
+            return false;
+        }
+
+        // Reads the first 8 bytes of the file at the specified path, checking for Apple's Magic Numbers (0xcffaedfe) @ 0x0 - 0x3 and validating "cpu_type_t" at 0x3 - 0x7
         // https://en.wikipedia.org/wiki/Mach-O#Header
-
-        // Add target param and check the values below from offset 0x00000004 - 0x00000007
-        // 0x00000007 	x86
-        // 0x0000000C 	ARM
-
-        public static void ValidateBinaryType(string? filePath) 
+        public static void ValidateBinaryType(string? filePath, string? target) 
         {
             if (filePath is null)
             {
@@ -490,7 +528,7 @@ namespace MacPackager
             Stream? binaryStream = null;
             try
             {
-                binaryStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4);
+                binaryStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 8);
                 
                 if (binaryStream is null)
                 {
@@ -505,7 +543,7 @@ namespace MacPackager
                     );
                 }
 
-                WriteSuccessMessage("[SUCCESS]: Read the first 4 bytes of the provided file.");
+                WriteSuccessMessage("[SUCCESS]: Read the first 8 bytes of the provided file.");
             }
 
             catch (Exception ex)
@@ -523,22 +561,32 @@ namespace MacPackager
 
 
 
-            if (binaryStream.Length < 4)
+            if (binaryStream.Length < 8)
             {
                 WriteAndExit
                 (
-                    message: "[ERROR]: The length of the provided file is less than 4 bytes, this indicates it is not a valid binary.", 
+                    message: "[ERROR]: The length of the provided file is less than 8 bytes, this indicates it is not a valid binary.", 
                     status: 1,
                     writePlatformDebugInfo: false
                 );
             }
 
-            byte[] first4Bytes = new byte[4];
+            byte[] magicNumberBytes = new byte[4];
+            byte[] cpuTypeBytes = new byte[4];
+
+
+
             try 
             {
-                Console.WriteLine($"[INFO]: Copying the first 4 bytes of the provided file to a byte array.");
-                binaryStream.Read(first4Bytes, 0, 4);
-                WriteSuccessMessage("[SUCCESS: Copied the first 4 bytes of the provided file to a byte array.");
+                Console.WriteLine($"[INFO]: Copying the first 4 bytes of the provided file's header to a byte array.");
+                binaryStream.Read(magicNumberBytes, 0, 4);
+                WriteSuccessMessage("[SUCCESS: Copied the first 4 bytes of the provided file's header to a byte array.");
+
+
+                Console.WriteLine($"[INFO]: Copying the next 4 bytes of the provided file's header to a byte array.");
+                binaryStream.Read(cpuTypeBytes, 0, 4);
+                WriteSuccessMessage("[SUCCESS: Copied the next 4 bytes of the provided file's header to a byte array.");
+
             }
 
             catch (Exception ex) {
@@ -558,22 +606,87 @@ namespace MacPackager
             binaryStream.Dispose();
             WriteSuccessMessage("[SUCCESS]: Disposed of leftover stream.");
 
+            Console.WriteLine("[INFO]: Comparing the first 4 copied bytes to documented Apple Magic Numbers for 64-bit CPU Architecture (0xcffaedfe).");
+            
+            // OLD CODE FOR REFERENCE DO NOT USE
+            // // A valid macOS binary that was compiled for one of either x64 or ARM64/aarch64.
+            // var appleMagicNumbers = new byte[4] { 0xcf, 0xfa, 0xed, 0xfe };
 
-            Console.WriteLine("[INFO]: Comparing the 4 copied bytes to documented Apple Magic Numbers for x64 CPU Architecture (0xcffaedfe).");
-            var appleMagicNumbers = new byte[4] { 0xcf, 0xfa, 0xed, 0xfe };
-            var isMachOBinary = first4Bytes.SequenceEqual(appleMagicNumbers);
+            // // A valid macOS binary that was compiled for both x64 and ARM64/aarch64.
+            // var appleUniversalMagicNumbers = new byte[4] { 0xca, 0xfe, 0xba, 0xbe }; 
 
-            if (isMachOBinary) {
-                WriteSuccessMessage("[SUCCESS]: The provided file is a valid macOS binary!");
+            // var isUniversalMachO = magicNumberBytes.SequenceEqual(appleUniversalMagicNumbers);
+
+            // var isMachOBinary = magicNumberBytes.SequenceEqual(appleMagicNumbers) || isUniversalMachO;
+
+
+            var apple64bitMagicNumbers = 0xFEEDFACF;
+            var appleUniversalMagicNumbers = 0xBEBAFECA;
+
+            // Converts the 4-byte little endian array to a UInt32 for more simple result.
+            uint magicUInt32Repr = BitConverter.ToUInt32(magicNumberBytes, 0);
+
+            // A valid macOS binary that was compiled for one of either x64 or ARM64/aarch64.
+            bool isUniversalMachO = magicUInt32Repr == appleUniversalMagicNumbers;
+
+            // A valid macOS binary that was compiled for both x64 and ARM64/aarch64.
+            bool isMachOBinary = isUniversalMachO || magicUInt32Repr == apple64bitMagicNumbers;
+
+            if (!isMachOBinary) 
+            {
+                WriteAndExit
+                (
+                    "[ERROR]: The provided file is not a valid macOS binary, as it did not match the documented Apple Magic Numbers for x64 CPU Architecture (0xcffaedfe).", 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
+            
+            if (isUniversalMachO) 
+            {
+                WriteSuccessMessage("[SUCCESS]: The provided binary is a valid macOS binary!");
+                Warning.Write("[WARNING]: The provided binary contains a universal header, meaning it can run on both Intel and Silicon Macs!");
+                Console.WriteLine("[INFO] Skipping CPUType check due to the presence of bytes (0xCAFEBABE).");
                 return;
             }
 
-            WriteAndExit
-            (
-                "[ERROR]: The provided file is not a valid macOS binary, as it did not match the documented Apple Magic Numbers for x64 CPU Architecture (0xcffaedfe).", 
-                status: 1,
-                writePlatformDebugInfo: false
-            );
+            else 
+            {
+                WriteSuccessMessage("[SUCCESS]: The provided binary is a valid macOS binary!");
+            }
+
+
+
+            Console.WriteLine("[INFO]: Comparing the next 4 copied bytes to Apple's documentation on CPUType in Mach-O binaries.");
+
+
+            // OLD CODE FOR REFERENCE DO NOT USE
+            // The "cpu_type_t" header value is stored as Little Endian per Apple Documentation.
+            // var appleInteldentifier = new byte[4] { 0x07, 0x00, 0x00, 0x01 };
+            // var appleSiliconIdentifier = new byte[4] { 0x0c, 0x00, 0x00, 0x01 };
+
+            // var isIntelCPUTarget = cpuTypeBytes.SequenceEqual(appleInteldentifier);
+            // var isSiliconCPUTarget = cpuTypeBytes.SequenceEqual(appleSiliconIdentifier);
+
+            var appleInteldentifier = 0x01000007;
+            var appleSiliconIdentifier = 0x0100000c;
+
+            // Converts the 4-byte little endian array to a UInt32 for more simple result.
+            uint cpuTypeUInt32Repr = BitConverter.ToUInt32(cpuTypeBytes, 0);
+
+            // Compares the Unsigned 32 bit Integer against the provided platform identifier.
+            bool isIntelCPUTarget = cpuTypeUInt32Repr == appleInteldentifier;
+            bool isSiliconCPUTarget = cpuTypeUInt32Repr == appleSiliconIdentifier;
+
+            if (IsCorrectCPUTarget(filePath, target, isIntelCPUTarget, isSiliconCPUTarget)) 
+            {
+                WriteSuccessMessage($"[SUCCESS]: Found a 4 byte signature matching the specified target '{target}' in the binary's header.");
+                Console.WriteLine("[INFO]: You should not have any issues with the build process.");
+                return;
+            }
+
+            Warning.Write("[WARNING]: The BAMM for macOS Packager was unable to determine the binary's architecture.");
+            Console.WriteLine("[INFO]: If this leads to errors with homebrew, please try a rebuild using a different build of the binary.");
             
         }
     }

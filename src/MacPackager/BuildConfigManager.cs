@@ -194,7 +194,7 @@ namespace MacPackager
                         // New line chars for uniform output.
                         Console.WriteLine(NLC);
 
-                        ValidateBinaryType(value);
+                        ValidateBinaryType(value, null);
 
                         
                         buildConfig[key] = value;

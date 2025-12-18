@@ -182,18 +182,29 @@ namespace MacPackager
             }
 
             // Handles 'validate' command variations
-            if (pArgs[0].Equals("validate", CCIC))
+            if (pArgs[0].StartsWith("validate", CCIC))
             {
-                if (pArgs.Length != 2)
+                var isValidCommand =
+                    pArgs[0].Equals("validate-x64") ||
+                    pArgs[0].Equals("validate-arm64") &&
+                    pArgs.Length == 2 &&
+                    pArgs[1].StartsWith("--binary=");
+
+
+                if (!isValidCommand)
                 {
-                    
                     Write(message: "[ERROR]: Invalid 'validate' command.");
-                    Console.WriteLine("[INFO]: See validate syntax below.");
-                    WriteSuccessMessage("[SYNTAX]: bamm-macos-publisher validate path/to/apple-binary");
+                    Console.WriteLine("[INFO]: See validate syntaxes below.");
+                    WriteSuccessMessage("[SYNTAX]: bamm-macos-publisher validate-x64 --binary=path/to/apple-intel-binary");
+                    WriteSuccessMessage("[SYNTAX]: bamm-macos-publisher validate-arm64 --binary=path/to/apple-silicon-binary");
                     Environment.Exit(1);
                 }
 
-                BundleManager.ValidateBinaryType(pArgs[1]);
+                // Returns either x64 or ARM64
+                var commandTarget = pArgs[0].Replace("validate-", "").Replace("arm", "ARM");
+                var binaryPath = pArgs[1].Replace("--binary=", "");
+
+                BundleManager.ValidateBinaryType(binaryPath, commandTarget);
                 return true;
             }
 

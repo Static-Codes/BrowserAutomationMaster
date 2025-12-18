@@ -96,6 +96,16 @@ namespace MacPackager
                     ]
                 )
             },
+
+            {
+                new Command(
+                    name: "validate",
+                    description: "Performs the built in check on the provided binary, ensuring it is compiled for the provided target.",
+                    examples: [ "bamm validate --binary=<path> --target=x64    # For Intel Macs", 
+                        "bamm validate --binary=<path> --target=ARM64  # For Silicon Macs", 
+                    ]
+                )
+            },
         };
 
         public static bool CommandExists(string name)
