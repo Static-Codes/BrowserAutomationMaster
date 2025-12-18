@@ -7,14 +7,14 @@ using static BrowserAutomationMaster.Messaging.Success;
 
 namespace MacPackager
 {
-    readonly struct BundleStructure
+    class BundleStructure
     {
         public required string DirectoryName { get; init; }
 
         public required SubDirectory Subdirectory { get; init; }
     }
 
-    readonly struct SubDirectory()
+    class SubDirectory
     {
         public required string DirectoryName { get; init; }
 
@@ -57,12 +57,13 @@ namespace MacPackager
         private static readonly string PARENT_DIRECTORY = Path.Combine(USER_PROFILE_DIR, "MACOS_RELEASE");
         private static readonly string BINARY_NAME = "bamm";
         private const string BINARY_KEY_PATH = "MacOSBinaryPath";
+        private const string CPU_KEY_PATH = "CPUTarget";
         
         
         
         private readonly Dictionary<string, string?> defaultBuildConfig = new() {
             { BINARY_KEY_PATH, "" },
-            { "CPUTarget", "x86_64" },
+            { "CPU_KEY_PATH", "x86_64" },
         };
         
         
@@ -75,74 +76,81 @@ namespace MacPackager
         //        └── Resources/
         //            └── AppIcon.icns
 
-        // Apparently IReadOnlyList is not just semantic
-        // It removes all reference to the original members that are unavailable on readonly types.
-        private readonly IReadOnlyList<BundleStructure> bundleStructure = 
-        [
-            new BundleStructure()
-            {
-                DirectoryName = "BAMM.app",
-                
-                // MACOS_RELEASE/BAMM.app/Contents
-                Subdirectory = new SubDirectory
-                {
-                    DirectoryName = "Contents",
-                    
-                    // MACOS_RELEASE/BAMM.app/Contents/Info.plist
-                    DirectoryContents =
-                    [
-                        new DirectoryContents()
-                        {
-                            FileName = "Info.plist",
-                            // Normally I'd avoid using sync calls of async functions, but I dont really have a choice here.
-                            FileContents = PlistManager.GetPlistContent().GetAwaiter().GetResult()
-                        }
-                    ],
-                    
-                    SubDirectories =
-                    [
-                        // MACOS_RELEASE/BAMM.app/Contents/MacOS/
-                        new SubDirectory
-                        {
-                            DirectoryName = "MacOS",
-                            // This uses used by the CFBundleExecutable key in Info.plist
-                            DirectoryContents =
-                            [
-                                new DirectoryContents()
-                                {
-                                    FileName = "bamm",
-                                    // FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
-                                    FileContents = GetMacOSBinaryContents()
-                                }
-                            ],
-                            SubDirectories = []
-                        },
-                        
-                        // MACOS_RELEASE/BAMM.app/Contents/Resources/
-                        new SubDirectory
-                        {
-                            DirectoryName = "Resources",
-                            DirectoryContents =
-                            [
-                                new DirectoryContents()
-                                {
-                                    FileName = "AppIcon.icns", 
-                                    FileContents = GetAppIconStream()
-                                },
-                            ],
-                            SubDirectories = []
-                        }
-                    ]
-                }
-            }
-        ];
-        private IReadOnlyList<BundleStructure> GetBundleStructure() => bundleStructure;
-
-
-
-        public void BuildBundle()
+        private static List<BundleStructure> GetBundleStructure(string? binaryPath = null) 
         {
-            var bundleDirectoryStructure = GetBundleStructure();
+            return [
+                new BundleStructure()
+                {
+                    DirectoryName = "BAMM.app",
+                    
+                    // MACOS_RELEASE/BAMM.app/Contents
+                    Subdirectory = new SubDirectory
+                    {
+                        DirectoryName = "Contents",
+                        
+                        // MACOS_RELEASE/BAMM.app/Contents/Info.plist
+                        DirectoryContents =
+                        [
+                            new DirectoryContents()
+                            {
+                                FileName = "Info.plist",
+                                // Normally I'd avoid using sync calls of async functions, but I dont really have a choice here.
+                                FileContents = PlistManager.GetPlistContent().GetAwaiter().GetResult()
+                            }
+                        ],
+                        
+                        SubDirectories =
+                        [
+                            // MACOS_RELEASE/BAMM.app/Contents/MacOS/
+                            new SubDirectory
+                            {
+                                DirectoryName = "MacOS",
+                                // This uses used by the CFBundleExecutable key in Info.plist
+                                DirectoryContents =
+                                [
+                                    new DirectoryContents()
+                                    {
+                                        FileName = "bamm",
+                                        // FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
+                                        FileContents = GetMacOSBinaryContents(binaryPath)
+                                    }
+                                ],
+                                SubDirectories = []
+                            },
+                            
+                            // MACOS_RELEASE/BAMM.app/Contents/Resources/
+                            new SubDirectory
+                            {
+                                DirectoryName = "Resources",
+                                DirectoryContents =
+                                [
+                                    new DirectoryContents()
+                                    {
+                                        FileName = "AppIcon.icns", 
+                                        FileContents = GetAppIconStream()
+                                    },
+                                ],
+                                SubDirectories = []
+                            }
+                        ]
+                    }
+                }
+            ];
+        }
+        public static void BuildBundle(string? binaryPath = null, string? target = null)
+        {
+            if (string.IsNullOrEmpty(target)) 
+            {
+                WriteAndExit("[ERROR]: Please specify a CPU Target, either 'ARM64' or 'x64'.", status: 1, writePlatformDebugInfo: false);
+            }
+            var validTarget = target.Equals("arm64", OIC) || target.Equals("aarch64", OIC) || target.Equals("x64", OIC);
+            
+            if (!validTarget) 
+            {
+                WriteAndExit("[ERROR]: Please specify a valid CPU Target, either 'ARM64' or 'x64'.", status: 1, writePlatformDebugInfo: false);
+            }
+
+            var bundleDirectoryStructure = GetBundleStructure(binaryPath);
 
             // Ensures MACOS_RELEASE/ exists
             DirectoryManager.EnsureDirectoryExists(PARENT_DIRECTORY);
@@ -360,14 +368,17 @@ namespace MacPackager
 
 
         // Validates that the file at filePath is a valid macOS binary, if so, it returns a MemoryStream of its contents.
-        private static MemoryStream GetMacOSBinaryContents()
+        private static MemoryStream GetMacOSBinaryContents(string? binaryPath = null)
         {   
-            var buildConfigManager = ProgramFunctions.GetBuildConfigManager();
+            if (binaryPath is null) 
+            {
+                var buildConfigManager = ProgramFunctions.GetBuildConfigManager();
 
-            // Compound assignment via null coalesce.
-            buildConfigManager ??= ProgramFunctions.ReassignNullBuildConfigManager(forceRefresh: true);
+                // Compound assignment via null coalesce.
+                buildConfigManager ??= ProgramFunctions.ReassignNullBuildConfigManager(forceRefresh: true);
 
-            var binaryPath = buildConfigManager.GetValue(BINARY_KEY_PATH);
+                binaryPath = buildConfigManager.GetValue(BINARY_KEY_PATH);
+            }
 
             // Ensures the file exists, and is a valid macOS binary
             // Will error out if an exception occurs

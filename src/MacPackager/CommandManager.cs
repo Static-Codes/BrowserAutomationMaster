@@ -89,10 +89,12 @@ namespace MacPackager
                     name: "build",
                     description:
                         string.Join(NLC, [
-                            "Adds the specified file to the userScripts directory.",
-                            "The script cannot already exist in the userScript directory.",
+                            "Starts packaging with the provided values, instead of using the build config.",
                         ]),
-                    examples: [ "bamm add \"path/to/external/file.bamc\"", ]
+                    examples: [ 
+                        "bamm build --binary=<path> --target=x64    # For Intel Macs", 
+                        "bamm build --binary=<path> --target=ARM64  # For Silicon Macs", 
+                    ]
                 )
             },
         };

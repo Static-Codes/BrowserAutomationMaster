@@ -91,8 +91,7 @@ namespace MacPackager
                 );
             }
 
-            var bundleManager = new BundleManager();
-            bundleManager.BuildBundle();
+            BundleManager.BuildBundle();
         }
 
         
@@ -195,6 +194,18 @@ namespace MacPackager
                 }
 
                 BundleManager.ValidateBinaryType(pArgs[1]);
+                return true;
+            }
+
+            if (pArgs.Any(arg => arg.Equals("build") && pArgs.Length != 3))
+            {
+                ShowValidBuildCommand();
+                return true;
+            }
+
+            else if (pArgs[0] == "build" && pArgs.Length == 3)
+            {
+                HandleNonConfigBuildCommand(pArgs);
                 return true;
             }
 
@@ -371,6 +382,31 @@ namespace MacPackager
             Warning.Write("[WARNING]: You will have to select \"CPUTarget\" under \"EditConfig\" if targeting Apple Silicon.");
         }
 
+        public static void HandleNonConfigBuildCommand(string[] pArgs)
+        {
+            // BELOW HANDLES INVALID BUILD COMMAND SYNTAX
+            // PATTERN MATCHING IS BEAUTIFUL!
+            // SYNTAX:
+            // var varName = comparisonVar is ["", var arg1, var arg2] && boolCheckOnArg1 && boolCheckOnArg2;
+
+            if (pArgs is not ["build", string binaryArg, string targetArg] 
+                || !binaryArg.StartsWith("--binary=", OIC) 
+                || !targetArg.StartsWith("--target=", OIC)
+            )
+            {
+                ShowValidBuildCommand();
+            }
+
+            // Normally, this else block would not be required.
+            // Due to the pattern matching above, binaryArg and targetArg throw "Unassigned local variable" errors.
+            else 
+            {
+                var binaryPath = binaryArg.Replace("--binary=", "");
+                var cpuTarget = targetArg.Replace("--target=", "");
+                BundleManager.BuildBundle(binaryPath, cpuTarget);
+            }
+        }
+
         public static BuildConfigManager ReassignNullBuildConfigManager(bool forceRefresh = false)
         {
             if (buildConfigManager is null || forceRefresh) 
@@ -441,6 +477,39 @@ namespace MacPackager
                     }
                 }
             }
+        }
+
+        public static void ShowValidBuildCommand() 
+        {
+            Warning.Write("[ERROR]: Invalid build command provided.", noNewLines: true);
+            
+            // Trailing new line for uniformity.
+            Console.Write(NLC);
+
+            var examples = CommandManager.GetExamples("build");
+
+            if (examples.Length == 0) 
+            {
+                Console.Write("[INFO]: For more information on valid syntaxes for the build command, please see the ");
+                Warning.Write("Help ");
+                Console.Write("section in the main menu.");
+                Console.Write("The BAMM for macOS Packager, will now exit.");
+                Environment.Exit(1);
+            }
+
+            Console.WriteLine("[INFO]: Valid build commands are written below.");
+            foreach (var example in examples)
+            {
+                // Writes the message header in green text
+                WriteSuccessMessage($"[SYNTAX]: ", noNewLines: true);
+
+                // Writes the section title in yellow for emphasis.
+                Warning.Write(example, noNewLines: true);
+
+                // Adds a new line char for uniformity
+                Console.WriteLine();
+            };
+            Environment.Exit(1);
         }
 
         /// <summary>Displays the final exit message and waits for user input.</summary>
