@@ -444,8 +444,13 @@ namespace MacPackager
         }
 
 
-        // Reads the first 7 bytes of the file at the specified path, checking for Apple's Magic Numbers (0xcffaedfe) 
+        // Reads the first 4 bytes of the file at the specified path, checking for Apple's Magic Numbers (0xcffaedfe) 
         // https://en.wikipedia.org/wiki/Mach-O#Header
+
+        // Add target param and check the values below from offset 0x00000004 - 0x00000007
+        // 0x00000007 	x86
+        // 0x0000000C 	ARM
+
         public static void ValidateBinaryType(string? filePath) 
         {
             if (filePath is null)
