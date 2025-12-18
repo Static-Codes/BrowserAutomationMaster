@@ -1,5 +1,4 @@
 using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
 
 namespace MacPackager
 {
