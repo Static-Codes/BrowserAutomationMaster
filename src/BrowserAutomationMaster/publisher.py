@@ -4,7 +4,7 @@ from subprocess import CalledProcessError, run
 class Platform:
     def __init__(self, name, architecture, package_type=None):
         self.name = name
-        self.architecture = architecture
+        self.architecture = architecture.lower() if architecture else None
         self.package_type = package_type
 
     def get_commands(self):
@@ -17,8 +17,8 @@ class Platform:
         elif self.name == "Linux":
             rid_map = {
                 "x64": "linux-x64",
-                "ARM": "linux-arm",
-                "ARM64": "linux-arm64",
+                "arm": "linux-arm",
+                "arm64": "linux-arm64",
             }
 
             rid = rid_map.get(self.architecture)
@@ -34,18 +34,18 @@ class Platform:
 
         return []
 
-def main():
 
+def main():
     error = (
         "Please ensure the .NET 8.X SDK is installed.\n"
         "Download link:\n"
         "https://dotnet.microsoft.com/en-us/download/dotnet/8.0"
     )
-    
+
     platform_options = [
         ("All Platforms", None),
         ("Win", "x64"),
-        ("Win", "arm64"),
+        ("Win", "ARM64"),
         ("Linux", "x64", "deb"),
         ("Linux", "x64", "rpm"),
         ("Linux", "ARM", "deb"),
@@ -58,30 +58,25 @@ def main():
 
     platforms = []
     for option in platform_options:
-
         if len(option) == 3:
             platforms.append(Platform(option[0], option[1], option[2]))
-
         elif len(option) == 2:
             platforms.append(Platform(option[0], option[1]))
 
     print("Welcome to the BAMM Publisher!\n")
     menu_text = ""
 
-    # Building the menu
     for index, option in enumerate(platform_options):
         if option[0] == "All Platforms":
             menu_text += f"{index+1}. All Platforms\n"
-
         else:
+            arch_display = option[1].upper()
             package_info = f" ({option[2]})" if len(option) == 3 else ""
             menu_text += (
-                f"{index+1}. {option[0]}-{option[1]}"
+                f"{index+1}. {option[0]}-{arch_display}"
                 f"{package_info}\n"
             )
 
-    # Choosing a menu option
-    choice_index: int
     while True:
         raw_choice = input(
             f"Please choose an option from 1 to {len(platform_options)} "
@@ -102,7 +97,6 @@ def main():
     if choice_index == 1:
         for p in platforms[1:]:
             commands.extend(p.get_commands())
-
     else:
         selected_platform = platforms[choice_index - 1]
         commands = selected_platform.get_commands()
@@ -141,11 +135,11 @@ def main():
             if "linux" in cmd:
                 error += (
                     "\nIf you are compiling for a Debian based Linux, please ensure dotnet-deb is installed by running.\n"
-                    "dotnet tool install --global dotnet-deb --version 0.1.232"
-                    
-                    "\nIf you are compiling for a Fedora based Linux, please ensure dotnet-deb is installed by running.\n"
+                    "dotnet tool install --global dotnet-deb --version 0.1.232\n"
+                    "\nIf you are compiling for a Fedora based Linux, please ensure dotnet-rpm is installed by running.\n"
                     "dotnet tool install --global dotnet-rpm --version 0.1.232"
                 )
+
             print(error)
 
         except FileNotFoundError:
@@ -155,6 +149,7 @@ def main():
         except Exception as e:
             print(f"An unexpected error occurred:\n{e}\n")
             print(error)
+
 
 if __name__ == "__main__":
     main()
