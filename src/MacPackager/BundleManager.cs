@@ -161,7 +161,7 @@ namespace MacPackager
                 BuildDirectory(PARENT_DIRECTORY, bundle.DirectoryName, bundle.Subdirectory);
             }
 
-            WriteSuccessMessage("[SUCCESS]: Completed the BAMM for macOS application bundle process");
+            WriteSuccessMessage("[SUCCESS]: Completed the BAMM for macOS application bundle process.");
             
             if (ClipboardHelper.TrySetText(PARENT_DIRECTORY))
             {
