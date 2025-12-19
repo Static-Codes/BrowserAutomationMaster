@@ -195,7 +195,8 @@ namespace MacPackager
                 {
                     Write(message: "[ERROR]: Invalid 'validate' command.");
                     Console.WriteLine("[INFO]: See validate syntaxes below.");
-                    WriteSuccessMessage("[SYNTAX]: bamm-macos-publisher validate-x64 --binary=path/to/apple-intel-binary");
+                    WriteSuccessMessage("[SYNTAX]: bamm-macos-publisher validate-x64 --binary=path/to/apple-intel-binary", noNewLines: true);
+                    Console.Write(NLC);
                     WriteSuccessMessage("[SYNTAX]: bamm-macos-publisher validate-arm64 --binary=path/to/apple-silicon-binary");
                     Environment.Exit(1);
                 }

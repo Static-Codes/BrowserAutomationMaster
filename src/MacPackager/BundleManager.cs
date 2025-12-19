@@ -471,7 +471,7 @@ namespace MacPackager
                         Write("[ERROR]: An incorrect value for CPUTarget was passed.");
 
                         Console.WriteLine($"[INFO]: The provided binary contains header bytes for {CORRECT_TARGET.Key}, please restart using the correct value.");
-                        Console.WriteLine($"[INFO]: This can be done by running either of the following commands.");
+                        Console.WriteLine($"[INFO]: Valid build commands are written below.");
                         Console.Write(NLC);
 
                         WriteSuccessMessage($"[SUCCESS]: bamm-macos-packager build --binary='{binaryPath}' --target={CORRECT_TARGET.Key}", noNewLines: true);
