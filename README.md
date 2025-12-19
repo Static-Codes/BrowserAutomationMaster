@@ -53,8 +53,10 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 - **Minimum Recommended**
   - 4 Core CPU @ 2 GHz
   - 4GB DDR4 RAM
+  - An SSD with atleast 1GB of Free Space.
 
 - **Lowest Validated**
     - Raspberry Pi 3 Model B
       - 4 Core ARM CPU @ 1.4GHz 
-      - 1GB SDRAM 
+      - 1GB SDRAM
+      - An SD Card with 10GB of Free Space.
