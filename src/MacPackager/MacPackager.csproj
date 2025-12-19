@@ -5,7 +5,7 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<AssemblyName>bamm-macos-publisher</AssemblyName>
+		<AssemblyName>bamm-macos-packager</AssemblyName>
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
 		<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
@@ -19,8 +19,8 @@
 	<PropertyGroup>
 		<!-- NuGet Package Metadata -->
 		<PackAsTool>false</PackAsTool>
-		<PackageId>bamm-macos-publisher</PackageId>
-		<PackageVersion>1.0.0-alpha5</PackageVersion>
+		<PackageId>bamm-macos-packager</PackageId>
+		<PackageVersion>1.0.0</PackageVersion>
 		<!-- Windows & OSX License -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<ApplicationIcon>bamm.ico</ApplicationIcon>
@@ -31,7 +31,7 @@
 	<PropertyGroup>
 		<CommonPackageName>$(PackageId)</CommonPackageName>
 		<CommonPackageVersion>$(PackageVersion)</CommonPackageVersion>
-		<CommonPackageSummary>Custom scripting language for Web Automation that compiles for Python</CommonPackageSummary>
+		<CommonPackageSummary>Packages a standalone binary of BAMM for macOS.</CommonPackageSummary>
 		<CommonPackageLicense>MIT</CommonPackageLicense>
 		<CommonDesktopName>BAMM for macOS Packager</CommonDesktopName>
 		<RepositoryUrl>https://github.com/Static-Codes/BrowserAutomationMaster/</RepositoryUrl>
