@@ -2,7 +2,7 @@
 
 ## **Notes**
 
-- There are 10 releases below aswell as the raw source code (source.zip).
+- There are 10 binaries below aswell as the raw source code (source.zip).
 
 ---
 
@@ -13,7 +13,11 @@
 
 ### General Changes:
 
-- Add changes here
+- Added new class `EditorManager` in namespace `BrowserAutomationMaster.Managers`
+- Added new class `Editor` in namespace `BrowserAutomationMaster.Managers`
+- Added `Path` variable to class `AppInfo` in namespace `BrowserAutomationMaster.Managers.AppManager`
+
+
 </details>
 
 ### New Action Commands:
@@ -22,16 +26,7 @@
 
 ### New CLI Arguments:
 
-- `bamm --bs` - Instructs BAMM to use [BrowserStack](https://browserstack.com) to run the compiled scripts. This works on all platforms, but is the default for Raspberry Pi and ChromeOS, as they are too underpowered to run selenium.
-- `bamm --editbsconf` - Edit and Overwrite Browserstack's YAML Config via an interactive process. (For advanced users)
-- `bamm --force-error` - Forces a verbose error message, which is helpful for making a bug report.
-- `bamm --gui` - Starts the Graphical User Interface for BAMM.
-- `bamm --nohwc` - Instructs BAMM not to check your system's hardware for compatibility, this should not be done unless you've already verified BAMM can run on your machine.
-- `bamm --platform-debug` - Displays information on the operating system and machine currently running BAMM.
-- `bamm --query-display` - Displays the status of the $DISPLAY variable, use this to check if your system supports BAMM's GUI.
-- `bamm --version` - Displays the current version of BAMM, and whether there's a new version available.
-- `bamm backup` - Backs up all application files to `BAMM-Backup.zip`.
-- `bamm restore` - Looks for a backup of BAMM's data, if the data is found, a restoration is attempted.
+- `bamm new filename.bamc` `bamm --n filename.bamc` - Creates a new .BAMC file in the `userScripts` directory, and prompts the user to select a custom text editor, and falls back to the OS default if a custom text editor is not found.
 
 
 
