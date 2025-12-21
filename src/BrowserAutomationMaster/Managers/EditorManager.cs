@@ -265,69 +265,6 @@ namespace BrowserAutomationMaster.Managers
         ];
     };
 
-    // Left for reference after hours of proper debugging.
-    // public class Editor()
-    // {
-    //     public required (string Windows, string Mac, string Linux) Names;
-    //     public required (bool Windows, bool Mac, bool Linux) Supports;
-    //     private (string Windows, string Mac, string Linux) ShellNames = ("cmd.exe", "/bin/bash", "/bin/bash");
-    //     private (string Windows, string Mac, string Linux) ShellParams = ("/c", "-c", "-c");
-    //     public (string Windows, string Mac, string Linux)? EditorPath;
-    //     public (string Windows, string Mac, string Linux)? EditorParams;
-    //     private (string Windows, string Mac, string Linux) DefaultEditor = ("notepad.exe", "/System/Applications/TextEdit.app", "xed");
-
-
-    //     /// <summary> 
-    //     /// <description><description>
-    //     /// <param name="FilePath">The path of the newly created file that the user wishes to open</param>
-    //     /// </summary>
-    //     // MacOS will return an error if .bamc isn't associated with a file extension. 
-    //     // Parse the STDErr for string (Error Domain=NSOSStatusErrorDomain Code=-10814)
-    //     // vim is loaded by default on macos and linux under "vi", dont forget to add this as an option with a caveat its for advanced users.
-    //     public ProcessStartInfo GetProcessInfo(string FilePath)
-    //     {
-    //         if (!File.Exists(FilePath))
-    //         {
-    //             WriteAndExit("Unable to open the specified file, it has yet to be created, please try again.", 1);
-    //         }
-
-    //         var psi = (Platforms.IsWindows, Platforms.IsOSX, Platforms.IsLinux) switch {
-    //             (true, false, false) => new ProcessStartInfo() { 
-    //                 FileName = ShellNames.Windows, // cmd.exe
-    //                 ArgumentList = {
-    //                     ShellParams.Windows, // /c
-    //                     EditorPath.HasValue ? EditorPath.Value.Windows : DefaultEditor.Windows, // The supplied path or the default editor.
-    //                     EditorParams.HasValue ? EditorParams.Value.Windows : "", // If the editor requires any params to open the file
-    //                 },
-
-    //             },
-    //             (false, true, false) => new ProcessStartInfo() { 
-    //                 FileName = ShellNames.Mac, // /bin/bash
-    //                 ArgumentList = {
-    //                     ShellParams.Mac, // -c
-    //                     EditorPath.HasValue ? EditorPath.Value.Mac : DefaultEditor.Mac, // The supplied path or the default editor.
-    //                     EditorParams.HasValue ? EditorParams.Value.Mac : "", // If the editor requires any params to open the file
-    //                 },
-    //             },
-    //             (false, false, true) => new ProcessStartInfo() { 
-    //                 FileName = ShellNames.Linux, // /bin/bash
-    //                 ArgumentList = {
-    //                     ShellParams.Linux, // -c
-    //                     EditorPath.HasValue ? EditorPath.Value.Linux : DefaultEditor.Linux, // The supplied path or the default editor.
-    //                     EditorParams.HasValue ? EditorParams.Value.Linux : "", // If the editor requires any params to open the file
-    //                 },
-
-    //             },
-    //             _ => throw new PlatformNotSupportedException("Unsupported OS.")
-    //         };
-
-    //         psi.RedirectStandardError = true;
-    //         psi.RedirectStandardInput = true;
-    //         psi.RedirectStandardOutput = true;
-    //         return psi;
-    //     }
-    // };
-
     public class Editor
     {
         public required (string Windows, string Mac, string Linux) Names;
