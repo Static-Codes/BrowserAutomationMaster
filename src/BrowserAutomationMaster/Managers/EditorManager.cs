@@ -1,61 +1,75 @@
 using System.Diagnostics;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Win;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
+using BrowserAutomationMaster.Managers.AppManager;
 
 namespace BrowserAutomationMaster.Managers
 {
     public class EditorManager()
     {
-        // https://pypl.github.io/IDE.html
 
-        // public class Editor 
-        // {
-        //     public required string[] Names { get; set; }
-        //     public required bool SupportsWindows { get; set; }
-        //     public required bool SupportsMac { get; set; }
-        //     public required bool SupportsLinux { get; set; }
-        //     public required string[] Commands { get; set; }
-        // }
+        public static Dictionary<string, string> GetSupportedEditors() {
+            return (Platforms.IsWindows, Platforms.IsOSX, Platforms.IsLinux) switch {
+                (true, false, false) => GetSupportedWindowsEditors(),
+                (false, true, false) => GetSupportedMacEditors(),
+                (false, false, true) => GetSupportedLinuxEditors(),
+                _ => throw new PlatformNotSupportedException("Invalid OS.")
+            };
+        }
 
-        
+        public static Dictionary<string, string> GetSupportedWindowsEditors() 
+        {
+            if (InstalledApps.AppInfoList.Count == 0) 
+            {
+                Console.WriteLine($"A fatal error occured, please make a bug report with the following error at {ISSUES_LINK}");
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "BAM Manager (BAMM) was unable to query for supported text editors.",
+                        "Error Log:",
+                        "InstalledApps.AppInfoList.Count return a zero value, indicating no applications were detected, this is a huge bug and needs to addressed."
+                    ]),
+                    status: 1,
+                    writePlatformDebugInfo: true
+                );
+            }
 
+            var supportedApps = new Dictionary<string, string>
+            {
+                { "Notepad++", @"C:\Program Files\Notepad++\notepad++.exe" },
+                { "PyCharm", "pycharm64.exe" },
+                { "Sublime", @"C:\Program Files\Sublime Text\sublime_text.exe" },
+                { "VSCode", @"%APPDATA%\Local\Programs\Microsoft VS Code\Code.exe" },
+                { "VSCodium", @"%APPDATA%\Local\Programs\VSCodium\VSCodium.exe" },
+            };
 
+            Dictionary<string, string> installedEditors = supportedApps
+                .Where(app => File.Exists(app.Value))
+                .ToDictionary();
 
-        // public Editor[] Editors = 
-        // [
-        //     new Editor()
-        //     { 
-        //         Names = ["VSCodium", "VSCodium", "VSCodium"],
-        //         SupportsWindows = true,
-        //         SupportsMac = true,
-        //         SupportsLinux = true,
-        //         Commands = ["codium", "codium", "codium"]
-        //     },
+            // This isn't a secure check because the input is not sanitized.
+            // This isnt an issue currently due to the nature of this application, however in a hypothetical situation the following is true: 
+            // A malicious registry key could be inserted pointing to a malicious executable placed in "C:\Program Files\JetBrains\PyCharm*\pycharm.exe"
+            // This could cause BAMM to attempt to open the incorrect executable, if it was coded correctly it would then .
+            // This is purely hypothetical once again but definitely noteworthy for a hardened solution in the future. 
+            var pyCharmEntry = 
+                InstalledApps.AppInfoList.Where(
+                    app => app.Path
+                        .StartsWith(@"C:\Program Files\JetBrains\PyCharm") && 
+                        app.Path.EndsWith("pycharm64.exe")
+                    ).FirstOrDefault();
+                
 
-        //     new Editor()
-        //     {
-        //         Names = ["Notepad"],
-        //         SupportsWindows = true,
-        //         SupportsMac = false,
-        //         SupportsLinux = false,
-        //         Commands = ["notepad"]
-        //     },
+            if (pyCharmEntry != null) 
+            {
+                installedEditors.Add(pyCharmEntry.Name, pyCharmEntry.Path);
+            }
 
-        //     new Editor()
-        //     {
-        //         Names = ["Notepad++"],
-        //         SupportsWindows = true,
-        //         SupportsMac = false,
-        //         SupportsLinux = false,
-        //         Commands = ["npp"]
-        //     },
-        // ];
-
-
-        public static void GetSupportedWindowsEditors() {
-
+            return installedEditors;
         }
 
         // Doesn't check for vim, textedit, or xcode.
@@ -112,13 +126,14 @@ namespace BrowserAutomationMaster.Managers
         // }
 
         // Doesn't check for vim, textedit, or xcode.
-        public static string[] GetSupportedMacEditors()
+        public static Dictionary<string, string> GetSupportedMacEditors()
         {
-            var supportedAppNames = new[] {
-                "PyCharm.app",
-                "Sublime Text.app",
-                "VSCodium.app",
-                "Visual Studio Code.app"
+            var supportedAppNames = new Dictionary<string, string>
+            {
+                { "PyCharm", "PyCharm.app" },
+                { "Sublime", "Sublime Text.app" },
+                { "VSCode", "Visual Studio Code.app" },
+                { "VSCodium", "VSCodium.app" },
             };
             
             var applicationsPath = "/Applications/";
@@ -131,15 +146,102 @@ namespace BrowserAutomationMaster.Managers
             }
 
             var installedEditors = supportedAppNames
-                .Select(bundleName => Path.Combine(applicationsPath, bundleName))
-                .Where(bundlePath => Directory.Exists(bundlePath))
-                .ToArray();
+                .Where(app => Directory.Exists(Path.Combine(applicationsPath, app.Value)))
+                .ToDictionary();
 
             return installedEditors;
         }
 
-        public static void GetSupportedLinuxEditors() {
+        public static Dictionary<string, string> GetSupportedLinuxEditors()
+        {
+            const char DIR_ESC = '/';
+            const char WILDCARD = '*';
+            const char CMD_ESC_CHAR = '"';
+            
 
+            var potentialEditors = new Dictionary<string, string>()
+            {
+                { "Helix", "/usr/lib/helix"},
+                { "Nano", "/usr/bin/nano"},
+                { "PyCharm", "*/bin/pycharm" },
+                { "Sublime Text", "/opt/sublime_text/sublime_text"},
+                { "VSCode", "/usr/share/code/bin/code"},
+                { "VSCodium", "/usr/bin/codium"},
+                { "Vim (Advanced Users)", "vi" }
+            };
+
+            static string? GetLinuxSearchCommand(string argument)
+            {
+
+                bool hasWildcard = argument.Contains(WILDCARD);
+                bool hasDirEsc = argument.Contains(DIR_ESC);
+
+                if (hasWildcard && hasDirEsc)
+                {
+                    return string.Join(' ', [
+                        CMD_ESC_CHAR,
+                        "find",
+                        "/opt",
+                        "/usr/bin",
+                        "/usr/share",
+                        "/usr/local",
+                        "-wholename",
+                        argument,
+                        "-print",
+                        "-quit",
+                        CMD_ESC_CHAR
+                    ]);
+                }
+                else if (hasDirEsc)
+                {
+                    return File.Exists(argument) ? "Found" : "Not Found";
+                }
+                else
+                {
+                    // Assumed to be a simple command name like 'vi' (Vim) 
+                    return CommandExists(argument) ? "Found" : "Not Found";
+                }
+            }
+
+            var foundEditors = new Dictionary<string, string>();
+
+            foreach (var editor in potentialEditors)
+            {
+                string editorKey = editor.Key;
+                string editorPathValue = editor.Value;
+
+                var commandResultType = GetLinuxSearchCommand(editorPathValue);
+
+                if (commandResultType == "Found") {
+                    foundEditors.Add(editorKey, editorPathValue);
+                } else if (commandResultType == "Not Found") {
+                    continue;
+                } else if (commandResultType is not null) {
+                    // Means the find command was successfully generated 
+                    string command = commandResultType;
+
+                    // The command is only executed if the editorPathValue is not a direct path to a file and the path contains a wildcard.
+                    if (editorPathValue.Contains(WILDCARD) || !File.Exists(editorPathValue))
+                    {
+                        // DEBUGGING ONLY DO NOT REMOVE
+                        // Console.WriteLine($"Executing:{NLC}/bin/bash -c {command}");
+                        var commandOutput = RunCommand("/bin/bash", $"-c {command}");
+
+                        if (!string.IsNullOrEmpty(commandOutput))
+                        {
+                            string foundPath = commandOutput.Trim();
+                            foundEditors.Add(editorKey, foundPath);
+                        }
+                    }
+                } else {
+                    // commandResultType is null a direct path check
+                    if (File.Exists(editorPathValue))
+                    {
+                        foundEditors.Add(editorKey, editorPathValue);
+                    }
+                }
+            }
+            return foundEditors;
         }
 
         // Refactor with a custom struct/class
@@ -232,7 +334,18 @@ namespace BrowserAutomationMaster.Managers
         public required (bool Windows, bool Mac, bool Linux) Supports;
         public (string Windows, string Mac, string Linux)? EditorPath;
         public (string Windows, string Mac, string Linux)? EditorParams;
-        private (string Windows, string Mac, string Linux) DefaultEditor = ("notepad.exe", "TextEdit", "xed");
+        private static (string Windows, string Mac, string Linux) DefaultEditor = (
+            @"C:\Windows\System32\notepad.exe", "/System/Applications/TextEdit.app", "xed"
+        );
+
+        public static string GetDefaultEditor() {
+            return (Platforms.IsWindows, Platforms.IsOSX, Platforms.IsLinux) switch {
+                (true, false, false) => DefaultEditor.Windows,
+                (false, true, false) => DefaultEditor.Mac,
+                (false, false, true) => DefaultEditor.Linux,
+                _ => throw new PlatformNotSupportedException("Invalid OS.")
+            };
+        }
 
         public ProcessStartInfo GetProcessInfo(string FilePath)
         {

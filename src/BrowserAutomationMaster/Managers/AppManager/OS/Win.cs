@@ -51,19 +51,32 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 foreach (var subkeyName in key.GetSubKeyNames())
                 {
                     using RegistryKey? subkey = key.OpenSubKey(subkeyName);
-                    if (subkey == null) { continue; }
+                    
+                    if (subkey == null) 
+                    { 
+                        continue; 
+                    }
+                    
                     string? name = subkey?.GetValue("DisplayName") as string;
-                    if (string.IsNullOrWhiteSpace(name)) { continue; }
+
+                    if (string.IsNullOrWhiteSpace(name)) 
+                    {
+                        continue; 
+                    }
 
                     string? version = subkey?.GetValue("DisplayVersion") as string;
                     string? publisher = subkey?.GetValue("Publisher") as string;
 
-                    list.Add(new AppInfo
+                    if (subkey?.GetValue("DisplayIcon") is string path)
                     {
-                        Name = name,
-                        Version = version ?? "Not Found",
-                        Publisher = publisher ?? "Not Found"
-                    });
+                        list.Add(new AppInfo
+                        {
+                            Name = name,
+                            Version = version ?? "Not Found",
+                            Publisher = publisher ?? "Not Found",
+                            Path = path
+                        });
+                    }
                 }
             }
             return list;
