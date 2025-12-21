@@ -1,10 +1,8 @@
 using System.Diagnostics;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Win;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Success;
 using BrowserAutomationMaster.Managers.AppManager;
 
 namespace BrowserAutomationMaster.Managers
