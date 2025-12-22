@@ -165,7 +165,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         public static BrowserStackConfig? LoadConfig()
         {
             if (!File.Exists(browserStackConfig))
+            {
                 WriteConfig(fileNotFound: true);
+            }
 
             try
             {
@@ -191,14 +193,18 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         public static bool PromptConfigOverride()
         {
             if (!File.Exists(browserStackConfig))
+            {
                 return false;
+            }
 
             var builder = new StringBuilder();
             Warning.Write("The BrowserStack Config file already exists.\n");
             try
             {
                 foreach (var line in File.ReadLines(browserStackConfig))
+                {
                     builder.AppendLine(line);
+                }
             }
 
             catch (Exception ex)
@@ -213,7 +219,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             var response = Input.AskForInput("Would you like to overwrite the config above? [y/n]: ");
 
             if (Input.ConditionRejected(response))
+            {
                 return false;
+            }
 
             return true;
         }
@@ -246,7 +254,10 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
                 var yaml = serializer.Serialize(config);
                 if (yaml == null)
+                {
                     WriteAndExit("Unable to generate browserstack.yml using the selected information, please try again.", 1);
+                }
+
                 EnsureDirectoryExists(browserStackDirectory);
                 File.WriteAllText(browserStackConfig, yaml);
 
@@ -254,9 +265,14 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             catch (Exception e)
             {
-                WriteAndExit(
-                    "Unable to generate browserstack.yml using the selected information, please try again.\n\n" +
-                    $"Error Log:\n{e.Message} in WriteConfig()",
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "Unable to generate browserstack.yml using the selected information, please try again.",
+                        "Error Log:",
+                        $"{e.StackTrace ?? e.Message}",
+                        "in WriteConfig()"
+                    ]),
                     status: 1
                 );
             }
