@@ -1,6 +1,5 @@
------
 # Browser Automation Master 🤖
-
+<img src="https://img.shields.io/github/v/release/static-codes/BrowserAutomationMaster.svg">
 A custom scripting language that compiles into Python 3.9+ code.
 
 BAM Manager (BAMM) simplifies Selenium by allowing you to write automation scripts in a more concise, readable, and English-like language.  
@@ -10,7 +9,6 @@ This language is known as **BAMC** **(BAM Config)**.
 Your **.BAMC** file is then passed to the compiler, which creates a Python file containing your desired workflow, effectively reducing the amount of boilerplate you need to manage.
 
 https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
-
 
 ## Quick Start Guide 🚀
 - To get started with BAMM, please follow the [Quick Start Guide](https://static-codes.github.io/BAMM-Docs/)
