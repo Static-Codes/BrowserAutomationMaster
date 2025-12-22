@@ -29,7 +29,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         {
                             Name = appName,
                             Version = "Not supported currently.",
-                            Publisher = "Not supported currently."
+                            Publisher = "Not supported currently.",
+                            Path = Path.Combine(dir, item)
                         });
                     }
 
@@ -39,7 +40,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         apps.Add(new AppInfo { 
                             Name = appName,
                             Version = "Not supported currently.",
-                            Publisher = "Not supported currently."
+                            Publisher = "Not supported currently.",
+                            Path = Path.Combine(dir, item)
                         });
                     }
                 }
