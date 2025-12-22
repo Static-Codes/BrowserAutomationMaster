@@ -90,9 +90,12 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             var versions = GetBrowserVersionsSupported(browserName, osName);
 
             var description = $"version of {rawOSName} that supports {browserName}";
+            
             if (versions == null)
+            {
                 WriteAndExit($"Unable to find a {description}, please try a different combination.", 1);
-
+            }
+            
             // Will be used for defining DeviceName and DeviceOrientation if mobile
             // If not mobile, browserVersion must be specified.
             var isMobile = osName switch
@@ -123,7 +126,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 };
 
                 if (devices.Length == 0)
+                {
                     WriteAndExit("Unable to find device supported by BrowserStack that fits your requirements.", status: 1);
+                }
 
                 device = Input.WriteListFromOptions(devices, noun: "device");
 
