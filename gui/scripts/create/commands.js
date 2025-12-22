@@ -37,13 +37,12 @@ const commandCollection = [
   {
     commandName: "Add-Header",
     commandArgs: {
-      "header-name": null,
-      "header-value": null,
+      jsonObject: null,
     },
     commandDescription:
       "Adds an HTTP Header for the current request. Both name and value must be quoted strings.",
     disabledOnLoad: true,
-    placeholder: '"DNT", "1"',
+    placeholder: '{ "HeaderName" : "HeaderValue" }',
   },
 
   {
@@ -54,8 +53,7 @@ const commandCollection = [
     commandDescription:
       "Adds multiple HTTP Headers for the current request via a JSON Object. The JSON object must be quoted.",
     disabledOnLoad: true,
-    placeholder:
-      '"{ \\"Header1\\": \\"Value1\\", \\"Header2\\": \\"Value2\\" }"', // Escaped JSON string
+    placeholder: '{ "Header1": "Value1", "Header2": "Value2" }"',
   },
 
   {
@@ -72,13 +70,12 @@ const commandCollection = [
   {
     commandName: "Click-At-Position",
     commandArgs: {
-      "x-coordinate": null,
-      "y-coordinate": null,
+      coordinates: null,
     },
     commandDescription:
       "Clicks at a specific point on screen. Coordinates must be quoted strings.",
     disabledOnLoad: true,
-    placeholder: '"600", "600"',
+    placeholder: '"x-coordinate" "y-coordinate"',
   },
 
   {
@@ -87,9 +84,9 @@ const commandCollection = [
       "css-selector": null,
     },
     commandDescription:
-      "Alternative to `Click`. Supports CSS SELECTOR. Selector **must be quoted**.",
+      "Alternative to `Click`. Supports CSS SELECTOR. Selector **must be single-quoted**.",
     disabledOnLoad: true,
-    placeholder: '"div.item > h1"',
+    placeholder: "'div.item > h1'",
   },
 
   {
@@ -103,25 +100,23 @@ const commandCollection = [
   {
     commandName: "Fill-Text",
     commandArgs: {
-      selector: null,
-      value: null,
+      arguments: null,
     },
     commandDescription:
       "Assigns the specified value to the selected input element. Selector and value **must be quoted**.",
     disabledOnLoad: true,
-    placeholder: '"#username", "myname"',
+    placeholder: '"selector" "value"',
   },
 
   {
     commandName: "Fill-Text-Exp",
     commandArgs: {
-      selector: null,
-      value: null,
+      arguments: null,
     },
     commandDescription:
       "More advanced version of `Fill-Text`. Selector and value **must be quoted**.",
     disabledOnLoad: true,
-    placeholder: '"#username", "myname"',
+    placeholder: '"selector" "value"',
   },
 
   {
@@ -138,13 +133,12 @@ const commandCollection = [
   {
     commandName: "Open-New-Tab",
     commandArgs: {
-      url: null,
-      "wait-time": null,
+      arguments: null,
     },
     commandDescription:
       "Opens a new tab, pauses, then visits the URL. URL and wait time **must be quoted**.",
     disabledOnLoad: true,
-    placeholder: '"https://newsite.com", "3"',
+    placeholder: '"url" "wait-time-in-seconds"',
   },
 
   {
@@ -172,13 +166,12 @@ const commandCollection = [
   {
     commandName: "Select-Option",
     commandArgs: {
-      selector: null,
-      "option-number": null,
+      arguments: null,
     },
     commandDescription:
       "Selects an option from a dropdown menu. Selector and option number **must be quoted**.",
     disabledOnLoad: true,
-    placeholder: '"#dropdown", "2"',
+    placeholder: '"selector" "option-number"',
   },
 
   {
@@ -189,13 +182,13 @@ const commandCollection = [
     commandDescription:
       "Selects an element (intended for manual script editing). Selector **must be quoted**.",
     disabledOnLoad: true,
-    placeholder: '"#element"',
+    placeholder: '"selector"',
   },
 
   {
     commandName: "Set-Custom-Useragent",
     commandArgs: {
-      "user-agent-string": null,
+      userAgentString: null,
     },
     commandDescription:
       "Sets a custom user agent. The user agent string **must be quoted**.",
@@ -233,7 +226,7 @@ const commandCollection = [
 
   // --- Features ---
   // Note: For Feature commands, the BAMC documentation shows the command structure as: feature "feature-name" "arg"
-  // Since the UI only captures the command string (Action/Feature Name) and Arguments, we use the kebab-case command name as the key.
+  // Since the UI only captures the command string (Action/Feature Name) and Arguments, the kebab-case command name is used as the key.
 
   {
     commandName: "Feature: disable-pycache",
