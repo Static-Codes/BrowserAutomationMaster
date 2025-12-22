@@ -101,10 +101,14 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 _ => false,
             };
 
-            string browserVersion = "";
-            if (osName != "android") // BrowserStack doesn't allow you to specify the browserVersion on android.
+            var browserVersion = "";
+            
+            // BrowserStack doesn't allow you to specify the browserVersion on android.
+            if (osName != "android")
+            {
                 browserVersion = GetDesiredBrowerVersion(browserName, osName, osVersion);
-
+            }
+            
             string[] devices;
             string? device = null;
             string? deviceOrientation = null;
