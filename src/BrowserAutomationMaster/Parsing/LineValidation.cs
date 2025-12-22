@@ -340,7 +340,7 @@ namespace BrowserAutomationMaster.Parsing
                         $"File: \"{fileName}\"\n" +
                         $"Invalid syntax on line {lineNumber}\n" +
                         $"Line: {line}\n" +
-                        $"Valid Syntax: {firstArg} \"{selectorString}\" \"value\"\n",
+                        $"Valid Syntax: {firstArg} {selectorString}\n",
                     returnBool: false
                 );
             }
