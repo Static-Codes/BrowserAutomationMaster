@@ -17,5 +17,6 @@
         public const string GUI_ZIP_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip";
         public const StringComparison CCIC = StringComparison.CurrentCultureIgnoreCase;
         public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
+        public const char HORIZONTAL_TAB = '\t';
     }
 }

@@ -350,11 +350,16 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                     commands[i] = $"{installCMD} {packages[i]}\"";
 
-                    var appInfo = new AppInfo() { Name = packages[i] };
+                    var appInfo = new AppInfo() { 
+                        Name = packages[i],
+                        Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
+                    };
 
                     // Skips pre-existing installations
                     if (appsInfo.Contains(appInfo))
+                    {
                         continue;
+                    }
 
                     Warning.Write($"Installing package: {packages[i]}");
                     WriteSuccessMessage(RunCommand("/bin/bash", $"{commands[i]}"));
@@ -385,12 +390,15 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     var parts = line.Trim('\'').Split("\t");
                     
                     if (parts.Length >= 2)
+                    {
                         apps.Add(
                             new AppInfo { 
                                 Name = parts[0], 
-                                Version = parts[1] 
+                                Version = parts[1],
+                                Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
                             }
                         );
+                    }
                 }
                 return apps;
             }
@@ -410,7 +418,15 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             foreach (var line in output.Split('\n'))
             {
                 if (!string.IsNullOrWhiteSpace(line))
-                    apps.Add(new AppInfo { Name = line });
+                {
+                    apps.Add
+                    (
+                        new AppInfo { 
+                            Name = line,
+                            Path = "" // Path is required per the struct but isnt needed here, thus the empty string. 
+                        }
+                    );
+                }
             }
 
             return apps;
@@ -428,8 +444,18 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             {
                 var parts = line.Split('\t');
                 
-                if (parts.Length >= 2)
-                    apps.Add(new AppInfo { Name = parts[0], Version = parts[1] });
+                if (parts.Length >= 2) 
+                {
+                    apps.Add
+                    (
+                        new AppInfo 
+                        { 
+                            Name = parts[0], 
+                            Version = parts[1],
+                            Path = ""  // Path is required per the struct but isnt needed here, thus the empty string. 
+                        }
+                    );
+                }
             }
 
             return apps;
