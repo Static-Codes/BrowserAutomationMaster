@@ -71,59 +71,6 @@ namespace BrowserAutomationMaster.Managers
         }
 
         // Doesn't check for vim, textedit, or xcode.
-        // public static async Task<string[]> GetSupportedMacEditors() 
-        // {
-        //     var actionText = "checking for the supported text editors";
-        //     var errorMessage = $"An error occured while {actionText}.";
-
-        //     var supportedMacEditors = new string[4] {
-        //         "PyCharm.app",
-        //         "Sublime Text.app",
-        //         "VSCodium.app",
-        //         "Visual Studio Code.app"
-        //     };
-
-        //     var psi = new ProcessStartInfo() {
-        //         FileName = "/bin/bash",
-        //         ArgumentList = {
-        //             "-c",
-        //             "ls -1",
-        //             "/Applications/"
-        //         },
-        //         RedirectStandardError = true,
-        //         RedirectStandardInput = true,
-        //         RedirectStandardOutput = true,
-        //     };
-
-        //     (int ExitCode, List<string> STDOut, List<string> STDErr) = (-1, [], []);
-
-        //     try {
-        //         var process = await ProcessFactory.SpawnProcess(psi, "checking for supported text editors", writeSTDInOut: false, timeout: 10);
-        //         (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
-
-        //         if (ExitCode == -1 || ExitCode > 0) {
-        //             WriteAndExit($"{errorMessage}{NLC}Exit Code: {ExitCode}", 1);
-        //         }
-
-        //         if (STDErr.Count > 0 && STDOut.Count == 0){
-        //             WriteAndExit($"{errorMessage}{NLC}{NLC}Error Log:{NLC}{string.Join(NLC, STDErr)}", 1);
-        //         }
-
-        //         if (STDOut.Count == 0) {
-        //             var errorLog = $"The command '{string.Join(' ', psi.Arguments)}' returned no output";
-        //             WriteAndExit($"{errorMessage}{NLC}{NLC}Error Log:{NLC}{errorLog}", 1);
-        //         }
-
-        //     }
-        //     catch (Exception ex) {
-        //         WriteAndExit($"{errorMessage}{NLC}{NLC}Error Log:{NLC}{ex.StackTrace}", 1);
-        //     }
-
-        //     return [.. STDOut.Where(app => supportedMacEditors.Contains(app))];
-            
-        // }
-
-        // Doesn't check for vim, textedit, or xcode.
         public static Dictionary<string, string> GetSupportedMacEditors()
         {
             var supportedAppNames = new Dictionary<string, string>

@@ -278,14 +278,16 @@ namespace BrowserAutomationMaster.Parsing
             if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg)))
                 lineArgs = line.Split(" \"");
 
-            // Handle all others
+            // Handles all others
             else
+            {
                 lineArgs = line.Split(" ");
-
-
-            foreach (var lineArg in lineArgs ){
-                Console.WriteLine(lineArg);
             }
+
+            // DEBUG ONLY
+            // foreach (var lineArg in lineArgs ){
+            //     Console.WriteLine(lineArg);
+            // }
 
             string firstArg = lineArgs[0];
 
@@ -762,7 +764,9 @@ namespace BrowserAutomationMaster.Parsing
                     string[] lineArgs = line.Split(" ");
 
                     if (lineArgs.Length == 0)
+                    {
                         return false;
+                    }
 
                     var firstArg = lineArgs[0];
 
@@ -807,6 +811,7 @@ namespace BrowserAutomationMaster.Parsing
 
                     // If a feature name is provided after defining non feature actions
                     else if (firstArg.Equals("feature") && featureBlockFinished)
+                    {
                         return WriteErrorAndReturnBool(
                             message:
                                 $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -815,14 +820,17 @@ namespace BrowserAutomationMaster.Parsing
                                 $"All 'feature' commands must be placed before any other command, except 'browser'.\n",
                             returnBool: false
                         );
+                    }
 
                     // If a duplicate feature name is provided -> feature "duplicate-name"
-                    else if (firstArg.Equals("feature") && usedFeatures.Contains(line))
+                    else if (firstArg.Equals("feature") && usedFeatures.Contains(line)) {
                         ExitOnDuplicateCommand(fileName, line, i);
+                    }
 
 
                     // If an invalid feature name is provided -> feature "invalid-name"
                     else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg)))
+                    {
                         return WriteErrorAndReturnBool(
                             message:
                                 "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -831,6 +839,7 @@ namespace BrowserAutomationMaster.Parsing
                                 $"For more information please see, {DOCUMENTATION_LINK}",
                             returnBool: false
                         );
+                    }
 
                     #endregion Start of Invalid Feature Check
 
@@ -885,10 +894,14 @@ namespace BrowserAutomationMaster.Parsing
 
                         // Only one Proxy feature command is permitted per script.
                         if (usedFeatures.Any(feature => feature.Contains(proxyFeatureString)))
+                        {
                             ExitOnDuplicateCommand(fileName, line, i);
+                        }
 
                         if (!IsValidProxyFormat(proxyString))
+                        {
                             WriteAndExit(invalidProxyFeatureMessage, 1);
+                        }
 
                         usedFeatures.Add(line);
 
@@ -906,7 +919,9 @@ namespace BrowserAutomationMaster.Parsing
                     #region Start of Visit Feature Check
                     
                     if (firstArg.Equals("visit") && visitBlockFinished)
+                    {
                         return true;
+                    }
 
                     List<string> invalidLines = [];
 
@@ -925,6 +940,7 @@ namespace BrowserAutomationMaster.Parsing
                     }
 
                     if (invalidLines.Count > 0)
+                    {
                         WriteAndExit(
                             message:
                                 GenerateErrorMessage(fileName, line, i,
@@ -938,6 +954,7 @@ namespace BrowserAutomationMaster.Parsing
                                 ),
                             status: 1
                         );
+                    }
 
                     #endregion End of Visit Feature Check
 
@@ -945,7 +962,9 @@ namespace BrowserAutomationMaster.Parsing
                     #region Start of JS Feature Check
 
                     else if (line.StartsWith("start-javascript"))
+                    {
                         jsBlockFinished = false;
+                    }
 
                     else if (line.StartsWith("end-javascript"))
                     {
@@ -954,15 +973,18 @@ namespace BrowserAutomationMaster.Parsing
                     }
 
                     else if (!HandleLineValidation(fileName, line, i + 1))
+                    {
                         return false;
+                    }
 
                     // Ignores comments
                     if (!line.StartsWith("//"))
+                    {
                         // This flag will be used to ensure all 'feature' commands are placed before all other commands, excluding 'browser'.
                         featureBlockFinished = true;
+                    }
 
                     #endregion End of JS Feature Check
-
                 }
 
                 // Leaving this outside the for loop saves 1 execution cycle per valid line within a .BAMC file
@@ -981,6 +1003,7 @@ namespace BrowserAutomationMaster.Parsing
                 //        returnBool: false
                 //    );
 
+                WriteSuccessMessage("Validated the provided file's contents, you can now click 'Export Script'");
                 return true;
             }
 
@@ -1057,18 +1080,21 @@ namespace BrowserAutomationMaster.Parsing
                     string input = Input.WriteListFromOptions(["Select a File", "Exit"]);
 
                     if (input.Equals("Exit"))
+                    {
                         WriteAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
-                    
+                    }
 
                     string path = Input.AskForInput("Path: ");
                     
                     if (!File.Exists(path))
+                    {
                         WriteAndExit(
                             message:
                                 "BAMM Manager (BAMM) was unable to find the provided file, " +
                                 $"please ensure the file below exists:\n{path}",
                             status: 1
                         );
+                    }
 
                     // This executes UserScriptManager.AddScript()
                     UserScriptManager _ = new(path, "add");

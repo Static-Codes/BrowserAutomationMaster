@@ -823,10 +823,10 @@ namespace BrowserAutomationMaster.Managers
                 if (responseHandled) { return; }
 
                 byte[]? message = null;
-                if (Parser.IsValidFileContents([.. finalBuffer])){
+
+                if (Parser.IsValidFileContents([.. finalBuffer])) {
                     message = UTF8.GetBytes($"{{ \"success\": true }}");
-                }
-                else {
+                } else {
                     message = UTF8.GetBytes($"{{\"success\": false, \"error\": \"Please check BAMM's output for more information.\"}}");
                 }
 
@@ -836,12 +836,9 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception ex)
             {
-                if (!responseHandled)
-                {
+                if (!responseHandled) {
                     await HandleInvalidResponse(response, ex.StackTrace ?? ex.Message);
-                }
-                else
-                {
+                } else {
                     Console.WriteLine($"Exception caught, but response already sent/closed: {ex.Message}");
                 }
             }
