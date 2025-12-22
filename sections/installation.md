@@ -1,4 +1,4 @@
-## Installation ⬇️
+## Installation for <img src="https://img.shields.io/github/v/release/static-codes/BrowserAutomationMaster.svg">
 
 
 - **Windows**
