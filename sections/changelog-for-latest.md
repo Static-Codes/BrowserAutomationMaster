@@ -17,7 +17,9 @@
 - Added new class `Editor` in namespace `BrowserAutomationMaster.Managers`
 - Added `Path` variable to class `AppInfo` in namespace `BrowserAutomationMaster.Managers.AppManager`
 - Added `GetExecutablePath` to class `Linux` in namespace `BrowserAutomationMaster.Managers.AppManager`
-- Refactored classes `Linux`, `Mac`, and `Win` in namespace `BrowserAutomationMaster.Managers.AppManager.OS` to properly get paths for the installed applications.
+- Refactored classes `Linux`, `Mac`, and `Win` in namespace `BrowserAutomationMaster.Managers.AppManager.OS` to properly include required Path attribute.
+
+- Refactored class `LineValidation` in namespace `BrowserAutomationMaster.Parsing`
 </details>
 
 ### New Action Commands:
