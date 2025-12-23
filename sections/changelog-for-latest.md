@@ -17,9 +17,10 @@
 - Added new class `Editor` in namespace `BrowserAutomationMaster.Managers`
 - Added `Path` variable to class `AppInfo` in namespace `BrowserAutomationMaster.Managers.AppManager`
 - Added `GetExecutablePath` to class `Linux` in namespace `BrowserAutomationMaster.Managers.AppManager`
+- Fixed a huge bug in LineValidation
 - Refactored classes `Linux`, `Mac`, and `Win` in namespace `BrowserAutomationMaster.Managers.AppManager.OS` to properly include required Path attribute.
+- Patched a problematic bug causing unnecessary output in `LineValidation` in namespace `BrowserAutomationMaster.Parsing`
 
-- Refactored class `LineValidation` in namespace `BrowserAutomationMaster.Parsing`
 </details>
 
 ### New Action Commands:
