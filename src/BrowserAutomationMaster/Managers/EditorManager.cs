@@ -2,11 +2,18 @@ using System.Diagnostics;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using BrowserAutomationMaster.Managers.AppManager;
+using System.Text;
+using System.Reflection.PortableExecutable;
+using BrowserAutomationMaster.Managers.AppManager.OS;
+
 
 namespace BrowserAutomationMaster.Managers
 {
+
+    # region EditorManager
     public class EditorManager()
     {
 
@@ -188,28 +195,10 @@ namespace BrowserAutomationMaster.Managers
             }
             return foundEditors;
         }
-
-        // Refactor with a custom struct/class
-        public string[] SupportedEditors = [
-            // Open source fork of Visual Studio Code
-            "Codium", 
-            // Windows notepad
-            "Notepad",
-            // Fork/Rewrite of Windows notepad (I believe the command is npp)
-            "Notepad++", 
-            // JetBrains IDE
-            "PyCharm",
-            // Cross Platform IDE
-            "Sublime Text",
-            // The bloated older brother to visual studio code.
-            "Visual Studio",
-            // A much sleeker version of visual studio, which is cross. (`code <filename>` to open the file)
-            "Visual Studio Code",
-            // Built in text-editor in linux (not to be confused with xcode which calls on xed and is not supported.)
-            "Xed", 
-        ];
     };
-
+    # endregion EditorManager
+    
+    # region "Editor"
     public class Editor
     {
         public required (string Windows, string Mac, string Linux) Names;
@@ -229,11 +218,48 @@ namespace BrowserAutomationMaster.Managers
             };
         }
 
-        public ProcessStartInfo GetProcessInfo(string FilePath)
+        public async Task<ProcessStartInfo> GetProcessInfo(string FilePath)
         {
             if (!File.Exists(FilePath))
             {
-                throw new FileNotFoundException("Unable to open the specified file, it has yet to be created.", FilePath);
+                try 
+                {
+                    var dateTimeObj = DateTime.Now;
+
+                    var fileHeaderStr = string.Join(NLC, [
+                        $"// Created at: {dateTimeObj}",
+                        $"// File created using BAMM {CurrentVersion}",
+                        "// https://github.com/Static-Codes/BrowserAutomationMaster",
+                        "",
+                        "// Your .BAMC contents goes below this line"
+                    ]);
+
+                    var fileHeaderBytes = Encoding.UTF8.GetBytes(fileHeaderStr);
+
+                    using var stream = new FileStream(FilePath, FileMode.Create, FileAccess.ReadWrite);
+
+                    var cancellationToken = new CancellationToken(false);
+
+                    // 10 Second delay.
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+                    await stream.WriteAsync(fileHeaderBytes);
+                }
+
+                catch (Exception ex) 
+                {
+                    WriteAndExit
+                    (
+                        message: 
+                            string.Join(NLC, [
+                                $"BAM Manager (BAMM) ran into a fatal error, trying to create a file at: {FilePath}.",
+                                "Error Log:",
+                                $"{ex.Message}"
+                            ]),
+                        status: 1,
+                        writePlatformDebugInfo: true 
+                    );
+                }
             }
 
             string editor;
@@ -245,17 +271,20 @@ namespace BrowserAutomationMaster.Managers
                 editor = EditorPath.HasValue ? EditorPath.Value.Windows : DefaultEditor.Windows;
                 editorParams = EditorParams.HasValue ? EditorParams.Value.Windows : string.Empty;
             }
+
             else if (Platforms.IsOSX)
             {
                 // On macOS, the default 'open' command is used, and the editor is passed via the '-a' flag.
                 editor = EditorPath.HasValue ? EditorPath.Value.Mac : DefaultEditor.Mac;
                 editorParams = EditorParams.HasValue ? EditorParams.Value.Mac : string.Empty;
             }
+
             else if (Platforms.IsLinux)
             {
                 editor = EditorPath.HasValue ? EditorPath.Value.Linux : DefaultEditor.Linux;
                 editorParams = EditorParams.HasValue ? EditorParams.Value.Linux : string.Empty;
             }
+
             else
             {
                 throw new PlatformNotSupportedException("Unsupported OS.");
@@ -273,6 +302,7 @@ namespace BrowserAutomationMaster.Managers
                     UseShellExecute = true
                 };
             }
+
             else if (Platforms.IsOSX)
             {
                 // Uses the 'open' command which launches .app bundles and handles path association.
@@ -289,6 +319,7 @@ namespace BrowserAutomationMaster.Managers
                     UseShellExecute = true
                 };
             }
+
             else if (Platforms.IsLinux)
             {
                 var specialEditors = new string[2] {"vi", "xed"};
@@ -303,6 +334,7 @@ namespace BrowserAutomationMaster.Managers
                     UseShellExecute = useShellExecute
                 };
             }
+
             else
             {
                 throw new PlatformNotSupportedException("Unsupported OS.");
@@ -315,5 +347,134 @@ namespace BrowserAutomationMaster.Managers
             
             return psi;
         }
+    };
+
+    # endregion "Editor"
+
+    # region "Editor Objects via Inheritance"
+
+
+    // Refactor with a custom struct/class
+    // public string[] SupportedEditors = [
+    //     // Open source fork of Visual Studio Code
+    //     "Codium", 
+    //     // Windows notepad
+    //     "Notepad",
+    //     // Fork/Rewrite of Windows notepad (I believe the command is npp)
+    //     "Notepad++", 
+    //     // JetBrains IDE
+    //     "PyCharm",
+    //     // Cross Platform IDE
+    //     "Sublime Text",
+    //     // The bloated older brother to visual studio code.
+    //     "Visual Studio",
+    //     // A much sleeker version of visual studio, which is cross. (`code <filename>` to open the file)
+    //     "Visual Studio Code",
+    //     // Built in text-editor in linux (not to be confused with xcode which calls on xed and is not supported.)
+    //     "Xed",
+    // ];
+
+
+    public class Helix : Editor 
+    {
+        public Helix((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        {
+            Names = (Windows: "Helix", Mac: "Helix", Linux: "Helix");
+            Supports = (Windows: true, Mac: true, Linux: true);
+            this.EditorPath = EditorPath;
+            this.EditorParams = EditorParams;
+        }
     }
+
+    public class Nano : Editor 
+    {
+        public Nano((string W, string M, string L) EditorPath)
+        {
+            Names = (Windows: "", Mac: "", Linux: "Nano");
+            Supports = (Windows: false, Mac: false, Linux: true);
+            this.EditorPath = EditorPath;
+            this.EditorParams = (Windows: "", Mac: "", Linux: "");
+        }
+    }
+
+    public class NotepadPlusPlus : Editor 
+    {
+        public NotepadPlusPlus((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        {
+            Names = (Windows: "Notepad++", Mac: "", Linux: "");
+            Supports = (Windows: true, Mac: false, Linux: false);
+            this.EditorPath = EditorPath;
+            this.EditorParams = EditorParams;
+        }
+    }
+
+    public class PyCharm : Editor 
+    {
+        public PyCharm((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        {
+            Names = (Windows: "PyCharm", Mac: "PyCharm", Linux: "PyCharm");
+            Supports = (Windows: true, Mac: true, Linux: true);
+            this.EditorPath = EditorPath;
+            this.EditorParams = EditorParams;
+        }
+    }
+
+    public class Sublime : Editor 
+    {
+        public Sublime((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        {
+            Names = (Windows: "Sublime Text", Mac: "Sublime Text", Linux: "Sublime Text");
+            Supports = (Windows: true, Mac: true, Linux: true);
+            this.EditorPath = EditorPath;
+            this.EditorParams = EditorParams;
+        }
+    }
+
+    public class Vim : Editor 
+    {
+        public Vim()
+        {
+            Names = (Windows: "", Mac: "Vim", Linux: "Vim");
+            Supports = (Windows: false, Mac: true, Linux: true);
+            EditorPath = (Windows: "", Mac: "vi", Linux: "vi");
+            EditorParams = (Windows: "", Mac: "", Linux: "");
+        }
+    }
+
+    public class VisualStudio : Editor 
+    {
+        public VisualStudio((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        {
+            Names = (Windows: "Visual Studio", Mac: "", Linux: "");
+            Supports = (Windows: true, Mac: false, Linux: false);
+            this.EditorPath = EditorPath;
+            this.EditorParams = EditorParams;
+        }
+    }
+
+    public class VSCode : Editor 
+    {
+        public VSCode((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        {
+            Names = (Windows: "VSCode", Mac: "VSCode", Linux: "VSCode");
+            Supports = (Windows: true, Mac: true, Linux: true);
+            this.EditorPath = EditorPath;
+            this.EditorParams = EditorParams;
+        }
+    }
+
+
+    public class VSCodium : Editor 
+    {
+        public VSCodium((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        {
+            Names = (Windows: "VSCodium", Mac: "VSCodium", Linux: "VSCodium");
+            Supports = (Windows: true, Mac: true, Linux: true);
+            this.EditorPath = EditorPath;
+            this.EditorParams = EditorParams;
+        }
+    }
+
+
+    # endregion "Editor Objects via Inheritance
 }
