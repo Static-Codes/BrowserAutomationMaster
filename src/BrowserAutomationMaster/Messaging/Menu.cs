@@ -6,7 +6,6 @@ using static BrowserAutomationMaster.Messaging.Menu;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using Spectre.Console;
-using YamlDotNet.Core.Tokens;
 
 namespace BrowserAutomationMaster.Messaging
 {
