@@ -2,6 +2,7 @@ using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using System.IO.Compression;
 using System.Reflection;
+using System.Text;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -106,9 +107,14 @@ namespace MacPackager
                                 [
                                     new DirectoryContents()
                                     {
-                                        FileName = "bamm",
+                                        FileName = BINARY_NAME,
                                         // FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
                                         FileContents = GetMacOSBinaryContents(binaryPath, target)
+                                    },
+                                    new DirectoryContents() 
+                                    {
+                                        FileName = $"{BINARY_NAME}.pdb",
+                                        FileContents = GetBinaryPDBContents(binaryPath)
                                     }
                                 ],
                                 SubDirectories = []
@@ -271,6 +277,24 @@ namespace MacPackager
             
             try
             {
+                if (File.Exists(archivePath)) 
+                {
+                    Console.WriteLine($"[INFO]: An archive already exists at: {archivePath}{NLC}");
+                    var choice = Input.AskForInput("[INPUT]: Would you like to overwrite it? [y/n]: ");
+                    
+                    if (Input.ConditionRejected(choice)) 
+                    {
+                        WriteAndExit
+                        (
+                            message: "[ERROR]: The operation was cancelled by the user, press any key to exit The BAMM for macOS Packager.",
+                            status: 0,
+                            writePlatformDebugInfo: false
+                        );
+                    }
+
+                    File.Delete(archivePath);
+                }
+
                 ZipFile.CreateFromDirectory(bundlePath, archivePath);
                 WriteSuccessMessage($"[SUCCESS]: Compressed application bundle to: {archivePath}");
             }
@@ -416,6 +440,110 @@ namespace MacPackager
             return resourceStream;
         }
 
+        // The .pdb file contains Program Debug Symbols
+        // binaryPath is used to get the parent directory which contains all the build files.
+        private static MemoryStream GetBinaryPDBContents(string? binaryPath)
+        {   
+            if (binaryPath is null)
+            {
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "[ERROR]: An exception occured while trying to read the contents of the Binary's Program Debug Symbols.",
+                        $"[ERROR LOG]: An invalid path was passed to GetBinaryPDBContents.",
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
+
+            if (!binaryPath.EndsWith(BINARY_NAME))
+            {
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "[ERROR]: An exception occured while trying to read the contents of the Binary's Program Debug Symbols.",
+                        $"[ERROR LOG]: An invalid path was passed to GetBinaryPDBContents, the path must end with {BINARY_NAME}.",
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
+
+            
+
+            var filePath = $"{binaryPath}.pdb";
+            if (!File.Exists(filePath)) 
+            {
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "[ERROR]: An exception occured while trying to read the contents of the Binary's Program Debug Symbols.",
+                        $"[ERROR LOG]: File does not exist at {filePath}",
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
+
+            Stream? stream = null;
+
+            Console.WriteLine("[INFO]: Opened a stream object to read the contents of the Binary's Program Debug Symbols.");
+
+            try
+            {
+                stream = new FileStream(filePath, FileMode.Open);
+
+                if (stream is null)
+                {
+                    throw new EndOfStreamException("Stream returned a null value.");
+                }
+
+                WriteSuccessMessage($"[SUCCESS]: Read {stream.Length} bytes from Binary's Program Debug Symbols.");
+            }
+
+            catch (Exception ex)
+            {
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        $"[ERROR]: An exception occured while trying to read the Binary's Program Debug Symbols",
+                        $"[ERROR LOG]: {ex.Message}",
+                        $"[STACKTRACE]: {ex.StackTrace ?? "None Available."}"
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
+
+            Console.WriteLine("[INFO]: Creating a temporary MemoryStream object.");
+            using var memoryStream = new MemoryStream();
+            WriteSuccessMessage($"[SUCCESS]: Created the required MemoryStream object.");
+
+            Console.WriteLine("[INFO]: Copying the generic Stream object to the more useful MemoryStream object.");
+            
+            // Tries to copy the contents of bamm.pdb to the MemoryStream object
+            try 
+            {
+                stream.CopyTo(memoryStream); 
+            }
+
+            catch (Exception ex)
+            {
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        $"[ERROR]: An exception occured while trying to copying the generic Stream object.",
+                        $"Error Log:{NLC}{ex.StackTrace ?? ex.Message}"
+                    ]), 
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
+
+            WriteSuccessMessage("[SUCCESS]: Sending macOS binary contents to the BAMM for macOS Packager.");
+            return memoryStream;
+        }
 
         // Validates that the file at filePath is a valid macOS binary, if so, it returns a MemoryStream of its contents.
         private static MemoryStream GetMacOSBinaryContents(string? binaryPath = null, string? target = null)
