@@ -294,11 +294,11 @@ namespace BrowserAutomationMaster.Managers
             return foundEditors;
         }
 
-        public static async Task OpenFileInEditor(string fileName)
+        public static async Task OpenFileInEditor(string filePath)
         {
             var editor = GetEditorChoice();
-            var psi = await editor.GetProcessInfo(fileName);
-            using var process = await ProcessFactory.SpawnProcess(psi, $"choosing an editor to open '{fileName}'");
+            var psi = await editor.GetProcessInfo(filePath);
+            using var process = await ProcessFactory.SpawnProcess(psi, $"choosing an editor to open '{filePath}'");
             var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
         }
     }
