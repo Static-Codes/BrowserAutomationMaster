@@ -21,7 +21,7 @@
 		<!-- NuGet Package Metadata -->
 		<PackAsTool>false</PackAsTool>
 		<PackageId>bamm</PackageId>
-		<PackageVersion>1.0.0-alpha6</PackageVersion>
+		<PackageVersion>1.0.0-alpha7</PackageVersion>
 		<!-- Windows & OSX License -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<ApplicationIcon>bamm.ico</ApplicationIcon>
