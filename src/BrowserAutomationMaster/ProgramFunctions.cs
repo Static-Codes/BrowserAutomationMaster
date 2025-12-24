@@ -235,6 +235,7 @@ namespace BrowserAutomationMaster
                 return true;
             }
 
+            // Handles `new` and `-n` commands.
             if (pArgs[0].Equals("new", CCIC) || pArgs[0].Equals("-n")) 
             {
                 if (pArgs.Length == 1) 
@@ -262,6 +263,7 @@ namespace BrowserAutomationMaster
                 );
             }
 
+            // Handles `open` and `-o` commands.
             if (pArgs[0].Equals("open", CCIC) || pArgs[0].Equals("-o")) 
             {
                 if (pArgs.Length == 2) 

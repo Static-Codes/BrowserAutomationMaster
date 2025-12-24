@@ -71,15 +71,23 @@ namespace BrowserAutomationMaster.Managers
             }
 
             // Performs path validation 6/6 (Locates the file within the userScript directory)
-            if (!File.Exists(filePath)) {
+            if (!File.Exists(scriptPath)) {
                 WriteAndExit(
                     message: $"BAM Manager (BAMM) was unable to locate the source file: {filePath}, please check for typos.", 
                     status: 1
                 );
             }
 
-            async void asyncWrap() { await HandleCLIArgs(method, filePath, scriptPath); }
-            Task.Run(asyncWrap);
+            Console.WriteLine("Test");
+            
+            // Action handleCLI() => async () => {
+            //     await HandleCLIArgs(method, filePath, scriptPath);
+            // };
+
+            // async void asyncWrap() { await HandleCLIArgs(method, filePath, scriptPath); }
+            // Task.Run(handleCLI);
+            HandleCLIArgs(method, filePath, scriptPath).GetAwaiter().GetResult();
+            Console.WriteLine("Test Complete");
         }
 
         public void AddScript(string sourceFilePath, string fileName)
@@ -143,6 +151,7 @@ namespace BrowserAutomationMaster.Managers
         
         private async Task HandleCLIArgs(string method, string filePath, string fileName)
         {
+            Console.WriteLine(method);
             switch (method.ToLower().Trim())
             {
                 case "add":
@@ -157,7 +166,7 @@ namespace BrowserAutomationMaster.Managers
                             $"Please ensure you've added this script to the userScript directory and try again.",
                             status: 1);
                     }
-                    await Transpiler.New(filePath: scriptPath, args: []);
+                    await Transpiler.New(filePath: scriptPath, args: ["compile"]);
                     break;
 
                 case "run":

@@ -18,7 +18,10 @@
 - Added new class `Editor` in namespace `BrowserAutomationMaster.Managers`
 - Added `Path` variable to class `AppInfo` in namespace `BrowserAutomationMaster.Managers.AppManager`
 - Added `GetExecutablePath` to class `Linux` in namespace `BrowserAutomationMaster.Managers.AppManager`
-- Fixed a huge bug in LineValidation
+- Fixed a bug in class `LineValidation` in namespace `BrowserAutomationMaster.Parsing` causing false positive syntax errors.
+- Fixed a bug in class `UserScriptManager` in namespace `BrowserAutomationMaster.Managers` causing `bamm compile '<filename>'` to fail.
+- Fixed a bug in class `Transpiler` in namespace `BrowserAutomationMaster.Compilation` causing `bamm compile '<filename>'` to fail. 
+
 - Moved function `New` from class `Parser` in namespace `BrowserAutomationMaster.Parsing` to class `Menu` in namespace `BrowserAutomationMaster.Messaging`
 - Patched a problematic bug causing unnecessary output in `LineValidation` in namespace `BrowserAutomationMaster.Parsing`
 - Refactored classes `Linux`, `Mac`, and `Win` in namespace `BrowserAutomationMaster.Managers.AppManager.OS` to properly include required Path attribute.
