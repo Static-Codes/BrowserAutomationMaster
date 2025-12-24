@@ -127,7 +127,7 @@ show_success "Downloaded BAMM ${LATEST_RELEASE} for ${MAC_TYPE} Macs (${ARCH})"
 # fi
 
 show_info "Extracting ${APP_NAME} bundle."
-unzip "$BINARY_PATH" -d "$FINAL_BINARY_PATH" || show_error_and_exit "The BAMM Installer for macOS was unable to extract the downloaded application binary, please manually extract this file at ${BINARY_PATH}"
+unzip -q "$BINARY_PATH" -d "$DOWNLOAD_LOCATION" || show_error_and_exit "The BAMM Installer for macOS was unable to extract the downloaded application binary, please manually extract this file at ${BINARY_PATH}"
 
 show_success "Extracted ${APP_NAME} bundle."
 
