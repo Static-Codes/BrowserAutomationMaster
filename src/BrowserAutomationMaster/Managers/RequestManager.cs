@@ -1,4 +1,8 @@
-﻿namespace BrowserAutomationMaster.Managers
+﻿using System.Net;
+using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+
+namespace BrowserAutomationMaster.Managers
 {
     public class RequestManager(Uri uri, int timeout = 10)
     {
@@ -62,22 +66,31 @@
             try
             {
                 foreach (var header in headers)
+                {
                     NetworkClient.Instance.DefaultRequestHeaders.Add(header.Key, header.Value);
+                }
 
                 using var response = await GetAsync();
                 
                 if (response == null)
+                {
                     return null;
+                }
 
                 if (ensureStatus)
+                {
                     response.EnsureSuccessStatusCode();
+                }
 
                 foreach (var header in headers)
+                {
                     NetworkClient.Instance.DefaultRequestHeaders.Remove(header.Key);
+                }
 
                 return await response.Content.ReadAsStringAsync();
             }
-            catch {
+            catch
+            {
                 return null;
             }
         }
@@ -87,10 +100,37 @@
         {
             using var response = await GetAsync(disableRedirectsForThisRequest);
             if (response == null)
+            {
                 return null;
+            }
 
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
+        }
+
+        public static async Task<bool> SiteIsPingable(string url) 
+        {
+            Uri? uri = null;
+            try 
+            {
+                uri = new Uri(url);
+            }
+            catch (Exception ex) 
+            {
+                WriteAndExit(
+                    message:
+                        string.Join(NLC, [
+                            $"Unable to determine the availability of the resource at: {url}",
+                            "Error Log:",
+                            ex.StackTrace ?? ex.Message
+                        ]),
+                    status: 1
+                );
+            }
+
+            var message = new HttpRequestMessage(HttpMethod.Head, uri);
+            var response = await NetworkClient.Instance.SendAsync(message);
+            return response.StatusCode == HttpStatusCode.OK;
         }
 
         public static RequestManager Create(Uri uri, int timeoutSeconds = 30)
