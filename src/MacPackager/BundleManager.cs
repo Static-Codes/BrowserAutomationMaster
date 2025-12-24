@@ -1,5 +1,6 @@
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
+using System.Diagnostics;
 using System.Reflection;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -157,8 +158,12 @@ namespace MacPackager
 
             foreach (var bundle in bundleDirectoryStructure)
             {
-                // Start building from PARENT_DIRECTORY/BAMM.app
-                BuildDirectory(PARENT_DIRECTORY, bundle.DirectoryName, bundle.Subdirectory);
+                // Creates BAMM.app Directory
+                var appPath = Path.Combine(PARENT_DIRECTORY, bundle.DirectoryName);
+                DirectoryManager.EnsureDirectoryExists(appPath);
+
+                // Start building from PARENT_DIRECTORY/BAMM.app/Contents/
+                BuildDirectory(appPath, bundle.Subdirectory);
             }
 
             WriteSuccessMessage("[SUCCESS]: Completed the BAMM for macOS application bundle process.");
@@ -172,10 +177,10 @@ namespace MacPackager
         }
 
         // THIS IS RECURSIVE, HANDLE ACCORDINGLY.
-        private static void BuildDirectory(string parentPath, string currentDirName, SubDirectory subStructure)
+        private static void BuildDirectory(string parentPath, SubDirectory subStructure)
         {
             // PARENT_DIRECTORY/BAMM.app
-            var currentDirPath = Path.Combine(parentPath, currentDirName);
+            var currentDirPath = Path.Combine(parentPath, subStructure.DirectoryName);
             
             if (parentPath.EndsWith("MACOS_RELEASE")) {
                 Console.WriteLine($"[INFO]: Creating base application bundle directory at: {currentDirPath}");
@@ -204,6 +209,10 @@ namespace MacPackager
                     {
                         DisplayStatus(filePath, completed: false); 
                         File.WriteAllBytes(filePath, file.FileContents.ToArray());
+
+                        // if (file.FileName == "bamm") {
+                        //     SetExecutablePermission(filePath);
+                        // }
                     }
 
                     catch (Exception ex)
@@ -233,7 +242,7 @@ namespace MacPackager
                 foreach (var subDir in subStructure.SubDirectories)
                 {
                     // currentDirPath overwrites the previously value of parentPath, then the child is created with the appropriate structure.
-                    BuildDirectory(currentDirPath, subDir.DirectoryName, subDir);
+                    BuildDirectory(currentDirPath, subDir);
                 }
             }
         }
@@ -486,6 +495,58 @@ namespace MacPackager
 
             return false;
         }
+
+        // public static bool SetExecutablePermission(string filePath) 
+        // {
+        //     var psi = new ProcessStartInfo() {
+        //         FileName = "/bin/bash",
+        //         Arguments = $"-c chmod +x \"{filePath}\"",
+        //         RedirectStandardInput = true,
+        //         RedirectStandardOutput = true,
+        //         UseShellExecute = false,
+        //         CreateNoWindow = true,
+        //     };
+        //     var actionText = "setting the execution permission on the standalone binary";
+        //     var successMessage = "[SUCCESS]: Set the execution permission on the standalone binary.";
+        //     var errorMessage = "[ERROR]: Unable to set the execution permission on the standalone binary.";
+        //     var isValidReturn = false;
+
+        //     try 
+        //     {
+        //         // Sanitizes the actionText so it Starts with a capital letter.
+        //         var actionTextArray = actionText.ToCharArray();
+        //         actionTextArray[0] = 'S';
+        //         var sanitizedAction = string.Join("", actionTextArray);
+                
+        //         Console.WriteLine($"[INFO]: {sanitizedAction}.");
+
+        //         using var process = ProcessFactory.SpawnProcess(psi, actionText, runSync: true, timeout: 10).Result; 
+        //         (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(process).Result;
+        //         isValidReturn = ExitCode == 0 && STDOut.Count == 0 && STDErr.Count == 0;
+        //     }
+
+        //     catch (Exception ex) 
+        //     {
+        //         WriteAndExit
+        //         (
+        //             string.Join(NLC, [
+        //                 $"[ERROR]: The BAMM for macOS Packager ran into a fatal error while {actionText}.",
+        //                 $"[ERROR LOG]: {ex.StackTrace ?? ex.Message}"
+        //             ]),
+        //             status: 1,
+        //             writePlatformDebugInfo: false
+        //         );
+        //     }
+            
+        //     // Displays the appropriate message, depending on the return status.
+        //     if (isValidReturn){
+        //         WriteSuccessMessage(successMessage);
+        //     } else {
+        //         WriteAndExit(errorMessage, status: 1, writePlatformDebugInfo: false);
+        //     }
+            
+        //     return isValidReturn;
+        // }
 
         // Reads the first 8 bytes of the file at the specified path, checking for Apple's Magic Numbers (0xcffaedfe) @ 0x0 - 0x3 and validating "cpu_type_t" at 0x3 - 0x7
         // https://en.wikipedia.org/wiki/Mach-O#Header
