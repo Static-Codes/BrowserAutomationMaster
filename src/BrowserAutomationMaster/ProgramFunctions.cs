@@ -235,9 +235,51 @@ namespace BrowserAutomationMaster
                 return true;
             }
 
+            if (pArgs[0].Equals("new", CCIC) || pArgs[0].Equals("-n")) 
+            {
+                if (pArgs.Length == 1) 
+                {
+                    await MenuLoopFunctions.New();
+                    return true;
+                }
+
+                else if (pArgs.Length == 2) 
+                {
+                    var filePath = pArgs[1].Replace("'", "").Replace("\"",""); // Sanitizes path argument
+                    await MenuLoopFunctions.New(filePath);
+                    return true;
+                }
+
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        "Invalid open command.",
+                        "Please use the following commands, where <filename> will be created in the userScripts directory.",
+                        "bamm new '<filename>'",
+                        "bamm -n '<filename>'",
+                    ]),
+                    status: 1
+                );
+            }
+
             if (pArgs[0].Equals("open", CCIC) || pArgs[0].Equals("-o")) 
             {
+                if (pArgs.Length == 2) 
+                {
+                    await MenuLoopFunctions.Open();
+                    return true;
+                }
 
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        "Invalid open command.",
+                        "Please use the following commands, where <filename> is a file in the userScripts directory.",
+                        "bamm open '<filename>'",
+                        "bamm -o '<filename>'",
+                    ]),
+                    status: 1
+                );
             }
 
             // Handles `restore` command variations
@@ -595,9 +637,9 @@ namespace BrowserAutomationMaster
             await EditorManager.OpenFileInEditor(filePath);
         }
 
-        public static async Task Open() 
+        public static async Task Open(string? fullFileName = null) 
         {
-            var fullFileName = Input.AskForInput("Please enter the name of the file you wish to open: ");
+            fullFileName ??= Input.AskForInput("Please enter the name of the file you wish to open: ");
 
             while (string.IsNullOrEmpty(fullFileName) || !fullFileName.EndsWith(".bamc", OIC)) 
             {
