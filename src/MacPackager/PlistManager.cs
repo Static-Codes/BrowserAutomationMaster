@@ -6,6 +6,7 @@ namespace MacPackager
 {
     public static class PlistManager
     {
+        
         public static async Task<MemoryStream> GetPlistContent() 
         {
             var applicationName = "BAMM";
@@ -34,6 +35,8 @@ namespace MacPackager
             string applicationName, string bundleIdentifier, string shortVersion, string latestVersion, string categoryType
         )
         { 
+            var executableName = "bamm";
+            
             // MemoryStream is chosen over Stream due to the increased performance it provides through direct buffer writes to the machine's RAM.
             var memoryStream = new MemoryStream();
 
@@ -72,7 +75,7 @@ namespace MacPackager
             await writer.WriteStartElementAsync(null, "dict", null);
 
             // Writes the required key/value pairs
-            await WriteStringEntryAsync(writer, "CFBundleExecutable", applicationName);
+            await WriteStringEntryAsync(writer, "CFBundleExecutable", executableName);
             await WriteStringEntryAsync(writer, "CFBundleIdentifier", bundleIdentifier);
             await WriteStringEntryAsync(writer, "CFBundlePackageType", "APPL");
             await WriteStringEntryAsync(writer, "CFBundleShortVersionString", shortVersion);
