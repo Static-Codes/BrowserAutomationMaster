@@ -67,8 +67,14 @@ namespace BrowserAutomationMaster.Compilation
 
                 CheckBrowserStackStatus();
 
+                // Checks if this function was executed as a result of the "compile" argument being passed.
+                // If so, an empty string is returned, otherwise a null value is passed.
+                // If a null value is passed, it signals for BAMM to request the project name.
+                Console.WriteLine(args.Length);
+                var customName = args.Any(arg => arg.Equals("compile", OIC)) ? string.Empty : null;
+
                 // Found it's more reliable to reset the state when a new Transpiler object is created.
-                ResetTranspilerState();
+                ResetTranspilerState(customName);
 
                 SetBAMConfig(filePath);
 
@@ -387,22 +393,31 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
 
-        public static string GetProjectName()
+        public static string GetProjectName(string? customName = null)
         {
-            while (true)
+            var isRunning = customName == null;
+
+            // If a value is passed to the customName param, this loop is skipped and the param value is returned.
+            while (isRunning)
             {
-                var customName = Input.AskForInput("Please enter a name for this project: ");
+                customName = Input.AskForInput("Please enter a name for this project: ");
 
                 if (string.IsNullOrEmpty(customName))
+                {
                     continue;
-                    
+                }
+
                 if (ValidDirectoryRegex.IsMatch(customName))
+                {
                     return customName;
+                }
 
                 Write("Invalid name, a project name can contain only alphanumeric characters, dashes, and periods.\nPlease try again.");
                 Thread.Sleep(2000);
-                
             }
+
+            // This is the string passed as a parameter, it cannot be null at this point.
+            return customName!; 
         }
 
         private static void HandleAutoCopy()
@@ -1184,13 +1199,13 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
         
-        private static void ResetTranspilerState()
+        private static void ResetTranspilerState(string? customName)
         {
             desiredUrls.Clear();
             script.ResetInstanceState();
             noBrowsersFound = false;
             actionTimeout = 10;
-            projectName = GetProjectName();
+            projectName = GetProjectName(customName);
             requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
         }
 
