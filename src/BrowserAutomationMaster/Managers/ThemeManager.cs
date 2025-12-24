@@ -1,5 +1,7 @@
 ﻿using BrowserAutomationMaster.Managers.AppManager.OS;
+using BrowserAutomationMaster.Messaging;
 using System.Drawing;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers
@@ -47,14 +49,25 @@ namespace BrowserAutomationMaster.Managers
                 var Ansi24BitColor = Linux.GetTerminalBackgroundColor();
 
                 if (Ansi24BitColor == null)
+                {
                     return LightTheme;
-
+                }
+                
                 (int r, int g, int b) = AnsiManager.FromXTerm(Ansi24BitColor);
                 var color = Color.FromArgb(r, g, b);
 
                 return GetThemeFromColor(color);
             }
-            catch { return LightTheme; }
+            catch (Exception ex) {
+                Errors.Write
+                (
+                    string.Join(NLC, [
+                        "[ERROR]: An exception occured while determining default theme, using LightTheme.",
+                        $"[ERROR LOG]: {ex.StackTrace ?? ex.Message}"
+                    ])
+                );
+                return LightTheme; 
+            }
         }
         private static Theme GetThemeFromColor(Color terminalBGColor)
         {
