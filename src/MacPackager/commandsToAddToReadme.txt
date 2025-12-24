@@ -6,4 +6,5 @@
 --version
 help || --help
 build
-validate
+validate-x64
+validate-arm64

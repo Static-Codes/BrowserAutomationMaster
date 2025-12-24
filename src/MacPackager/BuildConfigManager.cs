@@ -12,13 +12,18 @@ namespace MacPackager
     {
         private static readonly string BASE_APPLICATION_DIR = AppContext.BaseDirectory;
         private const string CONFIG_FILE_NAME = "buildConfig.json";
-        private static readonly string CONFIG_FILE_PATH = Path.Combine(BASE_APPLICATION_DIR, CONFIG_FILE_NAME);
+        public static readonly string CONFIG_FILE_PATH = Path.Combine(BASE_APPLICATION_DIR, CONFIG_FILE_NAME);
 
         private readonly Dictionary<string, string> defaultBuildConfig = new() 
         {
             { "MacOSBinaryPath", "" },
             { "CPUTarget", "x64" },
         };
+
+        public static readonly string defaultBuildConfigContentString = """
+            { "MacOSBinaryPath": "" },
+            { "CPUTarget": "x64" }
+        """;
 
         public readonly Dictionary<string, string> buildConfig;
 

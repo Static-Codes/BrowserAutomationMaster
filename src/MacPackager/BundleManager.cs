@@ -76,7 +76,7 @@ namespace MacPackager
         //        └── Resources/
         //            └── AppIcon.icns
 
-        private static List<BundleStructure> GetBundleStructure(string? binaryPath = null) 
+        private static List<BundleStructure> GetBundleStructure(string? binaryPath = null, string? target = null) 
         {
             return [
                 new BundleStructure()
@@ -112,7 +112,7 @@ namespace MacPackager
                                     {
                                         FileName = "bamm",
                                         // FileContents = "WRITE FUNCTION HERE TO BUILD THE LATEST RELEASE, THEN STREAM THE FILE CONTENTS, AND WRITE THE STREAMED OBJECT, BOTH BAMM AND BAMM-SILICON ARE REQUIRED"
-                                        FileContents = GetMacOSBinaryContents(binaryPath)
+                                        FileContents = GetMacOSBinaryContents(binaryPath, target)
                                     }
                                 ],
                                 SubDirectories = []
@@ -150,7 +150,7 @@ namespace MacPackager
                 WriteAndExit("[ERROR]: Please specify a valid CPU Target, either 'ARM64' or 'x64'.", status: 1, writePlatformDebugInfo: false);
             }
 
-            var bundleDirectoryStructure = GetBundleStructure(binaryPath);
+            var bundleDirectoryStructure = GetBundleStructure(binaryPath, target);
 
             // Ensures MACOS_RELEASE/ exists
             DirectoryManager.EnsureDirectoryExists(PARENT_DIRECTORY);

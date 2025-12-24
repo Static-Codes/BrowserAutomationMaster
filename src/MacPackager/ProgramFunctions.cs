@@ -8,6 +8,7 @@ using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Input;
 using static BrowserAutomationMaster.Messaging.Success;
+using static MacPackager.BuildConfigManager;
 using static MacPackager.Menu;
 
 namespace MacPackager
@@ -27,6 +28,12 @@ namespace MacPackager
             if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
             {
                 VerifyRootDrive(args);
+            }
+
+            Console.WriteLine(CONFIG_FILE_PATH);
+            if (!File.Exists(CONFIG_FILE_PATH)) 
+            {
+                File.WriteAllText(CONFIG_FILE_PATH, defaultBuildConfigContentString);
             }
         }
 
@@ -415,6 +422,7 @@ namespace MacPackager
             {
                 var binaryPath = binaryArg.Replace("--binary=", "");
                 var cpuTarget = targetArg.Replace("--target=", "");
+                Console.WriteLine($"[INFO]: Starting build of {cpuTarget} binary at {binaryPath}");
                 BundleManager.BuildBundle(binaryPath, cpuTarget);
             }
         }
