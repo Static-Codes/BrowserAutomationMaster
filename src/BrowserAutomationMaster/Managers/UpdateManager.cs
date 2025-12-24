@@ -15,7 +15,7 @@ namespace BrowserAutomationMaster.Managers
 {
     public class UpdateManager()
     {
-        public const string CurrentVersion = "v1.0.0A6";
+        public const string CurrentVersion = "v1.0.0A7";
         // Assuming current is latest until further checks are done.
         public static string LatestVersion { get; set; } = CurrentVersion; 
         public static async Task CheckForUpdate()
