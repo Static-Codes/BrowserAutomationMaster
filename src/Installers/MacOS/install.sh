@@ -11,12 +11,16 @@ binary_exists()
 check_cpu() 
 {
     ARCH=$(uname -m)
+
+    if [ -z $LATEST_RELEASE ]; then
+        show_error_and_exit "The BAMM installer for macOS was unable to determine the latest release version."
+    fi
     
     if [ "$ARCH" = "x86_64" ]; then
-        APP_NAME="bamm"
+        APP_NAME="BAMM-$LATEST_RELEASE-Mac-Intel.app.zip"
 
     elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-        APP_NAME="bamm-silicon"
+        APP_NAME="BAMM-$LATEST_RELEASE-Mac-Silicon.app.zip"
         MAC_TYPE="M-Series"
     
     else
@@ -73,7 +77,7 @@ ARCH=""
 BASE_RELEASE_URL="https://github.com/Static-Codes/BrowserAutomationMaster/releases/download"
 BUG_REPORT_LINK="https://github.com/Static-Codes/BrowserAutomationMaster/issues"
 DOWNLOAD_LOCATION="$HOME/Desktop"
-FINAL_BINARY_PATH="${DOWNLOAD_LOCATION}/bamm"
+FINAL_BINARY_PATH="${DOWNLOAD_LOCATION}/BAMM.app"
 GATEKEEPER_BYPASSED=1 # 1 = False | 0 = True
 MAC_TYPE="Intel" # Assuming the current mac is Intel Based since they're cheaper.
 MACOS_VERSION=$(get_macos_version)
@@ -84,9 +88,10 @@ if echo "$MACOS_VERSION < 11.0" | bc -l | grep -q 1; then
     show_info "Please ensure macOS 11 or later is installed, or try using the latest Windows version through Bootcamp." 
 fi
 
-check_cpu # Checks the CPU and assigns values to required variables
 
 LATEST_RELEASE=$(get_latest_release) # Grabs the lastest release (v.X.X.XAX) (Example: v.1.0.0A6)
+
+check_cpu # Checks the CPU and assigns values to required variables
 
 # Null checks on macOS version and Latest Release tag
 if [ -z "$MACOS_VERSION" ] || [ -z "$LATEST_RELEASE" ]; then
@@ -96,10 +101,10 @@ fi
 
 # The binary for Apple M Series machines is named bamm-silicon.
 # To align with the rest of the guide in the main repo, it needs to be renamed.
-REQUIRES_RENAME=false
-if [ "$APP_NAME" = "bamm-silicon" ]; then
-    REQUIRES_RENAME=true
-fi
+# REQUIRES_RENAME=false
+# if [ "$APP_NAME" = "bamm-silicon" ]; then
+#     REQUIRES_RENAME=true
+# fi
 
 
 # Downloading the binary
@@ -115,24 +120,28 @@ show_success "Downloaded BAMM ${LATEST_RELEASE} for ${MAC_TYPE} Macs (${ARCH})"
 
 
 # Renaming the binary (if needed)
-if [ $REQUIRES_RENAME = "true" ]; then
-    show_info "Since the current machine is using an Apple Silicon CPU, the binary needs to be renamed, please wait."
-    mv "${DOWNLOAD_LOCATION}/${APP_NAME}" "${FINAL_BINARY_PATH}"
-    show_success "Renamed binary, continuing."
-fi
+# if [ $REQUIRES_RENAME = "true" ]; then
+#     show_info "Since the current machine is using an Apple Silicon CPU, the binary needs to be renamed, please wait."
+#     mv "${DOWNLOAD_LOCATION}/${APP_NAME}" "${FINAL_BINARY_PATH}"
+#     show_success "Renamed binary, continuing."
+# fi
 
-# Giving the binary executable permissions.
-show_info "The binary requires executable permissions, please wait."
+show_info "Extracting ${APP_NAME} bundle."
+unzip "$BINARY_PATH" || show_error_and_exit "The BAMM Installer for macOS was unable to extract the downloaded application binary, please manually extract this file at ${BINARY_PATH}"
+show_success "Extracted ${APP_NAME} bundle."
+
+
+# Giving the application bundle executable permissions.
+show_info "The application bundle requires executable permissions, please wait."
 chmod +x "${FINAL_BINARY_PATH}"
-show_success "The binary was given the required executable permissions, continuing."
+show_success "The application bundle was given the required executable permissions, continuing."
 
 # Gatekeeper Check and Confirmation (if present)
-
 # Preemptively ensuring an empty input is handled, before it causes an error. (This would happen if the user presses enter without entering an option)
 confirm=${confirm:-n}
 
 if has_quarantine_attribute "$FINAL_BINARY_PATH"; then
-    show_warning "The binary is currently protected by Apple Gatekeeper."
+    show_warning "The application bundle is currently protected by Apple Gatekeeper."
     show_info "You will be asked if you want to bypass this, please note, this is not a requirement to complete the install, but it is a requirement to run BAMM"
 
     # Attempting to redirect the current terminal's console input via /dev/tty
