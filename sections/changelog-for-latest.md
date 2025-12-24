@@ -34,15 +34,15 @@
 Creates a new .BAMC file in the `userScripts` directory.
 Prompts the user to select a custom text editor to open the specified file.
 If a custom text editor is not found, the OS default is used.
-`bamm new filename.bamc` 
-`bamm --n filename.bamc`
+`bamm new 'filename.bamc'` 
+`bamm -n 'filename.bamc'`
 
 Opens a .BAMC file that exists in the `userScripts` directory.
 If this file does not exist, the file is automatically created.
 The user is then prompted to select a custom text editor to open the specified file.
 If a custom text editor is not found, the OS default is used.
-`bamm open filename.bamc` 
-`bamm --o filename.bamc` 
+`bamm open 'filename.bamc'` 
+`bamm -o 'filename.bamc'` 
 
 
 
