@@ -36,7 +36,7 @@ namespace MacPackager
         )
         { 
             var executableName = "bamm";
-            
+
             // MemoryStream is chosen over Stream due to the increased performance it provides through direct buffer writes to the machine's RAM.
             var memoryStream = new MemoryStream();
 
@@ -77,7 +77,10 @@ namespace MacPackager
             // Writes the required key/value pairs
             await WriteStringEntryAsync(writer, "CFBundleExecutable", executableName);
             await WriteStringEntryAsync(writer, "CFBundleIdentifier", bundleIdentifier);
-            await WriteStringEntryAsync(writer, "CFBundlePackageType", "APPL");
+            
+            // The last 4 bytes (????) would normally be an Apple Creator Code, however, this is for applications published to the App Store.
+            await WriteStringEntryAsync(writer, "CFBundlePackageType", "APPL????");
+            
             await WriteStringEntryAsync(writer, "CFBundleShortVersionString", shortVersion);
             await WriteStringEntryAsync(writer, "CFBundleVersion", latestVersion);
             await WriteStringEntryAsync(writer, "CFBundleName", applicationName);
