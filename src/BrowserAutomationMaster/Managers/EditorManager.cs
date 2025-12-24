@@ -4,20 +4,118 @@ using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Input;
 using BrowserAutomationMaster.Managers.AppManager;
+using BrowserAutomationMaster.Messaging;
 using System.Text;
-using System.Reflection.PortableExecutable;
-using BrowserAutomationMaster.Managers.AppManager.OS;
 
 
 namespace BrowserAutomationMaster.Managers
 {
 
-    # region EditorManager
     public class EditorManager()
     {
 
-        public static Dictionary<string, string> GetSupportedEditors() {
+        private static Editor GetEditorChoice() 
+        {
+            Dictionary<string, string> installedEditors = GetSupportedEditors();
+            var defaultEditorPath = Editor.GetDefaultEditorPath();
+
+            if (installedEditors.Count == 0) 
+            {
+                Warning.Write("BAM Manager (BAMM) was unable to locate any supported text editors, defaulting to platform default.");
+                
+                var editorNames = (
+                    Platforms.IsWindows ? "Notepad" : "",
+                    Platforms.IsOSX ? "TextEdit" : "",
+                    Platforms.IsLinux ? "Xed" : ""
+                );
+
+                var editorPaths = (
+                    Platforms.IsWindows ? defaultEditorPath : "",
+                    Platforms.IsOSX ? defaultEditorPath : "",
+                    Platforms.IsLinux ? defaultEditorPath : ""
+                );
+
+                return new Editor()
+                { 
+                    Names = editorNames,
+                    Supports = (Platforms.IsWindows, Platforms.IsWindows, Platforms.IsWindows),
+                    EditorPath = editorPaths,
+                    // EditorParams = ("", "", "")
+                };
+            }
+
+            string chosenOption = WriteListFromOptions([.. installedEditors.Keys], "editor", Math.Max(installedEditors.Keys.Count, 3));
+
+            // Since chosenOption is one of the keys, this will likely not be null or throw an error.
+            KeyValuePair<string, string>? chosenEditor = installedEditors
+                .Where(element => element.Key.Equals(chosenOption))
+                .FirstOrDefault();
+
+            // Despite the unlikelihood that chosenEditor will be null, this inherently redudant check, isn't a horrible idea.
+            if (chosenEditor == null) 
+            {
+                Warning.Write($"BAM Manager (BAMM) was unable to open '{chosenOption}'"); 
+                Console.WriteLine("Please make a bug report with the following contents.");
+
+                Write(
+                    string.Join(NLC, [
+                        "Error Log:",
+                        "chosenEditor was not found in installedEditors.Keys."
+                    ])
+                );
+                var editorNames = (
+                    Platforms.IsWindows ? "Notepad" : "",
+                    Platforms.IsOSX ? "TextEdit" : "",
+                    Platforms.IsLinux ? "Xed" : ""
+                );
+
+                var editorPaths = (
+                    Platforms.IsWindows ? defaultEditorPath : "",
+                    Platforms.IsOSX ? defaultEditorPath : "",
+                    Platforms.IsLinux ? defaultEditorPath : ""
+                );
+
+                return new Editor()
+                { 
+                    Names = editorNames,
+                    Supports = (Platforms.IsWindows, Platforms.IsWindows, Platforms.IsWindows),
+                    EditorPath = editorPaths,
+                    // EditorParams = ("", "", "")
+                };
+            }
+
+            var path = (Platforms.IsWindows, Platforms.IsOSX, Platforms.IsLinux) switch {
+                (true, false, false) => (chosenEditor.Value.Value, "", ""),
+                (false, true, false) => (chosenEditor.Value.Value, "", ""),
+                (false, false, true) => (chosenEditor.Value.Value, "", ""),
+                _ => throw new PlatformNotSupportedException("Invalid OS.")
+            };
+            
+            // Will either return an Editor object, or throw an exception.
+            return GetSelectedEditorObject(chosenEditor.Value.Key, path);
+        }
+        
+        private static Editor GetSelectedEditorObject(string EditorName, (string Windows, string Mac, string Linux) Paths) 
+        {
+            return (EditorName) switch 
+            {
+                "Helix" => new Helix(Paths),
+                "Nano" => new Nano(),
+                "Notepad++" => new NotepadPlusPlus(Paths),
+                "PyCharm" => new PyCharm(Paths),
+                "Sublime Text" => new Sublime(Paths),
+                "Vim (Advanced Users)" => new Vim(),
+                "Visual Studio" => new VisualStudio(),
+                "VSCode" => new VSCode(Paths.Mac),
+                "VSCodium" => new VSCodium(Paths.Mac),
+                _ => throw new ArgumentException("Invalid Selection.")
+            };
+        }
+        
+        private static Dictionary<string, string> GetSupportedEditors() 
+        {
             return (Platforms.IsWindows, Platforms.IsOSX, Platforms.IsLinux) switch {
                 (true, false, false) => GetSupportedWindowsEditors(),
                 (false, true, false) => GetSupportedMacEditors(),
@@ -26,7 +124,7 @@ namespace BrowserAutomationMaster.Managers
             };
         }
 
-        public static Dictionary<string, string> GetSupportedWindowsEditors() 
+        private static Dictionary<string, string> GetSupportedWindowsEditors() 
         {
             if (InstalledApps.AppInfoList.Count == 0) 
             {
@@ -78,7 +176,7 @@ namespace BrowserAutomationMaster.Managers
         }
 
         // Doesn't check for vim, textedit, or xcode.
-        public static Dictionary<string, string> GetSupportedMacEditors()
+        private static Dictionary<string, string> GetSupportedMacEditors()
         {
             var supportedAppNames = new Dictionary<string, string>
             {
@@ -104,7 +202,7 @@ namespace BrowserAutomationMaster.Managers
             return installedEditors;
         }
 
-        public static Dictionary<string, string> GetSupportedLinuxEditors()
+        private static Dictionary<string, string> GetSupportedLinuxEditors()
         {
             const char DIR_ESC = '/';
             const char WILDCARD = '*';
@@ -195,21 +293,27 @@ namespace BrowserAutomationMaster.Managers
             }
             return foundEditors;
         }
-    };
-    # endregion EditorManager
-    
-    # region "Editor"
+
+        public static async Task OpenFileInEditor(string fileName)
+        {
+            var editor = GetEditorChoice();
+            var psi = await editor.GetProcessInfo(fileName);
+            using var process = await ProcessFactory.SpawnProcess(psi, $"choosing an editor to open '{fileName}'");
+            var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
+        }
+    }
+
     public class Editor
     {
-        public required (string Windows, string Mac, string Linux) Names;
-        public required (bool Windows, bool Mac, bool Linux) Supports;
-        public (string Windows, string Mac, string Linux)? EditorPath;
-        public (string Windows, string Mac, string Linux)? EditorParams;
+        public (string Windows, string Mac, string Linux) Names = ("", "", "");
+        public (bool Windows, bool Mac, bool Linux) Supports = (false, false, false);
+        public (string Windows, string Mac, string Linux) EditorPath = ("", "", "");
+        public (string Windows, string Mac, string Linux) EditorParams = ("", "", "");
         private static (string Windows, string Mac, string Linux) DefaultEditor = (
             @"C:\Windows\System32\notepad.exe", "/System/Applications/TextEdit.app", "xed"
         );
 
-        public static string GetDefaultEditor() {
+        public static string GetDefaultEditorPath() {
             return (Platforms.IsWindows, Platforms.IsOSX, Platforms.IsLinux) switch {
                 (true, false, false) => DefaultEditor.Windows,
                 (false, true, false) => DefaultEditor.Mac,
@@ -220,6 +324,7 @@ namespace BrowserAutomationMaster.Managers
 
         public async Task<ProcessStartInfo> GetProcessInfo(string FilePath)
         {
+            // Creates the file if it doesn't already exist.
             if (!File.Exists(FilePath))
             {
                 try 
@@ -268,21 +373,21 @@ namespace BrowserAutomationMaster.Managers
             // Determines the editor and its parameters based on platform and user setting
             if (Platforms.IsWindows)
             {
-                editor = EditorPath.HasValue ? EditorPath.Value.Windows : DefaultEditor.Windows;
-                editorParams = EditorParams.HasValue ? EditorParams.Value.Windows : string.Empty;
+                editor = !string.IsNullOrEmpty(EditorPath.Windows) ? EditorPath.Windows : DefaultEditor.Windows;
+                editorParams = !string.IsNullOrEmpty(EditorParams.Windows) ? EditorParams.Windows : string.Empty;
             }
 
             else if (Platforms.IsOSX)
             {
                 // On macOS, the default 'open' command is used, and the editor is passed via the '-a' flag.
-                editor = EditorPath.HasValue ? EditorPath.Value.Mac : DefaultEditor.Mac;
-                editorParams = EditorParams.HasValue ? EditorParams.Value.Mac : string.Empty;
+                editor = !string.IsNullOrEmpty(EditorPath.Mac) ? EditorPath.Mac : DefaultEditor.Mac;
+                editorParams = !string.IsNullOrEmpty(EditorParams.Mac) ? EditorParams.Mac : string.Empty;
             }
 
             else if (Platforms.IsLinux)
             {
-                editor = EditorPath.HasValue ? EditorPath.Value.Linux : DefaultEditor.Linux;
-                editorParams = EditorParams.HasValue ? EditorParams.Value.Linux : string.Empty;
+                editor = !string.IsNullOrEmpty(EditorPath.Linux) ? EditorPath.Linux : DefaultEditor.Linux;
+                editorParams = !string.IsNullOrEmpty(EditorParams.Linux) ? EditorParams.Linux : string.Empty;
             }
 
             else
@@ -298,7 +403,7 @@ namespace BrowserAutomationMaster.Managers
                 psi = new ProcessStartInfo
                 {
                     FileName = editor,
-                    ArgumentList = { editorParams, FilePath },
+                    Arguments = $"{editorParams} \"{FilePath}\"",
                     UseShellExecute = true
                 };
             }
@@ -322,15 +427,15 @@ namespace BrowserAutomationMaster.Managers
 
             else if (Platforms.IsLinux)
             {
-                var specialEditors = new string[2] {"vi", "xed"};
+                var textBasedEditors = new string[4] {"helix", "nano", "vi", "xed"};
 
                 // If the application is interactive, UseShellExecute ensures proper terminal handling.
                 // Allows the system to resolve PATH variables for vim and xed
-                var useShellExecute = specialEditors.Contains(editor);
+                var useShellExecute = textBasedEditors.Contains(editor);
                 psi = new ProcessStartInfo
                 {
                     FileName = editor,
-                    ArgumentList = { editorParams, FilePath },
+                    Arguments = $"{editorParams} \"{FilePath}\"",
                     UseShellExecute = useShellExecute
                 };
             }
@@ -341,17 +446,16 @@ namespace BrowserAutomationMaster.Managers
             }
 
             // Sets output redirection to false by default, as it often causes GUI based applications to fail to correctly launch.
-            psi.RedirectStandardError = false;
-            psi.RedirectStandardInput = false;
-            psi.RedirectStandardOutput = false;
+            // psi.RedirectStandardError = false;
+            // psi.RedirectStandardInput = false;
+            // psi.RedirectStandardOutput = false;
             
+            foreach (var arg in psi.ArgumentList) {
+                Console.WriteLine(arg);
+            }
             return psi;
         }
     };
-
-    # endregion "Editor"
-
-    # region "Editor Objects via Inheritance"
 
 
     // Refactor with a custom struct/class
@@ -377,56 +481,88 @@ namespace BrowserAutomationMaster.Managers
 
     public class Helix : Editor 
     {
-        public Helix((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        public Helix((string Windows, string Mac, string Linux) EditorPath)
         {
-            Names = (Windows: "Helix", Mac: "Helix", Linux: "Helix");
-            Supports = (Windows: true, Mac: true, Linux: true);
+            Names = (
+                Windows: "Helix", 
+                Mac: "Helix", 
+                Linux: "Helix"
+            );
+            Supports = (
+                Windows: true, 
+                Mac: true, 
+                Linux: true
+            );
             this.EditorPath = EditorPath;
-            this.EditorParams = EditorParams;
+            EditorParams = (":open -- ", ":open -- ", ":open -- ");
         }
     }
 
     public class Nano : Editor 
     {
-        public Nano((string W, string M, string L) EditorPath)
+        public Nano()
         {
-            Names = (Windows: "", Mac: "", Linux: "Nano");
-            Supports = (Windows: false, Mac: false, Linux: true);
-            this.EditorPath = EditorPath;
-            this.EditorParams = (Windows: "", Mac: "", Linux: "");
+            Names = (
+                Windows: "", 
+                Mac: "Nano", 
+                Linux: "Nano"
+            );
+            Supports = (
+                Windows: false, 
+                Mac: false, 
+                Linux: true
+            );
+            EditorPath = ("", "nano", "nano");
+            EditorParams = ("", "", "");
         }
     }
 
     public class NotepadPlusPlus : Editor 
     {
-        public NotepadPlusPlus((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        public NotepadPlusPlus((string W, string M, string L) EditorPath)
         {
-            Names = (Windows: "Notepad++", Mac: "", Linux: "");
-            Supports = (Windows: true, Mac: false, Linux: false);
+            Names = (
+                Windows: "Notepad++", 
+                Mac: "", 
+                Linux: ""
+            );
+            Supports = (
+                Windows: true, 
+                Mac: false, 
+                Linux: false
+            );
             this.EditorPath = EditorPath;
-            this.EditorParams = EditorParams;
+            EditorParams = ("", "", "");
         }
     }
 
     public class PyCharm : Editor 
     {
-        public PyCharm((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        public PyCharm((string Windows, string Mac, string Linux) EditorPath)
         {
-            Names = (Windows: "PyCharm", Mac: "PyCharm", Linux: "PyCharm");
-            Supports = (Windows: true, Mac: true, Linux: true);
+            Names = (
+                Windows: "PyCharm", 
+                Mac: "PyCharm", 
+                Linux: "PyCharm"
+            );
+            Supports = (
+                Windows: true, 
+                Mac: true, 
+                Linux: true
+            );
             this.EditorPath = EditorPath;
-            this.EditorParams = EditorParams;
+            EditorParams = ("", "", "");
         }
     }
 
     public class Sublime : Editor 
     {
-        public Sublime((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        public Sublime((string Windows, string Mac, string Linux) EditorPath)
         {
             Names = (Windows: "Sublime Text", Mac: "Sublime Text", Linux: "Sublime Text");
             Supports = (Windows: true, Mac: true, Linux: true);
             this.EditorPath = EditorPath;
-            this.EditorParams = EditorParams;
+            EditorParams = ("", "", "");
         }
     }
 
@@ -434,47 +570,92 @@ namespace BrowserAutomationMaster.Managers
     {
         public Vim()
         {
-            Names = (Windows: "", Mac: "Vim", Linux: "Vim");
-            Supports = (Windows: false, Mac: true, Linux: true);
-            EditorPath = (Windows: "", Mac: "vi", Linux: "vi");
-            EditorParams = (Windows: "", Mac: "", Linux: "");
+            Names = (
+                Windows: "", 
+                Mac: "Vim", 
+                Linux: "Vim"
+            );
+            Supports = (
+                Windows: false, 
+                Mac: true, 
+                Linux: true
+            );
+            EditorPath = (
+                Windows: "", 
+                Mac: "vi", 
+                Linux: "vi"
+            );
+            EditorParams = ("", "", "");
         }
     }
 
     public class VisualStudio : Editor 
     {
-        public VisualStudio((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        public VisualStudio()
         {
-            Names = (Windows: "Visual Studio", Mac: "", Linux: "");
-            Supports = (Windows: true, Mac: false, Linux: false);
-            this.EditorPath = EditorPath;
-            this.EditorParams = EditorParams;
+            Names = (
+                Windows: "Visual Studio", 
+                Mac: "", 
+                Linux: ""
+            );
+            Supports = (
+                Windows: true, 
+                Mac: false, 
+                Linux: false
+            );
+            EditorPath = (
+                Windows: @"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe", 
+                Mac: "", 
+                Linux: ""
+            );
+            EditorParams = ("", "", "");
         }
     }
 
     public class VSCode : Editor 
     {
-        public VSCode((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        public VSCode(string MacOSPath)
         {
-            Names = (Windows: "VSCode", Mac: "VSCode", Linux: "VSCode");
-            Supports = (Windows: true, Mac: true, Linux: true);
-            this.EditorPath = EditorPath;
-            this.EditorParams = EditorParams;
+            Names = (
+                Windows: "VSCode", 
+                Mac: "VSCode", 
+                Linux: "VSCode"
+            );
+            Supports = (
+                Windows: true, 
+                Mac: true, 
+                Linux: true
+            );
+            EditorPath = (
+                Windows: "code", 
+                Mac: MacOSPath, 
+                Linux: "code"
+            );
+            EditorParams = ("", "", "");
         }
     }
-
 
     public class VSCodium : Editor 
     {
-        public VSCodium((string W, string M, string L) EditorPath, (string W, string M, string L) EditorParams)
+        public VSCodium(string MacOSPath)
         {
-            Names = (Windows: "VSCodium", Mac: "VSCodium", Linux: "VSCodium");
-            Supports = (Windows: true, Mac: true, Linux: true);
-            this.EditorPath = EditorPath;
-            this.EditorParams = EditorParams;
+            Names = (
+                Windows: "VSCodium", 
+                Mac: "VSCodium", 
+                Linux: "VSCodium"
+            );
+            Supports = (
+                Windows: true, 
+                Mac: true, 
+                Linux: true
+            );
+            EditorPath = (
+                Windows: "codium",
+                Mac: MacOSPath,
+                Linux: "codium"    
+            );
+            EditorParams = ("", "", "");
         }
     }
 
-
-    # endregion "Editor Objects via Inheritance
 }
