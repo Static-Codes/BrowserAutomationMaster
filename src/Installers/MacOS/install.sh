@@ -78,7 +78,7 @@ BASE_RELEASE_URL="https://github.com/Static-Codes/BrowserAutomationMaster/releas
 BUG_REPORT_LINK="https://github.com/Static-Codes/BrowserAutomationMaster/issues"
 DOWNLOAD_LOCATION="$HOME/Desktop"
 FINAL_BINARY_PATH="${DOWNLOAD_LOCATION}/BAMM.app"
-EXECUTABLE_PATH="${FINAL_BINARY_PATH}/Content/MacOS/bamm"
+EXECUTABLE_PATH="${FINAL_BINARY_PATH}/Contents/MacOS/bamm"
 GATEKEEPER_BYPASSED=1 # 1 = False | 0 = True
 MAC_TYPE="Intel" # Assuming the current mac is Intel Based since they're cheaper.
 MACOS_VERSION=$(get_macos_version)
