@@ -1,8 +1,9 @@
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
-using System.Diagnostics;
+using System.IO.Compression;
 using System.Reflection;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
@@ -56,9 +57,12 @@ namespace MacPackager
         // Uses $HOME on Unix-based machines and %USERPROFILE% on Windows-based machines
         private static readonly string USER_PROFILE_DIR = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         private static readonly string PARENT_DIRECTORY = Path.Combine(USER_PROFILE_DIR, "MACOS_RELEASE");
+        private static readonly string APP_BUNDLE_PATH = Path.Combine(PARENT_DIRECTORY, "BAMM.app");
         private static readonly string BINARY_NAME = "bamm";
         private const string BINARY_KEY_PATH = "MacOSBinaryPath";
         private const string CPU_KEY_PATH = "CPUTarget";
+
+        
         
         
         
@@ -144,7 +148,7 @@ namespace MacPackager
             {
                 WriteAndExit("[ERROR]: Please specify a CPU Target, either 'ARM64' or 'x64'.", status: 1, writePlatformDebugInfo: false);
             }
-            var validTarget = target.Equals("arm64", OIC) || target.Equals("aarch64", OIC) || target.Equals("x64", OIC);
+            var validTarget = target.Equals("ARM64") || target.Equals("x64");
             
             if (!validTarget) 
             {
@@ -167,8 +171,20 @@ namespace MacPackager
             }
 
             WriteSuccessMessage("[SUCCESS]: Completed the BAMM for macOS application bundle process.");
+
+            Console.WriteLine("[INFO]: Compressing application bundle.");
+
+            var archiveName = target switch {
+                "x64" => $"BAMM-{LatestVersion}-Mac-Intel.app.zip",
+                "ARM64" => $"BAMM-{LatestVersion}-Mac-Silicon.app.zip",
+                _ => throw new ArgumentException("Invalid CPUTarget provided")
+            };
+
+            var archivePath = Path.Combine(PARENT_DIRECTORY, archiveName);
+
+            CompressBundle(APP_BUNDLE_PATH, archivePath);
             
-            if (ClipboardHelper.TrySetText(PARENT_DIRECTORY))
+            if (ClipboardHelper.TrySetText(archivePath))
             {
                 WriteSuccessMessageAndExit("[SUCCESS]: Copied the path of the application bundle to your clipboard.", 0);   
             }
@@ -247,6 +263,40 @@ namespace MacPackager
             }
         }
 
+        private static void CompressBundle(string bundlePath, string archivePath)
+        {
+            if (!Directory.Exists(bundlePath)) 
+            {
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "[ERROR]: Unable to locate application bundle.",
+                        $"[ERROR LOG]: Bundle was not found at: {bundlePath}"
+                    ]),
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
+            
+            try
+            {
+                ZipFile.CreateFromDirectory(bundlePath, archivePath);
+                WriteSuccessMessage($"[SUCCESS]: Compressed application bundle to: {archivePath}");
+            }
+            
+            catch (Exception ex) 
+            {
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "[ERROR]: Unable to compress application bundle.",
+                        $"[ERROR LOG]: {ex.Message ?? ex.StackTrace ?? ex.GetType().ToString()}"
+                    ]),
+                    status: 1,
+                    writePlatformDebugInfo: false
+                );
+            }
+        }
         private static void DisplayStatus(string filePath, bool completed = false)
         {
             if (filePath.EndsWith("Info.plist")) 
