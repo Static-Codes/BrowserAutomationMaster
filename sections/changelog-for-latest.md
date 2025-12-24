@@ -16,8 +16,10 @@
 - Added members `New` and `Open` to enum `MenuOption` in class `Menu` in namespace `BrowserAutomationMaster.Messaging`
 - Added new class `EditorManager` in namespace `BrowserAutomationMaster.Managers`
 - Added new class `Editor` in namespace `BrowserAutomationMaster.Managers`
+- Added new class `ExtensionManager` in namespace `BrowserAutomationMaster.Managers`
 - Added `Path` variable to class `AppInfo` in namespace `BrowserAutomationMaster.Managers.AppManager`
 - Added `GetExecutablePath` to class `Linux` in namespace `BrowserAutomationMaster.Managers.AppManager`
+- Deleted unused class `AppDataHelper` in namespace `BrowserAutomationMaster.Helpers`
 - Fixed a bug in class `LineValidation` in namespace `BrowserAutomationMaster.Parsing` causing false positive syntax errors.
 - Fixed a bug in class `UserScriptManager` in namespace `BrowserAutomationMaster.Managers` causing `bamm compile '<filename>'` to fail.
 - Fixed a bug in class `Transpiler` in namespace `BrowserAutomationMaster.Compilation` causing `bamm compile '<filename>'` to fail. 
