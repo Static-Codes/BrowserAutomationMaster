@@ -78,6 +78,7 @@ BASE_RELEASE_URL="https://github.com/Static-Codes/BrowserAutomationMaster/releas
 BUG_REPORT_LINK="https://github.com/Static-Codes/BrowserAutomationMaster/issues"
 DOWNLOAD_LOCATION="$HOME/Desktop"
 FINAL_BINARY_PATH="${DOWNLOAD_LOCATION}/BAMM.app"
+EXECUTABLE_PATH="${FINAL_BINARY_PATH}/Content/MacOS/bamm"
 GATEKEEPER_BYPASSED=1 # 1 = False | 0 = True
 MAC_TYPE="Intel" # Assuming the current mac is Intel Based since they're cheaper.
 MACOS_VERSION=$(get_macos_version)
@@ -134,14 +135,14 @@ show_success "Extracted ${APP_NAME} bundle."
 
 # Giving the application bundle executable permissions.
 show_info "The application bundle requires executable permissions, please wait."
-chmod +x "${FINAL_BINARY_PATH}"
+chmod +x "${EXECUTABLE_PATH}"
 show_success "The application bundle was given the required executable permissions, continuing."
 
 # Gatekeeper Check and Confirmation (if present)
 # Preemptively ensuring an empty input is handled, before it causes an error. (This would happen if the user presses enter without entering an option)
 confirm=${confirm:-n}
 
-if has_quarantine_attribute "$FINAL_BINARY_PATH"; then
+if has_quarantine_attribute "$EXECUTABLE_PATH"; then
     show_warning "The application bundle is currently protected by Apple Gatekeeper."
     show_info "You will be asked if you want to bypass this, please note, this is not a requirement to complete the install, but it is a requirement to run BAMM"
 
@@ -152,7 +153,7 @@ if has_quarantine_attribute "$FINAL_BINARY_PATH"; then
     if [[ $confirm =~ ^[yY]$ ]]; then
     
         # If the confirms their intent to bypass, the command is executed below
-        xattr -d com.apple.quarantine "${FINAL_BINARY_PATH}"
+        xattr -d com.apple.quarantine "${EXECUTABLE_PATH}"
         GATEKEEPER_BYPASSED=$?
 
         # Displays a success or warning message, associated with the bypass attempt.
@@ -165,7 +166,7 @@ if has_quarantine_attribute "$FINAL_BINARY_PATH"; then
     else
         show_warning "The installation was successful, but BAMM is still protected by Apple Gatekeeper, you will need to add an exception to open BAMM."
         show_info "Please run the command below to lift the restrictions imposed by Apple Gatekeeper:"
-        echo "xattr -d com.apple.quarantine \"${FINAL_BINARY_PATH}\""
+        echo "xattr -d com.apple.quarantine \"${EXECUTABLE_PATH}\""
     fi
 
 
