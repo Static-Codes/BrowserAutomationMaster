@@ -1,5 +1,4 @@
 ﻿using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -8,7 +7,6 @@ using static BrowserAutomationMaster.Managers.CommandManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.LineValidation;
 
@@ -35,30 +33,34 @@ namespace BrowserAutomationMaster.Parsing
 
         public readonly static string userScriptsDirectory = Path.Combine(DirectoryManager.AppDataDirectory, "userScripts");
 
-        static string selectedFile = string.Empty;
 
         static List<string> validFiles = [];
 
-        readonly static Dictionary<int, string> validFilesMapping = [];
+        public readonly static Dictionary<int, string> validFilesMapping = [];
 
-        static string noFilesFoundMessage = "";
+        public readonly static string noFilesFoundMessage = $"""
+            BAM Manager (BAMM) was unable to find any valid .bamc files.
+
+            Please check the 'userScripts' directory and contains atleast one .bamc file!
+            
+            Location: {userScriptsDirectory}
+            
+            If this directory wasn't already created please rerun this application.
+            """;
         
 
         public static bool CreateUserScriptsDirectory() // Write more detailed error handling.
         {
             
-            if (string.IsNullOrEmpty(userScriptsDirectory)) { return false; }
-            noFilesFoundMessage = $"""
-            BAM Manager (BAMM) was unable to find any valid .bamc files.
+            if (string.IsNullOrEmpty(userScriptsDirectory)) 
+            { 
+                return false; 
+            }
+
             
-            Please check the 'userScripts' directory and contains atleast one .bamc file!
 
-            Location: {userScriptsDirectory}
-
-            If this directory wasn't already created please rerun this application.
-            """;
-
-            if (Directory.Exists(userScriptsDirectory)) {
+            if (Directory.Exists(userScriptsDirectory)) 
+            {
                 UserScriptExamples.WriteScriptExamples();
                 return true; 
             }
@@ -332,7 +334,7 @@ namespace BrowserAutomationMaster.Parsing
         
         }
         
-        private static int HandleUserSelection(Dictionary<int, string> mapping)
+        public static int HandleUserSelection(Dictionary<int, string> mapping)
         {
 
             if (mapping.Count == 0)
@@ -1053,95 +1055,7 @@ namespace BrowserAutomationMaster.Parsing
         }
         
 
-        public static KeyValuePair<MenuOption, string> New()
-        {
-            bool userScriptDirExists = CreateUserScriptsDirectory();
-            if (!userScriptDirExists) { 
-                return KeyValuePair.Create(
-                    MenuOption.Invalid, 
-                    WriteErrorAndReturnEmptyString(noFilesFoundMessage)
-                ); 
-            }
-
-            string[] BAMCFiles = GetBAMCFiles();
-            if (BAMCFiles.Length == 0) { 
-                return KeyValuePair.Create(
-                    MenuOption.Invalid, 
-                    WriteErrorAndReturnEmptyString(noFilesFoundMessage)
-                ); 
-            }
-
-            MenuOption selection = Menu.New();
-            int index;
-            switch (selection)
-            {
-                case MenuOption.Add:
-                    
-                    string input = Input.WriteListFromOptions(["Select a File", "Exit"]);
-
-                    if (input.Equals("Exit"))
-                    {
-                        WriteAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
-                    }
-
-                    string path = Input.AskForInput("Path: ");
-                    
-                    if (!File.Exists(path))
-                    {
-                        WriteAndExit(
-                            message:
-                                "BAMM Manager (BAMM) was unable to find the provided file, " +
-                                $"please ensure the file below exists:\n{path}",
-                            status: 1
-                        );
-                    }
-
-                    // This executes UserScriptManager.AddScript()
-                    UserScriptManager _ = new(path, "add");
-                    return KeyValuePair.Create(MenuOption.Add, path);
-
-                case MenuOption.Compile:
-                    HandleBAMCFileValidation(BAMCFiles);
-
-                    index = HandleUserSelection(validFilesMapping);
-                    selectedFile = BAMCFiles[index];
-                    
-                    return KeyValuePair.Create(
-                        MenuOption.Compile, 
-                        Path.Combine(
-                            AppContext.BaseDirectory, 
-                            "userScripts", 
-                            selectedFile
-                        )
-                    );
-
-                case MenuOption.Run:
-                    selectedFile = RuntimeManager.HandleUserScriptChoice();
-                    return KeyValuePair.Create(
-                        MenuOption.Run, 
-                        selectedFile
-                    );
-                
-                case MenuOption.GUI:
-                    return KeyValuePair.Create(MenuOption.GUI, string.Empty);
-
-
-                // Add functionality to return back to the main menu after a completed action
-                case MenuOption.Help:
-                    HandleHelpSelection();
-                    return KeyValuePair.Create(MenuOption.Help, string.Empty);
-
-                case MenuOption.Exit:
-                    Environment.Exit(0);
-                    break; // Stupid requirement for c#'s static compiler
-            }
-
-            return KeyValuePair.Create(
-                MenuOption.Help, 
-                "If you're reading this a menu option was incorrectly handled.\n\n" +
-                $"Please make a bug report {ISSUES_LINK}"
-            );
-        }
+        
 
         public static string[] ValidateBAMCFiles(string[] BAMCFiles)
         {

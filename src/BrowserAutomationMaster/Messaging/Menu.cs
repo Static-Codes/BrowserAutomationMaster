@@ -1,10 +1,12 @@
-﻿using BrowserAutomationMaster.Managers;
-using Spectre.Console;
-using static BrowserAutomationMaster.Parsing.Parser;
+﻿using static BrowserAutomationMaster.Parsing.Parser;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Menu;
+using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
+using Spectre.Console;
+using YamlDotNet.Core.Tokens;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -14,11 +16,14 @@ namespace BrowserAutomationMaster.Messaging
         {
             Add,
             Compile,
-            Run,
+            Exit,
             GUI,
             Help,
-            Exit,
-            Invalid
+            Invalid,
+            New,
+            Open,
+            Run,
+
         }
 
         private static MenuOption ShowMenu()
@@ -27,10 +32,12 @@ namespace BrowserAutomationMaster.Messaging
             {
                 { 1, MenuOption.Add },
                 { 2, MenuOption.Compile },
-                { 3, MenuOption.Run },
-                { 4, MenuOption.GUI },
-                { 5, MenuOption.Help },
-                { 6, MenuOption.Exit },
+                { 3, MenuOption.New },
+                { 4, MenuOption.Open },
+                { 5, MenuOption.Run },
+                { 6, MenuOption.GUI },
+                { 7, MenuOption.Help },
+                { 8, MenuOption.Exit },
             };
 
             var accentColor = GetAccentColor().ToMarkup();
@@ -49,7 +56,7 @@ namespace BrowserAutomationMaster.Messaging
                         "Please select your desired action from the menu options below:")
                 .AddChoices([.. menuOptionsMapping.Values.Select(x => x.ToString())])
                 .HighlightStyle(style)
-                .PageSize(10);
+                .PageSize(Math.Max(3, menuOptionsMapping.Count)); // A minimum of 3 and a max of menuOptionsMapping.Count
 
             var selectedDisplayOption = AnsiConsole.Prompt(selectionPrompt);
             var parsed = Enum.TryParse(typeof(MenuOption), selectedDisplayOption, out object? selectedMenuOption);
@@ -62,93 +69,148 @@ namespace BrowserAutomationMaster.Messaging
     
         public static KeyValuePair<MenuOption, string> New()
         {
-
-            string selectedFile;
-            bool userScriptDirExists = CreateUserScriptsDirectory();
-            if (!userScriptDirExists) { 
-                return KeyValuePair.Create(
-                    MenuOption.Invalid, 
-                    WriteErrorAndReturnEmptyString(noFilesFoundMessage)
-                ); 
-            }
-
-            string[] BAMCFiles = GetBAMCFiles();
-            if (BAMCFiles.Length == 0) { 
-                return KeyValuePair.Create(
-                    MenuOption.Invalid, 
-                    WriteErrorAndReturnEmptyString(noFilesFoundMessage)
-                ); 
+            if (!CreateUserScriptsDirectory()) 
+            {
+                return MenuFunctions.Invalid("BAM Manager (BAMM) was unable to create the userScripts Directory.");
             }
 
             MenuOption selection = ShowMenu();
-            int index;
-            switch (selection)
+            return selection switch 
             {
-                case MenuOption.Add:
-                    
-                    string input = Input.WriteListFromOptions(["Select a File", "Exit"]);
+                MenuOption.Add => MenuFunctions.Add(),
+                MenuOption.Compile => MenuFunctions.Compile(),
+                MenuOption.Exit => MenuFunctions.Exit(),
+                MenuOption.GUI => MenuFunctions.GUI(),
+                MenuOption.Help => MenuFunctions.Help(),
+                MenuOption.Invalid => MenuFunctions.Invalid(),
+                MenuOption.New => MenuFunctions.New(),
+                MenuOption.Run => MenuFunctions.Run(),
+                _ => MenuFunctions.Invalid(WriteErrorAndReturnEmptyString(noFilesFoundMessage)),
+            };
+        }
+    }
 
-                    if (input.Equals("Exit"))
-                    {
-                        WriteAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
-                    }
+    internal class MenuFunctions() 
+    {
+        public static KeyValuePair<MenuOption, string> Add() 
+        {
+            string input = Input.WriteListFromOptions(["Select a File", "Exit"]);
 
-                    string path = Input.AskForInput("Path: ");
-                    
-                    if (!File.Exists(path))
-                    {
-                        WriteAndExit(
-                            message:
-                                "BAMM Manager (BAMM) was unable to find the provided file, " +
-                                $"please ensure the file below exists:\n{path}",
-                            status: 1
-                        );
-                    }
-
-                    // This executes UserScriptManager.AddScript()
-                    UserScriptManager _ = new(path, "add");
-                    return KeyValuePair.Create(MenuOption.Add, path);
-
-                case MenuOption.Compile:
-                    HandleBAMCFileValidation(BAMCFiles);
-
-                    index = HandleUserSelection(validFilesMapping);
-                    selectedFile = BAMCFiles[index];
-                    
-                    return KeyValuePair.Create(
-                        MenuOption.Compile, 
-                        Path.Combine(
-                            AppContext.BaseDirectory, 
-                            "userScripts", 
-                            selectedFile
-                        )
-                    );
-
-                case MenuOption.Run:
-                    selectedFile = RuntimeManager.HandleUserScriptChoice();
-                    return KeyValuePair.Create(
-                        MenuOption.Run, 
-                        selectedFile
-                    );
-                
-                case MenuOption.GUI:
-                    return KeyValuePair.Create(MenuOption.GUI, string.Empty);
-
-
-                // Add functionality to return back to the main menu after a completed action
-                case MenuOption.Help:
-                    HandleHelpSelection();
-                    return KeyValuePair.Create(MenuOption.Help, string.Empty);
-
-                case MenuOption.Exit:
-                    Environment.Exit(0);
-                    break; // Stupid requirement for c#'s static compiler
+            if (input.Equals("Exit"))
+            {
+                WriteAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
             }
 
+            string path = Input.AskForInput("Path: ");
+                    
+            if (!File.Exists(path))
+            {
+                WriteAndExit(
+                    message:
+                        "BAMM Manager (BAMM) was unable to find the provided file, " +
+                        $"please ensure the file below exists:\n{path}",
+                    status: 1
+                );
+            }
+
+            // This executes UserScriptManager.AddScript()
+            UserScriptManager _ = new(path, "add");
+            
             return KeyValuePair.Create(
-                MenuOption.Help, 
-                "If you're reading this a menu option was incorrectly handled.\n\n" +
-                $"Please make a bug report {ISSUES_LINK}"
+                key: MenuOption.Add, 
+                value: path
+            );
+        }    
+
+        public static KeyValuePair<MenuOption, string> Compile() 
+        {
+
+            string[] BAMCFiles = GetBAMCFiles();
+            if (BAMCFiles.Length == 0) 
+            { 
+                return KeyValuePair.Create(
+                    key: MenuOption.Invalid, 
+                    value: WriteErrorAndReturnEmptyString(noFilesFoundMessage)
+                ); 
+            }
+
+            
+            HandleBAMCFileValidation(BAMCFiles);
+            var index = HandleUserSelection(validFilesMapping);
+                    
+            return KeyValuePair.Create
+            (
+                key: MenuOption.Compile, 
+                value: Path.Combine
+                (
+                    AppContext.BaseDirectory, 
+                    "userScripts", 
+                    BAMCFiles[index]
+                )
+            );
+        }
+        public static KeyValuePair<MenuOption, string> Exit() 
+        {
+            return KeyValuePair.Create
+            (
+                key: MenuOption.Exit, 
+                value: string.Empty
+            );
+        }
+        public static KeyValuePair<MenuOption, string> GUI() 
+        {
+            return KeyValuePair.Create
+            (
+                key: MenuOption.GUI, 
+                value: string.Empty
+            );
+        }
+        public static KeyValuePair<MenuOption, string> Help() 
+        {
+            HandleHelpSelection();
+            return KeyValuePair.Create(
+                key: MenuOption.Help, 
+                value: string.Empty
+            );
+        }
+
+        public static KeyValuePair<MenuOption, string> Invalid(string? message = null) 
+        {
+            return KeyValuePair.Create
+            (
+                key: MenuOption.Invalid, 
+                value: message ?? string.Join(NLC, [
+                    "If you're reading this a menu option was incorrectly handled.",
+                    $"Please make a bug report at {ISSUES_LINK}"
+                ])
+            );
+        }
+
+        public static KeyValuePair<MenuOption, string> New() 
+        {
+            return KeyValuePair.Create
+            (
+                key: MenuOption.New,
+                value: string.Empty
+            );
+        }
+
+        public static KeyValuePair<MenuOption, string> Open() 
+        {
+            return KeyValuePair.Create
+            (
+                key: MenuOption.Open,
+                value: string.Empty
+            );
+        }
+
+        
+        public static KeyValuePair<MenuOption, string> Run() 
+        {
+            var selectedFile = RuntimeManager.HandleUserScriptChoice();
+            return KeyValuePair.Create(
+                key: MenuOption.Run, 
+                value: selectedFile
             );
         }
     }

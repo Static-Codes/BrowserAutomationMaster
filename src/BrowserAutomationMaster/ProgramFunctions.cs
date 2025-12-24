@@ -1,9 +1,9 @@
-﻿using BrowserAutomationMaster.Managers;
+﻿using BrowserAutomationMaster.Compilation;
+using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
-using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
@@ -233,6 +233,11 @@ namespace BrowserAutomationMaster
             {
                 HandleHelpCommand(pArgs);
                 return true;
+            }
+
+            if (pArgs[0].Equals("open", CCIC) || pArgs[0].Equals("-o")) 
+            {
+
             }
 
             // Handles `restore` command variations
@@ -488,7 +493,10 @@ namespace BrowserAutomationMaster
                 await runtimeManager.RunScript();
             }
 
-            else { WriteAndExit(errorMessage, 1); }
+            else 
+            { 
+                WriteAndExit(errorMessage, 1); 
+            }
 
             return true;
         }
@@ -498,23 +506,15 @@ namespace BrowserAutomationMaster
             bool isRunning = true;
             while (isRunning)
             {
-                KeyValuePair<MenuOption, string> parserResult = Parser.New();
-                switch (parserResult.Key)
+                KeyValuePair<MenuOption, string> MenuResult = New();
+                switch (MenuResult.Key)
                 {
                     case MenuOption.Add:
-                        string response = Input.AskForInput("Would you like to compile the newly added file? [y/n]:");
-                        if (Input.ConditionAccepted(response))
-                            await New(parserResult.Value, args);
+                        await MenuLoopFunctions.Add(MenuResult, args);
                         break;
 
                     case MenuOption.Compile:
-                        await New(parserResult.Value, args);
-                        break;
-
-                    case MenuOption.Run:
-                        RuntimeManager runtimeManager = new(parserResult.Value);
-                        // CheckBrowserStackStatus(); 
-                        await runtimeManager.RunScript();
+                        await Transpiler.New(MenuResult.Value, args);
                         break;
 
                     case MenuOption.GUI:
@@ -527,13 +527,28 @@ namespace BrowserAutomationMaster
                     case MenuOption.Invalid:
                         isRunning = false;
                         break;
+                    
+                    case MenuOption.New:
+                        await MenuLoopFunctions.New();
+                        break;
+
+                    case MenuOption.Open:
+                        await MenuLoopFunctions.Open();
+                        break;
+                        
+                    case MenuOption.Run:
+                        await MenuLoopFunctions.Run(MenuResult);
+                        break;
+
                 }
 
                 if (isRunning)
                 {
                     string input = Input.AskForInput("\nWould you like to exit BAM Manager (BAMM)? [y/n]:");
                     if (Input.ConditionAccepted(input))
+                    {
                         isRunning = false;
+                    }
                 }
             }
         }
@@ -546,6 +561,77 @@ namespace BrowserAutomationMaster
             WriteMessage("\nPress any key to exit...", isSuccess: true);
             ReadKey();
             Environment.Exit(0);
+        }
+    }
+
+    public static class MenuLoopFunctions
+    {
+        public static async Task Add(KeyValuePair<MenuOption, string> MenuResult, string[] args) 
+        {
+            string response = Input.AskForInput("Would you like to compile the newly added file? [y/n]:");
+            if (Input.ConditionAccepted(response))
+            {
+                await Transpiler.New(MenuResult.Value, args);
+            }
+        }
+
+        public static async Task New(string? fullFileName = null)
+        {
+            // If no param is passed the user is prompted for the filename.
+            fullFileName ??= Input.AskForInput("Please enter the name of the file you wish to create: ");
+            
+            while (string.IsNullOrEmpty(fullFileName) || !fullFileName.EndsWith(".bamc", OIC)) 
+            {
+                Warning.Write("Please enter a valid filename ending in .bamc");
+                Console.WriteLine("Example: new_file.bamc");
+                fullFileName = Input.AskForInput("Please enter the name of the file you wish to create: ");
+            }
+
+            // Sanitizes the filename pre-emptively incase a variation of ".bamc" is present (ex: ".BAMC" or ".BAMc")
+            var fileName = Path.GetFileNameWithoutExtension(fullFileName);
+            fullFileName = $"{fileName}.bamc";
+            var filePath = Path.Combine(userScriptsDirectory, fullFileName);
+
+            await EditorManager.OpenFileInEditor(filePath);
+        }
+
+        public static async Task Open() 
+        {
+            var fullFileName = Input.AskForInput("Please enter the name of the file you wish to open: ");
+
+            while (string.IsNullOrEmpty(fullFileName) || !fullFileName.EndsWith(".bamc", OIC)) 
+            {
+                Warning.Write("Please enter a valid filename ending in .bamc");
+                Console.WriteLine("Example: filename.bamc");
+                fullFileName = Input.AskForInput("Please enter the name of the file you wish to open: ");
+            }
+
+            // Sanitizes the filename pre-emptively incase a variation of ".bamc" is present (ex: ".BAMC" or ".BAMc")
+            var fileName = Path.GetFileNameWithoutExtension(fullFileName);
+            fullFileName = $"{fileName}.bamc";
+
+            var filePath = Path.Combine(userScriptsDirectory, fullFileName);
+
+            // // If the file doesn't exist in the userScripts directory:
+            // // 1. The file is created 
+            // // 2. The user is prompted for their choice of editor to use when opening the selected file.
+            // if (!File.Exists(filePath)) {
+            //     await New(fullFileName);
+            //     return;
+            // } 
+            
+            // If the file does exist in the userScripts directory
+            // 1. OpenFileInEditor() creates the file
+            // 2. The user is prompted for their choice of editor to use when opening the selected file.
+            await EditorManager.OpenFileInEditor(filePath);
+            
+        }
+
+        public static async Task Run(KeyValuePair<MenuOption, string> MenuResult)
+        {
+            RuntimeManager runtimeManager = new(MenuResult.Value);
+            // CheckBrowserStackStatus(); 
+            await runtimeManager.RunScript();
         }
     }
 }

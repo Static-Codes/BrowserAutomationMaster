@@ -13,6 +13,7 @@
 
 ### General Changes:
 
+- Added members `New` and `Open` to enum `MenuOption` in class `Menu` in namespace `BrowserAutomationMaster.Messaging`
 - Added new class `EditorManager` in namespace `BrowserAutomationMaster.Managers`
 - Added new class `Editor` in namespace `BrowserAutomationMaster.Managers`
 - Added `Path` variable to class `AppInfo` in namespace `BrowserAutomationMaster.Managers.AppManager`
@@ -30,7 +31,19 @@
 
 ### New CLI Arguments:
 
-- `bamm new filename.bamc` `bamm --n filename.bamc` - Creates a new .BAMC file in the `userScripts` directory, and prompts the user to select a custom text editor, and falls back to the OS default if a custom text editor is not found.
+Creates a new .BAMC file in the `userScripts` directory.
+Prompts the user to select a custom text editor to open the specified file.
+If a custom text editor is not found, the OS default is used.
+`bamm new filename.bamc` 
+`bamm --n filename.bamc`
+
+Opens a .BAMC file that exists in the `userScripts` directory.
+If this file does not exist, the file is automatically created.
+The user is then prompted to select a custom text editor to open the specified file.
+If a custom text editor is not found, the OS default is used.
+`bamm open filename.bamc` 
+`bamm --o filename.bamc` 
+
 
 
 
