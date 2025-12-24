@@ -61,15 +61,6 @@ namespace MacPackager
         private static readonly string BINARY_NAME = "bamm";
         private const string BINARY_KEY_PATH = "MacOSBinaryPath";
         private const string CPU_KEY_PATH = "CPUTarget";
-
-        
-        
-        
-        
-        private readonly Dictionary<string, string?> defaultBuildConfig = new() {
-            { BINARY_KEY_PATH, "" },
-            { "CPU_KEY_PATH", "x86_64" },
-        };
         
         
         // Directory Structure:
