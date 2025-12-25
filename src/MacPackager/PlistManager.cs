@@ -79,7 +79,7 @@ namespace MacPackager
             await WriteStringEntryAsync(writer, "CFBundleIdentifier", bundleIdentifier);
             
             // The last 4 bytes (????) would normally be an Apple Creator Code, however, this is for applications published to the App Store.
-            await WriteStringEntryAsync(writer, "CFBundlePackageType", "APPL????");
+            await WriteStringEntryAsync(writer, "CFBundlePackageType", "APPL");
             
             await WriteStringEntryAsync(writer, "CFBundleShortVersionString", shortVersion);
             await WriteStringEntryAsync(writer, "CFBundleVersion", latestVersion);
@@ -89,7 +89,11 @@ namespace MacPackager
 
 
             await WriteBoolEntryAsync(writer, "NSHighResolutionCapable", true);
+            // await WriteBoolEntryAsync(writer, "LSRequiresNativeExecution", true);
+            // await WriteBoolEntryAsync(writer, "NSSupportsAutomaticGraphicsSwitching", true);
+
             await WriteStringEntryAsync(writer, "LSApplicationCategoryType", categoryType);
+            // await WriteStringEntryAsync(writer, "LSMinimumSystemVersion", "11.0");
             
             // Writes the ending </dict> tag.
             await writer.WriteEndElementAsync();
