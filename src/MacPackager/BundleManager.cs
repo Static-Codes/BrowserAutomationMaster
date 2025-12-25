@@ -295,7 +295,7 @@ namespace MacPackager
                     File.Delete(archivePath);
                 }
 
-                ZipFile.CreateFromDirectory(bundlePath, archivePath);
+                ZipFile.CreateFromDirectory(bundlePath, archivePath, CompressionLevel.Optimal, includeBaseDirectory: true);
                 WriteSuccessMessage($"[SUCCESS]: Compressed application bundle to: {archivePath}");
             }
             
