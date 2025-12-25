@@ -12,7 +12,7 @@ check_cpu()
 {
     ARCH=$(uname -m)
 
-    if [ -z "$LATEST_RELEASE" ]; then
+    if [ -z $LATEST_RELEASE ]; then
         show_error_and_exit "The BAMM installer for macOS was unable to determine the latest release version."
     fi
     
@@ -40,7 +40,8 @@ get_latest_release() {
 }
 
 get_macos_version() {
-    sw_vers -productVersion | cut -d '.' -f 1,2
+    INVALID_RESP="Unable to determine latest macOS version, please ensure you are using the appropriate installer."
+    sw_vers -productVersion | cut -d '.' -f 1,2 || show_error_and_exit "$INVALID_RESP"
 }
 
 has_quarantine_attribute() {
@@ -135,8 +136,8 @@ show_success "Extracted ${APP_NAME} bundle."
 
 
 show_info "Removing the compressed release archive."
-sleep 2
-rm "$BINARY_PATH" || show_error_and_exit "The BAMM Installer for macOS was unable to remove the compressed release archive."
+sleep 1
+rm -rf "$DOWNLOAD_LOCATION" || show_error_and_exit "The BAMM Installer for macOS was unable to remove the compressed release archive."
 show_success "Removed the compressed release archive."
 
 # Giving the application bundle executable permissions.
@@ -183,46 +184,66 @@ else
     show_info "The downloaded release is not quarantined by Apple Gatekeeper, skipping bypass confirmation."
 fi
 
-show_info "Due to restrictions in newer versions of macOS, a signing identity is required to open BAMM from the app icon, please wait."
-show_info "For more information, please visit: https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc"
+ALIAS_FILEPATH="$HOME/.bash_alias"
+ALIAS_STRING="alias bamm='$EXECUTABLE_PATH'"
+
+# Temporary overwrite protection since cat > will overwrite if passed mistakenly over >>
+show_info "Adding temporary overwrite protection for file at: $ALIAS_FILEPATH"
+sleep 1
+set -o noclobber
+show_success "Added temporary overwrite protection at: $ALIAS_FILEPATH"
+
+
 sleep 2
+show_info "Due to the complexities of newer macOS versions, the current solution is to create an alias for the BAMM executable."
+sleep 1
 
-# show_info "Adding Ad-hoc signing identity."
+show_info "Adding a zshell alias for the BAMM executable using the command: 'echo \"$ALIAS_STRING\" >> \"$ALIAS_FILEPATH\"'."
+sleep 1
+echo "$ALIAS_STRING" >> "$ALIAS_FILEPATH"
+show_success "Added a zshell alias for the BAMM executable."
+
+
+# show_info "Adding temporary overwrite protection for file at: $ALIAS_FILEPATH"
+# sleep 1
+# set -o noclobber
+# show_success "Added temporary overwrite protection at: $ALIAS_FILEPATH"
+
+# # NEED FIXING
+# show_info "Due to restrictions in newer versions of macOS, a signing identity is required to open BAMM from the app icon, please wait."
+# show_info "For more information, please visit: https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc"
 # sleep 2
-# codesign --force --deep --sign - "${BUNDLE_PATH}"
-# sleep 2
-# show_success "Added Ad-hoc signing identity."
 
-# Temporary .entitlements file logic
-ENTITLEMENTS_FILE="/tmp/bamm.entitlements"
-show_info "(1/3) Creating a temporary entitlements file to enable required permissions, please wait.."
+# # Temporary .entitlements file logic
+# ENTITLEMENTS_FILE="/tmp/bamm.entitlements"
+# show_info "(1/3) Creating a temporary entitlements file to enable required permissions, please wait.."
 
-cat <<EOF > "$ENTITLEMENTS_FILE"
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>com.apple.security.cs.allow-jit</key>
-    <true/>
-    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <true/>
-    <key>com.apple.security.cs.disable-library-validation</key>
-    <true/>
-</dict>
-</plist>
-EOF
+# cat <<EOF > "$ENTITLEMENTS_FILE"
+# <?xml version="1.0" encoding="UTF-8"?>
+# <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+# <plist version="1.0">
+# <dict>
+#     <key>com.apple.security.cs.allow-jit</key>
+#     <true/>
+#     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+#     <true/>
+#     <key>com.apple.security.cs.disable-library-validation</key>
+#     <true/>
+# </dict>
+# </plist>
+# EOF
 
-show_success "(1/3) Created the temporary entitlements file at: ${ENTITLEMENTS_FILE}"
+# show_success "(1/3) Created the temporary entitlements file at: ${ENTITLEMENTS_FILE}"
 
-# Ad-hoc signing logic.
-show_info "(2/3) Adding Ad-hoc signing identity the temporary entitlements file."
-codesign --force --options runtime --deep --entitlements "${ENTITLEMENTS_FILE}" --sign - "${BUNDLE_PATH}"
-show_success "(2/3) Added required Ad-hoc signing identity."
+# # Ad-hoc signing logic.
+# show_info "(2/3) Adding Ad-hoc signing identity the temporary entitlements file."
+# codesign --force --options runtime --deep --entitlements "${ENTITLEMENTS_FILE}" --sign - "${BUNDLE_PATH}"
+# show_success "(2/3) Added required Ad-hoc signing identity."
 
-# Entitlements removal logic.
-show_info "(3/3) Removing temporary entitlements file."
-rm "${ENTITLEMENTS_FILE}" || show_error "(3/3) Unable to remove the temporary entitlements file, please remove this using: rm '${ENTITLEMENTS_FILE}'"
-show_success "(3/3) Removed temporary entitlements file." 
+# # Entitlements removal logic.
+# show_info "(3/3) Removing temporary entitlements file."
+# rm "${ENTITLEMENTS_FILE}" || show_error "(3/3) Unable to remove the temporary entitlements file, please remove this using: rm '${ENTITLEMENTS_FILE}'"
+# show_success "(3/3) Removed temporary entitlements file." 
 
 show_success "Installation complete, thank you for choosing BAMM! - Static" 
 echo "=============================================="
