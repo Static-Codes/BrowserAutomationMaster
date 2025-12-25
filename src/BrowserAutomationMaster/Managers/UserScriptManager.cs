@@ -77,8 +77,6 @@ namespace BrowserAutomationMaster.Managers
                     status: 1
                 );
             }
-
-            Console.WriteLine("Test");
             
             // Action handleCLI() => async () => {
             //     await HandleCLIArgs(method, filePath, scriptPath);
