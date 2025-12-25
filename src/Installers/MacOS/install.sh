@@ -136,7 +136,7 @@ show_success "Extracted ${APP_NAME} bundle."
 
 show_info "Removing the compressed release archive."
 sleep 1
-rm -rf "$DOWNLOAD_LOCATION" || show_error_and_exit "The BAMM Installer for macOS was unable to remove the compressed release archive."
+rm -rf "${DOWNLOAD_LOCATION}/${DOWNLOAD_LOCATION}" || show_error_and_exit "The BAMM Installer for macOS was unable to remove the compressed release archive."
 show_success "Removed the compressed release archive."
 
 # Giving the application bundle executable permissions.
