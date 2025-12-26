@@ -1,3 +1,5 @@
+
+
 # Browser Automation Master 🤖
 <img src="https://img.shields.io/github/v/release/static-codes/BrowserAutomationMaster.svg">
 A custom scripting language that compiles into Python 3.9+ code.
@@ -10,9 +12,11 @@ Your **.BAMC** file is then passed to the compiler, which creates a Python file 
 
 https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
+## Notes 
+- Unlike the [main](https://github.com/Static-Codes/BrowserAutomationMaster) repo, this is an experimental branch used for testing macOS releases of BAMM packaged as `.app` bundles.
+
 ## Quick Start Guide 🚀
 - To get started with BAMM, please follow the [Quick Start Guide](https://static-codes.github.io/BAMM-Docs/)
-
 
 ## Table of Contents 📖
 
