@@ -28,7 +28,7 @@
   # Apple advises against this, as malware can be written for macOS.
   # The alternative is paying $99/year for an Apple Developer Account, which is not feasible for such a small project.
 
-  curl -sL "https://bamm-install.vercel.app/macos" | /bin/bash
+  curl -sL "https://bamm-install.vercel.app/macos-bundle" | /bin/bash
   ```
   
 - **Linux**
