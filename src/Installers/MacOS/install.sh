@@ -210,40 +210,42 @@ show_success "Added a zshell alias for the BAMM executable."
 # show_success "Added temporary overwrite protection at: $ALIAS_FILEPATH"
 
 # # NEED FIXING
-# show_info "Due to restrictions in newer versions of macOS, a signing identity is required to open BAMM from the app icon, please wait."
-# show_info "For more information, please visit: https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc"
-# sleep 2
+show_info "Due to restrictions in newer versions of macOS, a signing identity is required to open BAMM from the app icon, please wait."
+show_info "For more information, please visit: https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc"
+sleep 2
 
-# # Temporary .entitlements file logic
-# ENTITLEMENTS_FILE="/tmp/bamm.entitlements"
-# show_info "(1/3) Creating a temporary entitlements file to enable required permissions, please wait.."
+# Temporary .entitlements file logic
+ENTITLEMENTS_FILE="/tmp/bamm.entitlements"
+show_info "(1/3) Creating a temporary entitlements file to enable required permissions, please wait.."
 
-# cat <<EOF > "$ENTITLEMENTS_FILE"
-# <?xml version="1.0" encoding="UTF-8"?>
-# <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-# <plist version="1.0">
-# <dict>
-#     <key>com.apple.security.cs.allow-jit</key>
-#     <true/>
-#     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-#     <true/>
-#     <key>com.apple.security.cs.disable-library-validation</key>
-#     <true/>
-# </dict>
-# </plist>
-# EOF
+cat <<EOF > "$ENTITLEMENTS_FILE"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+    <key>com.apple.security.personal-information.keychain</key>
+    <true/>
+</dict>
+</plist>
+EOF
 
-# show_success "(1/3) Created the temporary entitlements file at: ${ENTITLEMENTS_FILE}"
+show_success "(1/3) Created the temporary entitlements file at: ${ENTITLEMENTS_FILE}"
 
-# # Ad-hoc signing logic.
-# show_info "(2/3) Adding Ad-hoc signing identity the temporary entitlements file."
-# codesign --force --options runtime --deep --entitlements "${ENTITLEMENTS_FILE}" --sign - "${BUNDLE_PATH}"
-# show_success "(2/3) Added required Ad-hoc signing identity."
+# Ad-hoc signing logic.
+show_info "(2/3) Adding Ad-hoc signing identity the temporary entitlements file."
+codesign --force --entitlements "${ENTITLEMENTS_FILE}" --sign - "${BUNDLE_PATH}"
+show_success "(2/3) Added required Ad-hoc signing identity."
 
-# # Entitlements removal logic.
-# show_info "(3/3) Removing temporary entitlements file."
-# rm "${ENTITLEMENTS_FILE}" || show_error "(3/3) Unable to remove the temporary entitlements file, please remove this using: rm '${ENTITLEMENTS_FILE}'"
-# show_success "(3/3) Removed temporary entitlements file." 
+# Entitlements removal logic.
+show_info "(3/3) Removing temporary entitlements file."
+rm "${ENTITLEMENTS_FILE}" || show_error "(3/3) Unable to remove the temporary entitlements file, please remove this using: rm '${ENTITLEMENTS_FILE}'"
+show_success "(3/3) Removed temporary entitlements file." 
 
 show_success "Installation complete, thank you for choosing BAMM! - Static" 
 echo "=============================================="
