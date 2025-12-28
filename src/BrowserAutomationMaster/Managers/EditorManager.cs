@@ -343,11 +343,6 @@ namespace BrowserAutomationMaster.Managers
 
                     using var stream = new FileStream(FilePath, FileMode.Create, FileAccess.ReadWrite);
 
-                    var cancellationToken = new CancellationToken(false);
-
-                    // 10 Second delay.
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-
                     await stream.WriteAsync(fileHeaderBytes);
                 }
 
