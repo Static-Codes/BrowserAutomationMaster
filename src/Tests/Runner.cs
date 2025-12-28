@@ -5,15 +5,8 @@ using static BrowserAutomationMaster.Messaging.Success;
 namespace Tests
 {
     
-    public class Tests 
+    public class Runner 
     {
-
-        //  { 1, (providedValue, expectedValue) => {
-        // var res = providedValue.Equals(expectedValue);
-        // return res;
-        // }
-        // }
-
         public static Dictionary<int, Func<bool>> CreateTests(Dictionary<int, (object, object)> data)
         {
             var tests = new Dictionary<int, Func<bool>>();

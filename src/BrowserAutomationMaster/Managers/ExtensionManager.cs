@@ -1,6 +1,6 @@
-using System.Net;
-using System.Threading.Tasks;
+using System.Text;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers 
 {
@@ -12,31 +12,26 @@ namespace BrowserAutomationMaster.Managers
     public class ExtensionManager(string rawExtensionPath, string browserName)
     {
         public string RawExtensionPath { get; init; }  = rawExtensionPath;
-        public string extensionPath { get; init; } = rawExtensionPath.Replace("file://", "");
+        public string ExtensionPath { get; init; } = rawExtensionPath.Replace("file://", "");
         public bool IsLocalFile { get; init; } = rawExtensionPath.StartsWith("file://");
         public bool IsURL { get; init; } = rawExtensionPath.StartsWith("http://") || rawExtensionPath.StartsWith("https://");
-        public async Task<bool> IsValidExtension() 
+        public bool IsValidFileExtension() 
         {
-            // A Chrome extension was passed but the specified browser is not Chrome
-            if (extensionPath.EndsWith(".crx") && !browserName.Equals("chrome"))
-            {
-                return false;
-            }
+            return 
+                ExtensionPath.EndsWith(".crx") && browserName.Equals("chrome") ||
+                ExtensionPath.EndsWith(".xpi") && browserName.Equals("firefox");
+        }
 
-            // A Firefox extension was passed but the specified browser is not Firefox
-            if (extensionPath.EndsWith(".xpi") && !browserName.Equals("firefox"))
-            {
-                return false;
-            }
-
+        public async Task<bool> ExtensionExists() 
+        {
             if (IsLocalFile) 
             {
-                return File.Exists(extensionPath);
+                return File.Exists(ExtensionPath);
             }
 
             if (IsURL) 
             {
-                if (await RequestManager.SiteIsPingable(extensionPath)) {
+                if (await RequestManager.SiteIsPingable(ExtensionPath)) {
                     return true;
                 }
 
@@ -47,6 +42,77 @@ namespace BrowserAutomationMaster.Managers
 
             Warning.Write("Unable to make contact with the website hosting the extension provided.");
             return false;
+        }
+
+        public async Task<MemoryStream?> GetExtensionContents() 
+        {
+            if (IsURL) 
+            {
+                try 
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                    var contents = await RequestManager.NetworkClient.Instance.GetByteArrayAsync(RawExtensionPath, cts.Token);
+
+                    if (contents == null) {
+                        return null;
+                    }
+
+                    using MemoryStream memoryStream = new(contents);
+                    return memoryStream;
+                }
+
+                catch (Exception ex) 
+                {
+                    Errors.WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {RawExtensionPath}",
+                            "Error Log:",
+                            ex.Message
+                        ]),
+                        status: 1, 
+                        writePlatformDebugInfo: true
+                    );
+                }
+            }
+            // if (IsLocalFile) 
+            // {
+                if (RawExtensionPath.EndsWith(".xpi"))
+                {
+
+                    using var reader = new StreamReader(RawExtensionPath);
+                    var magicChars = new char[4];
+
+                    try 
+                    {
+                        reader.ReadBlock(magicChars, 0, 4);
+                        var magicBytes = Encoding.UTF8.GetBytes(magicChars, 0, 4);
+                        byte[] validBytes = [ 0x06, 0x05, 0x4B, 0x50 ];
+
+                        Console.WriteLine(validBytes.Length);
+                        Console.WriteLine(magicBytes.Length);
+                        Console.WriteLine(validBytes.SequenceEqual(magicBytes));
+
+                        using MemoryStream memoryStream = new(magicBytes);
+                        return memoryStream;
+                    }
+
+                    catch (Exception ex) 
+                    {
+                        Errors.WriteAndExit
+                        (
+                            message: string.Join(NLC, [
+                                $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {RawExtensionPath}",
+                                "Error Log:",
+                                ex.Message
+                            ]),
+                            status: 1, 
+                            writePlatformDebugInfo: true
+                        );
+                    }
+                }
+            // }
+            return null;
         }
     }
 }
