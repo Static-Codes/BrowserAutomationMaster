@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>bamm-tests</AssemblyName>
+		<PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+		<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
+		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64;linux-arm</RuntimeIdentifiers>
+		<Authors>Static-Codes</Authors>
+		<Copyright>Copyright © Static</Copyright>
+		<PackageTags>console;utility;windows;linux;osx</PackageTags>
+		<Description>Tests for BAMM Manager (Developer Use Only)</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    	<ProjectReference Include="..\BrowserAutomationMaster\BrowserAutomationMaster.csproj" />
+  </ItemGroup>
+</Project>
