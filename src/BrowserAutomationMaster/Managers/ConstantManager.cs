@@ -18,5 +18,21 @@
         public const StringComparison CCIC = StringComparison.CurrentCultureIgnoreCase;
         public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
         public const char HORIZONTAL_TAB = '\t';
+
+        // Used in ExtensionManager
+        // Using ReadOnlySpan<byte> for constants to avoid heap allocations
+        public static readonly ReadOnlyMemory<byte> XPIMagicBytes = new byte[4] { 0x50, 0x4B, 0x05, 0x06 };
+        public static readonly ReadOnlyMemory<byte> recBytes = "mozilla-recommendation.json"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> coseManBytes = "META-INF/cose.manifest"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> coseSigBytes = "META-INF/cose.sig"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> manSfBytes = "META-INF/manifest.mf"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> mozRsaBytes = "META-INF/mozilla.rsa"u8.ToArray();
+        public static readonly Dictionary<string, ReadOnlyMemory<byte>> contentChecks = new () {
+            { "'mozilla-recommendation.json'", recBytes },
+            { "'META-INF/cose.manifest'", coseManBytes }, 
+            { "'META-INF/cose.sig'", coseSigBytes },
+            { "'META-INF/manifest.mf'", manSfBytes },
+            { "'META-INF/mozilla.rsa'", mozRsaBytes }
+        };
     }
 }
