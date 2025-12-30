@@ -1,4 +1,7 @@
 ﻿using System.Net;
+using System.Runtime.InteropServices.Marshalling;
+using System.Text;
+using System.Text.Unicode;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
@@ -12,6 +15,8 @@ namespace BrowserAutomationMaster.Managers
 
         public void UpdateUri(Uri uri) { Uri = uri; }
         public void UpdateTimeout(int timeoutSeconds) { Timeout = TimeSpan.FromSeconds(timeoutSeconds); }
+
+        
 
         public async Task<HttpResponseMessage?> GetAsync()
         {
@@ -154,6 +159,122 @@ namespace BrowserAutomationMaster.Managers
 
             public static HttpClient Instance => _Instance;
 
+            public static async Task<ReadOnlyMemory<byte>> GetReadOnlyMemoryBytesFromURL(string url, int timeout = 30, bool exitOnFail = false)
+            {
+                try
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
+
+                    using var response = await _Instance.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+                    response.EnsureSuccessStatusCode();
+
+                    long? contentLength = response.Content.Headers.ContentLength;
+
+                    // Preventing an OverflowException by validating contentLength is < 2GB
+                    if (contentLength > int.MaxValue)
+                    {
+                        if (exitOnFail) 
+                        {
+                            WriteAndExit
+                            (
+                                message: string.Join(NLC, [
+                                    $"An exception occured while attempting to retrieve the response from: {url}",
+                                    "Error Log:",
+                                    "The provided url returned a contentLength greater than or equal to 2GB, please try again with a smaller download."
+
+                                ]),
+                                status: 1
+                            ); 
+                        }
+                        return default; // returns new ReadOnlyMemory<char>
+                    }
+
+                    using var stream = await response.Content.ReadAsStreamAsync(cts.Token);
+                    
+                    var content = contentLength.HasValue ? (int)contentLength.Value : 0;
+                    
+                    // Buffering the data more efficiently using a MemoryStream.
+                    using var memoryStream = new MemoryStream(content);
+                    await stream.CopyToAsync(memoryStream, cts.Token);
+
+                    return new ReadOnlyMemory<byte>(memoryStream.ToArray());
+                }
+                catch (Exception ex)
+                {
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"An exception occured while attempting to retrieve the response from: {url}",
+                            "Error Log:",
+                            ex.Message
+
+                        ]),
+                        status: 1
+                    ); 
+                }
+
+                return default; // Will never be returned.
+            }
+
+            public static async Task<ReadOnlyMemory<char>> GetReadOnlyMemoryCharsFromURL(string url, int timeout = 30, bool exitOnFail = false)
+            {
+                try
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
+
+                    using var response = await _Instance.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+                    response.EnsureSuccessStatusCode();
+
+                    long? contentLength = response.Content.Headers.ContentLength;
+
+                    // Preventing an OverflowException by validating contentLength is < 2GB
+                    if (contentLength > int.MaxValue)
+                    {
+                        if (exitOnFail) 
+                        {
+                            WriteAndExit
+                            (
+                                message: string.Join(NLC, [
+                                    $"An exception occured while attempting to retrieve the response from: {url}",
+                                    "Error Log:",
+                                    "The provided url returned a contentLength greater than or equal to 2GB, please try again with a smaller download."
+
+                                ]),
+                                status: 1
+                            ); 
+                        }
+                        return default; // returns new ReadOnlyMemory<char>
+                    }
+
+                    using var stream = await response.Content.ReadAsStreamAsync(cts.Token);
+                    
+                    var content = contentLength.HasValue ? (int)contentLength.Value : 0;
+                    
+                    // Buffering the data more efficiently using a MemoryStream.
+                    using var memoryStream = new MemoryStream(content);
+                    await stream.CopyToAsync(memoryStream, cts.Token);
+                    
+                    var chars = Encoding.UTF8.GetChars(memoryStream.ToArray());
+                    return new ReadOnlyMemory<char>(chars);
+                }
+                catch (Exception ex)
+                {
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"An exception occured while attempting to retrieve the response from: {url}",
+                            "Error Log:",
+                            ex.Message
+
+                        ]),
+                        status: 1
+                    ); 
+                }
+
+                return default; // Will never be returned.
+            }
+            
+
             public static HttpClient GetClientWithRedirectsAllowed(bool allowRedirects)
             {
                 var handler = new HttpClientHandler { AllowAutoRedirect = allowRedirects };
@@ -163,6 +284,9 @@ namespace BrowserAutomationMaster.Managers
                 );
                 return client;
             }
+
+            
         }
+        
     }
 }
