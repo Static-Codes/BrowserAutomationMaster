@@ -55,7 +55,7 @@ namespace BrowserAutomationMaster.Managers
         }
     
 
-    public static readonly Regex ValidDirectoryRegex = ValidDirRegex();
+        public static readonly Regex ValidDirectoryRegex = ValidDirRegex();
         [GeneratedRegex(@"^[0-9a-zA-Z_\-.]+$", RegexOptions.Compiled)]
         private static partial Regex ValidDirRegex();
 
@@ -250,7 +250,9 @@ namespace BrowserAutomationMaster.Managers
         public static partial Regex PrecompiledRPIRegex();
 
         // Used in Managers.ExtensionManager
-        public readonly static string CRXExtensionIDRegexPattern = @"(?:<main class=""LDZgRb"" jslog=""171177; metadata:)(.*)(?:;""\sjsdata=""PM4Exd;_;\$1"">)";
+        public readonly static string CRXExtensionIDRegexPattern = @"(?<=<main[^>]*jslog=""\d+; metadata:)[^"";]*(?=;""\sjsdata="")";
+        // Alloc-free calls do not support capture groups due the cost associated with heap allocation of capture groups.
+        // @"(?:<main class=""LDZgRb"" jslog=""171177; metadata:)(.*)(?:;""\sjsdata=""PM4Exd;_;\$1"">)";
         
     }
 }
