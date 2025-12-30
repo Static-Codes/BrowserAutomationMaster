@@ -1,10 +1,12 @@
 using BrowserAutomationMaster.Messaging;
 using System.Buffers;
+using System.Buffers.Text;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Unicode;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers 
 {
@@ -22,8 +24,8 @@ namespace BrowserAutomationMaster.Managers
         public bool IsURL { get; init; } = rawExtensionPath.StartsWith("http://") || rawExtensionPath.StartsWith("https://");
         public bool IsChromeExtension = rawExtensionPath.StartsWith("https://chromewebstore.google.com/detail/") && browserName.Equals("chrome");
         public bool IsFirefoxExtension = rawExtensionPath.EndsWith(".xpi") && browserName.Equals("firefox");
-
         public byte[]? Content { get; init; }
+
         public async Task<bool> ExtensionExists() 
         {
             if (IsLocalFile) 
@@ -166,17 +168,26 @@ namespace BrowserAutomationMaster.Managers
                 else if (IsChromeExtension) 
                 {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-                    var htmlContents = await RequestManager.NetworkClient.GetReadOnlyMemoryCharsFromURL(ExtensionPath);
+                    var htmlMemory = await RequestManager.NetworkClient.GetReadOnlyMemoryCharsFromURL(ExtensionPath);
+                    
+                    // // Debugging only do not add to production
+                    // var htmlContents = await RequestManager.NetworkClient.GetReadOnlyMemoryBytesFromURL(ExtensionPath);
+                    // Console.WriteLine(Encoding.UTF8.GetString(htmlContents.ToArray()));
+                    // return [];
 
-                    byte[] manifestBytes = [];
-                    GetEnumeratedMatches(htmlContents, out byte[] rentedBuffer, out int length);
-                    Console.WriteLine(length);
+                    // byte[] manifestBytes = [];
+                    GetEnumeratedMatches(htmlMemory, out byte[] rentedBuffer, out int length);
+                    
+                    // This is 100 bytes in length.
+                    // var b64EncodedString = Encoding.UTF8.GetString(rentedBuffer.AsSpan()[..length]);
+                    
+                    // Decoded manifest ID (32 char), roughly 40-50 bytes.
+                    var manifestID = DecodeMatch(rentedBuffer);
             
                     try 
                     {
                         if (length > 0) 
                         {
-                            string manifestID = Encoding.UTF8.GetString(rentedBuffer, 0, length);
                             string downloadUrl = BuildDownloadUrl(manifestID);
                             Console.WriteLine("Download URL: {0}", downloadUrl);
                             
@@ -185,9 +196,11 @@ namespace BrowserAutomationMaster.Managers
                     }
                     finally 
                     {
-                        // Always return the rented buffer to the pool immediately
+                        // Returning the rented buffer to the pool to prevent a memory bug.
                         if (rentedBuffer.Length > 0)
+                        {
                             ArrayPool<byte>.Shared.Return(rentedBuffer);
+                        }
                     }
                 
                 }
@@ -332,16 +345,18 @@ namespace BrowserAutomationMaster.Managers
             Console.WriteLine($"){NLC}");
         }
 
-        private static void GetEnumeratedMatches(ReadOnlyMemory<char> htmlContents, out byte[] finalBuffer, out int finalLength)
+        // Helper method to bypass the 'ref struct in async' limitation of C# 12
+        // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
+        private static void GetEnumeratedMatches(ReadOnlyMemory<char> romContents, out byte[] finalBuffer, out int finalLength)
         {
             finalBuffer = [];
             finalLength = 0;
 
-            var valueMatches = Regex.EnumerateMatches(htmlContents.Span, CRXExtensionIDRegexPattern);
+            var valueMatches = Regex.EnumerateMatches(romContents.Span, CRXExtensionIDRegexPattern);
 
             foreach (var match in valueMatches) 
             {
-                var ROM = htmlContents.Slice(match.Index, match.Length);
+                var ROM = romContents.Slice(match.Index, match.Length);
                 
                 // UTF8 can be up to 3 bytes per char (when accounting wide-glyphs)
                 byte[] currentBuffer = ArrayPool<byte>.Shared.Rent(ROM.Length * 3);
@@ -364,6 +379,106 @@ namespace BrowserAutomationMaster.Managers
                 // As such the currentBuffer must be returned to prevent a NullReferenceException.
                 ArrayPool<byte>.Shared.Return(currentBuffer);
             }
+        }
+
+        // Helper method to bypass the 'ref struct in async' limitation of C# 12
+        // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
+        private static string DecodeMatch(byte[] rentedBuffer)
+        {
+            int manifestStartIndex = 4;
+            
+            // The number of bytes expected for the whole decoded string, not just the manifest ID;
+            int resultSize = 44;
+            
+            // The overscan is only one byte  
+            int overscanAmount = 1;
+
+            // The expectedBye
+            int expectedManifestSize = 32;
+
+            int expectedSizeDifference = 12;
+            int currentSizeDifference = resultSize - expectedManifestSize;
+
+
+            // This is the whole decoded object.
+            byte[] resultBytes = new byte[resultSize];
+
+            // This will overscan by one byte due to the limitations of Base64.DecodeFromUtf8
+            var status = Base64.DecodeFromUtf8(
+                rentedBuffer.AsSpan(manifestStartIndex, resultSize), 
+                resultBytes,
+                out int bytesConsumed, 
+                out int bytesWritten
+            );
+
+
+
+            // Debug values do not add to production releases
+            // Console.WriteLine(bytesConsumed);       // Should return 44 (resultSize)
+            // Console.WriteLine(bytesWritten);        // Should return 33 (32 intented + 1 overscan)
+            // Console.WriteLine(rentedBuffer.Length); // Should return 512
+
+            if (bytesWritten != expectedManifestSize + overscanAmount) {
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "Unable to decode the base64 encoded span containing the manifest ID for the provided chrome extension.",
+                        "Error Log:",
+                        $"Expected {expectedManifestSize} decoded bytes but received {bytesWritten} bytes."
+                    ]),
+                    status: 1
+                );
+            }
+            
+            if (status != OperationStatus.Done)
+            {
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "Unable to decode the base64 encoded span containing the manifest ID for the provided chrome extension.",
+                        "Error Log:",
+                        $"The OperationStatus associated with DecodeMatch returned {status}"
+                    ]),
+                    status: 1
+                );
+            }
+
+            if (expectedSizeDifference != currentSizeDifference) 
+            {
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "Unable to decode the base64 encoded span containing the manifest ID for the provided chrome extension.",
+                        "Error Log:",
+                        $"Expected {expectedSizeDifference} extra bytes while processing but received {currentSizeDifference} bytes."
+                    ]),
+                    status: 1
+                );
+            }
+
+            try {
+                
+                // var manifestIDSlice = resultBytes[..bytesWritten].AsSpan().Slice(4, 32);
+
+                // This will allocate roughly 40-50 bytes to the stack.
+                var lastValidIndex = bytesConsumed - currentSizeDifference;
+
+                // Debug values do not add to production releases
+                // var thing = Encoding.UTF8.GetString(resultBytes)[.. lastValidIndex];
+                // File.WriteAllText("/home/nerdy/Desktop/test1234567", thing);
+
+                // This is the decoded manifest ID
+                return Encoding.UTF8.GetString(resultBytes)[.. lastValidIndex];
+            }
+            catch (Exception ex) 
+            {
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "Unable to decode the base64 encoded span containing the manifest ID for the provided chrome extension.",
+                        "Error Log:",
+                        ex.Message
+                    ]),
+                    status: 1
+                );
+            }
+            return null; // This wont be executed, purely to appease Rosyln.
         }
     }
 }
