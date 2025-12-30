@@ -1,9 +1,10 @@
 using BrowserAutomationMaster.Messaging;
 using System.Buffers;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Unicode; 
+using System.Text.RegularExpressions;
+using System.Text.Unicode;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.RegexManager;
 
 namespace BrowserAutomationMaster.Managers 
 {
@@ -19,7 +20,7 @@ namespace BrowserAutomationMaster.Managers
         public string ExtensionPath { get; init; } = rawExtensionPath.Replace("file://", "");
         public bool IsLocalFile { get; init; } = rawExtensionPath.StartsWith("file://");
         public bool IsURL { get; init; } = rawExtensionPath.StartsWith("http://") || rawExtensionPath.StartsWith("https://");
-        public bool IsChromeExtension = rawExtensionPath.EndsWith(".crx") && browserName.Equals("chrome");
+        public bool IsChromeExtension = rawExtensionPath.StartsWith("https://chromewebstore.google.com/detail/") && browserName.Equals("chrome");
         public bool IsFirefoxExtension = rawExtensionPath.EndsWith(".xpi") && browserName.Equals("firefox");
 
         public byte[]? Content { get; init; }
@@ -32,7 +33,8 @@ namespace BrowserAutomationMaster.Managers
 
             if (IsURL) 
             {
-                if (await RequestManager.SiteIsPingable(ExtensionPath)) {
+                if (await RequestManager.SiteIsPingable(ExtensionPath)) 
+                {
                     return true;
                 }
 
@@ -45,7 +47,7 @@ namespace BrowserAutomationMaster.Managers
             return false;
         }
 
-        public async Task<MemoryStream?> GetExtensionContents(bool failOnExit = false) 
+        public async Task<MemoryStream?> GetExtensionContents(bool exitOnFail = false) 
         {
             if (!IsURL && !IsLocalFile) 
             {
@@ -98,7 +100,7 @@ namespace BrowserAutomationMaster.Managers
                     }
 
                     if (IsFirefoxExtension) {
-                        return await ValidateXPIContents(dataToValidate, failOnExit);
+                        return await ValidateXPIContents(dataToValidate, exitOnFail);
                     }
                 }
                 catch (Exception ex) 
@@ -148,15 +150,48 @@ namespace BrowserAutomationMaster.Managers
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
-
+        
+        static string BuildDownloadUrl(string manifestID) => $"https://clients2.google.com/service/update2/crx?response=redirect&prodversion=31.0.1609.0&acceptformat=crx2,crx3&x=id%3D{manifestID}%26uc";
+            
         private async Task<byte[]> GetHostedExtensionContents()
         {
             byte[] contents = [];
             try 
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-                contents = await RequestManager.NetworkClient.Instance.GetByteArrayAsync(ExtensionPath, cts.Token);
+                if (IsFirefoxExtension) {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                    contents = await RequestManager.NetworkClient.Instance.GetByteArrayAsync(ExtensionPath, cts.Token);
+                }
 
+                else if (IsChromeExtension) 
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                    var htmlContents = await RequestManager.NetworkClient.GetReadOnlyMemoryCharsFromURL(ExtensionPath);
+
+                    byte[] manifestBytes = [];
+                    GetEnumeratedMatches(htmlContents, out byte[] rentedBuffer, out int length);
+                    Console.WriteLine(length);
+            
+                    try 
+                    {
+                        if (length > 0) 
+                        {
+                            string manifestID = Encoding.UTF8.GetString(rentedBuffer, 0, length);
+                            string downloadUrl = BuildDownloadUrl(manifestID);
+                            Console.WriteLine("Download URL: {0}", downloadUrl);
+                            
+                            // contents = await RequestManager.NetworkClient.Instance.GetByteArrayAsync(downloadUrl, cts.Token);
+                        }
+                    }
+                    finally 
+                    {
+                        // Always return the rented buffer to the pool immediately
+                        if (rentedBuffer.Length > 0)
+                            ArrayPool<byte>.Shared.Return(rentedBuffer);
+                    }
+                
+                }
+                
                 if (contents == null) {
                     return [];
                 }
@@ -182,12 +217,12 @@ namespace BrowserAutomationMaster.Managers
         /// <summary>
         /// <param name="contents"> The ReadOnlyMemory<byte> containing the contents from this.ExtensionPath, created in GetExtensionContents</param>
         ///
-        /// <param name="failOnExit"> A boolean determining if the application should exit if the validation fails </param>
+        /// <param name="exitOnFail"> A boolean determining if the application should exit if the validation fails </param>
         ///
-        /// <returns>A MemoryStream containing the bytes of from the file, assuming an exception doesn't occur, or failOnExit is set to true.</returns>
+        /// <returns>A MemoryStream containing the bytes of from the file, assuming an exception doesn't occur, or exitOnFail is set to true.</returns>
         /// </summary>
         
-        private async Task<MemoryStream> ValidateXPIContents(ReadOnlyMemory<byte> contents, bool failOnExit = false) 
+        private async Task<MemoryStream> ValidateXPIContents(ReadOnlyMemory<byte> contents, bool exitOnFail = false) 
         {
             var memoryStream = new MemoryStream();
 
@@ -205,7 +240,7 @@ namespace BrowserAutomationMaster.Managers
                     Console.WriteLine($"Located the documented XPI Magic Numbers.");
                 }
 
-                else if (failOnExit) 
+                else if (exitOnFail) 
                 {
                     Errors.WriteAndExit
                     (
@@ -234,7 +269,7 @@ namespace BrowserAutomationMaster.Managers
                         LogSuccess(element.Key, element.Value);
                     } 
                     
-                    else if (failOnExit) 
+                    else if (exitOnFail) 
                     {
                         Errors.WriteAndExit
                         (
@@ -295,6 +330,40 @@ namespace BrowserAutomationMaster.Managers
             // Utilizes a direct span write to avoid heap allocation
             Console.Out.Write(hexBuffer);
             Console.WriteLine($"){NLC}");
+        }
+
+        private static void GetEnumeratedMatches(ReadOnlyMemory<char> htmlContents, out byte[] finalBuffer, out int finalLength)
+        {
+            finalBuffer = [];
+            finalLength = 0;
+
+            var valueMatches = Regex.EnumerateMatches(htmlContents.Span, CRXExtensionIDRegexPattern);
+
+            foreach (var match in valueMatches) 
+            {
+                var ROM = htmlContents.Slice(match.Index, match.Length);
+                
+                // UTF8 can be up to 3 bytes per char (when accounting wide-glyphs)
+                byte[] currentBuffer = ArrayPool<byte>.Shared.Rent(ROM.Length * 3);
+                
+                try 
+                {
+                    if (Utf8.TryWrite(currentBuffer, $"{ROM.Span}", out int written)) 
+                    {
+                        finalBuffer = currentBuffer;
+                        finalLength = written;
+                        return; // Caller now has ownership of the references above.
+                    }
+                } 
+                catch (Exception ex) 
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                // If this is condition is executed, the current attempt to rent was unsuccessful.
+                // As such the currentBuffer must be returned to prevent a NullReferenceException.
+                ArrayPool<byte>.Shared.Return(currentBuffer);
+            }
         }
     }
 }

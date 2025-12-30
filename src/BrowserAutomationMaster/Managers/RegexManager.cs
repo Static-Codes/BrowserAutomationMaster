@@ -248,5 +248,9 @@ namespace BrowserAutomationMaster.Managers
 
         [GeneratedRegex(@"^(?:model name|Model)(?:	{1,2}):\s(?:Raspberry Pi\s)(?<model>.*)")]
         public static partial Regex PrecompiledRPIRegex();
+
+        // Used in Managers.ExtensionManager
+        public readonly static string CRXExtensionIDRegexPattern = @"(?:<main class=""LDZgRb"" jslog=""171177; metadata:)(.*)(?:;""\sjsdata=""PM4Exd;_;\$1"">)";
+        
     }
 }
