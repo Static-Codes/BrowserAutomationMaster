@@ -34,5 +34,7 @@
             { "'META-INF/manifest.mf'", manSfBytes },
             { "'META-INF/mozilla.rsa'", mozRsaBytes }
         };
+        //public const string CHROME_VERSION_HISTORY_URL = "https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/stable/versions";
+        public const string CHROME_VERSION_URL = "https://chromiumdash.appspot.com/fetch_releases?channel=Extended&platform=Windows&num=1&offset=0";
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System.Net;
-using System.Runtime.InteropServices.Marshalling;
 using System.Text;
-using System.Text.Unicode;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
@@ -9,6 +7,7 @@ namespace BrowserAutomationMaster.Managers
 {
     public class RequestManager(Uri uri, int timeout = 10)
     {
+        public static readonly string DefaultUserAgent = "Mozilla/5.5 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/146.0";
         public HttpClient Client { get; } = NetworkClient.Instance;
         public Uri Uri { get; private set; } = uri;
         public TimeSpan Timeout { get; private set; } = TimeSpan.FromSeconds(timeout);
@@ -275,13 +274,15 @@ namespace BrowserAutomationMaster.Managers
             }
             
 
-            public static HttpClient GetClientWithRedirectsAllowed(bool allowRedirects)
+            public static HttpClient GetClientWithRedirectsAllowed(bool allowRedirects, string? userAgent = null)
             {
+                if (string.IsNullOrEmpty(userAgent)) {
+                    userAgent = DefaultUserAgent;
+                }
+
                 var handler = new HttpClientHandler { AllowAutoRedirect = allowRedirects };
                 var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
-                client.DefaultRequestHeaders.Add(
-                    "User-Agent", "Mozilla/5.5 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0"
-                );
+                client.DefaultRequestHeaders.Add("User-Agent", userAgent);
                 return client;
             }
 

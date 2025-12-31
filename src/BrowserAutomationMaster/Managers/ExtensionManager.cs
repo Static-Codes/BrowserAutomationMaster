@@ -2,11 +2,14 @@ using BrowserAutomationMaster.Messaging;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Text.Unicode;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.RequestManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+
 
 namespace BrowserAutomationMaster.Managers 
 {
@@ -153,7 +156,7 @@ namespace BrowserAutomationMaster.Managers
             }
         }
         
-        static string BuildDownloadUrl(string manifestID) => $"https://clients2.google.com/service/update2/crx?response=redirect&prodversion=31.0.1609.0&acceptformat=crx2,crx3&x=id%3D{manifestID}%26uc";
+        static string BuildDownloadUrl(string manifestID, string versionID) => $"https://clients2.google.com/service/update2/crx?response=redirect&prodversion={versionID}&acceptformat=crx2,crx3&x=id%3D{manifestID}%26uc";
             
         private async Task<byte[]> GetHostedExtensionContents()
         {
@@ -162,20 +165,19 @@ namespace BrowserAutomationMaster.Managers
             {
                 if (IsFirefoxExtension) {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-                    contents = await RequestManager.NetworkClient.Instance.GetByteArrayAsync(ExtensionPath, cts.Token);
+                    contents = await NetworkClient.Instance.GetByteArrayAsync(ExtensionPath, cts.Token);
                 }
 
                 else if (IsChromeExtension) 
                 {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-                    var htmlMemory = await RequestManager.NetworkClient.GetReadOnlyMemoryCharsFromURL(ExtensionPath);
+                    var htmlMemory = await NetworkClient.GetReadOnlyMemoryCharsFromURL(ExtensionPath);
                     
                     // // Debugging only do not add to production
                     // var htmlContents = await RequestManager.NetworkClient.GetReadOnlyMemoryBytesFromURL(ExtensionPath);
                     // Console.WriteLine(Encoding.UTF8.GetString(htmlContents.ToArray()));
                     // return [];
 
-                    // byte[] manifestBytes = [];
                     GetEnumeratedMatches(htmlMemory, out byte[] rentedBuffer, out int length);
                     
                     // This is 100 bytes in length.
@@ -185,15 +187,43 @@ namespace BrowserAutomationMaster.Managers
                     var manifestID = DecodeMatch(rentedBuffer);
             
                     try 
-                    {
-                        if (length > 0) 
+                    {   
+                        if (length == 0) 
                         {
-                            string downloadUrl = BuildDownloadUrl(manifestID);
-                            Console.WriteLine("Download URL: {0}", downloadUrl);
-                            
-                            // contents = await RequestManager.NetworkClient.Instance.GetByteArrayAsync(downloadUrl, cts.Token);
+                            WriteAndExit(
+                                message: string.Join(NLC, [
+                                    "An exception occured while retrieving the contents of the provided extension.",
+                                    "Error Log:",
+                                    "The returned buffer is empty."
+                                ]),
+                                status: 1
+                            );
                         }
+
+                        var versionID = await GetLatestChromeVersion();
+
+
+                        string downloadUrl = BuildDownloadUrl(manifestID, versionID);
+                        Console.WriteLine("Validating .CRX extension at: {0}", downloadUrl);
+                        
+                        var userAgent = $"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{versionID} Safari/537.36";
+
+                        Console.WriteLine(userAgent);
+
+                        // Removing the default User Agent, it will be readded below.
+                        NetworkClient.Instance.DefaultRequestHeaders.Remove("User-Agent");
+                        NetworkClient.Instance.DefaultRequestHeaders.Add("User-Agent", userAgent);
+
+                        // Retrieving the contents.
+                        contents = await NetworkClient.Instance.GetByteArrayAsync(downloadUrl, cts.Token);
+
+                        // Readding the default User Agent, it will be readded below.
+                        NetworkClient.Instance.DefaultRequestHeaders.Remove("User-Agent");
+                        NetworkClient.Instance.DefaultRequestHeaders.Add("User-Agent", DefaultUserAgent);
+
+                        Console.WriteLine(contents.Length);
                     }
+
                     finally 
                     {
                         // Returning the rented buffer to the pool to prevent a memory bug.
@@ -212,7 +242,7 @@ namespace BrowserAutomationMaster.Managers
 
             catch (Exception ex) 
             {
-                Errors.WriteAndExit
+                WriteAndExit
                 (
                     message: string.Join(NLC, [
                         $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {ExtensionPath}",
@@ -321,6 +351,48 @@ namespace BrowserAutomationMaster.Managers
             return null;
         }
 
+        // Helper method to bypass the 'ref struct in async' limitation of C# 12
+        // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
+        private static async Task<string> GetLatestChromeVersion() 
+        {
+            var jsonData = await NetworkClient.GetReadOnlyMemoryBytesFromURL(CHROME_VERSION_URL, timeout: 5);
+            
+            void ReadJsonData(out string version) 
+            {
+                version = string.Empty;
+
+                var reader = new Utf8JsonReader(jsonData.Span);
+                
+                try 
+                {
+                    while (reader.Read())
+                    {
+                        if (reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("version"u8)) {
+                            reader.Read();
+
+                            version = Encoding.UTF8.GetString(reader.ValueSpan[..3]) + ".0.0.0";
+                            // version = Encoding.UTF8.GetString(reader.ValueSpan);
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex) 
+                {
+                    WriteAndExit(
+                        message: string.Join(NLC, [
+                            "An exception occured while retrieving the latest version of Google Chrome, during .CRX file validation.",
+                            "Error Log:",
+                            ex.Message
+                        ]),
+                        status: 1
+                    );
+                }
+            }
+
+            ReadJsonData(out string latestChromeVersion);
+            return latestChromeVersion;
+        }
+        
         // Helper method to bypass the 'ref struct in async' limitation of C# 12
         // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
         private void LogSuccess(string key, ReadOnlyMemory<byte> value)
@@ -480,5 +552,7 @@ namespace BrowserAutomationMaster.Managers
             }
             return null; // This wont be executed, purely to appease Rosyln.
         }
+    
+    
     }
 }
