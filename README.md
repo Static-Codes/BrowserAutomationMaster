@@ -16,6 +16,8 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
 ## Table of Contents 📖
 
+### [Why Choose BAMM?](sections/why.md)
+
 ### [Installation/Uninstallation](sections/installation.md)
 
 ### [Examples](examples/)
