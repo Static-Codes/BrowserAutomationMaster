@@ -9,8 +9,9 @@ SetPlatform();
 await InitializeAsync(["--nohwc"]);
 
 // var extensionManager = new ExtensionManager("file:///home/nerdy/Desktop/xpis/languagetool.xpi", "firefox");
-// var extensionManager = new ExtensionManager("https://chromewebstore.google.com/detail/volume-booster-sound-bass/ebpckmjdefimgaenaebngljijofojncm", "chrome");
-var extensionManager = new ExtensionManager("https://chromewebstore.google.com/detail/selectorgadget/mhjhnkcfbdhnjickkkdbjoemdmbfginb", "chrome");
+var extensionManager = new ExtensionManager("https://chromewebstore.google.com/detail/volume-booster-sound-bass/ebpckmjdefimgaenaebngljijofojncm", "chrome");
+// var extensionManager = new ExtensionManager("https://addons.mozilla.org/en-US/firefox/addon/youtube-screenshot-button/", "firefox");
+// var extensionManager = new ExtensionManager("https://addons.mozilla.org/en-US/firefox/addon/languagetool/", "firefox");
 await extensionManager.GetExtensionContents();
 Environment.Exit(0);
 
