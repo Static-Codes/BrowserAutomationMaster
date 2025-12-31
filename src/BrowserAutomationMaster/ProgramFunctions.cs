@@ -486,6 +486,15 @@ namespace BrowserAutomationMaster
                 return;
             }
 
+            // Fixed bug where passing --nohwc will cause the CPU core count to be skipped all together.
+            // To ensure this is working as intended:
+            // dotnet run --nohwc --force-error
+            else 
+            {
+                CPUInfoManager cpuInfoManager = new();
+                RuntimeManager.SetCoreCount(cpuInfoManager.Cores);
+            }
+
             RuntimeManager.SetMemoryInfo();
             
         }
