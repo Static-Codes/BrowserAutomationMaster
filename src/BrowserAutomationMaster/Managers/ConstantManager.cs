@@ -27,7 +27,7 @@
         public static readonly ReadOnlyMemory<byte> coseSigBytes = "META-INF/cose.sig"u8.ToArray();
         public static readonly ReadOnlyMemory<byte> manSfBytes = "META-INF/manifest.mf"u8.ToArray();
         public static readonly ReadOnlyMemory<byte> mozRsaBytes = "META-INF/mozilla.rsa"u8.ToArray();
-        public static readonly Dictionary<string, ReadOnlyMemory<byte>> contentChecks = new () {
+        public static readonly Dictionary<string, ReadOnlyMemory<byte>> XPIContentChecks = new () {
             { "'mozilla-recommendation.json'", recBytes },
             { "'META-INF/cose.manifest'", coseManBytes }, 
             { "'META-INF/cose.sig'", coseSigBytes },
@@ -36,5 +36,16 @@
         };
         //public const string CHROME_VERSION_HISTORY_URL = "https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/stable/versions";
         public const string CHROME_VERSION_URL = "https://chromiumdash.appspot.com/fetch_releases?channel=Extended&platform=Windows&num=1&offset=0";
+        public static readonly ReadOnlyMemory<byte> manJsonBytes = "manifest.json"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> CRXMagicBytes = "Cr24"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> metadataBytes = "_metadata/"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> verifContentsBytes = "_metadata/verified_contents.json"u8.ToArray();
+        public static readonly Dictionary<string, ReadOnlyMemory<byte>> CRXContentChecks = new () {
+            { "manifest.json", manJsonBytes },
+            { "Cr24", CRXMagicBytes }, 
+            { "_metadata/", metadataBytes },
+            { "_metadata/verified_contents.json", verifContentsBytes },
+        };
+
     }
 }
