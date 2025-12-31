@@ -47,23 +47,29 @@ namespace BrowserAutomationMaster
 
             // Populate DeviceManager.Devices
             if (!await PopulateDevices())
+            {
                 Environment.Exit(0);
-
+            }
+            
             // Populates BrowserVersionManager.browserVersions
             SetBrowserVersions(await GetLatestVersionInfo());
             var versions = GetBrowserVersion();
 
             // Null check on BrowserVersionManager.browserVersions
             if (versions == null)
+            {
                 Warning.Write(
                     "Unable to get most browser versions, please ensure you have an active internet connection.\n" +
                     $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n"
                 );
+            }
 
             CheckForMultipleInstances();
 
             if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
+            {
                 Win.VerifyRootDrive(args);
+            }
 
             // The user will select the version of python they want to use
             HandlePythonVersionSelection(GetInstallations());
@@ -191,7 +197,8 @@ namespace BrowserAutomationMaster
 
             else if (pArgs.Any(arg => arg.Equals("--version"))) 
             {
-                Warning.Write(
+                Warning.Write
+                (
                     string.Join(NLC, [
                         $"Version: {CurrentVersion}",
                         $"Is Latest: {CurrentVersion == LatestVersion}"
@@ -307,13 +314,19 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("validate", CCIC))
             {
                 if (pArgs.Length != 2)
+                {
                     WriteAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", 1);
-                
-                if (IsValidFile(pArgs[1]))
-                    WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
-                else
-                    WriteAndExit("Selected file has invalid syntax.", 1);
+                }
 
+                if (IsValidFile(pArgs[1]))
+                {
+                    WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
+                }
+
+                else
+                {
+                    WriteAndExit("Selected file has invalid syntax.", 1);
+                }
                 return true;
             }
 
@@ -326,25 +339,34 @@ namespace BrowserAutomationMaster
         {
             if (pArgs.Length > 2)
             {
-                var message =
-                    "Invalid 'backup' command.\n\n" +
-                    "Valid commands:\n" +
-                    "bamm backup # backups to the desktop or $HOME directory." +
-                    "bamm backup path/to/desired/backupFile.zip # Creates a backup file at the specified location.";
-
-                Write(message);
+                Write(
+                    string.Join(NLC, [
+                        "Invalid 'backup' command.",
+                        NLC,
+                        "Valid commands:",
+                        "bamm backup # backups to the desktop or $HOME directory.",
+                        "bamm backup path/to/desired/backupFile.zip # Creates a backup file at the specified location."
+                    ])
+                );
                 ReadKey();
                 return;
             }
 
             if (pArgs.Length == 1)
+            {
                 ArchiveAppDataDirectory();
-                
-            if (pArgs.Length == 2){
-                WriteAndExit(string.Join(NLC, [
-                    "Currently BAMM does not support custom paths for your backup.",
-                    "Please remove the second argument to continue."
-                ]), 1);
+            }
+
+            if (pArgs.Length == 2)
+            {
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        "Currently BAMM does not support custom paths for your backup.",
+                        "Please remove the second argument to continue."
+                    ]), 
+                    status: 1
+                );
                 // ArchiveAppDataDirectory(pArgs[1]); // Re-add this later when restore functionality is improved
 
             }
@@ -366,8 +388,19 @@ namespace BrowserAutomationMaster
         {
             if (pArgs.Length != 2)
             {
-                Write(
-                    "Invalid 'clear' command.\n\nValid commands:\nbamm clear userScripts\nbamm clear compiled\nbamm clear config\n\nPress any key to continue...");
+                Write
+                (
+                    string.Join(NLC, [
+                        "Invalid 'clear' command.",
+                        NLC,
+                        "Valid commands:",
+                        "bamm clear userScripts",
+                        "bamm clear compiled",
+                        "bamm clear config",
+                        NLC,
+                        "Press any key to continue..."
+                    ])
+                );
                 ReadKey();
                 return;
             }
@@ -390,7 +423,9 @@ namespace BrowserAutomationMaster
 
             string input = Input.AskForInput($"Are you sure you want to delete the '{targetDir}' directory? [y/n]:\n");
             if (input.Equals("y", OIC))
+            {
                 DeleteDirectory(dirPath);
+            }
         }
 
         private static async Task<bool> HandleDaemonDownload()
@@ -401,7 +436,9 @@ namespace BrowserAutomationMaster
                 var content = await RequestManager.NetworkClient.Instance.GetStringAsync(GUI_DAEMON_LINK);
 
                 if (content == null)
+                {
                     return WriteErrorAndReturnBool(msg, false);
+                }
 
                 var path = GetGUIDaemonPath();
                 File.WriteAllText(path, content);
@@ -421,35 +458,47 @@ namespace BrowserAutomationMaster
                 bool daemonDownloaded = false; // Prevents the requirement for nesting
 
                 if (File.Exists(GetGUIDaemonPath())) // If the Daemon is already downloaded, continue
+                {
                     daemonDownloaded = true;
+                }
 
                 else // Downloads a local copy of the GUI from ConstantManager.GUI_DAEMON_LINK
+                {
                     daemonDownloaded = await HandleDaemonDownload();
-
+                }
 
                 if (!daemonDownloaded) // If the daemonDownload flag isnt true, execution ends.
+                {
                     return false;
+                }
 
                 if (!File.Exists(GetGUIDaemonPath())) // If the daemon wasn't downloaded, execution ends.
+                {
                     return false;
+                }
 
                 WriteSuccessMessage("Successfully downloaded the GUI Daemon, downloading GUI now..");
                 await Task.Delay(300);
 
                 if (!await DownloadGUI())
+                {
                     return false;
+                }
 
                 WriteSuccessMessage("Successfully downloaded gui.zip from project repository, please wait while it's extracted.");
                 await Task.Delay(300);
 
                 if (!ExtractGUI())
+                {
                     return false;
+                }
 
                 WriteSuccessMessage("Successfully extracted GUI, please wait while the HTTP Server starts..");
             }
             catch (Exception ex)
             {
-                WriteAndExit(
+                WriteAndExit
+                (
                     message:
                         string.Join(
                             string.Empty, [
