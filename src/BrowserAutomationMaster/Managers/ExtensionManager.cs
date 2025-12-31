@@ -9,6 +9,7 @@ using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.RequestManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
 
 
 namespace BrowserAutomationMaster.Managers 
@@ -18,16 +19,55 @@ namespace BrowserAutomationMaster.Managers
     // bamm extension "https://url/to/firefox/extension.xpi"
     // bamm extension "file://path/to/chrome/extension.crx"
     // bamm extension "https://url/to/chrome/extension.crx"
-    
-    public class ExtensionManager(string rawExtensionPath, string browserName)
+    public class ExtensionManager(string rawExtensionPath, string browserName, string[]? args = null)
     {
         public string RawExtensionPath { get; init; }  = rawExtensionPath;
-        public string ExtensionPath { get; init; } = rawExtensionPath.Replace("file://", "");
-        public bool IsLocalFile { get; init; } = rawExtensionPath.StartsWith("file://");
-        public bool IsURL { get; init; } = rawExtensionPath.StartsWith("http://") || rawExtensionPath.StartsWith("https://");
-        public bool IsChromeExtension = rawExtensionPath.StartsWith("https://chromewebstore.google.com/detail/") && browserName.Equals("chrome");
-        public bool IsFirefoxExtension = rawExtensionPath.EndsWith(".xpi") && browserName.Equals("firefox");
+        public string ExtensionPath { get; init; } = SanitizeExtensionPath(rawExtensionPath);
+        public bool IsLocalFile { get; init; } = CheckLocalFileStatus(rawExtensionPath);
+        public bool IsURL { get; init; } = CheckURLStatus(rawExtensionPath);
+        public bool IsChromeExtension = CheckChromeStatus(rawExtensionPath, browserName);
+        public bool IsFirefoxExtension = CheckFirefoxStatus(rawExtensionPath, browserName);
+        public bool IsFirefoxDirectDownload = CheckForDirectFirefoxDownload(rawExtensionPath);
         public byte[]? Content { get; init; }
+        private readonly bool exitOnFail = CheckForExitArgStatus(args);
+
+        private static bool CheckChromeStatus(string rawExtensionPath, string browserName)
+        {
+            return 
+                rawExtensionPath.StartsWith("https://chromewebstore.google.com/detail/") && 
+                browserName.Equals("chrome");
+        }
+
+        private static bool CheckFirefoxStatus(string rawExtensionPath, string browserName) 
+        {
+            return 
+                rawExtensionPath.EndsWith(".xpi") || 
+                rawExtensionPath.StartsWith("https://addons.mozilla.org/en-US/firefox/addon/") && 
+                browserName.Equals("firefox");
+        }
+
+        private static bool CheckForDirectFirefoxDownload(string rawExtensionPath) 
+        {
+            return 
+                rawExtensionPath.StartsWith("https://addons.mozilla.org/firefox/downloads/file/") &&
+                rawExtensionPath.EndsWith(".xpi");
+        }
+
+        private static bool CheckForExitArgStatus(string[]? args) 
+        {
+            return args != null && args.Contains("--exit-on-ext-fail");
+        }
+
+        private static bool CheckURLStatus(string rawExtensionPath) 
+        {
+            return 
+                rawExtensionPath.StartsWith("http://") || 
+                rawExtensionPath.StartsWith("https://");
+        }
+
+        private static bool CheckLocalFileStatus(string rawExtensionPath) => rawExtensionPath.StartsWith("file://");
+
+        private static string SanitizeExtensionPath(string rawExtensionPath) => rawExtensionPath.Replace("file://", "");
 
         public async Task<bool> ExtensionExists() 
         {
@@ -52,7 +92,7 @@ namespace BrowserAutomationMaster.Managers
             return false;
         }
 
-        public async Task<MemoryStream?> GetExtensionContents(bool exitOnFail = false) 
+        public async Task<MemoryStream?> GetExtensionContents() 
         {
             if (!IsURL && !IsLocalFile) 
             {
@@ -72,11 +112,32 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
+            if (!IsChromeExtension && !IsFirefoxExtension) 
+            {
+                WriteAndExit
+                (
+                    
+                    message: string.Join(NLC, [
+                        $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {RawExtensionPath}",
+                        "Error Log:",
+                        "An invalid url was provided.",
+                        "Please ensure the provided url matches one of the following formats, depending on your selected browser:",
+                        NLC,
+                        "- https://chromewebstore.google.com/detail/<extension-name>/<manifest-id>",
+                        "- https://addons.mozilla.org/en-US/firefox/addon/<extension-name>/",
+                        "- https://addons.mozilla.org/firefox/downloads/file/<extension-id>/<extension-name>.xpi"
+                    ]),
+                    status: 1, 
+                    writePlatformDebugInfo: true
+                );
+            }
+
             else if (IsURL) 
             {
                 using var memoryStream = new MemoryStream();
                 byte[] contents = [];
                 
+                // Handles both Chrome and Firefox extensions.
                 contents = await GetHostedExtensionContents();
                 await memoryStream.WriteAsync(contents);
                 
@@ -87,6 +148,7 @@ namespace BrowserAutomationMaster.Managers
             
             else if (IsLocalFile) 
             {
+                // Chrome 137+ doesn't support adding via local file.
                 if (IsChromeExtension) 
                 {
                     WriteAndExit
@@ -116,6 +178,7 @@ namespace BrowserAutomationMaster.Managers
                         return await ValidateXPIContents(dataToValidate, exitOnFail);
                     }
                 }
+
                 catch (Exception ex) 
                 {
                     WriteAndExit
@@ -130,6 +193,7 @@ namespace BrowserAutomationMaster.Managers
                         writePlatformDebugInfo: true
                     );
                 }
+
                 finally 
                 {
                     // Returning the buffer to the pool which allows it to be overwritten.
@@ -139,6 +203,7 @@ namespace BrowserAutomationMaster.Managers
                     }
                 }
             }
+
             return null;
         }
 
@@ -171,25 +236,113 @@ namespace BrowserAutomationMaster.Managers
             byte[] contents = [];
             try 
             {
-                if (IsFirefoxExtension) {
+                if (IsFirefoxExtension && IsFirefoxDirectDownload) 
+                {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
                     contents = await NetworkClient.Instance.GetByteArrayAsync(ExtensionPath, cts.Token);
+                }
+
+                else if (IsFirefoxExtension && !IsFirefoxDirectDownload) 
+                {
+
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                    var htmlMemory = await NetworkClient.GetReadOnlyMemoryCharsFromURL(url: ExtensionPath, exitOnFail: exitOnFail);
+
+                    // // Debugging only do not add to production
+                    // var htmlContents = await RequestManager.NetworkClient.GetReadOnlyMemoryBytesFromURL(ExtensionPath);
+                    // Console.WriteLine(Encoding.UTF8.GetString(htmlContents.ToArray()));
+                    // return [];
+
+                    // The default extraAllocationFactor of 1 is used here, since no extra bytes are overscanned.
+                    GetEnumeratedMatches(htmlMemory, XPIExtensionPathRegexPattern, out byte[] rentedBuffer, out int bytesWritten);
+
+
+                    // This is 100 bytes in length.
+                    // var b64EncodedString = Encoding.UTF8.GetString(rentedBuffer.AsSpan()[..bytesWritten]);
+                    
+                    // This url will be 75-150 bytes.
+                    var downloadURL = Encoding.UTF8.GetString(rentedBuffer.AsSpan());
+            
+                    try 
+                    {   
+                        // Ensuring there were bytes written.
+                        if (bytesWritten == 0) 
+                        {
+                            WriteAndExit(
+                                message: string.Join(NLC, [
+                                    "An exception occured while retrieving the contents of the provided extension.",
+                                    "Error Log:",
+                                    "The returned buffer is empty."
+                                ]),
+                                status: 1
+                            );
+                        }
+
+                        Console.WriteLine("Validating .XPI extension at: {0}", ExtensionPath);
+                        Console.Write(NLC);
+                        Console.WriteLine("Using download URL: {0}", downloadURL);
+                        Console.Write(NLC);
+                        
+
+                        var finalURL = GetXPIDownloadURL(downloadURL.AsSpan());
+
+                        contents = await NetworkClient.Instance.GetByteArrayAsync(
+                            finalURL, 
+                            cts.Token
+                        );
+
+
+                        if (contents.Length == 0) 
+                        {
+                            WriteAndExit(
+                                message: string.Join(NLC, [
+                                    "An exception occured while retrieving the contents of the provided extension.",
+                                    "Error Log:",
+                                    "The response returned an empty stream."
+                                ]),
+                                status: 1
+                            );
+                        }
+
+                        await ValidateXPIContents(contents);
+                    }
+
+                    catch (Exception ex) 
+                    {
+                        WriteAndExit
+                        (
+                                message: string.Join(NLC, [
+                                    "An exception occured while retrieving the contents of the provided extension.",
+                                    "Error Log:",
+                                    ex.Message
+                                ]),
+                                status: 1
+                            );
+                    }
+
+                    finally 
+                    {
+                        // Returning the rented buffer to the pool to prevent a memory bug.
+                        if (rentedBuffer.Length > 0)
+                        {
+                            ArrayPool<byte>.Shared.Return(rentedBuffer);
+                        }
+                    }
                 }
 
                 else if (IsChromeExtension) 
                 {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-                    var htmlMemory = await NetworkClient.GetReadOnlyMemoryCharsFromURL(ExtensionPath);
+                    var htmlMemory = await NetworkClient.GetReadOnlyMemoryCharsFromURL(ExtensionPath, exitOnFail: exitOnFail);
                     
                     // // Debugging only do not add to production
                     // var htmlContents = await RequestManager.NetworkClient.GetReadOnlyMemoryBytesFromURL(ExtensionPath);
                     // Console.WriteLine(Encoding.UTF8.GetString(htmlContents.ToArray()));
                     // return [];
 
-                    GetEnumeratedMatches(htmlMemory, out byte[] rentedBuffer, out int bytesWritten);
+                    // A custom extraAllocationFactor of 3 is used here, since an overscan is present.
+                    GetEnumeratedMatches(htmlMemory, CRXExtensionIDRegexPattern, out byte[] rentedBuffer, out int bytesWritten, extraAllocationFactor: 3);
                     
-                    // This is 100 bytes in length.
-                    // var b64EncodedString = Encoding.UTF8.GetString(rentedBuffer.AsSpan()[..bytesWritten]);
                     
                     // Decoded manifest ID (32 char), roughly 40-50 bytes.
                     var manifestID = DecodeMatch(rentedBuffer);
@@ -243,7 +396,7 @@ namespace BrowserAutomationMaster.Managers
                             );
                         }
 
-                        await ValidateCRXContents(contents, exitOnFail: true);
+                        await ValidateCRXContents(contents);
                     }
 
                     finally 
@@ -287,7 +440,7 @@ namespace BrowserAutomationMaster.Managers
         /// <returns>A MemoryStream containing the bytes of from the file, assuming an exception doesn't occur, or exitOnFail is set to true.</returns>
         /// </summary>
         
-        private async Task<MemoryStream> ValidateCRXContents(ReadOnlyMemory<byte> contents, bool exitOnFail = false) 
+        private async Task<MemoryStream> ValidateCRXContents(ReadOnlyMemory<byte> contents) 
         {
             var memoryStream = new MemoryStream();
 
@@ -301,8 +454,8 @@ namespace BrowserAutomationMaster.Managers
                 // Checking for the presence XPI Magic Numbers
                 if (contents.Span.IndexOf(CRXMagicBytes.Span) >= 0) 
                 {
-                    Console.WriteLine($"Located the documented CRX Magic Numbers.");
-                    Console.Write(NLC);
+                    WriteSuccessMessage($"Located the documented CRX Magic Numbers.", noNewLines: true);
+                    Console.WriteLine(NLC);
                 }
 
                 else if (exitOnFail) 
@@ -332,6 +485,7 @@ namespace BrowserAutomationMaster.Managers
                     if (found) 
                     {
                         LogSuccess(element.Key, element.Value);
+                        Console.Write(NLC);
                     } 
                     
                     else if (exitOnFail) 
@@ -391,13 +545,13 @@ namespace BrowserAutomationMaster.Managers
                 Console.WriteLine("Scanning the provided .XPI file, please wait.");
                 Console.Write(NLC);
 
-                Console.WriteLine("Checking for the presence of the documented XPI Magic Numbers.");
+                Console.WriteLine("Checking for the presence of the documented XPI Magic Numbers..");
 
                 // Checking for the presence XPI Magic Numbers
                 if (contents.Span.IndexOf(XPIMagicBytes.Span) >= 0) 
                 {
-                    Console.WriteLine($"Located the documented XPI Magic Numbers.");
-                    Console.Write(NLC);
+                    WriteSuccessMessage($"Located the documented XPI Magic Numbers.", noNewLines: true);
+                    Console.WriteLine(NLC);
                 }
 
                 else if (exitOnFail) 
@@ -419,7 +573,7 @@ namespace BrowserAutomationMaster.Managers
                 for (int i = 0; i < XPIContentChecks.Count; i++) 
                 {
                     var element = XPIContentChecks.ElementAt(i);
-                    Console.WriteLine($"Scanning for {element.Key}..");
+                    Console.WriteLine($"{NLC}Scanning for {element.Key}..");
                             
                     var found = contents.Span.IndexOf(element.Value.Span) >= 0;
                     var contentLength = element.Value.Span.Length;
@@ -527,28 +681,35 @@ namespace BrowserAutomationMaster.Managers
                 sourceBytes[i].TryFormat(formattedBuffer, out _, "X2");
             }
 
-            Console.Write($"Located the hex sequence for {key} (");
+            WriteSuccessMessage($"Located the hex sequence for {key} (", noNewLines: true);
 
             // Utilizes a direct span write to avoid heap allocation
             Console.Out.Write(hexBuffer);
-            Console.WriteLine($"){NLC}");
+            WriteSuccessMessage($")", noNewLines: true);
+            Console.WriteLine();
         }
 
         // Helper method to bypass the 'ref struct in async' limitation of C# 12
         // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
-        private static void GetEnumeratedMatches(ReadOnlyMemory<char> romContents, out byte[] finalBuffer, out int finalLength)
+        private static void GetEnumeratedMatches(
+            ReadOnlyMemory<char> romContents, 
+            string RegexPattern, 
+            out byte[] finalBuffer, 
+            out int finalLength,
+            int extraAllocationFactor = 1
+        )
         {
             finalBuffer = [];
             finalLength = 0;
 
-            var valueMatches = Regex.EnumerateMatches(romContents.Span, CRXExtensionIDRegexPattern);
+            var valueMatches = Regex.EnumerateMatches(romContents.Span, RegexPattern);
 
             foreach (var match in valueMatches) 
             {
                 var ROM = romContents.Slice(match.Index, match.Length);
                 
                 // UTF8 can be up to 3 bytes per char (when accounting wide-glyphs)
-                byte[] currentBuffer = ArrayPool<byte>.Shared.Rent(ROM.Length * 3);
+                byte[] currentBuffer = ArrayPool<byte>.Shared.Rent(ROM.Length * extraAllocationFactor);
                 
                 try 
                 {
@@ -670,6 +831,25 @@ namespace BrowserAutomationMaster.Managers
             return null; // This wont be executed, purely to appease Rosyln.
         }
     
-    
+        private static string GetXPIDownloadURL(ReadOnlySpan<char> chars)
+        {
+            int lastSlashIndex = chars.LastIndexOf('/');
+            if (lastSlashIndex == -1 || chars.Count('/') != 7)
+            {
+                WriteAndExit(
+                    "",
+                    status: 1
+                );
+            }
+            
+            // Not sure where this overscan comes from but it seems to be a static overscan of 35 bytes starting at chars.Length - 35
+            int emptyByteCount = 35;
+
+            ReadOnlySpan<char> urlPrefix = chars[..lastSlashIndex];
+            ReadOnlySpan<char> attachmentPart = "/type:attachment";
+            ReadOnlySpan<char> urlSuffix = chars[lastSlashIndex..^emptyByteCount];
+
+            return string.Concat(urlPrefix, attachmentPart, urlSuffix);
+        }
     }
 }

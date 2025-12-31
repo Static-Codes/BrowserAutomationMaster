@@ -41,10 +41,10 @@
         public static readonly ReadOnlyMemory<byte> metadataBytes = "_metadata/"u8.ToArray();
         public static readonly ReadOnlyMemory<byte> verifContentsBytes = "_metadata/verified_contents.json"u8.ToArray();
         public static readonly Dictionary<string, ReadOnlyMemory<byte>> CRXContentChecks = new () {
-            { "manifest.json", manJsonBytes },
-            { "Cr24", CRXMagicBytes }, 
-            { "_metadata/", metadataBytes },
-            { "_metadata/verified_contents.json", verifContentsBytes },
+            { "'manifest.json'", manJsonBytes },
+            { "'Cr24'", CRXMagicBytes }, 
+            { "'_metadata/'", metadataBytes },
+            { "'_metadata/verified_contents.json'", verifContentsBytes },
         };
 
     }

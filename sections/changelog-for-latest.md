@@ -10,12 +10,18 @@
   <summary> Click to see direct source changes </summary>
 
 ### General Changes:
+- Added members `CRXExtensionIDRegexPattern` and `XPIExtensionPathRegexPattern` in class `RegexManager` in namespace `BrowserAutomationMaster.Managers`
+
+- Added temporary helper methods to class `ExtensionManager` in namespace `BrowserAutomationMaster.Managers` while BAMM is ported to .NET 10.
+
+- Added new constants for ExtensionManager in class `ConstantManagers` in namespace `BrowserAutomationMaster.Managers`.
 
 </details>
 
 ### New Action Commands:
 
 ### New Feature Command:
+feature "add-extension" "url or path to extension"
 
 ### New CLI Arguments:
 

@@ -250,6 +250,8 @@ namespace BrowserAutomationMaster.Managers
         public static partial Regex PrecompiledRPIRegex();
 
         // Used in Managers.ExtensionManager
+        // public readonly static string XPIExtensionPathRegexPattern = @"(?<=href=[""']?)[^""']+?\.xpi(?=[""']?)";
+        public readonly static string XPIExtensionPathRegexPattern = @"(?<=href=[""' ]?)[^""' >\s]+\.xpi";
         public readonly static string CRXExtensionIDRegexPattern = @"(?<=<main[^>]*jslog=""\d+; metadata:)[^"";]*(?=;""\sjsdata="")";
         // Alloc-free calls do not support capture groups due the cost associated with heap allocation of capture groups.
         // @"(?:<main class=""LDZgRb"" jslog=""171177; metadata:)(.*)(?:;""\sjsdata=""PM4Exd;_;\$1"">)";
