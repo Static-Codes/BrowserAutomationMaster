@@ -1,4 +1,4 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
+using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Diagnostics.CodeAnalysis;
@@ -21,6 +21,7 @@ namespace BrowserAutomationMaster.Managers.Python
         private static MemoryInfo? memoryInfo = null;
 
         private static int? CoreCount = null;
+        public static void SetCoreCount(int count) => CoreCount = count;
 
         private static string[] BuildScriptMenu(List<string> scriptPaths)
         {
