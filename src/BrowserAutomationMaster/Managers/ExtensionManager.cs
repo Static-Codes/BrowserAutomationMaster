@@ -38,7 +38,7 @@ namespace BrowserAutomationMaster.Managers
 
             if (IsURL) 
             {
-                if (await RequestManager.SiteIsPingable(ExtensionPath)) 
+                if (await SiteIsPingable(ExtensionPath)) 
                 {
                     return true;
                 }
@@ -64,7 +64,7 @@ namespace BrowserAutomationMaster.Managers
                 Console.WriteLine("- https://");
                 Console.Write(NLC);
 
-                Errors.WriteAndExit
+                WriteAndExit
                 (
                     message: $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {RawExtensionPath}",
                     status: 1, 
@@ -87,6 +87,19 @@ namespace BrowserAutomationMaster.Managers
             
             else if (IsLocalFile) 
             {
+                if (IsChromeExtension) 
+                {
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {RawExtensionPath}",
+                            "Error Log:",
+                            "Local .CRX Files are not supported as of Chrome 137, please use the chrome web store link for the given extension."
+                        ]),
+                        status: 1, 
+                        writePlatformDebugInfo: true
+                    );
+                }
 
                 byte[]? rentedBuffer = null;
                 try
@@ -99,18 +112,13 @@ namespace BrowserAutomationMaster.Managers
                     // This is done to prevent garbage data from being rented, single ArrayPool always returns more memory than is required.
                     ReadOnlyMemory<byte> dataToValidate = rentedBuffer.AsMemory(0, fileLength);
 
-
-                    if (IsChromeExtension) {
-                        return null;
-                    }
-
                     if (IsFirefoxExtension) {
                         return await ValidateXPIContents(dataToValidate, exitOnFail);
                     }
                 }
                 catch (Exception ex) 
                 {
-                    Errors.WriteAndExit
+                    WriteAndExit
                     (
                         
                         message: string.Join(NLC, [
@@ -178,17 +186,18 @@ namespace BrowserAutomationMaster.Managers
                     // Console.WriteLine(Encoding.UTF8.GetString(htmlContents.ToArray()));
                     // return [];
 
-                    GetEnumeratedMatches(htmlMemory, out byte[] rentedBuffer, out int length);
+                    GetEnumeratedMatches(htmlMemory, out byte[] rentedBuffer, out int bytesWritten);
                     
                     // This is 100 bytes in length.
-                    // var b64EncodedString = Encoding.UTF8.GetString(rentedBuffer.AsSpan()[..length]);
+                    // var b64EncodedString = Encoding.UTF8.GetString(rentedBuffer.AsSpan()[..bytesWritten]);
                     
                     // Decoded manifest ID (32 char), roughly 40-50 bytes.
                     var manifestID = DecodeMatch(rentedBuffer);
             
                     try 
                     {   
-                        if (length == 0) 
+                        // Ensuring there were bytes written.
+                        if (bytesWritten == 0) 
                         {
                             WriteAndExit(
                                 message: string.Join(NLC, [
@@ -204,11 +213,12 @@ namespace BrowserAutomationMaster.Managers
 
 
                         string downloadUrl = BuildDownloadUrl(manifestID, versionID);
-                        Console.WriteLine("Validating .CRX extension at: {0}", downloadUrl);
-                        
-                        var userAgent = $"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{versionID} Safari/537.36";
+                        Console.WriteLine("Validating .CRX extension at: {0}", ExtensionPath);
+                        Console.Write(NLC);
+                        Console.WriteLine("Using download URL: {0}", downloadUrl);
+                        Console.Write(NLC);
 
-                        Console.WriteLine(userAgent);
+                        var userAgent = $"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{versionID} Safari/537.36";
 
                         // Removing the default User Agent, it will be readded below.
                         NetworkClient.Instance.DefaultRequestHeaders.Remove("User-Agent");
@@ -221,7 +231,19 @@ namespace BrowserAutomationMaster.Managers
                         NetworkClient.Instance.DefaultRequestHeaders.Remove("User-Agent");
                         NetworkClient.Instance.DefaultRequestHeaders.Add("User-Agent", DefaultUserAgent);
 
-                        Console.WriteLine(contents.Length);
+                        if (contents.Length == 0) 
+                        {
+                            WriteAndExit(
+                                message: string.Join(NLC, [
+                                    "An exception occured while retrieving the contents of the provided extension.",
+                                    "Error Log:",
+                                    "The response returned an empty stream."
+                                ]),
+                                status: 1
+                            );
+                        }
+
+                        await ValidateCRXContents(contents, exitOnFail: true);
                     }
 
                     finally 
@@ -265,43 +287,43 @@ namespace BrowserAutomationMaster.Managers
         /// <returns>A MemoryStream containing the bytes of from the file, assuming an exception doesn't occur, or exitOnFail is set to true.</returns>
         /// </summary>
         
-        private async Task<MemoryStream> ValidateXPIContents(ReadOnlyMemory<byte> contents, bool exitOnFail = false) 
+        private async Task<MemoryStream> ValidateCRXContents(ReadOnlyMemory<byte> contents, bool exitOnFail = false) 
         {
             var memoryStream = new MemoryStream();
 
             try 
             {
-                Console.WriteLine("Scanning the provided .XPI file, please wait.");
+                Console.WriteLine("Scanning the provided .CRX file, please wait.");
                 Console.Write(NLC);
 
-                Console.WriteLine("Checking for the presence of the documented XPI Magic Numbers");
-                Console.Write(NLC);
+                Console.WriteLine("Checking for the presence of the documented CRX Magic Numbers.");
 
                 // Checking for the presence XPI Magic Numbers
-                if (contents.Span.IndexOf(XPIMagicBytes.Span) >= 0) 
+                if (contents.Span.IndexOf(CRXMagicBytes.Span) >= 0) 
                 {
-                    Console.WriteLine($"Located the documented XPI Magic Numbers.");
+                    Console.WriteLine($"Located the documented CRX Magic Numbers.");
+                    Console.Write(NLC);
                 }
 
                 else if (exitOnFail) 
                 {
-                    Errors.WriteAndExit
+                    WriteAndExit
                     (
-                        "Failed to locate the documented XPI Magic Numbers on the provided .XPI file.",
+                        "Failed to locate the documented CRX Magic Numbers on the provided .CRX file.",
                         status: 1
                     );
                 } 
                 
                 else 
                 {
-                    Warning.Write("Failed to locate the documented XPI Magic Numbers on the provided .XPI file.");
+                    Warning.Write("Failed to locate the documented CRX Magic Numbers on the provided .CRX file.");
                     Console.WriteLine($"By default, BAMM does not exit on a failed extension check.{NLC}");
                     Console.WriteLine($"To change this behavior, please pass --exit-on-ext-fail");
                 }
 
-                for (int i = 0; i < contentChecks.Count; i++) 
+                for (int i = 0; i < CRXContentChecks.Count; i++) 
                 {
-                    var element = contentChecks.ElementAt(i);
+                    var element = CRXContentChecks.ElementAt(i);
                     Console.WriteLine($"Scanning for {element.Key}..");
                             
                     var found = contents.Span.IndexOf(element.Value.Span) >= 0;
@@ -314,7 +336,7 @@ namespace BrowserAutomationMaster.Managers
                     
                     else if (exitOnFail) 
                     {
-                        Errors.WriteAndExit
+                        WriteAndExit
                         (
                             message: $"Unable to locate the hex sequence for {element.Key}{NLC}", 
                             status: 1,
@@ -338,10 +360,105 @@ namespace BrowserAutomationMaster.Managers
 
             catch (Exception ex) 
             {
-                Errors.WriteAndExit
+                WriteAndExit
                 (
                     message: string.Join(NLC, [
-                        $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {RawExtensionPath}",
+                        $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {ExtensionPath}",
+                        "Error Log:",
+                        ex.Message
+                    ]),
+                    status: 1
+                );
+            }
+            return null;
+        }
+
+
+        /// <summary>
+        /// <param name="contents"> The ReadOnlyMemory<byte> containing the contents from this.ExtensionPath, created in GetExtensionContents</param>
+        ///
+        /// <param name="exitOnFail"> A boolean determining if the application should exit if the validation fails </param>
+        ///
+        /// <returns>A MemoryStream containing the bytes of from the file, assuming an exception doesn't occur, or exitOnFail is set to true.</returns>
+        /// </summary>
+        
+        private async Task<MemoryStream> ValidateXPIContents(ReadOnlyMemory<byte> contents, bool exitOnFail = false) 
+        {
+            var memoryStream = new MemoryStream();
+
+            try 
+            {
+                Console.WriteLine("Scanning the provided .XPI file, please wait.");
+                Console.Write(NLC);
+
+                Console.WriteLine("Checking for the presence of the documented XPI Magic Numbers.");
+
+                // Checking for the presence XPI Magic Numbers
+                if (contents.Span.IndexOf(XPIMagicBytes.Span) >= 0) 
+                {
+                    Console.WriteLine($"Located the documented XPI Magic Numbers.");
+                    Console.Write(NLC);
+                }
+
+                else if (exitOnFail) 
+                {
+                    WriteAndExit
+                    (
+                        "Failed to locate the documented XPI Magic Numbers on the provided .XPI file.",
+                        status: 1
+                    );
+                } 
+                
+                else 
+                {
+                    Warning.Write("Failed to locate the documented XPI Magic Numbers on the provided .XPI file.");
+                    Console.WriteLine($"By default, BAMM does not exit on a failed extension check.{NLC}");
+                    Console.WriteLine($"To change this behavior, please pass --exit-on-ext-fail");
+                }
+
+                for (int i = 0; i < XPIContentChecks.Count; i++) 
+                {
+                    var element = XPIContentChecks.ElementAt(i);
+                    Console.WriteLine($"Scanning for {element.Key}..");
+                            
+                    var found = contents.Span.IndexOf(element.Value.Span) >= 0;
+                    var contentLength = element.Value.Span.Length;
+
+                    if (found) 
+                    {
+                        LogSuccess(element.Key, element.Value);
+                    } 
+                    
+                    else if (exitOnFail) 
+                    {
+                        WriteAndExit
+                        (
+                            message: $"Unable to locate the hex sequence for {element.Key}{NLC}", 
+                            status: 1,
+                            writePlatformDebugInfo: false
+                        );
+                    } 
+                    
+                    else 
+                    {
+                        Warning.Write($"Unable to locate the hex sequence for {element.Key}{NLC}");
+                    }
+                }
+
+                await memoryStream.WriteAsync(contents);
+
+                // Resetting the stream position to prevent incorrect data from being read.
+                memoryStream.Position = 0;
+                
+                return memoryStream;
+            }
+
+            catch (Exception ex) 
+            {
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {ExtensionPath}",
                         "Error Log:",
                         ex.Message
                     ]),
