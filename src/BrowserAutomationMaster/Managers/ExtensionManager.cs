@@ -132,6 +132,20 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
+            if (!await ExtensionExists()) 
+            {
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        $"BAM Manager (BAMM) ran into a fatal error, while attempt to fetch the contents of the extension at: {RawExtensionPath}",
+                        "Error Log:",
+                        "The provided extension could not be found.",
+                    ]),
+                    status: 1, 
+                    writePlatformDebugInfo: true
+                );
+            }
+
             else if (IsURL) 
             {
                 using var memoryStream = new MemoryStream();
@@ -163,16 +177,15 @@ namespace BrowserAutomationMaster.Managers
                     );
                 }
 
-                byte[]? rentedBuffer = null;
+                // Retrieving contents from a local Firefox Extension.
                 try
                 {
-                    // This is currently unmanaged memory, please ensure it's properly disposed.
-                    GetRentedBytesFromFile(out int fileLength, out rentedBuffer);
+                    var finalBuffer = File.ReadAllBytes(ExtensionPath);
 
                     // According to .NET Documentation on byte[].AsMemory(start, length)
                     // It creates a new memory region over the portion of the target array beginning at a specified position with a specified length.
                     // This is done to prevent garbage data from being rented, single ArrayPool always returns more memory than is required.
-                    ReadOnlyMemory<byte> dataToValidate = rentedBuffer.AsMemory(0, fileLength);
+                    ReadOnlyMemory<byte> dataToValidate = finalBuffer.AsMemory();
 
                     if (IsFirefoxExtension) {
                         return await ValidateXPIContents(dataToValidate, exitOnFail);
@@ -193,55 +206,30 @@ namespace BrowserAutomationMaster.Managers
                         writePlatformDebugInfo: true
                     );
                 }
-
-                finally 
-                {
-                    // Returning the buffer to the pool which allows it to be overwritten.
-                    if (rentedBuffer != null) 
-                    {
-                        ArrayPool<byte>.Shared.Return(rentedBuffer);
-                    }
-                }
             }
 
             return null;
         }
 
-        // Normally File.ReadAllBytes() would suffice however, due to the existence of larger extensions, the efficiency gains caused by using Referne
-        private void GetRentedBytesFromFile(out int fileLength, out byte[] buffer) 
+        private static string BuildDownloadUrl(string manifestID, string versionID) 
         {
-            var fileInfo = new FileInfo(ExtensionPath);
-            int length = (int)fileInfo.Length;
-            fileLength = length;
-
-            buffer = ArrayPool<byte>.Shared.Rent(length);
-
-            try 
-            {
-                using var fs = fileInfo.OpenRead();
-                fs.ReadExactly(buffer, 0, length);
-                // THIS IS CURRENTLY UNMANAGED MEMORY, PLEASE ENSURE THE CALLER DISPOSES OF IT PROPERLY!!!!!
-            } 
-            catch (Exception ex) 
-            {
-                Console.WriteLine(ex.Message);
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            return $"https://clients2.google.com/service/update2/crx?response=redirect&prodversion={versionID}&acceptformat=crx2,crx3&x=id%3D{manifestID}%26uc";
         }
-        
-        static string BuildDownloadUrl(string manifestID, string versionID) => $"https://clients2.google.com/service/update2/crx?response=redirect&prodversion={versionID}&acceptformat=crx2,crx3&x=id%3D{manifestID}%26uc";
             
         private async Task<byte[]> GetHostedExtensionContents()
         {
             byte[] contents = [];
             try 
             {
+                # region "Direct Firefox Extension Download"
                 if (IsFirefoxExtension && IsFirefoxDirectDownload) 
                 {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
                     contents = await NetworkClient.Instance.GetByteArrayAsync(ExtensionPath, cts.Token);
                 }
+                # endregion "Direct Firefox Extension Download"
 
+                # region "Indirect Firefox Extension Download"
                 else if (IsFirefoxExtension && !IsFirefoxDirectDownload) 
                 {
 
@@ -253,15 +241,10 @@ namespace BrowserAutomationMaster.Managers
                     // Console.WriteLine(Encoding.UTF8.GetString(htmlContents.ToArray()));
                     // return [];
 
-                    // The default extraAllocationFactor of 1 is used here, since no extra bytes are overscanned.
-                    GetEnumeratedMatches(htmlMemory, XPIExtensionPathRegexPattern, out byte[] rentedBuffer, out int bytesWritten);
-
-
-                    // This is 100 bytes in length.
-                    // var b64EncodedString = Encoding.UTF8.GetString(rentedBuffer.AsSpan()[..bytesWritten]);
+                    Helpers.GetFirstRegexMatch(htmlMemory, XPIExtensionPathRegexPattern, out byte[] finalBuffer, out int bytesWritten);
                     
                     // This url will be 75-150 bytes.
-                    var downloadURL = Encoding.UTF8.GetString(rentedBuffer.AsSpan());
+                    var downloadURL = Encoding.UTF8.GetString(finalBuffer);
             
                     try 
                     {   
@@ -283,8 +266,8 @@ namespace BrowserAutomationMaster.Managers
                         Console.WriteLine("Using download URL: {0}", downloadURL);
                         Console.Write(NLC);
                         
-
-                        var finalURL = GetXPIDownloadURL(downloadURL.AsSpan());
+                        
+                        var finalURL = Helpers.GetXPIDownloadURL(downloadURL.AsSpan());
 
                         contents = await NetworkClient.Instance.GetByteArrayAsync(
                             finalURL, 
@@ -311,25 +294,18 @@ namespace BrowserAutomationMaster.Managers
                     {
                         WriteAndExit
                         (
-                                message: string.Join(NLC, [
-                                    "An exception occured while retrieving the contents of the provided extension.",
-                                    "Error Log:",
-                                    ex.Message
-                                ]),
-                                status: 1
-                            );
-                    }
-
-                    finally 
-                    {
-                        // Returning the rented buffer to the pool to prevent a memory bug.
-                        if (rentedBuffer.Length > 0)
-                        {
-                            ArrayPool<byte>.Shared.Return(rentedBuffer);
-                        }
+                            message: string.Join(NLC, [
+                                "An exception occured while retrieving the contents of the provided extension.",
+                                "Error Log:",
+                                ex.Message
+                            ]),
+                            status: 1
+                        );
                     }
                 }
+                # endregion "Indirect Firefox Extension Download"
 
+                # region "Direct Chrome Extension Download"
                 else if (IsChromeExtension) 
                 {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
@@ -340,12 +316,10 @@ namespace BrowserAutomationMaster.Managers
                     // Console.WriteLine(Encoding.UTF8.GetString(htmlContents.ToArray()));
                     // return [];
 
-                    // A custom extraAllocationFactor of 3 is used here, since an overscan is present.
-                    GetEnumeratedMatches(htmlMemory, CRXExtensionIDRegexPattern, out byte[] rentedBuffer, out int bytesWritten, extraAllocationFactor: 3);
+                    Helpers.GetFirstRegexMatch(htmlMemory, CRXExtensionIDRegexPattern, out byte[] finalBuffer, out int bytesWritten);
                     
-                    
-                    // Decoded manifest ID (32 char), roughly 40-50 bytes.
-                    var manifestID = DecodeMatch(rentedBuffer);
+                    // Decoded manifest ID (32 bytes).
+                    var manifestID = Helpers.DecodeMatch(finalBuffer);
             
                     try 
                     {   
@@ -362,10 +336,10 @@ namespace BrowserAutomationMaster.Managers
                             );
                         }
 
-                        var versionID = await GetLatestChromeVersion();
-
+                        var versionID = await Helpers.GetLatestChromeVersion();
 
                         string downloadUrl = BuildDownloadUrl(manifestID, versionID);
+
                         Console.WriteLine("Validating .CRX extension at: {0}", ExtensionPath);
                         Console.Write(NLC);
                         Console.WriteLine("Using download URL: {0}", downloadUrl);
@@ -377,7 +351,7 @@ namespace BrowserAutomationMaster.Managers
                         NetworkClient.Instance.DefaultRequestHeaders.Remove("User-Agent");
                         NetworkClient.Instance.DefaultRequestHeaders.Add("User-Agent", userAgent);
 
-                        // Retrieving the contents.
+                        // Retrieving the contents using the generated userAgent above.
                         contents = await NetworkClient.Instance.GetByteArrayAsync(downloadUrl, cts.Token);
 
                         // Readding the default User Agent, it will be readded below.
@@ -399,17 +373,21 @@ namespace BrowserAutomationMaster.Managers
                         await ValidateCRXContents(contents);
                     }
 
-                    finally 
+                    catch (Exception ex) 
                     {
-                        // Returning the rented buffer to the pool to prevent a memory bug.
-                        if (rentedBuffer.Length > 0)
-                        {
-                            ArrayPool<byte>.Shared.Return(rentedBuffer);
-                        }
+                        WriteAndExit
+                        (
+                            message: string.Join(NLC, [
+                                "An exception occured while retrieving the contents of the provided extension.",
+                                "Error Log:",
+                                ex.Message
+                            ]),
+                            status: 1
+                        );
                     }
-                
                 }
-                
+                # endregion "Direct Chrome Extension Download"
+
                 if (contents == null) {
                     return [];
                 }
@@ -484,7 +462,7 @@ namespace BrowserAutomationMaster.Managers
 
                     if (found) 
                     {
-                        LogSuccess(element.Key, element.Value);
+                        Helpers.LogSuccess(element.Key, element.Value);
                         Console.Write(NLC);
                     } 
                     
@@ -551,7 +529,7 @@ namespace BrowserAutomationMaster.Managers
                 if (contents.Span.IndexOf(XPIMagicBytes.Span) >= 0) 
                 {
                     WriteSuccessMessage($"Located the documented XPI Magic Numbers.", noNewLines: true);
-                    Console.WriteLine(NLC);
+                    Console.Write(NLC);
                 }
 
                 else if (exitOnFail) 
@@ -580,7 +558,7 @@ namespace BrowserAutomationMaster.Managers
 
                     if (found) 
                     {
-                        LogSuccess(element.Key, element.Value);
+                        Helpers.LogSuccess(element.Key, element.Value);
                     } 
                     
                     else if (exitOnFail) 
@@ -622,18 +600,20 @@ namespace BrowserAutomationMaster.Managers
             return null;
         }
 
+    }
+    public class Helpers() 
+    {
         // Helper method to bypass the 'ref struct in async' limitation of C# 12
         // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
-        private static async Task<string> GetLatestChromeVersion() 
+        internal static async Task<string> GetLatestChromeVersion() 
         {
             var jsonData = await NetworkClient.GetReadOnlyMemoryBytesFromURL(CHROME_VERSION_URL, timeout: 5);
-            
+                
             void ReadJsonData(out string version) 
             {
                 version = string.Empty;
-
                 var reader = new Utf8JsonReader(jsonData.Span);
-                
+                    
                 try 
                 {
                     while (reader.Read())
@@ -663,10 +643,11 @@ namespace BrowserAutomationMaster.Managers
             ReadJsonData(out string latestChromeVersion);
             return latestChromeVersion;
         }
-        
+            
+            
         // Helper method to bypass the 'ref struct in async' limitation of C# 12
-        // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
-        private void LogSuccess(string key, ReadOnlyMemory<byte> value)
+            // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
+        internal static void LogSuccess(string key, ReadOnlyMemory<byte> value)
         {
             int charCount = value.Length * 2;
 
@@ -689,15 +670,10 @@ namespace BrowserAutomationMaster.Managers
             Console.WriteLine();
         }
 
+          
         // Helper method to bypass the 'ref struct in async' limitation of C# 12
-        // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
-        private static void GetEnumeratedMatches(
-            ReadOnlyMemory<char> romContents, 
-            string RegexPattern, 
-            out byte[] finalBuffer, 
-            out int finalLength,
-            int extraAllocationFactor = 1
-        )
+            // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
+        internal static void GetFirstRegexMatch(ReadOnlyMemory<char> romContents, string RegexPattern, out byte[] finalBuffer, out int finalLength)
         {
             finalBuffer = [];
             finalLength = 0;
@@ -707,33 +683,39 @@ namespace BrowserAutomationMaster.Managers
             foreach (var match in valueMatches) 
             {
                 var ROM = romContents.Slice(match.Index, match.Length);
-                
-                // UTF8 can be up to 3 bytes per char (when accounting wide-glyphs)
-                byte[] currentBuffer = ArrayPool<byte>.Shared.Rent(ROM.Length * extraAllocationFactor);
-                
-                try 
-                {
-                    if (Utf8.TryWrite(currentBuffer, $"{ROM.Span}", out int written)) 
-                    {
-                        finalBuffer = currentBuffer;
-                        finalLength = written;
-                        return; // Caller now has ownership of the references above.
-                    }
-                } 
-                catch (Exception ex) 
-                {
-                    Console.WriteLine(ex.Message);
-                }
 
-                // If this is condition is executed, the current attempt to rent was unsuccessful.
-                // As such the currentBuffer must be returned to prevent a NullReferenceException.
-                ArrayPool<byte>.Shared.Return(currentBuffer);
+                finalBuffer = Encoding.UTF8.GetBytes(ROM.ToArray());
+                finalLength = finalBuffer.Length;
+                return;
+
+                // var rentalSize = ROM.Length * extraAllocationFactor;
+                
+                // // UTF8 can be up to 3 bytes per char (when accounting wide-glyphs)
+                // byte[] currentBuffer = ArrayPool<byte>.Shared.Rent(rentalSize);
+                
+                // try 
+                // {
+                //     if (Utf8.TryWrite(currentBuffer.AsSpan()[..rentalSize], $"{ROM.Span}", out int written)) 
+                //     {
+                        
+                //         finalLength = written;
+                //         return; // Caller now has ownership of the references above.
+                //     }
+                // } 
+                // catch (Exception ex) 
+                // {
+                //     Console.WriteLine(ex.Message);
+                // }
+
+                // // If this is condition is executed, the current attempt to rent was unsuccessful.
+                // // As such the currentBuffer must be returned to prevent a NullReferenceException.
+                // ArrayPool<byte>.Shared.Return(currentBuffer);
             }
         }
 
         // Helper method to bypass the 'ref struct in async' limitation of C# 12
         // This will be removed when BAMM is ported to .NET 10 (C# 13). (Once its stable on Ubuntu)
-        private static string DecodeMatch(byte[] rentedBuffer)
+        internal static string DecodeMatch(byte[] rentedBuffer)
         {
             int manifestStartIndex = 4;
             
@@ -831,7 +813,7 @@ namespace BrowserAutomationMaster.Managers
             return null; // This wont be executed, purely to appease Rosyln.
         }
     
-        private static string GetXPIDownloadURL(ReadOnlySpan<char> chars)
+        internal static string GetXPIDownloadURL(ReadOnlySpan<char> chars)
         {
             int lastSlashIndex = chars.LastIndexOf('/');
             if (lastSlashIndex == -1 || chars.Count('/') != 7)
