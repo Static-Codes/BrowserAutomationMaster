@@ -260,6 +260,7 @@ namespace BrowserAutomationMaster.Managers
             }
         }
     
+        public static string GetExtensionsDirectory() { return Path.Combine(AppDataDirectory, "extensions"); }    
         public static string GetGUIDaemonPath() 
         { 
             return Path.Combine(AppDataDirectory, "guiDaemon.py"); 
@@ -297,7 +298,6 @@ namespace BrowserAutomationMaster.Managers
                 return Path.Combine(GetGUIDirectoryPath(), "index.html");
             }
         }
-
 
         public static string GetGUIZipPath() 
         { 
@@ -438,6 +438,7 @@ namespace BrowserAutomationMaster.Managers
             }
             
         }
+        
         public static void RestoreFromBackup(string compression = "zip", string? backupFile = null, bool overwriteConfirmed = false)
         {
             if (compression is not "zip") {
