@@ -33,7 +33,6 @@ namespace BrowserAutomationMaster.Compilation
         private readonly static string requirementsFileName = "requirements.txt";
         private static string projectDirectory = "";
 
-
         private static string pythonScriptFileName = "";  // Modified by SetScriptName();
 
         private static string pythonVersion = "3.9"; // Used in VEnvManager.InstallGlobalPackages
@@ -41,9 +40,7 @@ namespace BrowserAutomationMaster.Compilation
         // Default value if inhouse function fails.
         private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
 
-
         private readonly static string[] browserlessActions = ["save-as-html", "wait-for-seconds"];
-
 
         // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
         private static bool noBrowsersFound = false;
@@ -70,7 +67,6 @@ namespace BrowserAutomationMaster.Compilation
                 // Checks if this function was executed as a result of the "compile" argument being passed.
                 // If so, an empty string is returned, otherwise a null value is passed.
                 // If a null value is passed, it signals for BAMM to request the project name.
-                Console.WriteLine(args.Length);
                 var customName = args.Any(arg => arg.Equals("compile", OIC)) ? string.Empty : null;
 
                 // Found it's more reliable to reset the state when a new Transpiler object is created.
@@ -86,7 +82,7 @@ namespace BrowserAutomationMaster.Compilation
 
                 await AddBrowserImportsAndRequirements(bamConfig);
 
-                HandleCompilation(filePath, args, bamConfig);
+                await HandleCompilation(filePath, args, bamConfig);
 
                 WritePythonFile();
 
@@ -443,13 +439,15 @@ namespace BrowserAutomationMaster.Compilation
             {
                 var potentialUA = await UserAgentManager.GetUserAgent(config.selectedBrowser);
                 if (potentialUA == null)
+                {
                     WriteErrorAndReturnNull("Unable to select custom user agent, please try again");
+                }
 
                 requestUserAgent = potentialUA!; // null check is done above.
             }
         }
         
-        private static void HandleCompilation(string fileName, string[] args, BAMConfig config)
+        private static async Task HandleCompilation(string fileName, string[] args, BAMConfig config)
         {
             SetCustomUserAgent(args);
             SetTimeout(args);
@@ -458,7 +456,6 @@ namespace BrowserAutomationMaster.Compilation
             HandleDisabling(config);
 
             int lineNumber = 1;
-            bool hasComment = false;
 
             // Prevents duplicate entries of MakeRequestFunction();
             bool firstVisitFinished = false;
@@ -484,15 +481,15 @@ namespace BrowserAutomationMaster.Compilation
                 string line = originalLine;
 
                 if (string.IsNullOrEmpty(line)) // Skip blank lines.
+                {
                     continue;
+                }
 
                 // Indicates a comment is present (ignores comments within JS blocks)
-                if (line.Contains(" // ") && !isJSBlock)
-                    hasComment = true;
-
-                // Deletes said comment so it's not compiled.
-                if (hasComment)
-                    line = Parser.DeleteCommentIfPresent(line);
+                if (line.StartsWith("// ") && !isJSBlock)
+                {
+                    continue;
+                }
 
                 // Handling 'add-headers' before 'visit' is processed would be an issue if it weren't for Parser
                 // Parser ensures 'browser' first (or defaults to firefox) then features and finally any other logic.
@@ -503,24 +500,28 @@ namespace BrowserAutomationMaster.Compilation
                     string requestLine = script.Body.GetMakeRequestLine();
 
                     if (string.IsNullOrEmpty(requestLine))
-                        WriteAndExit(
+                    {
+                        WriteAndExit
+                        (
                             message:
                                 "Unable to locate request logic in partially compiled script, " +
                                 "please attempt recompilation.",
                             status: 1
                         );
-                    
+                    }
 
                     int index = script.Body.scriptLines.IndexOf(requestLine);
 
                     if (index == -1)
-                        WriteAndExit(
+                    {
+                        WriteAndExit
+                        (
                             message:
                                 "BAM Manager (BAMM) was unable to locate request logic in partially compiled script, " +
                                 "please attempt recompilation.",
                             status: 1
                         );
-
+                    }
 
                     // Value is assumed to be correct,
                     // but will very much cause an issue if the regex is found to not be fully reliable.
@@ -539,13 +540,19 @@ namespace BrowserAutomationMaster.Compilation
 
 
                 if (line.StartsWith("click-exp "))
+                {
                     isCE = true;
+                }
 
                 else if (line.StartsWith("fill-text"))  // Also handles fill-text-exp
+                {
                     isFT = true;
+                }
 
                 else if (line.StartsWith("set-custom-useragent"))
+                {
                     isCU = true;
+                }
 
                 else if (line.StartsWith("start-javascript"))
                 {
@@ -554,27 +561,35 @@ namespace BrowserAutomationMaster.Compilation
                 }
 
                 else if (line.StartsWith("end-javascript"))
+                {
                     isJSBlock = false;
-
+                }
 
                 string[] splitLine;
 
                 // This handles fill-text or set-custom-useragent
                 if (isFT || isCU)
+                {
                     splitLine = line.Split(" \"");
+                }
 
                 // This handles all but click-exp, fill-text, and set-custom-user-agent
                 else if (!isCE)
+                {
                     splitLine = line.Split(" ");
+                }
 
                 // This handles click-exp
                 else
+                {
                     splitLine = line.Split(" '");
+                }
 
                 // Prevents the length check below from returning an error for javascript code blocks.
                 if (isJSBlock)
+                {
                     isJSLine = true;
-
+                }
 
                 int[] validLengths = [2, 3];
 
@@ -586,10 +601,14 @@ namespace BrowserAutomationMaster.Compilation
                 bool specialLengthBypass = specialCommands.Any(cmd => line.Replace('"', ' ').Trim().StartsWith(cmd));
 
                 if (specialLengthBypass)
+                {
                     continue;
+                }
 
                 if (normalLengthBypass)
-                    WriteAndExit(
+                {
+                    WriteAndExit
+                    (
                         message:
                             GenerateErrorMessage(
                                 fileName,
@@ -599,11 +618,13 @@ namespace BrowserAutomationMaster.Compilation
                             ),
                         status: 1
                     );
-
+                }
 
                 // Handle case where user attempts to create another jsBlock before closing the previous one.
                 if (isJSBlock && line.StartsWith("start-javascript"))
-                    WriteAndExit(
+                {
+                    WriteAndExit
+                    (
                         message:
                             GenerateErrorMessage(
                                 fileName,
@@ -614,7 +635,7 @@ namespace BrowserAutomationMaster.Compilation
                             ),
                         status: 1
                     );
-
+                }
 
                 // Add prevalidated line content to the jsBlock.
                 else if (isJSBlock)
@@ -630,16 +651,21 @@ namespace BrowserAutomationMaster.Compilation
                     PreprocessJSCodeBlock(jsBlockContent);
 
                     if (!JavaScript.IsValidSyntax(jsBlockContent, out string? error))
-                        WriteAndExit(
+                    {
+                        WriteAndExit
+                        (
                             message:
-                                GenerateErrorMessage(
+                                GenerateErrorMessage
+                                (
                                     fileName,
                                     line,
                                     lineNumber + 1,
                                     $"Invalid javascript code block:\n\nParser Error:\n\n" +
-                                    $"{error}"),
+                                    $"{error}"
+                                ),
                             status: 1
                         );
+                    }
 
                     script.Body.AddLine($"driver.execute_script('''{jsBlockContent}''')\n");
 
@@ -653,29 +679,29 @@ namespace BrowserAutomationMaster.Compilation
                 bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
 
                 if (!canRunBrowserless && noBrowsersFound)
-                    WriteAndExit(
-                        message:
-                            GenerateErrorMessage(
-                                fileName,
-                                line,
-                                lineNumber,
-                                "No valid browser installations found, please install chrome or firefox."
-                            ),
-                            status: 1
+                {
+                    WriteAndExit
+                    (
+                        message: GenerateErrorMessage(fileName, line, lineNumber, "No valid browser installations found, please install chrome or firefox."),
+                        status: 1
                     );
+                }
 
                 string sanitizedArg2;
-                if (!isCE)
+                
+                if (!isCE) {
                     sanitizedArg2 = splitLine[1].Replace('"', ' ').Trim();
-
-                else
+                } else {
                     sanitizedArg2 = splitLine[1].Replace('\'', ' ').Replace('"', ' ').Trim();
+                }
 
                 string sanitizedArg3 = string.Empty;
 
                 // The parser ensures no invalid lines can be provided to the compiler :)
                 if (splitLine.Length >= 3)
+                {
                     sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim();
+                }
 
                 switch (firstArg)
                 {
@@ -836,14 +862,15 @@ namespace BrowserAutomationMaster.Compilation
                         break;
 
 
-                    case "visit" when CompilationHandler.Visit(
+                    case "visit" when await CompilationHandler.Visit(
                         script.Body.scriptLines,
                         [.. config.featureLines],
                         sanitizedArg2,
                         config.selectedBrowser,
                         firstVisitFinished,
                         config.disableSSL,
-                        config.runHeadless) is (false, var eMessage):
+                        config.runHeadless,
+                        config.Extensions) is (false, var eMessage):
 
                         WriteAndExit(
                           message: GenerateErrorMessage(fileName, line, lineNumber, eMessage),
@@ -1266,9 +1293,12 @@ namespace BrowserAutomationMaster.Compilation
         private static void SetBAMConfig(string filePath)
         {
             if (bamConfig != null)
+            {
                 bamConfig = null;
+            }
 
             bamConfig = new BAMConfig(filePath);
+            bamConfig.CheckConfigLines();
         }
         
         private static void SetScriptName(string filePath)
