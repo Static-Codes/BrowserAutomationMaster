@@ -12,9 +12,21 @@
 ### General Changes:
 - Added members `CRXExtensionIDRegexPattern` and `XPIExtensionPathRegexPattern` in class `RegexManager` in namespace `BrowserAutomationMaster.Managers`
 
+- Added member `Extensions` to class `BAMConfig` in namespace `BrowserAutomationMaster.Compilation`
+
+- Added parameter `Extensions` to function `Visit` in class `CompilationHandler` in namespace `BrowserAutomationMaster.Compilation`
+
 - Added temporary helper methods to class `ExtensionManager` in namespace `BrowserAutomationMaster.Managers` while BAMM is ported to .NET 10.
 
+- Added new class `ExtensionManager` in namespace `BrowserAutomationMaster.Managers` responsible for parsing, download, validating, and adding the extension's contents to the current Selenium instance.
+
+- Added new function `GetExtensionsDirectory` in class `DirectoryManager` in namespace `BrowserAutomationMaster.Managers`
+
 - Added new constants for ExtensionManager in class `ConstantManagers` in namespace `BrowserAutomationMaster.Managers`.
+
+- Fixed bug in class `Transpiler` in namespace `BrowserAutomationMaster.Compilation`, now `BAMConfig.CheckConfigLines()` is called in `Transpiler.SetBAMConfig()`.
+
+- Removed member `hasComment` in class `Transpiler` in namespace `BrowserAutomationMaster.Compilation`, now comments are ignored during compilation.
 
 </details>
 
