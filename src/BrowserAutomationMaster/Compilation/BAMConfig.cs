@@ -1,4 +1,5 @@
-﻿using BrowserAutomationMaster.Messaging;
+﻿using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
@@ -19,6 +20,9 @@ namespace BrowserAutomationMaster.Compilation
         public bool browserPresent = false;
         public bool featurePresent = false;
         public bool otherPresent = false;
+
+        // If the user decides to use extensions.
+        public ExtensionManager[] Extensions = [];
 
         // Disables the writing of .pyc files.
         public bool disablePycache = false;
@@ -47,8 +51,11 @@ namespace BrowserAutomationMaster.Compilation
 
             browserPresent = BrowserRegex.IsMatch(Lines[0]);
 
+            // If browser is specified, otherwise it defaults to firefox.
             if (browserPresent)
+            {
                 selectedBrowser = Lines[0].Split(' ')[1].Replace('"', ' ').Trim();
+            }
 
             featureLines = [.. Lines
                 .Select(line => line.Trim())
@@ -64,14 +71,20 @@ namespace BrowserAutomationMaster.Compilation
             disableSSL = featurePresent && featureLines.Any(line => line.Contains("\"disable-ssl\""));
             runHeadless = featurePresent && featureLines.Any(line => line.StartsWith("\"run-headless\""));
 
+            var extensionPaths = GetExtensionPaths(featureLines);
+        
+            Extensions = Managers.Helpers.CreateExtensionArrayFromPaths(extensionPaths, selectedBrowser);
+
             otherPresent = OtherPresentFound();
 
             if (!otherPresent)
-                Warning.Write(
-                    message:
-                        "BAM Manager (BAMM) was unable to find any requests logic, " +
-                        "if this is intentional, you can safely ignore this warning."
+            {
+                Warning.Write
+                (
+                    "BAM Manager (BAMM) was unable to find any requests logic, " +
+                    "if this is intentional, you can safely ignore this warning."
                 );
+            }
         }
 
         private static string[] GetConfigLines(string filePath)
@@ -80,12 +93,13 @@ namespace BrowserAutomationMaster.Compilation
             {
                 return File.ReadAllLines(filePath);
             }
+
             catch (Exception e)
             {
                 var message =
-                    "Unable to read the contents of the desired BAMC file.\n" +
-                    $"If this error persists, please make a bug report at {ISSUES_LINK}\n" +
-                    $"Error Log:\n\n{e.Message}";
+                    $"Unable to read the contents of the desired BAMC file.{NLC}" +
+                    $"If this error persists, please make a bug report at {ISSUES_LINK}{NLC}" +
+                    $"Error Log:{NLC}{e.Message}";
                 Write(message);
                 return [];
             }
@@ -94,30 +108,39 @@ namespace BrowserAutomationMaster.Compilation
         public bool OtherPresentFound()
         {
             if (Lines.Length == 0)
+            {
                 return false;
+            }
 
             foreach (string line in Lines)
             {
                 if (string.IsNullOrWhiteSpace(line))
+                {
                     continue;
+                }
 
                 string trimmedLine = line.Trim();
                 string firstArg;
 
                 int spaceCharIndex = trimmedLine.IndexOf(' ');
-                if (spaceCharIndex == -1)
-                    firstArg = trimmedLine;
-
-                else
-                    firstArg = trimmedLine[..spaceCharIndex];
+                firstArg =  spaceCharIndex == -1 ? trimmedLine : trimmedLine[..spaceCharIndex];
 
                 if (Parser.actionArgs.Contains(firstArg))
+                {
                     return true;
+                }
             }
             return false;
         }
 
-
+        private static string[] GetExtensionPaths(string[] featureLines) 
+        {
+            var paths = 
+                featureLines
+                .Where(line => line.Contains("\"add-extension\"") && line.AsSpan().Count(' ') == 2)
+                .Select(line => line.Split(' ')[2].Replace("\"", ""));
+            return [.. paths];
+        }
 
     }
 }
