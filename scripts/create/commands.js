@@ -35,6 +35,16 @@ const commandCollection = [
   },
 
   {
+    commandName: "Add-Extension",
+    commandArgs: {
+      "extension-path": null
+    },
+    commandDescription: "",
+    disabledOnLoad: true,
+    placeholder: "path/to/extension"
+  },
+
+  {
     commandName: "Add-Header",
     commandArgs: {
       "header-name": null,
