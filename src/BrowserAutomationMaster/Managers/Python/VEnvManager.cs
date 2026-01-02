@@ -118,7 +118,6 @@ namespace BrowserAutomationMaster.Managers.Python
             if (ParentDirectory == null)
                 throw new ArgumentException("ParentDirectory == null");
 
-
             if (Platforms.IsWindows || Platforms.IsRaspi)
                 return $"\"{ScriptFilePath}\"";
 
@@ -126,7 +125,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 return $"-c \"source '{Path.Combine(ParentDirectory, "venv", "bin", "activate")}'";
 
             if (Platforms.IsLinux)
-                return $"-c \"source \"{ParentDirectory}/venv/bin/activate\" && \"{pythonPath}\" \"{ScriptFilePath}\"";
+                return $"-c \"source '{ParentDirectory}/venv/bin/activate' && python3 '{ScriptFilePath}'\"";
 
             if (Platforms.IsOSX)
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && '{pythonPath}' '{ScriptFilePath}'";
@@ -253,7 +252,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 WorkingDirectory = ParentDirectory,
             };
 
-            pythonPath = Platforms.IsOSX ? "/bin/bash" : pythonPath;
+            pythonPath = Platforms.IsUnixLike ? "/bin/bash" : pythonPath;
 
             SetProcessFileName(ref psi, useCMD: false, fileName: pythonPath);
 
@@ -311,7 +310,7 @@ namespace BrowserAutomationMaster.Managers.Python
             Console.WriteLine($"{StackConfig}\n");
             await Task.Delay(1000);
 
-            var userChoice = Input.AskForInput("Would you like to use this config for the current test? (y/n): ");
+            var userChoice = Input.AskForInput("Would you like to use this config for the current test? [y/n]: ");
             await Task.Delay(1000);
 
             if (Input.ConditionRejected(userChoice))
