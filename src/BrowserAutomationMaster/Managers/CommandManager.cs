@@ -132,6 +132,26 @@ namespace BrowserAutomationMaster.Managers
 
             {
                 new Command(
+                    name: "add-extension",
+                    description:
+                        string.Join(NLC, [
+                            "Adds an extension to the current Selenium instance.",
+                            NLC,
+                            "Supported URL Formats:",
+                            "- https://chromewebstore.google.com/detail/<extension-name>/<manifest-id>",
+                            "- https://addons.mozilla.org/en-US/firefox/addon/<extension-name>/",
+                            "- https://addons.mozilla.org/firefox/downloads/file/<extension-id>/<extension-name>.xpi",
+                            "- file://path/to/firefox/extension.xpi",
+                            "- file://path/to/chrome/extension.crx",
+                            NLC,
+                        ]),
+                    examples: [ "feature \"add-extension\" \"path/to/extension\""],
+                    type: CommandType.Feature
+                )
+            },
+
+            {
+                new Command(
                     name: "add-header",
                     description: "Adds an HTTP Header for the current request.",
                     examples: [
