@@ -22,7 +22,7 @@ namespace BrowserAutomationMaster.Parsing
         ];
 
         public readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
-        readonly static string[] otherFeatureArgs = ["browser", "disable-pycache", "disable-ssl", "run-headless"];
+        readonly static string[] otherFeatureArgs = ["add-extension", "browser", "disable-pycache", "disable-ssl", "run-headless"];
         
         //readonly static string[] browserArgs = ["brave", "chrome", "firefox", "safari", ];
         public readonly static string[] browserArgs = ["chrome", "firefox", "safari", ];
@@ -464,7 +464,9 @@ namespace BrowserAutomationMaster.Parsing
                     string[] lineArgs = line.Split(" ");
 
                     if (lineArgs.Length == 0)
+                    {
                         return false;
+                    }
 
                     var firstArg = lineArgs[0];
 
@@ -509,6 +511,7 @@ namespace BrowserAutomationMaster.Parsing
 
                     // If a feature name is provided after defining non feature actions
                     else if (firstArg.Equals("feature") && featureBlockFinished)
+                    {
                         return WriteErrorAndReturnBool(
                             message:
                                 $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -517,14 +520,17 @@ namespace BrowserAutomationMaster.Parsing
                                 $"All 'feature' commands must be placed before any other command, except 'browser'.\n",
                             returnBool: false
                         );
+                    }
 
                     // If a duplicate feature name is provided -> feature "duplicate-name"
                     else if (firstArg.Equals("feature") && usedFeatures.Contains(line))
+                    {
                         ExitOnDuplicateCommand(fileName, line, i);
-
+                    }
 
                     // If an invalid feature name is provided -> feature "invalid-name"
                     else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg)))
+                    {
                         return WriteErrorAndReturnBool(
                             message:
                                 "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
@@ -533,6 +539,7 @@ namespace BrowserAutomationMaster.Parsing
                                 $"For more information please see, {DOCUMENTATION_LINK}",
                             returnBool: false
                         );
+                    }
 
                     #endregion Start of Invalid Feature Check
 
@@ -577,8 +584,9 @@ namespace BrowserAutomationMaster.Parsing
                         lineArgs.Any(arg => proxyFeatureArgs.Contains(arg.Replace('"', ' ').Trim()));
 
                     if (potentialProxyLine && !proxyFeatureFound)
+                    {
                         return WriteErrorAndReturnBool(intendedToUseProxyMessage, false);
-
+                    }
 
                     Action AddValidatedProxy() => () =>
                     {
