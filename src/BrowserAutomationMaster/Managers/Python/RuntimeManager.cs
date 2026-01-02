@@ -48,7 +48,8 @@ namespace BrowserAutomationMaster.Managers.Python
             CoreCount = cpuInfoManager.Cores;
             if (!cpuInfoManager.HasEnoughCores())
             {
-                WriteAndExit(
+                WriteAndExit
+                (
                     message:
                         $"BAM Manager (BAMM) requires atleast a 2 core cpu, " +
                         $"unfortunately your CPU is not powerful enough for modern browser automation, " +
@@ -78,14 +79,19 @@ namespace BrowserAutomationMaster.Managers.Python
         public static string GetInterpreterFromPath()
         {
             if (Platforms.IsWindows)
+            {
                 return Win.GetInterpreterPath();
+            }
 
             // Path to full executable is required to replicate the expected behavior due to OSX being built off BSD 
             if (Platforms.IsUnixLike || Platforms.IsChromeOS)
+            {
                 return "python3";
+            }
 
             throw new PlatformNotSupportedException(
-                string.Join(NLC, [
+                string.Join(NLC, 
+                [
                     "Unsupported OS.",
                     "BAM Manager (BAMM) currently supports:",
                     "Windows 10/11",
@@ -108,10 +114,14 @@ namespace BrowserAutomationMaster.Managers.Python
                 string? choice = Parser.GetFileNumber(rawChoice);
 
                 if (choice == null)
+                {
                     WriteAndExit(message, 1);
+                }
 
                 if (int.TryParse(choice, out int result) && result >= 1 && result <= scriptPaths.Count)
+                {
                     return scriptPaths[result - 1];
+                }
 
                 Write($"Invalid option, please choose a number between 1 and {scriptPaths.Count}\n");
             }
@@ -126,6 +136,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 var scriptPaths = GetCompiledScriptPaths(saveDirectory);
 
                 if (scriptPaths.Count == 0)
+                {
                     WriteAndExit(
                         message:
                             $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
@@ -134,6 +145,7 @@ namespace BrowserAutomationMaster.Managers.Python
                             $"Error log:\nNo compiled scripts found in {saveDirectory}",
                         status: 1
                     );
+                }
 
                 WriteSuccessMessage($"BAM Manager (BAMM) successfully detected {scriptPaths.Count} scripts.\n");
 
@@ -143,7 +155,8 @@ namespace BrowserAutomationMaster.Managers.Python
             }
             catch (Exception e)
             {
-                WriteAndExit(
+                WriteAndExit
+                (
                     message:
                         $"BAM Manager (BAMM) was unable to find any compiled scripts, " +
                         $"please ensure you have atleast one compiled script before selecting this option.\n\n" +
@@ -162,7 +175,8 @@ namespace BrowserAutomationMaster.Managers.Python
             // Less than 2GiB Total (The check above ensures memoryInfo is not null)
             if (memoryInfo!.Value.TotalMemory < 2048)
             {
-                WriteAndExit(
+                WriteAndExit
+                (
                     "BAM Manager (BAMM) determined you are running below the minimum RAM requirements to properly use bamm.\n" +
                     "Please run BAMM on a system with atleast 2GB of DDR3 RAM.",
                     status: 1
@@ -172,7 +186,8 @@ namespace BrowserAutomationMaster.Managers.Python
             // Less than 512MiB Free
             if (memoryInfo.Value.FreeMemory < 512)
             {
-                WriteAndExit(
+                WriteAndExit
+                (
                     "BAM Manager (BAMM) determined you don't have enough free RAM to continue.\n\n" +
                     "Please ensure atleast 512MB of RAM is free before trying to run BAMM again.",
                     status: 1
@@ -182,7 +197,8 @@ namespace BrowserAutomationMaster.Managers.Python
             // Less than 4GiB Total but between 512MiB and 1GiB Free.
             else if (memoryInfo.Value.TotalMemory < 4096 && memoryInfo.Value.FreeMemory < 1024)
             {
-                Warning.Write(
+                Warning.Write
+                (
                     "BAM Manager (BAMM) determined you are running below the minimum RAM requirements.\n" +
                     "Compiling BAMC scripts will work just fine, " +
                     "however running compiled scripts WILL cause system instability, " +
@@ -193,7 +209,8 @@ namespace BrowserAutomationMaster.Managers.Python
             // 4GiB Total but under 1GiB Free.
             else if (memoryInfo.Value.TotalMemory == 4096 && memoryInfo.Value.FreeMemory < 1024)
             {
-                Warning.Write(
+                Warning.Write
+                (
                     "BAM Manager (BAMM) determined you running on the minimum RAM requirements.\n" +
                     "Compiling BAMC scripts will work just fine, " +
                     "however you will need to close more applications/processes before attempting to run any compiled scripts.\n" +
@@ -208,10 +225,12 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 // I hate nested conditionals, but this allows for a graceful passthrough
                 if (GlobalConfig.ShowMemoryCheck)
+                {
                     WriteSuccessMessage(
                         "BAM Manager (BAMM) determined you running on the minimum RAM requirements, " +
                         "but you have enough free RAM (1GB) for most automation tasks."
                     );
+                }
             }
 
             return true;
@@ -240,10 +259,12 @@ namespace BrowserAutomationMaster.Managers.Python
                 );
             }
         }
+
         private void ValidateScript()
         {
             SanitizedScriptPath = scriptFilePath.EndsWith(".py") ? scriptFilePath : string.Empty;
             if (string.IsNullOrEmpty(SanitizedScriptPath))
+            {
                 WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to run the file provided as it isn't a python file.\n" +
@@ -251,16 +272,22 @@ namespace BrowserAutomationMaster.Managers.Python
                         $"Error log:\n: Raw script file path provided for 'bamm run' was: '{scriptFilePath}'\n\n", 
                     status: 1
                 ); 
-            
+            }
+
             PythonValidationResult result = ScriptValidationManager.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
 
             if (result.IsValid)
+            {
                 return;
-                
-            if (Platforms.IsOSX)
-                HandleVEnvExceptions(result.Errors);  // Will exit if an exception is found.
+            }
 
-            WriteAndExit(
+            if (Platforms.IsOSX)
+            {
+                HandleVEnvExceptions(result.Errors);  // Will exit if an exception is found.
+            }
+
+            WriteAndExit
+            (
                 message:
                     $"BAM Manager (BAMM) was unable run the specified file as it contains syntax \n" +
                     $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
@@ -286,7 +313,8 @@ namespace BrowserAutomationMaster.Managers.Python
             }
             catch (Exception ex)
             {
-                WriteAndExit(
+                WriteAndExit
+                (
                     message:
                         $"BAM Manager (BAMM) was unable finish execution of the selected file.\n" +
                         $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
