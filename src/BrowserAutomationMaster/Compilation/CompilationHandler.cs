@@ -1,4 +1,5 @@
 ﻿using System.Net.NetworkInformation;
+using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Compilation.Transpiler;
@@ -458,9 +459,9 @@ namespace BrowserAutomationMaster.Compilation
         {
             scriptBody.Add($"take_screenshot('{sanitizedArg2}')");
         }
-        public static (bool, string) Visit(List<string> scriptBody, 
+        public static async Task<(bool, string)> Visit(List<string> scriptBody, 
             List<string> featureLines, string sanitizedArg2, string selectedBrowser, 
-            bool firstVisitFinished, bool disableSSL, bool runHeadless
+            bool firstVisitFinished, bool disableSSL, bool runHeadless, ExtensionManager[] Extensions
         )
         {
             if (!IsResolvableLink(sanitizedArg2))
@@ -499,12 +500,14 @@ namespace BrowserAutomationMaster.Compilation
                     if (splitProxyLine.Length != 3)
                     {
                         scriptBody.Add("sw_options = { 'enable_har': True }\n");
+                        scriptBody.Add("options = Options()");
                         return (true, string.Empty);
                     }
                 }
                 catch
                 {
                     scriptBody.Add("sw_options = { 'enable_har': True }\n");
+                    scriptBody.Add("options = Options()");
                     return (true, string.Empty);
                 }
 
@@ -526,19 +529,69 @@ namespace BrowserAutomationMaster.Compilation
                         + proxyType +
                         $"://{splitProxyLine[2].Replace("\"", " ").Trim()}'\n   }}\n}}"
                     );
+                    scriptBody.Add("options = Options()");
                 }
 
                 else
-                    Warning.Write(
+                {
+                    Warning.Write
+                    (
                         message:
                             "Unable to add proxy to script, if you reading this, " +
                             "there is a huge bug in the use-proxyType-proxy feature.\n" +
                             $"Please make a bug report at {ISSUES_LINK}."
                     );
+                }
             }
             else
+            {
                 scriptBody.Add("sw_options = { 'enable_har': True }\n");
+                scriptBody.Add("options = Options()");
+            }
             
+
+            # region Adding extensions after driver initialization.
+
+            // Bidirectional switch for Chrome due to security changes with manifest V3 in Chrome 137+
+            var bidiSwitch = selectedBrowser == "chrome" ? $"options.enable_bidi = True{NLC}" : NLC;
+
+            // Adding the bidiOptions object as a param during browser initialization.
+            var bidiOptionsParam = bidiSwitch != NLC ? ", options = options" : "";
+
+            // Disables the new standard behavior on Chrome 137+ (https://github.com/SeleniumHQ/selenium/issues/15788#issuecomment-2931704434)
+            var experimentalChromeFlag =
+                bidiOptionsParam != "" ?
+                $"options.add_argument('--disable-features=DisableLoadExtensionCommandLineSwitch'){NLC}" :
+                NLC;
+
+            // Downloading a copy of the extensions provided
+            string[] extensionInstallCommands = new string[Extensions.Length];
+
+            for (int i = 0; i < extensionInstallCommands.Length; i++) 
+            {
+                var contents = await Extensions[i].GetExtensionContents();
+                var downloadPath = await Extensions[i].WriteExtensionContents(contents);
+                
+                if (downloadPath == null) {
+                    Errors.Write("Failed to download extension from: ", noNewLines: true);
+                    Warning.Write(Extensions[i].ExtensionPath, noNewLines: true);
+                    Console.WriteLine(NLC);
+                    continue;
+                }
+
+                if (selectedBrowser == "chrome") {
+                    extensionInstallCommands[i] = $"options.add_extension('{downloadPath}')";
+                } else {
+                    extensionInstallCommands[i] = $"driver.install_addon('{downloadPath}', temporary=True)";
+                }
+            } 
+
+            var extensionsInstallString = extensionInstallCommands.Length > 0 ? string.Join(NLC, extensionInstallCommands) : NLC;
+
+
+            # endregion Adding extensions after driver initialization.
+
+
             switch (selectedBrowser)
             {
                 //case "brave":
@@ -550,24 +603,31 @@ namespace BrowserAutomationMaster.Compilation
                     {
                         scriptBody.AddRange([
                             "options = Options()",
-                                "options.add_argument('--ignore-certificate-errors')",
-                                "try:",
-                                $"{Indent(1)}",
-                                "driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options, seleniumwire_options=sw_options)",
-                                "except Exception as e:",
-                                $"{Indent(1)}if 'cannot find Chrome binary' in str(e):",
-                                $"{Indent(2)}stderr.write('Please install chrome and try compiling again.')",
-                                $"{Indent(2)}exit(1)\n"
-                        ]);
-                        break;
-                    }
-                    scriptBody.AddRange([
+                            "options.add_argument('--ignore-certificate-errors')",
+                            experimentalChromeFlag,
+                            bidiSwitch,
                             "try:",
-                            $"{Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options)",
+                            $"{Indent(1)}",
+                            $"driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options, seleniumwire_options=sw_options{bidiOptionsParam})",
+                            extensionsInstallString,
                             "except Exception as e:",
                             $"{Indent(1)}if 'cannot find Chrome binary' in str(e):",
                             $"{Indent(2)}stderr.write('Please install chrome and try compiling again.')",
                             $"{Indent(2)}exit(1)\n"
+                        ]);
+                        break;
+                    }
+                    scriptBody.AddRange
+                    ([
+                        "try:",
+                        $"{Indent(1)}{experimentalChromeFlag}",
+                        $"{Indent(1)}{bidiSwitch}",
+                        $"{Indent(1)}driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), seleniumwire_options=sw_options{bidiOptionsParam})",
+                        $"{Indent(1)}{extensionsInstallString}",
+                        "except Exception as e:",
+                        $"{Indent(1)}if 'cannot find Chrome binary' in str(e):",
+                        $"{Indent(2)}stderr.write('Please install chrome and try compiling again.')",
+                        $"{Indent(2)}exit(1)\n"
                     ]);
                     break;
 
@@ -575,16 +635,14 @@ namespace BrowserAutomationMaster.Compilation
                     if (disableSSL)
                     { 
                         scriptBody.AddRange([
-                             "options = Options()",
-                             "options.accept_insecure_certs = True",
-                             "try:",
-                            //$"{Indent(1)}",
-                            // "driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options, seleniumwire_options=sw_options)",
-                            // "except Exception as e:",
+                            "options = Options()",
+                            "options.accept_insecure_certs = True",
+                            "try:",
                             $"{Indent(1)}driver = webdriver.Firefox(",
                             $"{Indent(2)}service=FirefoxService(GeckoDriverManager().install())",
                             $"{Indent(2)}seleniumwire_options=sw_options,",
                             $"{Indent(1)})",
+                            $"{Indent(1)}{extensionsInstallString}",
                             $"{Indent(1)}if 'cannot find Firefox binary' in str(e):\n",
                             $"{Indent(2)}stderr.write('Please install firefox and try running again.')",
                             $"{Indent(2)}exit(1)",
@@ -593,9 +651,10 @@ namespace BrowserAutomationMaster.Compilation
                     else
                     { // Uses SSL
                         scriptBody.AddRange([
-                             "try:",
+                            "try:",
                             $"{Indent(1)}driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), seleniumwire_options=sw_options)",
-                             "except Exception as e:",
+                            $"{Indent(1)}{extensionsInstallString}",
+                            "except Exception as e:",
                             $"{Indent(1)}if 'cannot find Firefox binary' in str(e):",
                             $"{Indent(2)}stderr.write('Please install firefox and try running again.')",
                             $"{Indent(2)}exit(1)\n",
