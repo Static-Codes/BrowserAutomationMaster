@@ -239,7 +239,8 @@ const commandCollection = [
     commandArgs: {
       "extension-path": null,
     },
-    commandDescription: "",
+    commandDescription:
+      "Feature: Downloads the provided extension and adds it to the Selenium instance",
     disabledOnLoad: true,
     placeholder: "path/to/extension",
   },
