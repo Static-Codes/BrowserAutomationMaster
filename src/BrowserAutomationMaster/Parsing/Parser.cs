@@ -839,7 +839,7 @@ namespace BrowserAutomationMaster.Parsing
 
 
                     // If an invalid feature name is provided -> feature "invalid-name"
-                    else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg)))
+                    else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg.Replace('"', ' ').Trim())))
                     {
                         return WriteErrorAndReturnBool(
                             message:
