@@ -547,7 +547,7 @@ function validateArguments(selectedCommandName, commandArgs) {
         selectedCommandName === "Open-New-Tab" ||
         selectedCommandName === "Select-Option" ||
         selectedCommandName.startsWith("Feature: use-") || // Includes proxy features
-        selectedCommandName.startsWith("Feature: add-") // Includes proxy features
+        selectedCommandName.startsWith("Feature: add-") // Add-Extension
       ) {
         if (!isQuotedString) {
           createAlert(
@@ -797,11 +797,15 @@ executeButton.addEventListener("click", (e) => {
       feature: `"${featureName}"`,
     };
 
-    if (Object.keys(commandData.arguments).length > 0) {
-      payload.value =
-        commandData.arguments[Object.keys(commandData.arguments)[0]];
+    // Adding all arguments to the payload to be serialized.
+    if (
+      commandData.arguments &&
+      Object.keys(commandData.arguments).length > 0
+    ) {
+      Object.assign(payload, commandData.arguments);
     }
 
+    // Serializing of the command string.
     commandText = JSON.stringify(payload);
   } else {
     const argKeys = Object.keys(commandData.arguments);
