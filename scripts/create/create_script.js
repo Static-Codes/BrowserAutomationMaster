@@ -793,13 +793,16 @@ executeButton.addEventListener("click", (e) => {
       .toLowerCase()
       .replace("feature: ", "");
 
+    const payload = {
+      feature: `"${featureName}"`,
+    };
+
     if (Object.keys(commandData.arguments).length > 0) {
-      const argValue =
+      payload.value =
         commandData.arguments[Object.keys(commandData.arguments)[0]];
-      commandText = `{"feature": "\"${featureName}"\", "value": ${argValue}}`;
-    } else {
-      commandText = `{"feature": \""${featureName}"\"}`;
     }
+
+    commandText = JSON.stringify(payload);
   } else {
     const argKeys = Object.keys(commandData.arguments);
 
