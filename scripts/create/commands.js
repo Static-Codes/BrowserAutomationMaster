@@ -35,16 +35,6 @@ const commandCollection = [
   },
 
   {
-    commandName: "Add-Extension",
-    commandArgs: {
-      "extension-path": null
-    },
-    commandDescription: "",
-    disabledOnLoad: true,
-    placeholder: "path/to/extension"
-  },
-
-  {
     commandName: "Add-Header",
     commandArgs: {
       "header-name": null,
@@ -244,6 +234,15 @@ const commandCollection = [
   // --- Features ---
   // Note: For Feature commands, the BAMC documentation shows the command structure as: feature "feature-name" "arg"
   // Since the UI only captures the command string (Action/Feature Name) and Arguments, we use the kebab-case command name as the key.
+  {
+    commandName: "Feature: add-extension",
+    commandArgs: {
+      "extension-path": null,
+    },
+    commandDescription: "",
+    disabledOnLoad: true,
+    placeholder: "path/to/extension",
+  },
 
   {
     commandName: "Feature: disable-pycache",
