@@ -546,7 +546,8 @@ function validateArguments(selectedCommandName, commandArgs) {
         selectedCommandName === "Fill-Text-Exp" ||
         selectedCommandName === "Open-New-Tab" ||
         selectedCommandName === "Select-Option" ||
-        selectedCommandName.startsWith("Feature: use-") // Includes proxy features
+        selectedCommandName.startsWith("Feature: use-") || // Includes proxy features
+        selectedCommandName.startsWith("Feature: add-") // Includes proxy features
       ) {
         if (!isQuotedString) {
           createAlert(
