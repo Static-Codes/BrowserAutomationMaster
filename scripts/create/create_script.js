@@ -796,9 +796,9 @@ executeButton.addEventListener("click", (e) => {
     if (Object.keys(commandData.arguments).length > 0) {
       const argValue =
         commandData.arguments[Object.keys(commandData.arguments)[0]];
-      commandText = `{"feature": "${featureName}", "value": ${argValue}}`;
+      commandText = `{"feature": "\"${featureName}"\", "value": ${argValue}}`;
     } else {
-      commandText = `{"feature": "${featureName}"}`;
+      commandText = `{"feature": \""${featureName}"\"}`;
     }
   } else {
     const argKeys = Object.keys(commandData.arguments);
