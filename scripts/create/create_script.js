@@ -815,10 +815,17 @@ executeButton.addEventListener("click", (e) => {
       .replace(/: /g, "-")
       .replace(/-/g, "-");
 
-    if (argKeys.length === 1 && selectedCommandName !== "Browser") {
-      const argValue = commandData.arguments[argKeys[0]];
+    if (argKeys.length > 0 && selectedCommandName !== "Browser") {
       const finalObject = {};
-      finalObject[formattedCommandName] = argValue;
+
+      // Single argument where the key is the command, and the value is the direct arg value.
+      if (argKeys.length === 1) {
+        finalObject[formattedCommandName] = commandData.arguments[argKeys[0]];
+      } else {
+        // Multiple arguments where the key is the command, and the value is the full arguments object.
+        finalObject[formattedCommandName] = commandData.arguments;
+      }
+
       commandText = JSON.stringify(finalObject);
     } else {
       commandText = JSON.stringify(commandData.arguments);
