@@ -546,7 +546,8 @@ function validateArguments(selectedCommandName, commandArgs) {
         selectedCommandName === "Fill-Text-Exp" ||
         selectedCommandName === "Open-New-Tab" ||
         selectedCommandName === "Select-Option" ||
-        selectedCommandName.startsWith("Feature: use-") // Includes proxy features
+        selectedCommandName.startsWith("Feature: use-") || // Includes proxy features
+        selectedCommandName.startsWith("Feature: add-") // Includes proxy features
       ) {
         if (!isQuotedString) {
           createAlert(
@@ -797,7 +798,7 @@ executeButton.addEventListener("click", (e) => {
         commandData.arguments[Object.keys(commandData.arguments)[0]];
       commandText = `{"feature": "${featureName}", "value": ${argValue}}`;
     } else {
-      commandText = `{"feature": "\\"${featureName}\\""}`;
+      commandText = `{"feature": "${featureName}"}`;
     }
   } else {
     const argKeys = Object.keys(commandData.arguments);
