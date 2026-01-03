@@ -417,6 +417,7 @@ namespace BrowserAutomationMaster.Managers
     }
 
     public record BasicJsonResponse(bool Success, string? Error = null);
+    
     public class DictionaryJsonResponse(BasicJsonResponse response, Dictionary<string, string> items)
     {
         public BasicJsonResponse JsonResponse { get; private set; } = response;
