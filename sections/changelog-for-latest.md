@@ -33,9 +33,10 @@
 ### New Action Commands:
 
 ### New Feature Command:
-feature "add-extension" "url or path to extension"
+`feature "add-extension" "url or path to extension"` - Downloads the extension at the specified path, and adds it to the running Selenium instance.
 
 ### New CLI Arguments:
+`bamm --exit-on-ext-fail` - This flag will cause BAMM to exit if the built in extension validation fails, this can be useful for debugging.
 
 ## Releases
 
