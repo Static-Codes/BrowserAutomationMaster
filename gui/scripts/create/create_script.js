@@ -581,12 +581,14 @@ function validateScriptContents() {
   try {
     for (const rawEntry of commandEntries) {
       const parsedObj = JSON.parse(rawEntry);
+      const keys = Object.keys(parsedObj);
 
-      const key = Object.keys(parsedObj)[0];
+      if (keys.length === 0) {
+        continue;
+      }
 
-      const rawValue = Object.values(parsedObj)[0];
-
-      scriptLines.push(`${key} ${rawValue}`);
+      const commandName = keys[0];
+      scriptLines.push(`${commandName} ${Object.values(parsedObj).join(" ")}`);
     }
   } catch (e) {
     createAlert("error", `Error processing script commands: ${e.message}`);
@@ -827,6 +829,7 @@ executeButton.addEventListener("click", (e) => {
       }
 
       commandText = JSON.stringify(finalObject);
+      console.log(commandText);
     } else {
       commandText = JSON.stringify(commandData.arguments);
     }
