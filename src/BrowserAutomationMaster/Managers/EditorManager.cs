@@ -28,7 +28,7 @@ namespace BrowserAutomationMaster.Managers
                 var editorNames = (
                     Platforms.IsWindows ? "Notepad" : "",
                     Platforms.IsOSX ? "TextEdit" : "",
-                    Platforms.IsLinux ? "Xed" : ""
+                    Platforms.IsLinux ? "Vim" : ""
                 );
 
                 var editorPaths = (
@@ -310,7 +310,7 @@ namespace BrowserAutomationMaster.Managers
         public (string Windows, string Mac, string Linux) EditorPath = ("", "", "");
         public (string Windows, string Mac, string Linux) EditorParams = ("", "", "");
         private static (string Windows, string Mac, string Linux) DefaultEditor = (
-            @"C:\Windows\System32\notepad.exe", "/System/Applications/TextEdit.app", "xed"
+            @"C:\Windows\System32\notepad.exe", "/System/Applications/TextEdit.app", "vi"
         );
 
         public static string GetDefaultEditorPath() {
