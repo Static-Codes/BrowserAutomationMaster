@@ -33,6 +33,15 @@ namespace BrowserAutomationMaster.Managers
 
             {
                 new Command(
+                    name: "--exit-on-ext-fail",
+                    description: "",
+                    examples: [ "bamm --exit-on-ext-fail"],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
                     name: "--editbsconf",
                     description: $"Edit the Browserstack Config found at {GetBrowserStackConfigPath()}",
                     examples: [ "bamm --editbsconf"],
