@@ -5,8 +5,6 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserAutomationMaster", "BrowserAutomationMaster\BrowserAutomationMaster.csproj", "{C9370506-CCF5-4C09-B5DE-6372EA337D98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MacPackager", "MacPackager\MacPackager.csproj", "{FA0CC477-8203-4578-A832-9FB90C92B5F1}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{3EC15CB7-2E64-4CA0-BD81-9A149AB73B3F}"
 EndProject
 Global
