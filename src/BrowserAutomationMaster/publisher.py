@@ -108,14 +108,15 @@ def main():
     operating_system = platform_package.platform().lower()
 
     for cmd in commands:
-        
-
         new_cmd = cmd
         if "dotnet rpm" in cmd or "dotnet deb" in cmd:
             if "windows" in operating_system:
                 new_cmd = f"set DOTNET_ROLL_FORWARD=Major && {cmd}"
             elif "darwin" in operating_system or "linux" in operating_system:
                 new_cmd = f"export DOTNET_ROLL_FORWARD=Major && {cmd}"
+            else:
+                print("Unsupported operating system: {0}", operating_system)
+                exit(1)
 
         print(f"\nExecuting: {new_cmd}\nTarget Directory: {target_directory}\n")
         try:
