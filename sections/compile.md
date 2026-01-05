@@ -9,7 +9,13 @@ This guide provides instructions on how to compile BrowserAutomationMaster Manag
 
 Before you begin, ensure you have the following installed on your system:
 
-1.  **.NET 8.x SDK:** The most recent 8.x SDK as of writing this, is 8.0.17. [Download Link](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+In most cases you will need the **.NET 10.x SDK** only use the **.NET 8.X SDK** for legacy builds!
+
+1.  **.NET 8/10 SDK:**
+    - For the stable/main branch you will need **the .NET 10.X SDK**, it can be downloaded <a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0" target="_blank">here</a>
+
+    - If you are building from the ![dotnet8-legacy](https://github.com/Static-Codes/BrowserAutomationMaster/tree/dotnet8-legacy) branch you will need the **.NET 8.X SDK**, it can be downloaded <a href="https://dotnet.microsoft.com/en-us/download/dotnet/8.0" target="_blank">here</a>
+      
 2.  **Git (Optional but Recommended):** For cloning the repo, you can also use the source code provided with each release.
 
 ## General Compilation Steps
@@ -17,7 +23,7 @@ Before you begin, ensure you have the following installed on your system:
 1.  **Download and Extract the Source Code:**
 
     - Go to the latest release page: `https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest/`
-    - Download the `BAMM-{Version}-Source.zip` file.
+    - Download the `source.zip` file.
     - Extract/Unzip the source.
 
 2.  **Navigate to the Source Directory:**
@@ -53,7 +59,7 @@ This will create a `.deb` package for easy installation.
 2.  **Compile and Package:**
     - For x64 CPUs
         ```bash
-        dotnet deb --runtime linux-x64 --configuration Release
+        python3 src/Publisher.py
         ```
         The resulting `.deb` package will typically be found in the project's root directory or a sub-directory like `bin/Release/`. Check the command output for the exact location.
 
