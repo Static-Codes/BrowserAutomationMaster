@@ -1,5 +1,8 @@
 # Browser Automation Master 🤖
 <img src="https://img.shields.io/github/v/release/static-codes/BrowserAutomationMaster.svg">
+
+### Note: This branch is still supported up to BAMM v1.0.0A7, however future versions will target .NET10 under the main branch.
+
 A custom scripting language that compiles into Python 3.9+ code.
 
 BAM Manager (BAMM) simplifies Selenium by allowing you to write automation scripts in a more concise, readable, and English-like language.  
