@@ -14,7 +14,7 @@
 		<Authors>Static-Codes</Authors>
 		<Copyright>Copyright © Static</Copyright>
 		<PackageTags>console;utility;windows;linux;osx</PackageTags>
-		<Description>Domain Specific Language Compiler converting an english like language into valid Python code on Python &gt;= 3.9 </Description>
+		<Description>Custom scripting language and transpiler converting an english like language into valid Python code on Python &gt;= 3.9 </Description>
 	</PropertyGroup>
 
 	<PropertyGroup>
