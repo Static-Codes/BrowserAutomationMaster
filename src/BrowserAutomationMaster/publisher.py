@@ -1,5 +1,6 @@
 from os import getcwd
 from subprocess import CalledProcessError, run
+import platform as platform_package
 
 class Platform:
     def __init__(self, name, architecture, package_type=None):
@@ -8,12 +9,14 @@ class Platform:
         self.package_type = package_type
 
     def get_commands(self):
+        # Windows + MacOS
         if self.name in ["Win", "OSX"]:
             return [
                 f"dotnet publish -c Release -r {self.name.lower()}-"
                 f"{self.architecture} --self-contained true"
             ]
 
+        # Linux
         elif self.name == "Linux":
             rid_map = {
                 "x64": "linux-x64",
@@ -27,9 +30,9 @@ class Platform:
                 return []
 
             return [
-                f"dotnet {self.package_type.lower()} --runtime {rid} "
-                f"--configuration Release -- "
-                f"-p:Build{self.package_type.capitalize()}Package=true"
+                f"dotnet {self.package_type.lower()} --runtime {rid} --configuration Release "
+                f"-- " ## Passed the param below to MSBuild.
+                f"-p:Build{self.package_type.title()}Package=true"
             ]
 
         return []
@@ -102,13 +105,23 @@ def main():
         commands = selected_platform.get_commands()
 
     target_directory = getcwd()
+    operating_system = platform_package.platform().lower()
 
     for cmd in commands:
-        print(f"\nExecuting: {cmd}\nTarget Directory: {target_directory}")
+        new_cmd = cmd
+        if "dotnet rpm" in cmd or "dotnet deb" in cmd:
+            if "windows" in operating_system:
+                new_cmd = f"set DOTNET_ROLL_FORWARD=Major && {cmd}"
+            elif "darwin" in operating_system or "linux" in operating_system:
+                new_cmd = f"export DOTNET_ROLL_FORWARD=Major && {cmd}"
+            else:
+                print("Unsupported operating system: {0}", operating_system)
+                exit(1)
 
+        print(f"\nExecuting: {new_cmd}\nTarget Directory: {target_directory}\n")
         try:
             process = run(
-                cmd,
+                new_cmd,
                 shell=True,
                 check=True,
                 text=True,
@@ -124,7 +137,10 @@ def main():
 
         except CalledProcessError as e:
             print(f"Error executing command: {cmd}")
-            print(f"Return Code: {e.returncode}\n")
+            
+            # if (e.returncode == 150):
+            #     print("Please install the dotnet 9 runtime, to execute dotnet deb or dotnet rpm.")
+            #     return
 
             if e.stdout.strip():
                 print(f"StdOut:\n{e.stdout.strip()}\n")
