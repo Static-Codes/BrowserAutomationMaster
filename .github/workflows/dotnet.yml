@@ -31,7 +31,7 @@ jobs:
       run: cd $HOME/BrowserAutomationMaster/src && dotnet restore
       
     - name: Build
-      run: cd $HOME/BrowserAutomationMaster/src && dotnet build --no-restore --project
+      run: cd $HOME/BrowserAutomationMaster/src && dotnet build --no-restore
       
     - name: Test
       run: cd $HOME/BrowserAutomationMaster/src && dotnet test --verbosity normal --no-build
