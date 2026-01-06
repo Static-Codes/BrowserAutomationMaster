@@ -22,17 +22,17 @@ jobs:
         dotnet-version: 10.0.x
       
     - name: Clone repo
-      run: git clone https://github.com/Static-Codes/BrowserAutomationMaster.git
+      run: cd $HOME && git clone https://github.com/Static-Codes/BrowserAutomationMaster.git
 
-    - name: Navigate to src directory
-      run: cd BrowserAutomationMaster/src
+    # - name: Navigate to src directory
+    #   run: cd $HOME/BrowserAutomationMaster/src
       
     - name: Restore dependencies
-      run: dotnet restore
+      run: cd $HOME/BrowserAutomationMaster/src dotnet restore
       
     - name: Build
-      run: dotnet build --no-restore --project
+      run: cd $HOME/BrowserAutomationMaster/src dotnet build --no-restore --project
       
     - name: Test
-      run: dotnet test --verbosity normal --no-build
+      run: cd $HOME/BrowserAutomationMaster/src dotnet test --verbosity normal --no-build
  
