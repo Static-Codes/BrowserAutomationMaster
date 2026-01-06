@@ -28,11 +28,11 @@ jobs:
     #   run: cd $HOME/BrowserAutomationMaster/src
       
     - name: Restore dependencies
-      run: cd $HOME/BrowserAutomationMaster/src dotnet restore
+      run: cd $HOME/BrowserAutomationMaster/src && dotnet restore
       
     - name: Build
-      run: cd $HOME/BrowserAutomationMaster/src dotnet build --no-restore --project
+      run: cd $HOME/BrowserAutomationMaster/src && dotnet build --no-restore --project
       
     - name: Test
-      run: cd $HOME/BrowserAutomationMaster/src dotnet test --verbosity normal --no-build
+      run: cd $HOME/BrowserAutomationMaster/src && dotnet test --verbosity normal --no-build
  
