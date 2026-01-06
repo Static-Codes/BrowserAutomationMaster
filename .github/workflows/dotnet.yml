@@ -20,10 +20,19 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+      
+    - name: Clone repo
+      run: git clone https://github.com/Static-Codes/BrowserAutomationMaster.git
+
+    - name: Navigate to src directory
+      run: cd BrowserAutomationMaster/src
+      
     - name: Restore dependencies
-      run: dotnet restore ../../src/BrowserAutomationMaster.sln
+      run: dotnet restore
+      
     - name: Build
-      run: dotnet build --no-restore --project ../../src/BrowserAutomationMaster.sln 
+      run: dotnet build --no-restore --project
+      
     - name: Test
-      run: dotnet test --verbosity normal --no-build --project ../../src/BrowserAutomationMaster/BrowserAutomationMaster.csproj
+      run: dotnet test --verbosity normal --no-build
  
