@@ -21,9 +21,9 @@ jobs:
       with:
         dotnet-version: 10.0.x
     - name: Restore dependencies
-      run: dotnet restore ../../src/BrowserAutomationMaster/BrowserAutomationMaster.csproj
+      run: dotnet restore ../../src/BrowserAutomationMaster.sln
     - name: Build
-      run: dotnet build --project ../../src/BrowserAutomationMaster/BrowserAutomationMaster.csproj --no-restore
+      run: dotnet build --no-restore --project ../../src/BrowserAutomationMaster.sln 
     - name: Test
-      run: dotnet test --no-build --project ../../src/BrowserAutomationMaster/BrowserAutomationMaster.csproj --verbosity normal
+      run: dotnet test --verbosity normal --no-build --project ../../src/BrowserAutomationMaster/BrowserAutomationMaster.csproj
  
