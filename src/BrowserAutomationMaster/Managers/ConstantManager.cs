@@ -1,4 +1,7 @@
-﻿namespace BrowserAutomationMaster.Managers
+﻿using System;
+using System.Collections.Generic;
+
+namespace BrowserAutomationMaster.Managers
 {
     public class ConstantManager
     {

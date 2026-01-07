@@ -1,6 +1,10 @@
 ﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
 using System.Text;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.CommandManager;

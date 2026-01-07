@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Generic;
+using System.Text.Json;
 using static BrowserAutomationMaster.Compilation.Transpiler; // Imported for Indent();
 
 namespace BrowserAutomationMaster.Compilation

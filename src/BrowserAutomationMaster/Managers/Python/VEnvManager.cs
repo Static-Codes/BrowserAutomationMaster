@@ -1,5 +1,9 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -67,9 +71,10 @@ namespace BrowserAutomationMaster.Managers.Python
         /// <returns>True if the VEnv exists | False if not.</returns>
         public async Task CreateVEnv()
         {
-            if (VEnvExists())
+            if (VEnvExists()) {
                 return;
-
+            }
+            
             var psi = new ProcessStartInfo
             {
                 FileName = InterpreterPath,

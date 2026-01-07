@@ -1,9 +1,11 @@
-﻿using Windows.Win32.System.SystemInformation;
-using Windows.Win32;
+﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Diagnostics.CodeAnalysis;
+using Windows.Win32.System.SystemInformation;
+using Windows.Win32;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -40,7 +42,7 @@ namespace BrowserAutomationMaster.Managers
         {
             // Lays out the managed memory from c# in a manner that is identical to the unmanaged memory of c++ 
             MEMORYSTATUSEX memStatus = new() {
-                dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX))
+                dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>()
             };
 
             // memStatus is passed as a reference type and is modified by the call to GlobalMemoryStatusEx

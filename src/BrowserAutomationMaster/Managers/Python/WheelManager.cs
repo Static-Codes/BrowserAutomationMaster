@@ -1,4 +1,7 @@
-﻿using static BrowserAutomationMaster.Managers.ConstantManager;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.RequestManager;
@@ -34,9 +37,10 @@ namespace BrowserAutomationMaster.Managers.Python
                 DownloadLocation = downloadPath;
 
 
-                if (File.Exists(DownloadLocation))
+                if (File.Exists(DownloadLocation)) {
                     return;
-
+                }
+                
                 var responseStream = await NetworkClient.Instance.GetByteArrayAsync(DownloadLink);
                 await File.WriteAllBytesAsync(downloadPath, responseStream);
             }

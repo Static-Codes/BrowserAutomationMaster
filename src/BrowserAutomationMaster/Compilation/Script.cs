@@ -1,4 +1,6 @@
-﻿using static BrowserAutomationMaster.Managers.ConstantManager;
+﻿using System.Collections.Generic;
+using System.Linq;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Compilation

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
@@ -7,7 +6,13 @@ using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Input;
 using BrowserAutomationMaster.Managers.AppManager;
 using BrowserAutomationMaster.Messaging;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 
 namespace BrowserAutomationMaster.Managers
@@ -126,7 +131,7 @@ namespace BrowserAutomationMaster.Managers
 
         private static Dictionary<string, string> GetSupportedWindowsEditors() 
         {
-            if (InstalledApps.AppInfoList.Count == 0) 
+            if (InstalledApps.AppInfoList.Count() == 0) 
             {
                 Console.WriteLine($"A fatal error occured, please make a bug report with the following error at {ISSUES_LINK}");
                 WriteAndExit
@@ -299,7 +304,7 @@ namespace BrowserAutomationMaster.Managers
             var editor = GetEditorChoice();
             var psi = await editor.GetProcessInfo(filePath);
             using var process = await ProcessFactory.SpawnProcess(psi, $"choosing an editor to open '{filePath}'");
-            var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
+            (int ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(process);
         }
     }
 
@@ -439,39 +444,15 @@ namespace BrowserAutomationMaster.Managers
             {
                 throw new PlatformNotSupportedException("Unsupported OS.");
             }
-
-            // Sets output redirection to false by default, as it often causes GUI based applications to fail to correctly launch.
-            // psi.RedirectStandardError = false;
-            // psi.RedirectStandardInput = false;
-            // psi.RedirectStandardOutput = false;
             
-            foreach (var arg in psi.ArgumentList) {
-                Console.WriteLine(arg);
-            }
+            // Debug only do NOT leave in production release.
+            // foreach (var arg in psi.ArgumentList) {
+            //     Console.WriteLine(arg);
+            // }
+
             return psi;
         }
     };
-
-
-    // Refactor with a custom struct/class
-    // public string[] SupportedEditors = [
-    //     // Open source fork of Visual Studio Code
-    //     "Codium", 
-    //     // Windows notepad
-    //     "Notepad",
-    //     // Fork/Rewrite of Windows notepad (I believe the command is npp)
-    //     "Notepad++", 
-    //     // JetBrains IDE
-    //     "PyCharm",
-    //     // Cross Platform IDE
-    //     "Sublime Text",
-    //     // The bloated older brother to visual studio code.
-    //     "Visual Studio",
-    //     // A much sleeker version of visual studio, which is cross. (`code <filename>` to open the file)
-    //     "Visual Studio Code",
-    //     // Built in text-editor in linux (not to be confused with xcode which calls on xed and is not supported.)
-    //     "Xed",
-    // ];
 
 
     public class Helix : Editor 

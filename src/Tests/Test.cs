@@ -1,4 +1,4 @@
-namespace Test
+namespace Tests
 {
     public class CommandTest() 
     {

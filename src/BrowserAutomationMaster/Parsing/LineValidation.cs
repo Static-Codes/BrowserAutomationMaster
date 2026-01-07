@@ -1,5 +1,7 @@
 ﻿using static BrowserAutomationMaster.Parsing.Parser;
 using static BrowserAutomationMaster.Messaging.Errors;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace BrowserAutomationMaster.Parsing
 {

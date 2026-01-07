@@ -6,6 +6,10 @@ using static BrowserAutomationMaster.Messaging.Menu;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using Spectre.Console;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace BrowserAutomationMaster.Messaging
 {

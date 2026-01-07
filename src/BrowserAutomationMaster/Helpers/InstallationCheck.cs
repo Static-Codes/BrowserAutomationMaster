@@ -2,6 +2,8 @@
 using BrowserAutomationMaster.Managers.AppManager;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
