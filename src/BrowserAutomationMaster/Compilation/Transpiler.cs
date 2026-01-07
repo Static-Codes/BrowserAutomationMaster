@@ -3,11 +3,18 @@ using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using static BrowserAutomationMaster.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -123,8 +130,9 @@ namespace BrowserAutomationMaster.Compilation
 
             // ARMv7 (ARMel + ARMhf) Specific Packages (Precompiled Wheels for each Architecture)
             if (Platforms.IsARMel || Platforms.IsARMhf)
+            {
                 script.AddRequirementPackages(GetRequirementStrings());
-
+            }
 
             // This function will exit if a null value is reached so no worries about a null check here
             string sVersion = PackageManager.Get("selenium", pythonVersion);
@@ -318,8 +326,9 @@ namespace BrowserAutomationMaster.Compilation
         {
             try
             {
-                if (!Directory.Exists(desiredSaveDirectory))
+                if (!Directory.Exists(desiredSaveDirectory)) {
                     Directory.CreateDirectory(desiredSaveDirectory);
+                }
             }
             catch
             {

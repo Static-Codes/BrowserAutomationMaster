@@ -1,6 +1,8 @@
-﻿using System.ComponentModel;
+﻿using BrowserAutomationMaster.Messaging;
+using System;
+using System.ComponentModel;
 using System.Diagnostics;
-using BrowserAutomationMaster.Messaging;
+using System.IO;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
@@ -19,8 +21,10 @@ namespace BrowserAutomationMaster.Managers
             var uninstallConfirmed = Input.ConditionAccepted(response);
             
             if (!uninstallConfirmed) 
+            {
                 Environment.Exit(0);
-
+            }
+            
             string dataMessage = "This will delete all program files and associated data.\n" +
                 "Please ensure you've backed up your data before continuing.\n\n" +
                 "THIS CANNOT BE REVERSED!\n\n" +

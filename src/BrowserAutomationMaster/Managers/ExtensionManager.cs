@@ -1,10 +1,16 @@
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using System;
 using System.Buffers;
 using System.Buffers.Text;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.IO;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
@@ -17,10 +23,10 @@ using static BrowserAutomationMaster.Messaging.Success;
 namespace BrowserAutomationMaster.Managers 
 {
     // This class will be used to parse the commands of
-    // bamm extension "file://path/to/firefox/extension.xpi"
-    // bamm extension "https://url/to/firefox/extension.xpi"
-    // bamm extension "file://path/to/chrome/extension.crx"
-    // bamm extension "https://url/to/chrome/extension.crx"
+    // feature "add-extension" "file://path/to/firefox/extension.xpi"
+    // feature "add-extension" "https://url/to/firefox/extension.xpi"
+    // feature "add-extension" "file://path/to/chrome/extension.crx"
+    // feature "add-extension" "https://url/to/chrome/extension.crx"
     public class ExtensionManager(string rawExtensionPath, string browserName, string[]? args = null)
     {
         public string RawExtensionPath { get; init; } = rawExtensionPath;
@@ -57,7 +63,7 @@ namespace BrowserAutomationMaster.Managers
 
         private static bool CheckForExitArgStatus(string[]? args) 
         {
-            return args != null && args.Contains("--exit-on-ext-fail");
+            return args != null && args.Any(a => a.Equals("--exit-on-ext-fail"));
         }
 
         private static bool CheckURLStatus(string rawExtensionPath) 

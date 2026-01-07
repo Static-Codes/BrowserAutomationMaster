@@ -1,5 +1,4 @@
-﻿using BrowserAutomationMaster.Managers;
-using static BrowserAutomationMaster.Managers.AnsiManager;
+﻿using static BrowserAutomationMaster.Managers.AnsiManager;
 
 namespace BrowserAutomationMaster.Messaging
 {

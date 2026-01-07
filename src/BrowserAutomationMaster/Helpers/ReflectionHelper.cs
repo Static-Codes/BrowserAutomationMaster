@@ -14,7 +14,7 @@ namespace BrowserAutomationMaster.Helpers
                 return;
             }
 
-            string indentString = new string(' ', indent * 4);
+            string indentString = new(' ', indent * 4);
             Type type = obj.GetType();
 
             // Handles collections

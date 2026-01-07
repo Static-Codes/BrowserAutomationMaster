@@ -1,8 +1,11 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Intrinsics.X86;
-using BrowserAutomationMaster.Managers.AppManager.OS;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Runtime.Intrinsics.X86;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
@@ -136,7 +139,7 @@ namespace BrowserAutomationMaster.Managers
             try
             {
                 using var process = ProcessFactory.SpawnProcess(psi, "get cpu name", runSync: true, timeout: 10, writeSTDInOut: false).Result;
-                var (ExitCode, STDOut, STDErr) = ProcessFactory.GetProcessResponse(process).Result;
+                (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(process).Result;
 
                 if (ExitCode == 0 || STDOut.Count == 1 || STDErr.Count == 0) {
                     return STDOut[0];
@@ -327,7 +330,7 @@ namespace BrowserAutomationMaster.Managers
             };
 
             using Process process = ProcessFactory.SpawnProcess(psi, actionString, writeSTDInOut: false, runSync: true, timeout: 10).Result;
-            (var ExitCode, var STDOut, var STDErr) = ProcessFactory.GetProcessResponse(process).Result;
+            (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(process).Result;
 
             var response = ProcessFactory.GetProcessResponse(process).Result;
 

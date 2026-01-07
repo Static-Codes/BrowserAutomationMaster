@@ -1,5 +1,4 @@
-﻿using BrowserAutomationMaster.Messaging;
-using Spectre.Console;
+﻿using Spectre.Console;
 using System.Text;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 
@@ -11,8 +10,10 @@ namespace BrowserAutomationMaster.Managers
         {
             var parts = Ansi24bit.Split('/');
             if (parts.Length != 3)
+            {
                 throw new ArgumentException($"Invalid Ansi 24-bit color '{Ansi24bit}', expected format: 'XXXX/XXXX/XXXX'");
-
+            }
+            
             // Convert from 16-bit (0-65535) to 8-bit (0-255)
             int r = Convert.ToInt32(parts[0], 16) / 257; // 65535 / 255 = 257
             int g = Convert.ToInt32(parts[1], 16) / 257;

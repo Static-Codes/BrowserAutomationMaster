@@ -1,11 +1,16 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.EndpointFunctions;
@@ -226,7 +231,7 @@ namespace BrowserAutomationMaster.Managers
             };
 
             using var process = await ProcessFactory.SpawnProcess(psi, "scanning localhost for open ports", writeSTDInOut: false);
-            (var ExitCode, var STDOut, var STDErr) = await ProcessFactory.GetProcessResponse(process);
+            (int ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(process);
 
 
             if (ExitCode != 0)

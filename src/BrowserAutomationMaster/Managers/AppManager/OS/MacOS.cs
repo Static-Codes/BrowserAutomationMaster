@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -20,7 +23,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             {
                 foreach (var dir in searchDirs)
                 {
-                    if (!Directory.Exists(dir)) { continue; }
+                    if (!Directory.Exists(dir)) { 
+                        continue; 
+                    }
 
                     foreach (var item in Directory.GetFiles(dir))
                     {

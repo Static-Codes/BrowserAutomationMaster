@@ -1,8 +1,11 @@
-
 using BrowserAutomationMaster.Messaging;
 using Microsoft.Win32;
 using Spectre.Console;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;

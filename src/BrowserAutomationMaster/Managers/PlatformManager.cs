@@ -1,10 +1,13 @@
 ﻿using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
-using static System.Runtime.InteropServices.Architecture;
 using static BrowserAutomationMaster.Messaging.Errors;
+using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -23,14 +26,22 @@ namespace BrowserAutomationMaster.Managers
 
         public string GetRaspiModelName()
         {
-            if (!IsRaspi) return string.Empty;
-            if (RaspiModelInfo == null) return string.Empty;
+            if (!IsRaspi) {
+                return string.Empty;
+            }
+            
+            if (RaspiModelInfo == null) {
+                return string.Empty;
+            }
+            
             return RaspiModelInfo.Value.Key;
         }
         
         public void SetRaspiModel(string Name, bool SupportsGUI)
         {
-            if (!IsRaspi) return;
+            if (!IsRaspi) {
+                return;
+            }
             RaspiModelInfo = new(Name, SupportsGUI);
         }
 
@@ -64,6 +75,7 @@ namespace BrowserAutomationMaster.Managers
 
 
             if (!ValidArchitectures.Contains(Platforms.CurrentArchitecture))
+            {
                 WriteAndExit(
                     message:
                         string.Join(NLC, [
@@ -74,18 +86,23 @@ namespace BrowserAutomationMaster.Managers
                         ]),
                     status: 1
                 );
+            }
 
             if (Platforms.CurrentArchitecture is Arm64)
+            {
                 Warning.Write(
-                    string.Format("{0}{1}{2}", [
+                    string.Format("{0}{1}{2}", 
                         "BAM Manager (BAMM) supports ARM64 architecture, ",
                         "but performance for browser automation can vary widely depending on your specific ARM processor. ",
-                        "Some lower-power ARM systems may experience degraded performance.",
-                    ])
+                        "Some lower-power ARM systems may experience degraded performance."
+                    )
                 );
+            }
 
             if (RuntimeManager.IsSupportedWindowsVersion())
+            {
                 Platforms.IsWindows = true;
+            }
 
             else if (RuntimeManager.IsSupportedOSXVersion())
             {
@@ -100,8 +117,10 @@ namespace BrowserAutomationMaster.Managers
             }
 
             // Acts a fallthrough so the exception below is not thrown.
-            else if (Platforms.IsRaspi) return;
-
+            else if (Platforms.IsRaspi) 
+            {
+                return;
+            }
 
             else
             {
