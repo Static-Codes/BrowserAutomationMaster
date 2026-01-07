@@ -17,8 +17,9 @@ namespace BrowserAutomationMaster.Managers
     public enum CommandType
     {
         Action = 0,
-        Argument = 1,
-        Feature = 2,
+        Alias = 1,
+        Argument = 2,
+        Feature = 3,
     }
 
     public static class CommandManager
@@ -74,6 +75,48 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+            
+            {
+                new Command(
+                    name: "-n",
+                    description: string.Join(NLC, [
+                        "Alias to the 'new' command.",
+                        "Creates a new .BAMC file in the userScripts directory.",
+                        "Prompts the user to select a custom text editor to open the specified file.",
+                        "If a custom text editor is not found, the OS default is used."
+                    ]),
+                    examples: [ "bamm open \"filename.bamc\"", ],
+                    type: CommandType.Alias
+                )
+            },
+
+            {
+                new Command(
+                    name: "-o",
+                    description: string.Join(NLC, [
+                        "Alias to the 'open' command.",
+                        "Opens a .BAMC file that exists in the userScripts directory.",
+                        "If this file does not exist, the file is automatically created.",
+                        "The user is then prompted to select a custom text editor to open the specified file.",
+                        "If a custom text editor is not found, the OS default is used."
+                    ]),
+                    examples: [ "bamm -o \"filename.bamc\"", ],
+                    type: CommandType.Alias
+                )
+            },
+            
+            {
+                new Command(
+                    name: "--platform-debug",
+                    description:
+                        string.Join(NLC, [
+                            "Displays the platform information associated with the current session.",
+                            "This should only be used for development, or if requested on github.",
+                        ]),
+                    examples: [ "bamm --nohwc --platform-debug" ],
+                    type: CommandType.Argument
+                )
+            },
 
             {
                 new Command(
@@ -103,19 +146,6 @@ namespace BrowserAutomationMaster.Managers
                     name: "--set-timeout",
                     description: "Sets the timeout for all actions in all scripts to 10 seconds",
                     examples: [ "bamm --set-timeout 10" ],
-                    type: CommandType.Argument
-                )
-            },
-            
-            {
-                new Command(
-                    name: "--platform-debug",
-                    description:
-                        string.Join(NLC, [
-                            "Displays the platform information associated with the current session.",
-                            "This should only be used for development, or if requested on github.",
-                        ]),
-                    examples: [ "bamm --nohwc --platform-debug" ],
                     type: CommandType.Argument
                 )
             },
@@ -368,6 +398,33 @@ namespace BrowserAutomationMaster.Managers
                         "bamm help take-screenshot",
                         "bamm help save-as-html",
                     ],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
+                    name: "new",
+                    description: string.Join(NLC, [
+                        "Creates a new .BAMC file in the userScripts directory.",
+                        "Prompts the user to select a custom text editor to open the specified file.",
+                        "If a custom text editor is not found, the OS default is used."
+                    ]),
+                    examples: [ "bamm open \"filename.bamc\"", ],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
+                    name: "open",
+                    description: string.Join(NLC, [
+                        "Opens a .BAMC file that exists in the userScripts directory.",
+                        "If this file does not exist, the file is automatically created.",
+                        "The user is then prompted to select a custom text editor to open the specified file.",
+                        "If a custom text editor is not found, the OS default is used."
+                    ]),
+                    examples: [ "bamm open \"filename.bamc\"", ],
                     type: CommandType.Argument
                 )
             },
