@@ -40,9 +40,9 @@ class Platform:
 
 def main():
     error = (
-        "Please ensure the .NET 8.X SDK is installed.\n"
+        "Please ensure the .NET 10.X SDK is installed.\n"
         "Download link:\n"
-        "https://dotnet.microsoft.com/en-us/download/dotnet/8.0"
+        "https://dotnet.microsoft.com/en-us/download/dotnet/10.0"
     )
 
     platform_options = [
