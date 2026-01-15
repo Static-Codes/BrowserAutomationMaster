@@ -70,15 +70,7 @@ For more complex scenarios, you'll be able to add multiple cookies using a JSON 
 add-cookies {"name": "value", "name2": "value2"}
 ```
 
-
-### 4. Add an Extension
-For situations that require external extensions, this command would allow the user to add a given extension to their active browser instance.
-```
-add-extension "path/to/firefox_extension.xpi"
-add-extension "path/to/chrome_extension.crx"
-```
-
-### 5. Set Property
+### 4. Set Property
 This command will allow you to dynamically change properties of HTML elements.
 ```
 set-element-property "selector" "property" "value"
