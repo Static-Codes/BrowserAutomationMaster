@@ -47,7 +47,7 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
 - Linux **(ARM32, ARM64, x64)**
 - MacOS 11.0+ **(ARM64, x64)**
-- Windows 10/11 **(ARM64, x86, x64)**
+- Windows 10/11 **(ARM64, x64)**
 
 ### Hardware Requirements ✨
   
