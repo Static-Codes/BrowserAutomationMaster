@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Text.Json;
+﻿using System.Text.Json;
+using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Compilation.Transpiler; // Imported for Indent();
+using static BrowserAutomationMaster.Managers.ConstantManager;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -14,13 +15,26 @@ namespace BrowserAutomationMaster.Compilation
         };
 
 
+        public static string? AddCookieFunction(string CookieName, string CookieValue)
+        {
+            try 
+            {
+                return $"driver.add_cookie({{'name' : '{CookieName}', 'value' : '{CookieValue}'}})";
+            }
+            catch (Exception ex)
+            {
+                Warning.Write($"Unable to add cookie object: {{'name' : '{CookieName}', 'value' : '{CookieValue}'}}{NLC}{ex.Message}");
+                return null;
+            }
+        }
 
-        public static string? AddHeaderFunction(string headerName, string headerValue) {
+        public static string? AddHeaderFunction(string HeaderName, string HeaderValue) {
             Dictionary<string, string> header = new(){
-                { headerName, headerValue }
+                { HeaderName, HeaderValue }
             };
 
-            try {
+            try 
+            {
                 var jsonString = JsonSerializer.Serialize(header, options);
                 var sanitizedJSON = jsonString
                     .Replace("\"", "'")
