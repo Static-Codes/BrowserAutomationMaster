@@ -214,19 +214,42 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetAppDataDirectory()
         {
+            
+            // Warning.Write(string.Join(NLC, [
+            //         "---------------- PLATFORM CLASS DEBUG INFO ----------------",
+            //         $"IsARMel: {Platforms.IsARMel}",
+            //         $"IsARMhf: {Platforms.IsARMhf}",
+            //         $"IsChromeOS: {Platforms.IsChromeOS}",
+            //         $"IsLinux: {Platforms.IsLinux}",
+            //         $"IsOSX: {Platforms.IsOSX}",
+            //         $"IsRaspi: {Platforms.IsRaspi}",
+            //         $"Raspi Model: {Platforms.GetRaspiModelName()}",
+            //         $"IsUnixLike: {Platforms.IsUnixLike}",
+            //         $"IsWindows: {Platforms.IsWindows}",
+            //         NLC, 
+            //         NLC,
+            //     ]));
+
             string appName = "BrowserAutomationMaster";
 
             if (Platforms.IsWindows)
+            {
                 return GetAppDataWindows(appName);
+            }
 
             else if (Platforms.IsOSX)
+            {
                 return GetAppDataMacOS(appName);
+            }
 
             else if (Platforms.IsLinux || Platforms.IsChromeOS || Platforms.IsRaspi)
+            {
                 return GetAppDataLinux(appName);
+            }
 
-            else
+            else {
                 throw new PlatformNotSupportedException($"Unsupported OS");
+            }
         }
 
         public static string GetBrowserStackDirectory() { return Path.Combine(AppDataDirectory, "browserstack"); }

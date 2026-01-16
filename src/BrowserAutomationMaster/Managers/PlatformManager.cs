@@ -91,10 +91,11 @@ namespace BrowserAutomationMaster.Managers
             if (Platforms.CurrentArchitecture is Arm64)
             {
                 Warning.Write(
-                    string.Format("{0}{1}{2}", 
+                    string.Join("", [
                         "BAM Manager (BAMM) supports ARM64 architecture, ",
                         "but performance for browser automation can vary widely depending on your specific ARM processor. ",
                         "Some lower-power ARM systems may experience degraded performance."
+                        ]
                     )
                 );
             }
