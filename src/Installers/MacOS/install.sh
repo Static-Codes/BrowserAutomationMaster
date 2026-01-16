@@ -39,6 +39,60 @@ get_macos_version() {
     sw_vers -productVersion | cut -d '.' -f 1,2
 }
 
+
+handle_adhoc_signing() 
+{
+    # This enables Just In Time Compila
+    # com.apple.security.cs.allow-jit -> Just In Time Compilation
+    
+    # This Required to write new memory
+    # com.apple.security.cs.allow-unsigned-executable-memory
+    
+    # This is required to run BAMM without a paid developer certificate.
+    # com.apple.security.cs.disable-library-validation
+    
+    # This is required for BAMM to make requests to the internet
+    # com.apple.security.network.client
+    
+    # This is required for BAMM to make requests to the internet
+    # com.apple.security.network.server
+
+    # Creating a temporary entitlements file for ad-hoc signing.
+    show_info "Creating a temporary .entitlements files for ad-hoc signing."
+    
+    ENTITLEMENTS_PATH="/tmp/bamm.entitlements"
+
+    cat <<EOF > $ENTITLEMENTS_PATH
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+        <key>com.apple.security.cs.allow-jit</key>
+        <true/>
+        <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+        <true/>
+        <key>com.apple.security.cs.disable-library-validation</key>
+        <true/>
+        <key>com.apple.security.network.client</key>
+        <true/>
+        <key>com.apple.security.network.server</key>
+        <true/>
+    </dict>
+    </plist>
+EOF
+
+    show_success "Created bamm.entitlements at: $ENTITLEMENTS_PATH"
+    
+    # Applying the signature using the user's local 'codesign' utility
+    CMD=$(codesign --force --options runtime --entitlements $ENTITLEMENTS_PATH --sign - "${FINAL_BINARY_PATH}")
+    ERROR="Unable to apply the ad-hoc signature, please run the following command:\n${CMD}"
+
+    show_info "Applying the ad-hoc signature for Apple Silicon using the codesign utility."
+    $CMD || show_error_and_exit "$ERROR"
+
+    rm "$ENTITLEMENTS_PATH"
+}
+
 has_quarantine_attribute() {
     # If xattr -p returns a non-zero exit code, the restriction is not currently present.
     # Using /dev/null suppresses the "No such xattr: com.apple.quarantine" error message.
@@ -87,6 +141,7 @@ fi
 check_cpu # Checks the CPU and assigns values to required variables
 
 LATEST_RELEASE=$(get_latest_release) # Grabs the lastest release (v.X.X.XAX) (Example: v.1.0.0A6)
+# LATEST_RELEASE="v1.0.0A7-silicon-alpha1"
 
 # Null checks on macOS version and Latest Release tag
 if [ -z "$MACOS_VERSION" ] || [ -z "$LATEST_RELEASE" ]; then
@@ -164,5 +219,35 @@ else
     show_info "The downloaded release is not quarantined by Apple Gatekeeper, skipping bypass confirmation."
 fi
 
+
+if [[ "$APP_NAME" == "bamm-silicon" ]]; then
+    handle_adhoc_signing
+fi
+
+Creating an alias for the binary
+show_info "Checking value for \$SHELL, please wait."
+
+if [[ -z $HOME ]]; then
+    show_error_and_exit "Unable to determine the value of the current user's \$HOME variable."
+fi
+
+ALIAS_TEXT="alias bamm='$HOME/Desktop/bamm'"
+
+if [[ "$SHELL" == "/bin/bash" ]]; then
+    SHELL_ALIAS_PATH="$HOME/.bash_profile"
+    printf "%s\n" "$ALIAS_TEXT" >> "$SHELL_ALIAS_PATH"
+    source "$SHELL_ALIAS_PATH"
+elif [[ "$SHELL" == "/bin/zsh" ]]; then
+    SHELL_ALIAS_PATH="$HOME/.zshrc"
+    printf "%s\n" "$ALIAS_TEXT" >> "$SHELL_ALIAS_PATH"
+    source "$SHELL_ALIAS_PATH"
+else
+    show_error "Unable to determine the value of the current user's \$SHELL variable."
+    show_info "Please use the following to run BAMM:" 
+    show_info "$ALIAS_TEXT" 
+fi
+
+
+  
 show_success "Installation complete, thank you for choosing BAMM. - Static" 
 echo "=============================================="
