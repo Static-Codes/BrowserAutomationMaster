@@ -136,7 +136,7 @@ def main():
                 print(f"StdErr:\n{process.stderr.strip()}\n")
 
         except CalledProcessError as e:
-            print(f"Error executing command: {cmd}")
+            print(f"Error executing command: {new_cmd}")
             
             # if (e.returncode == 150):
             #     print("Please install the dotnet 9 runtime, to execute dotnet deb or dotnet rpm.")
