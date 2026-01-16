@@ -35,7 +35,7 @@ namespace BrowserAutomationMaster
             SetPlatform();
 
             // Downloads a local copy of:
-            // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/main/src/BrowserAutomationMaster/AppData/packages.json
+            // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/main/stable/src/BrowserAutomationMaster/AppData/packages.json
             await PackageManager.Initalize();
 
             // BUG FIXXED: DO NOT CHANGE POSITION
