@@ -135,7 +135,4 @@ Where `v` is the version (For example: 3.9)
 - Allow users the ability to open a new explorer/finder window to that directory, provided there's at least 100MB of RAM available.
 - Include an app bundle for macOS users, instead of the current raw binary, this will be done through homebrew.
 
-## LSP (Language Server Protocol)
-- This will allow you to create bamm scripts with syntax highlighting and other features similar to pylance.
-
 ---
