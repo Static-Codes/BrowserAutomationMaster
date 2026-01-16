@@ -15,6 +15,7 @@
 		<Copyright>Copyright © Static</Copyright>
 		<PackageTags>console;utility;windows;linux;osx</PackageTags>
 		<Description>Custom scripting language and transpiler converting an english like language into valid Python code on Python &gt;= 3.9 </Description>
+		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -77,7 +78,6 @@
 		<!-- <PublishTrimmed>true</PublishTrimmed> -->
 		<!-- <PublishAot>true</PublishAot> -->
 		<StripSymbols>false</StripSymbols>
-		<DebugType>embedded</DebugType>
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 	</PropertyGroup>
 

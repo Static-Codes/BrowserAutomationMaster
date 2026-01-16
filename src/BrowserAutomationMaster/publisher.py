@@ -111,7 +111,7 @@ def main():
         new_cmd = cmd
         if "dotnet rpm" in cmd or "dotnet deb" in cmd:
             if "windows" in operating_system:
-                new_cmd = f"export DOTNET_ROOT='%USERPROFILE%\.dotnet' && set DOTNET_ROLL_FORWARD=Major && {cmd}"
+                new_cmd = f"export DOTNET_ROOT='%USERPROFILE%\\.dotnet' && set DOTNET_ROLL_FORWARD=Major && {cmd}"
             elif "darwin" in operating_system or "linux" in operating_system:
                 new_cmd = f"export DOTNET_ROOT='$HOME/.dotnet' && export DOTNET_ROLL_FORWARD=Major && {cmd}"
             else:
