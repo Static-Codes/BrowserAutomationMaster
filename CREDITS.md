@@ -9,3 +9,7 @@
 ### Thanks to Luke for a function in the Unix installers
 
 #### - [Gist](https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c) | [Github](https://github.com/lukechilds) | [Twitter](https://twitter.com/lukechilds)
+
+### Thanks to Katelyn for assistance testing the Apple Silicon releases
+
+#### - [Github](https://github.com/RUN-CMC49) | Discord: aiyukaiyukayiyuk_isonfire
