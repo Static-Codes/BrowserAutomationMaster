@@ -140,7 +140,7 @@ fi
 
 check_cpu # Checks the CPU and assigns values to required variables
 
-LATEST_RELEASE=$(get_latest_release) # Grabs the lastest release (v.X.X.XAX) (Example: v.1.0.0A6)
+LATEST_RELEASE=$(get_latest_release) # Grabs the lastest release (v.X.X.XAX) (Example: v.1.0.0A7)
 # LATEST_RELEASE="v1.0.0A7-silicon-alpha1"
 
 # Null checks on macOS version and Latest Release tag
