@@ -117,30 +117,30 @@ namespace BrowserAutomationMaster.Compilation
                 switch (parsedTextSelector.Category)
                 {
                     case SelectorCategory.Id:
-                        scriptBody.Add($"text = get_text(By.ID, '{parsedTextSelector.Value}')");
+                        scriptBody.Add($"text = get_text_from_element(By.ID, '{parsedTextSelector.Value}')");
                         break;
 
                     case SelectorCategory.ClassName:
-                        scriptBody.Add($"text = get_text(By.CLASS_NAME, '{parsedTextSelector.Value}')");
+                        scriptBody.Add($"text = get_text_from_element(By.CLASS_NAME, '{parsedTextSelector.Value}')");
                         break;
 
                     case SelectorCategory.NameAttribute:
-                        scriptBody.Add($"text = get_text(By.NAME, '{parsedTextSelector.Value}')");
+                        scriptBody.Add($"text = get_text_from_element(By.NAME, '{parsedTextSelector.Value}')");
                         break;
 
                     case SelectorCategory.TagName:
-                        scriptBody.Add($"text = get_text(By.TAG_NAME, '{parsedTextSelector.Value}')");
+                        scriptBody.Add($"text = get_text_from_element(By.TAG_NAME, '{parsedTextSelector.Value}')");
                         break;
 
                     case SelectorCategory.XPath:
-                        scriptBody.Add($"text = get_text(By.XPATH, '{parsedTextSelector.Value}')");
+                        scriptBody.Add($"text = get_text_from_element(By.XPATH, '{parsedTextSelector.Value}')");
                         break;
 
                     case SelectorCategory.Attribute:
                     case SelectorCategory.PseudoClass:
                     case SelectorCategory.PseudoElement:
                     case SelectorCategory.InvalidOrUnknown:
-                        scriptBody.Add($"text = get_text(By.CSS_SELECTOR, '{parsedTextSelector.Value}')");
+                        scriptBody.Add($"text = get_text_from_element(By.CSS_SELECTOR, '{parsedTextSelector.Value}')");
                         break;
                 }
                 scriptBody.Add(
