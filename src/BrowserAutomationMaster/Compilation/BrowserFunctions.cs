@@ -69,7 +69,7 @@ namespace BrowserAutomationMaster.Compilation
                     Indent(4) + "**request.headers, " + NLC +
                     Indent(4) + sanitizedJSON + "," + NLC +
                     Indent(3) + "}," + NLC +
-                    Indent(2) + ")" + Enumerable.Repeat(NLC, 2);
+                    Indent(2) + ")" + string.Concat(Enumerable.Repeat(NLC, 2));
 
                 return code;
             }
@@ -91,7 +91,7 @@ namespace BrowserAutomationMaster.Compilation
             
             var headerCode =
                 "driver.request_interceptor = lambda request: setattr(request, 'headers', {{" +
-                Indent(1) + $"**request.headers, **{sanitized}}})" + Enumerable.Repeat(NLC, 2);
+                Indent(1) + $"**request.headers, **{sanitized}}})" + string.Concat(Enumerable.Repeat(NLC, 2));
 
             return headerCode; 
                 
@@ -106,7 +106,9 @@ namespace BrowserAutomationMaster.Compilation
 
         public static string browserQuitCode = 
             $"stdout.write('Quitting driver...{eNLC}')" + NLC + 
-            "driver.quit()" + Enumerable.Repeat(NLC, 2);
+            "driver.quit()" + string.Concat(
+                Enumerable.Repeat(NLC, 2)
+            );
 
 
 
@@ -137,7 +139,7 @@ namespace BrowserAutomationMaster.Compilation
         )
     finally:
         driver.set_script_timeout(old_timeout)
-    return isClicked" + Enumerable.Repeat(NLC, 3);
+    return isClicked" + string.Concat(Enumerable.Repeat(NLC, 3));
 
 
 
@@ -149,7 +151,7 @@ namespace BrowserAutomationMaster.Compilation
         exit(1)
     except Exception as e:
         stderr.write(f'An error occured while trying to click element with the selector: {{selector}}{eNLC}{eNLC}Error:{eNLC}{{str(e)}}{eNLC}')
-        exit(1)" + Enumerable.Repeat(NLC, 3);
+        exit(1)" + string.Concat(Enumerable.Repeat(NLC, 3));
 
 
 
@@ -183,7 +185,7 @@ namespace BrowserAutomationMaster.Compilation
 
         stdout.write(
             f""{eNLC}Closing tab with URL: {{current_url}}{eNLC}""
-            f""Current window handle: {{current_window_handle}} (Index: {{current_window_index}}){Enumerable.Repeat(eNLC, 2)}""
+            f""Current window handle: {{current_window_handle}} (Index: {{current_window_index}}){eNLC}{eNLC}""
         )
 
         # Close the current tab (current_window_handle)
@@ -208,7 +210,7 @@ namespace BrowserAutomationMaster.Compilation
                 stdout.write(
                     ""Warning: Previous handle not found. ""
                     f""Switched to first available tab: {{updated_window_handles[0]}}, ""
-                    f""URL: {{driver.current_url}}{Enumerable.Repeat(eNLC, 2)}""
+                    f""URL: {{driver.current_url}}{NLC}{NLC}""
                 )
                 return  # Func killed here
 
@@ -216,7 +218,7 @@ namespace BrowserAutomationMaster.Compilation
             driver.switch_to.window(previous_tab_handle)
             stdout.write(
                 f""Switched back to tab with handle: {{previous_tab_handle}}{eNLC}""
-                f""URL: {{driver.current_url}}{Enumerable.Repeat(eNLC, 2)}""
+                f""URL: {{driver.current_url}}{NLC}{NLC}""
             )
 
         # Case 2: We closed the first tab (index 0) and others exist
