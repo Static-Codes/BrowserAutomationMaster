@@ -35,33 +35,33 @@ namespace BrowserAutomationMaster.Compilation
         {
             string clickSelector = splitLine[1].Replace('"', ' ').Trim();
             ParsedSelector parsedClickSelector = SelectorParser.Parse(clickSelector);
+            bool validSelector = true;
 
-            if (parsedClickSelector.Category is SelectorCategory.Id)
+            switch (parsedClickSelector.Category)
             {
-                scriptBody.Add($"click_element(By.ID, '{parsedClickSelector.Value}', {actionTimeout})");
+                case SelectorCategory.Id:
+                    scriptBody.Add($"click_element(By.ID, '{parsedClickSelector.Value}', {actionTimeout})");
+                    break;
+                case SelectorCategory.ClassName:
+                    scriptBody.Add($"click_element(By.CLASS_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
+                    break;
+                case SelectorCategory.NameAttribute:
+                    scriptBody.Add($"click_element(By.NAME, '{parsedClickSelector.Value}', {actionTimeout})");
+                    break;
+                case SelectorCategory.TagName:
+                    scriptBody.Add($"click_element(By.TAG_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
+                    break;
+                case SelectorCategory.XPath:
+                    scriptBody.Add($"click_element(By.XPATH, '{parsedClickSelector.Value}', {actionTimeout})");
+                    break;
+                case SelectorCategory.InvalidOrUnknown:
+                default:
+                    validSelector = false;
+                    break;
             }
-            else if (parsedClickSelector.Category is SelectorCategory.ClassName)
-            {
-                scriptBody.Add($"click_element(By.CLASS_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
-            }
-            else if (parsedClickSelector.Category is SelectorCategory.NameAttribute)
-            {
-                scriptBody.Add($"click_element(By.NAME, '{parsedClickSelector.Value}', {actionTimeout})");
-            }
-            else if (parsedClickSelector.Category is SelectorCategory.TagName)
-            {
-                scriptBody.Add($"click_element(By.TAG_NAME, '{parsedClickSelector.Value}', {actionTimeout})");
-            }
-            else if (parsedClickSelector.Category is SelectorCategory.XPath)
-            {
-                scriptBody.Add($"click_element(By.XPATH, '{parsedClickSelector.Value}', {actionTimeout})");
-            }
-            else if (parsedClickSelector.Category is SelectorCategory.InvalidOrUnknown)
-            {
-                return false;
-            }
-            return true;
+            return validSelector;
         }
+        
         public static (bool, string) ClickAtPosition(List<string> scriptBody, string[] splitLine, string sanitizedArg2, string sanitizedArg3, int actionTimeout)
         {
             if (!int.TryParse(sanitizedArg2, out int xPos))
