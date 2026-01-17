@@ -60,7 +60,7 @@ namespace BrowserAutomationMaster.Compilation
                     Indent(3) + "'headers', " + NLC +
                     Indent(3) + "{" + NLC +
                     Indent(4) + "**request.headers, " + NLC +
-                    Indent(4) + "'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0'," + NLC +
+                    Indent(4) + $"'User-Agent': '{DEFAULT_USER_AGENT}'," + NLC +
                     Indent(3) + "}," + NLC +
                     Indent(2) + ")" + Enumerable.Repeat(NLC, 2);
 
