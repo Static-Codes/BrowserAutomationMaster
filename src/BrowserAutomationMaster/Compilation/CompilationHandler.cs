@@ -144,7 +144,7 @@ namespace BrowserAutomationMaster.Compilation
                         break;
                 }
                 scriptBody.Add(
-                    "print(f'Result: {text}')\n" +
+                    $"print(f'Result: {{text}}'){NLC}" +
                     $"if text == None:\n{Indent(1)}" +
                     $"stderr.write('The element: {parsedTextSelector.Value} did not return any text.')\n"
                 );
