@@ -636,13 +636,13 @@ namespace BrowserAutomationMaster.Compilation
 
 
 
-        public static string selectElementFunction = @"def select_element(byType: By, selector: str, timeout: int):
+        public static string selectElementFunction = $@"def select_element(byType: By, selector: str, timeout: int):
     try:
         element = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((byType, selector)))
         return element
 
     except NoSuchElementException:
-        stderr.write(f'Unable to find element: ' + selector +  '\n')
+        stderr.write(f'Unable to find element: {{selector}}{eNLC}')
         exit(1)
 
     except Exception as e:
