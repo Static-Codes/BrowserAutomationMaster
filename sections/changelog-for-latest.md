@@ -20,17 +20,24 @@
 
 - Added new class `ExtensionManager` in namespace `BrowserAutomationMaster.Managers` responsible for parsing, download, validating, and adding the extension's contents to the current Selenium instance.
 
+- Added new class `LineValidationHelpers` in namespace `BrowserAutomationMaster.Managers`
+
+- Added new function `ValidateThreeArgCommand` to new class `LineValidationHelpers`
+
 - Added new function `GetExtensionsDirectory` in class `DirectoryManager` in namespace `BrowserAutomationMaster.Managers`
 
 - Added new constants for ExtensionManager in class `ConstantManagers` in namespace `BrowserAutomationMaster.Managers`.
 
 - Fixed bug in class `Transpiler` in namespace `BrowserAutomationMaster.Compilation`, now `BAMConfig.CheckConfigLines()` is called in `Transpiler.SetBAMConfig()`.
 
+- Fixed critical bug function `SetPlatform` in class `PlatformManager` which caused BAMM to break on all macOS Silicon CPUs.
+
 - Removed member `hasComment` in class `Transpiler` in namespace `BrowserAutomationMaster.Compilation`, now comments are ignored during compilation.
 
 </details>
 
 ### New Action Commands:
+`"add-cookie" "cookie-name" "cookie-value"` - Adds a single cookie to the current Selenium instance.
 
 ### New Feature Command:
 `feature "add-extension" "url or path to extension"` - Downloads the extension at the specified path, and adds it to the running Selenium instance.
