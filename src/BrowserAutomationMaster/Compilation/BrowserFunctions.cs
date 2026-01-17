@@ -604,7 +604,7 @@ namespace BrowserAutomationMaster.Compilation
 
 
 
-        public static string saveAsHTMLExperimentalFunction = @"def save_as_html_experimental(filename: str, timeout: int):
+        public static string saveAsHTMLExperimentalFunction = $@"def save_as_html_experimental(filename: str, timeout: int):
     if not filename.endswith('.html'):
         filename = 'pagesource.html'
 
@@ -613,7 +613,7 @@ namespace BrowserAutomationMaster.Compilation
         WebDriverWait(driver, timeout).until(element_present)
 
     except Exception:
-        stderr.write('Timed out waiting for page to load, please try increasing timeout.\n')
+        stderr.write('Timed out waiting for page to load, please try increasing timeout.{eNLC}')
         return False
 
     try:
@@ -622,7 +622,7 @@ namespace BrowserAutomationMaster.Compilation
             response = input('HTML tag not found in response, ignore and continue? [y/n]: ')
 
             if response.lower() != 'y':
-                stderr.write(f'Unable to write page response to {filename}, please try again.\n')
+                stderr.write(f'Unable to write page response to {{filename}}, please try again.{eNLC}')
                 return False
 
         with open(filename, 'w', encoding='utf-8') as file:
@@ -631,8 +631,8 @@ namespace BrowserAutomationMaster.Compilation
         return True
 
     except Exception as e:
-        stderr.write(f'Unable to write html to: {filename}, please check the error below:\n\n{e}\n')
-        return False" + '\n';
+        stderr.write(f'Unable to write html to: {{filename}}, please check the error below:{eNLC}{eNLC}{{e}}{eNLC}')
+        return False" + NLC;
 
 
 
