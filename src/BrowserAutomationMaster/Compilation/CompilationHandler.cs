@@ -61,7 +61,7 @@ namespace BrowserAutomationMaster.Compilation
             }
             return validSelector;
         }
-        
+
         public static (bool, string) ClickAtPosition(List<string> scriptBody, string[] splitLine, string sanitizedArg2, string sanitizedArg3, int actionTimeout)
         {
             if (!int.TryParse(sanitizedArg2, out int xPos))
@@ -144,6 +144,7 @@ namespace BrowserAutomationMaster.Compilation
                         break;
                 }
                 scriptBody.Add(
+                    "print(f'Result: {text}')\n" +
                     $"if text == None:\n{Indent(1)}" +
                     $"stderr.write('The element: {parsedTextSelector.Value} did not return any text.')\n"
                 );
