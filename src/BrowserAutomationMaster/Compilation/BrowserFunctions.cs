@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Spectre.Console;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
@@ -56,17 +55,14 @@ namespace BrowserAutomationMaster.Compilation
                     .Trim();
 
                 var code =
-                    "driver.request_interceptor = lambda request: setattr(" + "\n" +
-                    Indent(3) + "request, " + "\n" +
-                    Indent(3) + "'headers', " + "\n" +
-                    Indent(3) + "{" + "\n" +
-                    Indent(4) + "**request.headers, " + "\n" +
-                    Indent(4) + "'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0'," + "\n" +
-                    Indent(3) + "}," + "\n" +
-                    Indent(2) + ")" + "\n\n";
-
-                //$"\ndriver.request_interceptor = lambda request: setattr(request, 'headers', {{\n{Indent(1)}" +
-                //$"**request.headers, {sanitizedJSON}}})\n\n";
+                    "driver.request_interceptor = lambda request: setattr(" + NLC +
+                    Indent(3) + "request, " + NLC +
+                    Indent(3) + "'headers', " + NLC +
+                    Indent(3) + "{" + NLC +
+                    Indent(4) + "**request.headers, " + NLC +
+                    Indent(4) + "'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0'," + NLC +
+                    Indent(3) + "}," + NLC +
+                    Indent(2) + ")" + Enumerable.Repeat(NLC, 2);
 
                 return code;
             }
@@ -91,7 +87,7 @@ namespace BrowserAutomationMaster.Compilation
             
             var headerCode =
                 "driver.request_interceptor = lambda request: setattr(request, 'headers', {{" +
-                Indent(1) + $"**request.headers, {sanitized}}})" + "\n\n";
+                Indent(1) + $"**request.headers, {sanitized}}})" + Enumerable.Repeat(NLC, 2);
 
             return headerCode; 
                 
@@ -106,7 +102,7 @@ namespace BrowserAutomationMaster.Compilation
 
         public static string browserQuitCode = 
             $"stdout.write('Quitting driver...{eNLC}')" + NLC + 
-            "driver.quit()" + NLC + NLC;
+            "driver.quit()" + Enumerable.Repeat(NLC, 2);
 
 
 
@@ -137,34 +133,34 @@ namespace BrowserAutomationMaster.Compilation
         )
     finally:
         driver.set_script_timeout(old_timeout)
-    return isClicked" + "\n\n\n";
+    return isClicked" + Enumerable.Repeat(NLC, 3);
 
 
 
-        public static string clickElementFunction = @"def click_element(byType: By, selector: str, actionTimeout: int):
+        public static string clickElementFunction = $@"def click_element(byType: By, selector: str, actionTimeout: int):
     try:
         WebDriverWait(driver, actionTimeout).until(EC.element_to_be_clickable((byType, selector))).click()
     except NoSuchElementException:
-        stderr.write(f'Unable to find element: ' + selector + '\n')
+        stderr.write(f'Unable to find element: {{selector}}{eNLC}')
         exit(1)
     except Exception as e:
-        stderr.write('An error occured while trying to click element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
-        exit(1)" + "\n\n\n";
+        stderr.write(f'An error occured while trying to click element with the selector: {{selector}}{eNLC}{eNLC}Error:{eNLC}{{str(e)}}{eNLC}')
+        exit(1)" + Enumerable.Repeat(NLC, 3);
 
 
 
         public static string clickElementExperimentalFunction = 
-            "def click_element_experimental(selector: str, timeout: int = 10):" + "\n" +
-            Indent(1) + "driver.execute_script(" + "\n" +
-            Indent(2) + "f'''let selector = '{{selector}}" + "\n" +
-            Indent(3) + "let element = document.querySelector(selector);" + "\n" +
-            Indent(3) + "if (element) {{" + "\n" +
-            Indent(4) + "element.click();" + "\n" +
-            Indent(3) + "}}" + "\n" +
-            Indent(3) + "setTimeout(() => {{timeout*1000}});" + "\n" +
-            Indent(2) + "'''" + "\n" +
-            Indent(1) + ")" + "\n" +
-            Indent(1) + "sleep(timeout)" + '\n';
+            "def click_element_experimental(selector: str, timeout: int = 10):" + NLC +
+            Indent(1) + "driver.execute_script(" + NLC +
+            Indent(2) + "f'''let selector = '{{selector}}" + NLC +
+            Indent(3) + "let element = document.querySelector(selector);" + NLC +
+            Indent(3) + "if (element) {{" + NLC +
+            Indent(4) + "element.click();" + NLC +
+            Indent(3) + "}}" + NLC +
+            Indent(3) + "setTimeout(() => {{timeout*1000}});" + NLC +
+            Indent(2) + "'''" + NLC +
+            Indent(1) + ")" + NLC +
+            Indent(1) + "sleep(timeout)" + NLC;
 
 
 
@@ -182,8 +178,8 @@ namespace BrowserAutomationMaster.Compilation
         current_window_index = initial_window_handles.index(current_window_handle)
 
         stdout.write(
-            f""\nClosing tab with URL: {{current_url}}\n""
-            f""Current window handle: {{current_window_handle}} (Index: {{current_window_index}})\n\n""
+            f""{eNLC}Closing tab with URL: {{current_url}}{eNLC}""
+            f""Current window handle: {{current_window_handle}} (Index: {{current_window_index}}){Enumerable.Repeat(eNLC, 2)}""
         )
 
         # Close the current tab (current_window_handle)
@@ -208,15 +204,15 @@ namespace BrowserAutomationMaster.Compilation
                 stdout.write(
                     ""Warning: Previous handle not found. ""
                     f""Switched to first available tab: {{updated_window_handles[0]}}, ""
-                    f""URL: {{driver.current_url}}\n\n""
+                    f""URL: {{driver.current_url}}{Enumerable.Repeat(eNLC, 2)}""
                 )
                 return  # Func killed here
 
             # Switch to previous handle since its still alive
             driver.switch_to.window(previous_tab_handle)
             stdout.write(
-                f""Switched back to tab with handle: {{previous_tab_handle}}\n""
-                f""URL: {{driver.current_url}}\n\n""
+                f""Switched back to tab with handle: {{previous_tab_handle}}{eNLC}""
+                f""URL: {{driver.current_url}}{Enumerable.Repeat(eNLC, 2)}""
             )
 
         # Case 2: We closed the first tab (index 0) and others exist
@@ -225,28 +221,28 @@ namespace BrowserAutomationMaster.Compilation
             stdout.write(
                 ""Closed first tab.""
                 f""Switched to new first tab: {{updated_window_handles[0]}}, ""
-                f""URL: {{driver.current_url}}\n""
+                f""URL: {{driver.current_url}}{eNLC}""
             )
 
 
     except Exception as e:
         stderr.write(
-            f""Unable to close the current tab.\n""
-            f""Tab URL (before error): {{current_url}}\n""
-            f""Exception Type: {{type(e).__name__}}\n""  # More readable type name
-            f""Error:\n{{str(e)}}\n""
-        )" + '\n';
+            f""Unable to close the current tab.{eNLC}""
+            f""Tab URL (before error): {{current_url}}{eNLC}""
+            f""Exception Type: {{type(e).__name__}}{eNLC}""  # More readable type name
+            f""Error:{eNLC}{{str(e)}}{eNLC}""
+        )" + NLC;
         
 
 
-        public static string getScreenBoundsFunction = @"def get_screen_bounds():
+        public static string getScreenBoundsFunction = $@"def get_screen_bounds():
     try:
         result = driver.get_window_size()
 
         if ""width"" not in result.keys() or ""height"" not in result.keys():
             stderr.write(
                 'Unable to determine screen boundaries of the current monitor.  '
-                'you may see a portion of the browser while it executes.\n'
+                'you may see a portion of the browser while it executes.{eNLC}'
             )
             return None
         
@@ -257,9 +253,9 @@ namespace BrowserAutomationMaster.Compilation
     except:
         stderr.write(
             'Unable to determine screen boundaries of the current monitor.  '
-            'You may see a portion of the browser while it executes.\n'
+            'You may see a portion of the browser while it executes.{eNLC}'
         )
-        return None" + '\n';
+        return None" + NLC;
 
 
 
@@ -270,12 +266,12 @@ namespace BrowserAutomationMaster.Compilation
         return text
 
     except NoSuchElementException:
-        stderr.write(f'Unable to find element: ' + selector)
+        stderr.write(f'Unable to find element: {{selector}}')
         stderr.write('{eNLC}')
         exit(1)
 
     except Exception as e:
-        stderr.write('An error occured while trying to get text from element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
+        stderr.write('An error occured while trying to get text from element with the selector: {{selector}}{eNLC}{eNLC}Error:{eNLC}{{str(e)}}{eNLC}')
         exit(1)" + NLC;
 
 
@@ -291,7 +287,7 @@ namespace BrowserAutomationMaster.Compilation
         exit(1)
 
     except Exception as e:
-        stderr.write('An error occured while trying to fill text on element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
+        stderr.write('An error occured while trying to fill text on element with the selector: {{selector}}{eNLC}{eNLC}Error:{eNLC}{{str(e)}}{eNLC}')
         exit(1)" + NLC;
 
 
@@ -683,17 +679,17 @@ namespace BrowserAutomationMaster.Compilation
         return False" + NLC;
 
 
-        public static string takeScreenshotFunction = @"def take_screenshot(filename: str):
+        public static string takeScreenshotFunction = $@"def take_screenshot(filename: str):
     if not filename.endswith('.png'):
         filename = 'screenshot.png'
 
     try:
-        stdout.write('Taking screenshot, please wait...\n')
-        with open(f'{filename}', 'wb') as file:
+        stdout.write('Taking screenshot, please wait...{eNLC}')
+        with open(f'{{filename}}', 'wb') as file:
             file.write(driver.get_screenshot_as_png())
 
     except Exception as e:
-        stderr.write(f'Unable to take screenshot, please check the error below:\n\n{e}\n')" + '\n';
+        stderr.write(f'Unable to take screenshot, please check the error below:{eNLC}{eNLC}{{e}}{eNLC}')" + NLC;
         
     }
 }
