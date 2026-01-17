@@ -6,6 +6,7 @@ namespace BrowserAutomationMaster.Managers
     public class ConstantManager
     {
         public static readonly string NLC = Environment.NewLine; // This isn't a constant but for simplicity it will be placed here.
+        public static readonly string eNLC = NLC.Replace("\r", "\\r").Replace("\n", "\\n");
         public const string BASE_REPO_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/";
         public const string DOCUMENTATION_LINK = "https://static-codes.github.io/BAMM-Docs/";
         public const string ISSUES_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/issues";

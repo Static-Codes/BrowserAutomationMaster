@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using Spectre.Console;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Compilation
@@ -103,8 +105,8 @@ namespace BrowserAutomationMaster.Compilation
 
 
         public static string browserQuitCode = 
-            "stdout.write('Quitting driver...')" + "\n" +
-            "driver.quit()" + "\n\n";
+            $"stdout.write('Quitting driver...{eNLC}')" + NLC + 
+            "driver.quit()" + NLC + NLC;
 
 
 
@@ -268,32 +270,33 @@ namespace BrowserAutomationMaster.Compilation
         return text
 
     except NoSuchElementException:
-        stderr.write(f'Unable to find element: ' + selector + '\n')
+        stderr.write(f'Unable to find element: ' + selector)
+        stderr.write('{eNLC}')
         exit(1)
 
     except Exception as e:
         stderr.write('An error occured while trying to get text from element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
-        exit(1)" + '\n';
+        exit(1)" + NLC;
 
 
 
-        public static string fillTextFunction = @"def fill_text(byType: By, selector: str, value: str):
+        public static string fillTextFunction = $@"def fill_text(byType: By, selector: str, value: str):
     try:
         element = driver.find_element(byType, selector)
         element.send_keys(value)
         return True
 
     except NoSuchElementException:
-        stderr.write(f'Unable to find element: ' + selector + '\n')
+        stderr.write(f'Unable to find element: ' + selector + '{eNLC}')
         exit(1)
 
     except Exception as e:
         stderr.write('An error occured while trying to fill text on element with the selector: ' + selector + '\n\nError:\n' + str(e) + '\n')
-        exit(1)" + '\n';
+        exit(1)" + NLC;
 
 
 
-        public static string fillTextExperimentalFunction = @"def fill_text_exp(byType: By, selector: str, new_value: str, timeout: int = 10) -> bool:
+        public static string fillTextExperimentalFunction = $@"def fill_text_exp(byType: By, selector: str, new_value: str, timeout: int = 10) -> bool:
     element: WebElement = None
 
     try:
@@ -301,11 +304,11 @@ namespace BrowserAutomationMaster.Compilation
         element = wait.until(EC.visibility_of_element_located((byType, selector)))
 
     except TimeoutException:
-        stderr.write(f""Timed out while attempting to locate element: \n{selector}\n"")
+        stderr.write(f""Timed out while attempting to locate element: {eNLC}{{selector}}{eNLC}"")
         return False
 
     except Exception as e:
-        stderr.write(f""Error finding element:\n{selector}\nError: {e}\n"")
+        stderr.write(f""Error finding element:{eNLC}{{selector}}{eNLC}Error: {{e}}{eNLC}"")
         return False
 
     # Inline function for simplicity
@@ -334,17 +337,17 @@ namespace BrowserAutomationMaster.Compilation
                         return True
 
             stderr.write(
-                f""Verification failed: Expected '{expected_value}', got value={current_value}, text={current_text}'\n""
+                f""Verification failed: Expected '{{expected_value}}', got value={{current_value}}, text={{current_text}}'{eNLC}""
             )
             return False
 
         except StaleElementReferenceException:
-            stderr.write(f""Unable to update stale element: {el.tag_name}.\n"")
+            stderr.write(f""Unable to update stale element: {{el.tag_name}}.{eNLC}"")
             return False
 
         except Exception as err:
             stderr.write(
-                f""Unable to validate update status for element:\n{selector}\nError:{err}\n""
+                f""Unable to validate update status for element:{eNLC}{{selector}}\nError:{{err}}{eNLC}""
             )
             return False
 
@@ -354,13 +357,13 @@ namespace BrowserAutomationMaster.Compilation
         element.send_keys(new_value)
 
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}.\n"")
+            stdout.write(f""Successfully filled text for element: {{selector}}.{eNLC}"")
             return True
 
-        stdout.write(f""Unable to fill text for element: {selector}\nAttempting Method 2..\n"")
+        stdout.write(f""Unable to fill text for element: {{selector}}\nAttempting Method 2..{eNLC}"")
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element: {selector}\nError: {e}\n\nAttempting Method 2...\n""
+            f""Unable to fill text for element: {{selector}}{eNLC}Error: {{e}}{eNLC}{eNLC}Attempting Method 2...{eNLC}""
         )
     
     # ---> Method 2: JavaScript arguments[0].textContent <---
@@ -370,7 +373,7 @@ namespace BrowserAutomationMaster.Compilation
 
     except Exception as err:
         stderr.write(
-            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 3...\n""
+            f""Unable to fill text for element: {{selector}}{eNLC}Error: {{err}}{eNLC}{eNLC}Attempting Method 3...{eNLC}""
         )
 
         return False
@@ -379,26 +382,26 @@ namespace BrowserAutomationMaster.Compilation
         driver.execute_script(""arguments[0].textContent = arguments[1];"", element, new_value)
 
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}\n"")
+            stdout.write(f""Successfully filled text for element: {{selector}}{eNLC}"")
             return True
 
-        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 3..\n"")
+        stderr.write(f""Unable to fill text for element: {{selector}}{eNLC}Attempting Method 3..{eNLC}"")
 
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 3...\n""
+            f""Unable to fill text for element:{eNLC}{{selector}}{eNLC}Error:{eNLC}{{e}}{eNLC}{eNLC}Attempting Method 3...{eNLC}""
         )
 
     try:
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}\n"")
+            stdout.write(f""Successfully filled text for element: {{selector}}{eNLC}"")
             return True
 
-        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 4..\n"")
+        stderr.write(f""Unable to fill text for element: {{selector}}{eNLC}Attempting Method 4..{eNLC}"")
 
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...\n""
+            f""Unable to fill text for element:{eNLC}{{selector}}{eNLC}Error:{eNLC}{{e}}{eNLC}{eNLC}Attempting Method 4...{eNLC}""
         )
     
     # ---> Method 3: JavaScript arguments[0].value <---
@@ -408,7 +411,7 @@ namespace BrowserAutomationMaster.Compilation
 
     except Exception as err:
         stderr.write(
-            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 4...\n""
+            f""Unable to fill text for element: {{selector}}{eNLC}Error: {{err}}{eNLC}{eNLC}Attempting Method 4...{eNLC}""
         )
         return False
     
@@ -416,27 +419,27 @@ namespace BrowserAutomationMaster.Compilation
         driver.execute_script(""arguments[0].value = arguments[1];"", element, new_value)
 
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}\n"")
+            stdout.write(f""Successfully filled text for element: {{selector}}{eNLC}"")
             return True
 
-        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 4..\n"")
+        stderr.write(f""Unable to fill text for element: {{selector}}{eNLC}Attempting Method 4..{eNLC}"")
 
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...\n""
+            f""Unable to fill text for element:{eNLC}{{selector}}{eNLC}Error:{eNLC}{{e}}{eNLC}{eNLC}Attempting Method 4...{eNLC}""
         )
 
     try:
         driver.execute_script(""arguments[0].value = arguments[1];"", element, new_value)
 
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}\n"")
+            stdout.write(f""Successfully filled text for element: {{selector}}{eNLC}"")
             return True
 
-        stderr.write(f""Unable to fill text for element: {selector}\nAttempting Method 4..\n"")
+        stderr.write(f""Unable to fill text for element: {{selector}}{eNLC}Attempting Method 4..{eNLC}"")
     except Exception as e:
         stderr.write(
-            f""Unable to fill text for element:\n{selector}\nError:\n{e}\n\nAttempting Method 4...\n""
+            f""Unable to fill text for element:{eNLC}{{selector}}{eNLC}Error:{eNLC}{{e}}{eNLC}{eNLC}Attempting Method 4...{eNLC}""
         )
 
     # --- Method 4: JavaScript arguments[0].innerText ---
@@ -446,7 +449,7 @@ namespace BrowserAutomationMaster.Compilation
 
     except Exception as err:
         stderr.write(
-            f""Unable to fill text for element: {selector}\nError: {err}\n\nAttempting Method 3...\n""
+            f""Unable to fill text for element: {{selector}}\nError: {{err}}{eNLC}Attempting Method 4...{eNLC}""
         )
         return False
 
@@ -456,24 +459,24 @@ namespace BrowserAutomationMaster.Compilation
         )
 
         driver.execute_script(
-            'arguments[0].dispatchEvent(new Event(""input"", { bubbles: true }));',
+            'arguments[0].dispatchEvent(new Event(""input"", {{ bubbles: true }}));',
             element,
         )
         driver.execute_script(
-            'arguments[0].dispatchEvent(new Event(""change"", { bubbles: true }));',
+            'arguments[0].dispatchEvent(new Event(""change"", {{ bubbles: true }}));',
             element,
         )
 
         if verify_text_status(element, new_value):
-            stdout.write(f""Successfully filled text for element: {selector}\n"")
+            stdout.write(f""Successfully filled text for element: {{selector}}{eNLC}"")
             return True
 
-        stderr.write(f""Unable to fill text for element: {selector}\n"")
+        stderr.write(f""Unable to fill text for element: {{selector}}{eNLC}"")
         return False
 
     except Exception as e:
-        stderr.write(f""An error occurred while attempting to fill:\n{selector}\nError:\n{e}\n"")
-        return False" + '\n';
+        stderr.write(f""An error occurred while attempting to fill:{eNLC}{{selector}}{eNLC}Error:{eNLC}{{e}}{eNLC}"")
+        return False" + NLC;
 
 
         public static string MakeRequestFunction(string userAgent)
@@ -538,7 +541,7 @@ namespace BrowserAutomationMaster.Compilation
     stdout.write(f'Requested URL: {url}\n')
 
     if final_url and final_url != url:
-        stdout.write(f'Final URL:     {final_url}\n')
+        stdout.write(f'Final URL: {final_url}\n')
 
     if status_code is not None:
         stdout.write(f'Request URL used for status: {request_url}\n')
