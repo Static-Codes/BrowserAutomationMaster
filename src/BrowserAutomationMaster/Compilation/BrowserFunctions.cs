@@ -575,23 +575,23 @@ namespace BrowserAutomationMaster.Compilation
         driver.get(url)
         return new_window, original_window_handle
     except Exception as e:
-        stderr.write(f'Unable to open a new tab.\nException Type: {{type(e)}}\nError:\n{{str(e)}}')" + '\n';
+        stderr.write(f'Unable to open a new tab.{eNLC}Exception Type: {{type(e)}}{eNLC}Error:{eNLC}{{str(e)}}')" + NLC;
 
 
 
-        public static string saveAsHTMLFunction = @"def save_as_html(filename: str):
+        public static string saveAsHTMLFunction = $@"def save_as_html(filename: str):
     if not filename.endswith('.html'):
         filename = 'pagesource.html'
 
     try:
-        stdout.write('Saving page source as html, please wait...\n')
+        stdout.write('Saving page source as html, please wait...{eNLC}')
         html = driver.page_source
 
         if '<html' not in html:
             response = input('HTML tag not found in response, ignore and continue? [y/n]: ')
 
             if response.lower() != 'y':
-                stderr.write(f'Unable to write page response to {filename}, please try again.\n')
+                stderr.write(f'Unable to write page response to {{filename}}, please try again.{eNLC}')
                 return False
 
         with open(filename, 'w', encoding='utf-8') as file:
@@ -599,8 +599,8 @@ namespace BrowserAutomationMaster.Compilation
 
         return True
     except Exception as e:
-        stderr.write(f'Unable to save page source, please check the error below:\n\n{e}\n')
-        return False" + '\n';
+        stderr.write(f'Unable to save page source, please check the error below:{eNLC}{{e}}{eNLC}')
+        return False" + NLC;
 
 
 
