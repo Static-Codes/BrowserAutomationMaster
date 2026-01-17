@@ -651,7 +651,7 @@ namespace BrowserAutomationMaster.Compilation
 
 
 
-        public static string selectOptionByIndexFunction = @"def select_option_by_index(
+        public static string selectOptionByIndexFunction = $@"def select_option_by_index(
     byType: By,
     selector: str,
     index: int,
@@ -661,26 +661,26 @@ namespace BrowserAutomationMaster.Compilation
     select_tag_element = select_element(byType, selector, timeout)
 
     if not select_tag_element:
-        stderr.write(f""Standard <select> element not found using selector:\n{selector}\n"")
+        stderr.write(f""Standard <select> element not found using selector:{eNLC}{{selector}}{eNLC}"")
         return False
 
     if select_tag_element.tag_name.lower() != 'select':
-        stderr.write(f""Element {selector} is not a <select> tag, found a <{select_tag_element.tag_name}> tag.\n"")
+        stderr.write(f""Element {{selector}} is not a <select> tag, found a <{{select_tag_element.tag_name}}> tag.{eNLC}"")
         return False
 
     try:
         select_obj = Select(select_tag_element)
         select_obj.select_by_index(index)
-        stdout.write(f""Selected option {optionNumber} from {selector}.\n"")
+        stdout.write(f""Selected option {{optionNumber}} from {{selector}}.{eNLC}"")
         return True
 
     except NoSuchElementException:
-        stderr.write(f'Unable to find element: {selector}\n')
+        stderr.write(f'Unable to find element: {{selector}}{eNLC}')
         return False
 
     except Exception as e:
-        stderr.write(f""Error selecting option {optionNumber} (Index: {index}) from <select> tag with selector:\n'{selector}'\nError: {e}\n"")
-        return False" + '\n';
+        stderr.write(f""Error selecting option {{optionNumber}} (Index: {{index}}) from <select> tag with selector:{eNLC}'{{selector}}'{eNLC}Error: {{e}}{eNLC}"")
+        return False" + NLC;
 
 
         public static string takeScreenshotFunction = @"def take_screenshot(filename: str):
