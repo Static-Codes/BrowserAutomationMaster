@@ -304,7 +304,7 @@ namespace BrowserAutomationMaster.Compilation
         element = wait.until(EC.visibility_of_element_located((byType, selector)))
 
     except TimeoutException:
-        stderr.write(f""Timed out while attempting to locate element: {eNLC}{{selector}}{eNLC}"")
+        stderr.write(f""Timed out while attempting to locate element:{eNLC}{{selector}}{eNLC}"")
         return False
 
     except Exception as e:
@@ -347,7 +347,7 @@ namespace BrowserAutomationMaster.Compilation
 
         except Exception as err:
             stderr.write(
-                f""Unable to validate update status for element:{eNLC}{{selector}}\nError:{{err}}{eNLC}""
+                f""Unable to validate update status for element:{eNLC}{{selector}}{eNLC}Error:{{err}}{eNLC}""
             )
             return False
 
@@ -360,7 +360,7 @@ namespace BrowserAutomationMaster.Compilation
             stdout.write(f""Successfully filled text for element: {{selector}}.{eNLC}"")
             return True
 
-        stdout.write(f""Unable to fill text for element: {{selector}}\nAttempting Method 2..{eNLC}"")
+        stdout.write(f""Unable to fill text for element: {{selector}}{eNLC}Attempting Method 2..{eNLC}"")
     except Exception as e:
         stderr.write(
             f""Unable to fill text for element: {{selector}}{eNLC}Error: {{e}}{eNLC}{eNLC}Attempting Method 2...{eNLC}""
@@ -449,7 +449,7 @@ namespace BrowserAutomationMaster.Compilation
 
     except Exception as err:
         stderr.write(
-            f""Unable to fill text for element: {{selector}}\nError: {{err}}{eNLC}Attempting Method 4...{eNLC}""
+            f""Unable to fill text for element: {{selector}}{eNLC}Error: {{err}}{eNLC}Attempting Method 4...{eNLC}""
         )
         return False
 
@@ -492,13 +492,13 @@ namespace BrowserAutomationMaster.Compilation
     final_url = None
 " +
 @"    try:
-        stdout.write(f'Navigating to: {url}\n')
+        stdout.write(f'Navigating to: {url}{eNLC}')
 
 " +
 @$"        {AddUserAgentFunction(pythonSafeUserAgent)}"+
-            @"        driver.get(url)
+            $@"        driver.get(url)
         final_url = driver.current_url
-        stdout.write(f'Navigation complete. Final URL: {final_url}\n')
+        stdout.write(f'Navigation complete. Final URL: {{final_url}}{eNLC}')
         target_request = None
 
 
@@ -514,46 +514,46 @@ namespace BrowserAutomationMaster.Compilation
         if target_request:
             status_code = target_request.response.status_code
             request_url = target_request.url
-            stdout.write(f'Found status code {status_code} for request URL: {request_url}\n')
+            stdout.write(f'Found status code {{status_code}} for request URL: {{request_url}}{eNLC}')
 
         else:
-            stderr.write(f'WARNING: Could not find specific request for {final_url or url} in logs.\n')
+            stderr.write(f'WARNING: Could not find specific request for {{final_url}} or {{url}} in logs.{eNLC}')
             if driver.last_request and driver.last_request.response:
-                stderr.write('Falling back to last request.\n')
+                stderr.write('Falling back to last request.{eNLC}')
                 status_code = driver.last_request.response.status_code
                 request_url = driver.last_request.url
 
             else:
-                 stderr.write('No suitable request found.\n')
+                 stderr.write('No suitable request found.{eNLC}')
 
     except Exception as e:
-        stderr.write(f'\n--- An error occurred ---\n')
-        stderr.write(f'{type(e).__name__}: {e}\n')
-        stderr.write(str(e) + '\n')
-        stderr.write('-------------------------\n')
+        stderr.write(f'{eNLC}--- An error occurred ---{eNLC}')
+        stderr.write(f'{{type(e).__name__}}: {{e}}{eNLC}')
+        stderr.write(str(e) + '{eNLC}')
+        stderr.write('-------------------------{eNLC}')
 
     finally:
         if driver:
             if hasattr(driver, 'requests'):
                  del driver.requests
 
-    stdout.write('\n--- Result  ---\n')
-    stdout.write(f'Requested URL: {url}\n')
+    stdout.write('{eNLC}--- Result  ---{eNLC}')
+    stdout.write(f'Requested URL: {{url}}{eNLC}')
 
     if final_url and final_url != url:
-        stdout.write(f'Final URL: {final_url}\n')
+        stdout.write(f'Final URL: {{final_url}}{eNLC}')
 
     if status_code is not None:
-        stdout.write(f'Request URL used for status: {request_url}\n')
-        stdout.write(f'Detected Status Code: {status_code}\n')
+        stdout.write(f'Request URL used for status: {{request_url}}{eNLC}')
+        stdout.write(f'Detected Status Code: {{status_code}}{eNLC}')
         if status_code >= 400:
-            stderr.write(f'Status {status_code} indicates an error has occured.\n')
+            stderr.write(f'Status {{status_code}} indicates an error has occured.{eNLC}')
 
         else:
-            stdout.write(f'Status {status_code} indicates success/redirect.\n')
+            stdout.write(f'Status {{status_code}} indicates success/redirect.{eNLC}')
 
     else:
-         stderr.write(f'Could not determine status code using selenium-wire.\n')" + '\n';
+         stderr.write(f'Could not determine status code using selenium-wire.{eNLC}')" + NLC;
         }
 
 
