@@ -397,7 +397,7 @@ namespace BrowserAutomationMaster.Parsing
 
         public static bool OpenNewTab(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
         {
-            selectorString = "\"x-coordinate\" \"y-coordinate\"";
+            selectorString = "\"url\" \"sleep-time\"";
 
             // Invalid # of args
             if (lineArgs.Length != 3)
