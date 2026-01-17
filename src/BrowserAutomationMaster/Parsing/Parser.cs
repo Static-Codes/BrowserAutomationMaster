@@ -19,7 +19,7 @@ namespace BrowserAutomationMaster.Parsing
     public partial class Parser
     {
         public readonly static string[] actionArgs = [
-            "add-header", "add-headers", "click", "click-at-position", "click-exp", "close-current-tab", 
+            "add-cookie", "add-header", "add-headers", "click", "click-at-position", "click-exp", "close-current-tab", 
             "end-javascript", "fill-text", "fill-text-exp", "get-text", "open-new-tab", "save-as-html", 
             "save-as-html-exp", "select-element", "select-option", "set-custom-useragent", "start-javascript", 
             "take-screenshot", "wait-for-seconds", "visit"
@@ -301,6 +301,8 @@ namespace BrowserAutomationMaster.Parsing
             {
                 "click" or "get-text" or "save-as-html" or "save-as-html-exp" or "select-element" or "take-screenshot" or "visit" => BasicCommands(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
+                "add-cookie" => AddCookie(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
+                
                 "add-header" => AddHeader(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
                 "click-at-position" => ClickAtPosition(fileName, line, lineNumber, firstArg, ref selectorString),

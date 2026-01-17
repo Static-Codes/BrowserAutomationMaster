@@ -1,7 +1,5 @@
 ﻿using System.Text.Json;
-using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Compilation.Transpiler; // Imported for Indent();
-using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Compilation
 {
@@ -15,17 +13,30 @@ namespace BrowserAutomationMaster.Compilation
         };
 
 
-        public static string? AddCookieFunction(string CookieName, string CookieValue)
+        public static string Indent(int numberOfIndents)
         {
-            try 
+            if (numberOfIndents < 0)
             {
-                return $"driver.add_cookie({{'name' : '{CookieName}', 'value' : '{CookieValue}'}})";
+                WriteAndExit(
+                    message: "Invalid value provided to Indent(), value must be >= 0.",
+                    status: 1
+                );
             }
-            catch (Exception ex)
-            {
-                Warning.Write($"Unable to add cookie object: {{'name' : '{CookieName}', 'value' : '{CookieValue}'}}{NLC}{ex.Message}");
-                return null;
-            }
+            if (numberOfIndents == 0) { 
+                return string.Empty; 
+            } // Return an empty string if no indentations are needed.
+
+
+
+            string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
+            return string.Concat(
+                Enumerable.Repeat(pythonIndent, numberOfIndents)
+            );
+        }
+
+        public static string AddCookieFunction(string CookieName, string CookieValue)
+        {
+            return $"{Indent(2)}driver.add_cookie({{'name' : '{CookieName}', 'value' : '{CookieValue}'}})";
         }
 
         public static string? AddHeaderFunction(string HeaderName, string HeaderValue) {

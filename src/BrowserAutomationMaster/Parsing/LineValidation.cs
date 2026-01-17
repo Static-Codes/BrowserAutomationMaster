@@ -2,17 +2,42 @@
 using static BrowserAutomationMaster.Messaging.Errors;
 using System.Linq;
 using System.Collections.Generic;
+using BrowserAutomationMaster.Managers.Python;
 
 namespace BrowserAutomationMaster.Parsing
 {
     // Breakup Parser.HandleLineValidation() and Parser.IsValidLine() here
 
-    public static class LineValidation
+    public static class LineValidationHelpers 
     {
-        public static bool AddHeader(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
-        {
-            selectorString = "\"header-name\" \"header-value\"";
+        // Implement this for Browser and other one Arg commands.
+        public static bool ValidateOneArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null) 
+        {   
+            bool extraChecksRequired = optionalChecks != null;
 
+            if (lineArgs.Length != 2 || !lineArgs[1].Trim().StartsWith('"') || !lineArgs[1].Trim().EndsWith('"'))
+            {
+                return extraChecksRequired switch
+                {
+                    // optionalChecks is guaranteed to not be null here.
+                    true when optionalChecks!.All(check => check) => true,
+                    true when !optionalChecks!.All(check => check) => WriteErrorAndReturnBool(
+                        message:
+                            $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
+                            $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}\n" +
+                            $"Line: {line}\n" +
+                            $"Valid Syntax: {firstArg} {selectorString}\n",
+                        returnBool: false
+                    ),
+                    _ => false,
+                };
+            }
+
+            return true;
+        } 
+
+        public static bool ValidateTwoArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString) 
+        {
             if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].EndsWith('"'))
             {
                 return WriteErrorAndReturnBool(
@@ -25,6 +50,24 @@ namespace BrowserAutomationMaster.Parsing
                 );
             }
             return true;
+        }
+    }
+    public static class LineValidation
+    {
+        public static bool AddCookie(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
+        {
+            selectorString = "\"cookie-name\" \"cookie-value\"";
+            return LineValidationHelpers.ValidateTwoArgCommand(
+                fileName, line, lineNumber, firstArg, lineArgs, ref selectorString
+            );
+        }
+
+        public static bool AddHeader(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
+        {
+            selectorString = "\"header-name\" \"header-value\"";
+            return LineValidationHelpers.ValidateTwoArgCommand(
+                fileName, line, lineNumber, firstArg, lineArgs, ref selectorString
+            );
         }
 
         public static bool AddHeaders(string fileName, string line, int lineNumber, ref string selectorString)
@@ -99,6 +142,8 @@ namespace BrowserAutomationMaster.Parsing
                 !lineArgs[1].StartsWith('"') ||
                 !lineArgs[1].EndsWith('"')
             )
+
+            
             {
 
                 return WriteErrorAndReturnBool(

@@ -63,6 +63,14 @@ namespace BrowserAutomationMaster.Compilation
 
         private static BAMConfig? bamConfig;
 
+        private static readonly HttpStatusCode[] InvalidResponseEnums = 
+        [
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.Locked,
+            HttpStatusCode.MovedPermanently,
+            HttpStatusCode.Unauthorized
+        ];
+
 
         public static async Task New(string filePath, string[] args)
         {
@@ -714,6 +722,11 @@ namespace BrowserAutomationMaster.Compilation
 
                 switch (firstArg)
                 {
+
+                    case "add-cookie":
+                        CompilationHandler.AddHeader(script.Body.scriptLines, sanitizedArg2, sanitizedArg3);
+                        break;
+
                     case "add-header":
                         CompilationHandler.AddHeader(script.Body.scriptLines, sanitizedArg2, sanitizedArg3);
                         break;
@@ -1072,36 +1085,25 @@ namespace BrowserAutomationMaster.Compilation
             return inSingleQuote || inDoubleQuote;
         }
         
-        public static string Indent(int numberOfIndents)
-        {
-            if (numberOfIndents < 0)
-            {
-                WriteAndExit(
-                    message: "Invalid value provided to Indent(), value must be >= 0.",
-                    status: 1
-                );
-            }
-            if (numberOfIndents == 0) { return string.Empty; } // Return an empty string if no indentations are needed.
-
-
-
-            string pythonIndent = "    "; // PEP 8 standard (4 spaces = 1 tab)
-            return string.Concat(
-                Enumerable.Repeat(pythonIndent, numberOfIndents)
-            );
-        }
+        
         
         private static bool IsValidPyVersion(string pyVersion)
         {
-            if (string.IsNullOrWhiteSpace(pyVersion)) { return false; }
+            if (string.IsNullOrWhiteSpace(pyVersion)) { 
+                return false; 
+            }
 
             string[] parts = pyVersion.Split('.');
-            if (parts.Length != 2) { return false; }
+            if (parts.Length != 2) { 
+                return false; 
+            }
 
             bool majorFound = int.TryParse(parts[0], out int major);
             bool minorFound = int.TryParse(parts[1], out int minor);
 
-            if (!majorFound || !minorFound) { return false; }
+            if (!majorFound || !minorFound) { 
+                return false; 
+            }
 
             bool isValidVersion =
                 major == 3 &&
@@ -1132,29 +1134,38 @@ namespace BrowserAutomationMaster.Compilation
             try
             {
                 if (IsLocalFile(link))
+                {
                     return true;
+                }
 
-                bool isValidUri = Uri.TryCreate(link, UriKind.Absolute, out Uri? uriResult);
+                bool isValidUri = Uri.TryCreate(
+                    link, 
+                    UriKind.Absolute, 
+                    out Uri? uriResult
+                );
+
                 if (!isValidUri)
                 {
                     WriteAndExit(
                         message:
-                            $"BAM Manager (BAMM) was unable to resolve: '{link}'\n\n" +
-                            $"Error log:\nUnable to create Uri object from provided link, returned a false boolean.",
+                            $"BAM Manager (BAMM) was unable to resolve: '{link}'{NLC}{NLC}" +
+                            $"Error log:{NLC}Unable to create Uri object from provided link, returned a false boolean.",
                         status: 1
                     );
                     return false;
                 }
+                
                 if (uriResult == null)
                 {
                     WriteAndExit(
                         message:
-                            $"BAM Manager (BAMM) was unable to resolve: '{link}'\n\n" +
-                            $"Error log:\nUnable to create Uri object from provided link, returned a null result.",
+                            $"BAM Manager (BAMM) was unable to resolve: '{link}'{NLC}{NLC}" +
+                            $"Error log:{NLC}Unable to create Uri object from provided link, returned a null result.",
                         status: 1
                     );
                     return false;
                 }
+
                 RequestManager requestManager = new(uriResult, timeout: 10);
 
                 HttpClient client = requestManager.Client;
@@ -1178,10 +1189,7 @@ namespace BrowserAutomationMaster.Compilation
                 // The server is responding that the content IS or WAS at this location, however the content is not accessible.
                 // A warning is provided, and the issue is assumed to be lack of adequate headers.
 
-                if (response.StatusCode is HttpStatusCode.Forbidden
-                                        or HttpStatusCode.Locked
-                                        or HttpStatusCode.MovedPermanently
-                                        or HttpStatusCode.Unauthorized)
+                if (InvalidResponseEnums.Contains(response.StatusCode))
                 {
                     return true;
                 }
@@ -1203,8 +1211,8 @@ namespace BrowserAutomationMaster.Compilation
                 {
                     Warning.Write(
                         message:
-                            $"It is possible the website you are requesting is unable or incorrectly entered.\n\n" +
-                            $"Exception:\n\n{ex.InnerException}"
+                            $"It is possible the website you are requesting is unable or incorrectly entered.{NLC}{NLC}" +
+                            $"Exception:{NLC}{NLC}{ex.InnerException}"
                     );
                 }
                 string response = Input.AskForInput("Would you like to continue compilation? [y/n]: ");
@@ -1262,7 +1270,9 @@ namespace BrowserAutomationMaster.Compilation
             }
 
             if (userAgentArgs.Count == 0)
+            {
                 return;
+            }
 
             else
             {
@@ -1313,8 +1323,8 @@ namespace BrowserAutomationMaster.Compilation
         private static void SetScriptName(string filePath)
         {
             string failureMessage =
-                $"BAM Manager (BAMM) was unable to access:\n\n{filePath}\n\n" +
-                "Please ensure this file was not deleted, and is not in use by any other program.\n\n" +
+                $"BAM Manager (BAMM) was unable to access:{NLC}{NLC}{filePath}{NLC}{NLC}" +
+                $"Please ensure this file was not deleted, and is not in use by any other program.{NLC}{NLC}" +
                 "Press any key to exit...";
 
             try
@@ -1331,9 +1341,9 @@ namespace BrowserAutomationMaster.Compilation
                 if (!File.Exists(filePath))
                 {
                     failureMessage =
-                        $"BAM Manager (BAMM) was unable to access:\n\n{fileName}\n\n" +
-                        $"Please ensure this file was not deleted, and is not in use by any other program.\n\n" +
-                        $"Press any key to exit...";
+                        $"BAM Manager (BAMM) was unable to access:\n\n{fileName}{NLC}{NLC}" +
+                        $"Please ensure this file was not deleted, and is not in use by any other program.{NLC}{NLC}" +
+                        "Press any key to exit...";
 
                     WriteAndExit(
                         message: failureMessage,

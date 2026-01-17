@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Threading.Tasks;
+﻿using System.Net.NetworkInformation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using static BrowserAutomationMaster.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -15,9 +12,17 @@ namespace BrowserAutomationMaster.Compilation
 {
     public static class CompilationHandler
     {
+
+        public static void AddCookie(List<string> scriptBody, string cookieName, string cookieValue)
+        {
+            scriptBody.Add(
+                AddCookieFunction(cookieName, cookieValue)
+            );
+        }
+
         public static void AddHeader(List<string> scriptBody, string sanitizedArg2, string sanitizedArg3)
         {
-            var headerString = BrowserFunctions.AddHeaderFunction(sanitizedArg2, sanitizedArg3);
+            var headerString = AddHeaderFunction(sanitizedArg2, sanitizedArg3);
             if (headerString == null)
             {
                 Warning.Write($"Unable to add header '{sanitizedArg2}' with value '{sanitizedArg3}'");
@@ -220,8 +225,10 @@ namespace BrowserAutomationMaster.Compilation
             try
             {
                 isFT = false; // Once inside the case its safe to set this flag to false
+                
                 string sanitizedArg3 = splitLine[2].Replace('"', ' ').Trim(); // Parser will throw an error before this is reached, if an exception is triggered. 
                 string fillElementExpSelector = splitLine[1].Replace('"', ' ').Trim();
+                
                 ParsedSelector parsedFillExpSelector = SelectorParser.Parse(fillElementExpSelector);
                 importStatements.AddRange(["from selenium.webdriver.remote.webelement import WebElement",
                                                    "from selenium.common.exceptions import StaleElementReferenceException, TimeoutException"]);
@@ -230,31 +237,31 @@ namespace BrowserAutomationMaster.Compilation
                 {
                     case SelectorCategory.Id:
                         scriptBody.Add(
-                            $"isFilled = fill_text_exp(By.ID, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                            $"isFilled = fill_text_exp(By.ID, '{parsedFillExpSelector.Value}', '{sanitizedArg3}'){NLC}"
                         );
                         break;
 
                     case SelectorCategory.ClassName:
                         scriptBody.Add(
-                            $"isFilled = fill_text_exp(By.CLASS_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                            $"isFilled = fill_text_exp(By.CLASS_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}'){NLC}"
                         );
                         break;
 
                     case SelectorCategory.NameAttribute:
                         scriptBody.Add(
-                            $"isFilled = fill_text_exp(By.NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                            $"isFilled = fill_text_exp(By.NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}'){NLC}"
                         );
                         break;
 
                     case SelectorCategory.TagName:
                         scriptBody.Add(
-                            $"isFilled = fill_text_exp(By.TAG_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                            $"isFilled = fill_text_exp(By.TAG_NAME, '{parsedFillExpSelector.Value}', '{sanitizedArg3}'){NLC}"
                         );
                         break;
 
                     case SelectorCategory.XPath: // Special case to handle xpath's (keep the escaped double quotes)
                         scriptBody.Add(
-                            $"isFilled = fill_text_exp(By.XPATH, \"{parsedFillExpSelector.Value}\", '{sanitizedArg3}')\n"
+                            $"isFilled = fill_text_exp(By.XPATH, \"{parsedFillExpSelector.Value}\", '{sanitizedArg3}'){NLC}"
                         );
                         break;
 
@@ -263,19 +270,19 @@ namespace BrowserAutomationMaster.Compilation
                     case SelectorCategory.PseudoElement:
                     case SelectorCategory.InvalidOrUnknown:
                         scriptBody.Add(
-                            $"isFilled = fill_text_exp(By.CSS_SELECTOR, '{parsedFillExpSelector.Value}', '{sanitizedArg3}')\n"
+                            $"isFilled = fill_text_exp(By.CSS_SELECTOR, '{parsedFillExpSelector.Value}', '{sanitizedArg3}'){NLC}"
                         );
                         break;
                 }
                 scriptBody.Add(
-                    $"if isFilled:\n" +
+                    $"if isFilled:{NLC}" +
                     $"{Indent(1)}" +
                     $"print(\"The element: {sanitizedArg2} should be filled, as no error was thrown.\")"
                 );
                 scriptBody.Add(
-                    $"else:\n" +
-                    $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\")\n" +
-                    $"{Indent(1)}exit(1)\n"
+                    $"else:{NLC}" +
+                    $"{Indent(1)}stderr.write(\"Could not fill the element: {sanitizedArg2}\"){NLC}" +
+                    $"{Indent(1)}exit(1){NLC}"
                 );
                 return (true, string.Empty);
             }
@@ -290,9 +297,11 @@ namespace BrowserAutomationMaster.Compilation
             try
             {
                 using Ping pinger = new();
-                if (sanitizedArg2.EndsWith('/')) { sanitizedArg2 = sanitizedArg2[..^1]; }
-                if (!IsResolvableLink(sanitizedArg2))
-                {
+                if (sanitizedArg2.EndsWith('/')) { 
+                    sanitizedArg2 = sanitizedArg2[..^1]; 
+                }
+
+                if (!IsResolvableLink(sanitizedArg2)) {
                     WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
@@ -301,12 +310,13 @@ namespace BrowserAutomationMaster.Compilation
                         status: 1
                     );
                 }
+
                 scriptBody.Add($"open_new_tab('{sanitizedArg2}', {sanitizedArg3})");
                 return (true, string.Empty);
             }
             catch (Exception e)
             {
-                Errors.Write(
+                Write(
                     message:
                         $"BAM Manager (BAMM) was unable to resolve the url: '{sanitizedArg2}'\n" +
                         $"Error log:\n\n{e.Message}"

@@ -1,7 +1,4 @@
 ﻿using Spectre.Console;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 
@@ -169,6 +166,15 @@ namespace BrowserAutomationMaster.Managers
                         ]),
                     examples: [ "bamm add \"path/to/external/file.bamc\"", ],
                     type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
+                    name: "add-cookie",
+                    description: "Adds a single cookie to the current Selenium instance.",
+                    examples: [ "add-cookie \"cookie-name\", \"cookie-value\""],
+                    type: CommandType.Action
                 )
             },
 
