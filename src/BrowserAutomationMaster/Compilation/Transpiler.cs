@@ -3,18 +3,11 @@ using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using static BrowserAutomationMaster.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -45,7 +38,7 @@ namespace BrowserAutomationMaster.Compilation
         private static string pythonVersion = "3.9"; // Used in VEnvManager.InstallGlobalPackages
 
         // Default value if inhouse function fails.
-        private static string requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
+        private static string requestUserAgent = DEFAULT_USER_AGENT;
 
         private readonly static string[] browserlessActions = ["save-as-html", "wait-for-seconds"];
 
@@ -1159,7 +1152,7 @@ namespace BrowserAutomationMaster.Compilation
                 {
                     WriteAndExit(
                         message:
-                            $"BAM Manager (BAMM) was unable to resolve: '{link}'{NLC}{NLC}" +
+                            $"BAM Manager (BAMM) was unable to resolve: '{link}'{Enumerable.Repeat(NLC, 2)}" +
                             $"Error log:{NLC}Unable to create Uri object from provided link, returned a null result.",
                         status: 1
                     );
@@ -1250,7 +1243,7 @@ namespace BrowserAutomationMaster.Compilation
             noBrowsersFound = false;
             actionTimeout = 10;
             projectName = GetProjectName(customName);
-            requestUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0";
+            requestUserAgent = DEFAULT_USER_AGENT;
         }
 
         public static void SetBrowserStackStatus(bool status) { usingBrowserstack = status; }
