@@ -646,8 +646,8 @@ namespace BrowserAutomationMaster.Compilation
         exit(1)
 
     except Exception as e:
-        stderr.write(""An error occured while trying to get text from element with the selector: "" + selector + ""\n\nError:\n"" + str(e) + ""\n"");
-        exit(1)" + '\n';
+        stderr.write(f""An error occured while trying to get text from element with the selector: {{selector}}{eNLC}{eNLC}Error:{eNLC}{{str(e)}}{eNLC}"");
+        exit(1)" + NLC;
 
 
 
