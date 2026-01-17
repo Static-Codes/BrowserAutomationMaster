@@ -163,7 +163,6 @@ namespace BrowserAutomationMaster.Compilation
             Indent(3) + "if (element) {{" + NLC +
             Indent(4) + "element.click();" + NLC +
             Indent(3) + "}}" + NLC +
-            Indent(3) + "setTimeout(() => {{timeout*1000}});" + NLC +
             Indent(2) + "'''" + NLC +
             Indent(1) + ")" + NLC +
             Indent(1) + "sleep(timeout)" + NLC;
