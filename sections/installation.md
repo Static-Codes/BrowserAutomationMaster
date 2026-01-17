@@ -28,6 +28,10 @@
   # Apple advises against this, as malware can be written for macOS.
   # The alternative is paying $99/year for an Apple Developer Account, which is not feasible for such a small project.
 
+  # If you are on Apple Silicon:
+  # The binary will be renamed, and given an ad-hoc signature
+  # For more information see: https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc
+
   curl -sL "https://bamm-install.vercel.app/macos" | /bin/bash
   ```
   
