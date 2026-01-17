@@ -68,6 +68,43 @@ This will create a `.deb` package for easy installation.
         dotnet deb --runtime linux-arm64 --configuration Release
         ```
         The resulting `.deb` package will typically be found in the project's root directory or a sub-directory like `bin/Release/`. Check the command output for the exact location.
+        
+    - For ARM32 CPUs
+        ```bash
+        dotnet deb --runtime linux-arm --configuration Release
+        ```
+        The resulting `.deb` package will typically be found in the project's root directory or a sub-directory like `bin/Release/`. Check the command output for the exact location.
+
+### .rpm Package Compilation (for Fedora-based systems)
+
+This will create a `.rpm` package for easy installation.
+
+1.  **Install `dotnet-rpm` tool (if not already installed):**
+
+    ```bash
+    dotnet tool install --global dotnet-rpm
+    # Ensure the .dotnet/tools directory is in your PATH
+    # export PATH="$PATH:$HOME/.dotnet/tools" (adds the dotnet tools directory to your system path)
+    ```
+
+2.  **Compile and Package:**
+    - For x64 CPUs
+        ```bash
+        python3 src/Publisher.py
+        ```
+        The resulting `.rpm` package will typically be found in the project's root directory or a sub-directory like `bin/Release/`. Check the command output for the exact location.
+
+    - For ARM64 CPUs
+        ```bash
+        dotnet deb --runtime linux-arm64 --configuration Release
+        ```
+        The resulting `.rpm` package will typically be found in the project's root directory or a sub-directory like `bin/Release/`. Check the command output for the exact location.
+
+    - For ARM32 CPUs
+        ```bash
+        dotnet rpm --runtime linux-arm --configuration Release
+        ```
+        The resulting `.rpm` package will typically be found in the project's root directory or a sub-directory like `bin/Release/`. Check the command output for the exact location.
     
 #### Generic Linux Publish (Self-Contained Application)
 
@@ -83,7 +120,7 @@ If you don't want a `.deb` package or are on a non-Debian-based Linux distributi
 
 This will create a self-contained application for macOS 11.0+ (Both Intel and Apple Silicon via Rosetta 2).
 
-1.  **Publish for macOS x64:**
+1.  **Publish for Intel Macs running macOS:**
 
     ```bash
     dotnet publish -c Release -r osx-x64 --self-contained true
@@ -91,7 +128,7 @@ This will create a self-contained application for macOS 11.0+ (Both Intel and Ap
 
     The compiled application will be in `bin/Release/netX.Y/osx-x64/publish/`.
 
-2.  **Publish for macOS ARM64 (Apple Silicon):**
+2.  **Publish for M-Series Macs running macOS:**
     This is for Apple Silicon users **ONLY**:
     ```bash
     dotnet publish -c Release -r osx-arm64 --self-contained true
@@ -118,12 +155,12 @@ This will create self-contained applications for different Windows architectures
 
     The compiled application will be in `bin\Release\netX.Y\win-arm64\publish\`.
 
-3.  **Download [Inno Setup v6.4.3](https://jrsoftware.org/download.php/is.exe?site=1)**
+3.  **Download [Inno Setup v6.7](https://jrsoftware.org/download.php/is.exe?site=1)**
     Ensure "Associate Inno Setup with the .iss file extension" is checked during setup.
 
 4.  **Create an installer**
     Navigate to `BrowserAutomationMaster\src\Installer Files\Windows`
-    Right click on the .iss file corresponding to your published build (ARM64, x64, x86)
+    Right click on the .iss file corresponding to your published build (ARM64, x64)
     Click compile
 
     The installer will be in `BrowserAutomationMaster\src\Published Builds\{Your architecture}\`
