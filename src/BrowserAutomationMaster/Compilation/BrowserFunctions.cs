@@ -42,8 +42,15 @@ namespace BrowserAutomationMaster.Compilation
 
         public static string? AddHeaderFunction(string HeaderName, string HeaderValue) {
             Dictionary<string, string> header = new(){
-                { HeaderName, HeaderValue }
+                { HeaderName, HeaderValue },
             };
+
+            var hasUserAgent = header.Keys.Any(k => k.Equals("User-Agent", StringComparison.OrdinalIgnoreCase));
+            
+            if (!hasUserAgent)
+            {
+                header["User-Agent"] = DEFAULT_USER_AGENT;
+            }
 
             try 
             {
@@ -60,7 +67,7 @@ namespace BrowserAutomationMaster.Compilation
                     Indent(3) + "'headers', " + NLC +
                     Indent(3) + "{" + NLC +
                     Indent(4) + "**request.headers, " + NLC +
-                    Indent(4) + $"'User-Agent': '{DEFAULT_USER_AGENT}'," + NLC +
+                    Indent(4) + sanitizedJSON + "," + NLC +
                     Indent(3) + "}," + NLC +
                     Indent(2) + ")" + Enumerable.Repeat(NLC, 2);
 
