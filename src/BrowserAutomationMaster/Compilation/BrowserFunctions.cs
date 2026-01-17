@@ -78,9 +78,6 @@ namespace BrowserAutomationMaster.Compilation
                 return null;
             }
         }
-
-
-        
         public static string AddHeadersFunction(Dictionary<string, string> headers)
         {
             if (headers == null || headers.Count == 0)
@@ -94,7 +91,7 @@ namespace BrowserAutomationMaster.Compilation
             
             var headerCode =
                 "driver.request_interceptor = lambda request: setattr(request, 'headers', {{" +
-                Indent(1) + $"**request.headers, {sanitized}}})" + Enumerable.Repeat(NLC, 2);
+                Indent(1) + $"**request.headers, **{sanitized}}})" + Enumerable.Repeat(NLC, 2);
 
             return headerCode; 
                 
