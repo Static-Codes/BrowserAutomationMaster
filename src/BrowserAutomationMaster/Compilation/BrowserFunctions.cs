@@ -562,7 +562,7 @@ namespace BrowserAutomationMaster.Compilation
         
         public static string openNewTabFunction = @$"def open_new_tab(url: str, timeout: int):
     try:
-        driver.set_page_load_timeout = timeout
+        driver.set_page_load_timeout(timeout)
         initial_window_handles = driver.window_handles
 
         original_window_handle = driver.current_window_handle
