@@ -566,6 +566,15 @@ function validateArguments(selectedCommandName, commandArgs) {
 }
 
 function validateScriptContents() {
+  // Checks if string starts and ends with a double quote
+  function safeQuote(value) {
+    const str = String(value);
+    if (str.startsWith('"') && str.endsWith('"')) {
+      return str;
+    }
+    return `"${str}"`;
+  }
+
   var commandEntries = Object.values(commands);
   if (commandEntries === "undefined" || commandEntries.length === 0) {
     createAlert(
@@ -588,7 +597,19 @@ function validateScriptContents() {
       }
 
       const commandName = keys[0];
-      scriptLines.push(`${commandName} ${Object.values(parsedObj).join(" ")}`);
+      const commandData = parsedObj[commandName];
+
+      let argsString = "";
+
+      if (typeof commandData === "object" && commandData !== null) {
+        // If a nested object is present, safeQuoting is attempted for every object value.
+        argsString = Object.values(commandData).map(safeQuote).join(" ");
+      } else {
+        // If a single string is present, safe quoting is attempted on just the single string.
+        argsString = safeQuote(commandData);
+      }
+
+      scriptLines.push(`${commandName} ${argsString}`);
     }
   } catch (e) {
     createAlert("error", `Error processing script commands: ${e.message}`);
@@ -817,6 +838,8 @@ executeButton.addEventListener("click", (e) => {
       .replace(/: /g, "-")
       .replace(/-/g, "-");
 
+    console.log(formattedCommandName);
+
     if (argKeys.length > 0 && selectedCommandName !== "Browser") {
       const finalObject = {};
 
@@ -831,6 +854,7 @@ executeButton.addEventListener("click", (e) => {
       commandText = JSON.stringify(finalObject);
       console.log(commandText);
     } else {
+      // Handles Browser command.
       commandText = JSON.stringify(commandData.arguments);
     }
   }
