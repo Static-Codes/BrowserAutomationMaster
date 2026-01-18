@@ -8,13 +8,13 @@ var executeButton = document.getElementById("execute-command-btn");
 var commandList = document.querySelector("#command-list");
 
 var duplicateCommandButton = document.querySelector(
-  ".action-button.duplicate-command-btn"
+  ".action-button.duplicate-command-btn",
 );
 var removeCommandButton = document.querySelector(
-  ".action-button.remove-command-btn"
+  ".action-button.remove-command-btn",
 );
 var validateScriptButton = document.querySelector(
-  ".action-button.validate-script-btn"
+  ".action-button.validate-script-btn",
 );
 
 var nextIndexAfterDelete = 0;
@@ -86,7 +86,7 @@ function duplicateSelectedCommand() {
   if (commandText.includes('"browser":')) {
     createAlert(
       "warning",
-      "Unable to duplicate the browser command, only one of these commands may be present in any given script."
+      "Unable to duplicate the browser command, only one of these commands may be present in any given script.",
     );
     return;
   }
@@ -178,7 +178,7 @@ function recalculateState() {
 
   const scriptCommands = Object.values(commands);
   const browserExists = scriptCommands.some((cmd) =>
-    cmd.includes('"browser":')
+    cmd.includes('"browser":'),
   );
 
   if (!browserExists) {
@@ -196,7 +196,7 @@ function populateCommandSelect() {
   recalculateState();
 
   const browserExists = Object.values(commands).some((cmd) =>
-    cmd.includes('"browser":')
+    cmd.includes('"browser":'),
   );
   let selectedCommandName = commandSelect.value;
   let hasSetInitialSelection = false;
@@ -239,14 +239,14 @@ function populateCommandSelect() {
   });
 
   const finalSelection = commandSelect.querySelector(
-    `option[value="${selectedCommandName}"]`
+    `option[value="${selectedCommandName}"]`,
   );
 
   if (finalSelection && !finalSelection.disabled) {
     commandSelect.value = selectedCommandName;
   } else {
     const firstAvailable = commandSelect.querySelector(
-      "option:not([disabled])"
+      "option:not([disabled])",
     );
     if (firstAvailable) {
       commandSelect.value = firstAvailable.value;
@@ -254,7 +254,7 @@ function populateCommandSelect() {
   }
 
   const finalSelectedCommand = commandCollection.find(
-    (cmd) => cmd.commandName === commandSelect.value
+    (cmd) => cmd.commandName === commandSelect.value,
   );
   if (finalSelectedCommand) {
     renderArguments(finalSelectedCommand);
@@ -294,7 +294,7 @@ function removeSelectedCommand() {
   if (removedCommandText.includes('"browser":')) {
     createAlert(
       "error",
-      "Unable to remove the browser command, this is a requirement for every script."
+      "Unable to remove the browser command, this is a requirement for every script.",
     );
     return;
   }
@@ -405,8 +405,7 @@ function renderArguments(command) {
 
     var label = document.createElement("label");
     label.classList.add("arg-label");
-    label.textContent =
-      argName.charAt(0).toUpperCase() + argName.slice(1) + ":";
+    label.textContent = argName + ":";
 
     argGroup.appendChild(label);
 
@@ -490,7 +489,7 @@ function setData(data) {
 
 function validateArguments(selectedCommandName, commandArgs) {
   const selectedCommand = commandCollection.find(
-    (cmd) => cmd.commandName === selectedCommandName
+    (cmd) => cmd.commandName === selectedCommandName,
   );
 
   if (!selectedCommand) {
@@ -512,7 +511,7 @@ function validateArguments(selectedCommandName, commandArgs) {
         if (isNaN(numericValue) || !isFinite(numericValue)) {
           createAlert(
             "error",
-            `The value for '${argKey}' in 'Wait-For-Seconds' must be a valid number (i.e, 2 or 0.5) and must not be quoted.`
+            `The value for '${argKey}' in 'Wait-For-Seconds' must be a valid number (i.e, 2 or 0.5) and must not be quoted.`,
           );
           return false;
         }
@@ -523,7 +522,7 @@ function validateArguments(selectedCommandName, commandArgs) {
         if (!isQuotedString) {
           createAlert(
             "error",
-            `The value for 'headers' in 'Add-Headers' must be a single quoted JSON string (i.e., '"{\\"Header\\": \\"Value\\"}"').`
+            `The value for 'headers' in 'Add-Headers' must be a single quoted JSON string (i.e., '"{\\"Header\\": \\"Value\\"}"').`,
           );
           return false;
         }
@@ -533,13 +532,14 @@ function validateArguments(selectedCommandName, commandArgs) {
         } catch (e) {
           createAlert(
             "error",
-            `The content inside the quotes for 'headers' in 'Add-Headers' must be valid JSON.`
+            `The content inside the quotes for 'headers' in 'Add-Headers' must be valid JSON.`,
           );
           return false;
         }
       } else if (
         (selectedCommand.placeholder &&
           selectedCommand.placeholder.startsWith('"')) ||
+        selectedCommandName === "Add-Cookie" ||
         selectedCommandName === "Add-Header" ||
         selectedCommandName === "Click-At-Position" ||
         selectedCommandName === "Fill-Text" ||
@@ -552,7 +552,7 @@ function validateArguments(selectedCommandName, commandArgs) {
         if (!isQuotedString) {
           createAlert(
             "error",
-            `The value for '${argKey}' in '${selectedCommandName}' must be a quoted string (i.e., '"value"').`
+            `The value for '${argKey}' in '${selectedCommandName}' must be a quoted string (i.e., '"value"').`,
           );
           return false;
         }
@@ -570,10 +570,10 @@ function validateScriptContents() {
   if (commandEntries === "undefined" || commandEntries.length === 0) {
     createAlert(
       "error",
-      "Please add commands before trying to validate a script's contents."
+      "Please add commands before trying to validate a script's contents.",
     );
     throw new Error(
-      "Please add commands before trying to validate a script's contents."
+      "Please add commands before trying to validate a script's contents.",
     );
   }
 
@@ -616,7 +616,7 @@ function validateScriptContents() {
     .then((response) => {
       if (!response.ok) {
         throw new Error(
-          `Invalid HTTP status: ${response.status} ${response.statusText}`
+          `Invalid HTTP status: ${response.status} ${response.statusText}`,
         );
       }
       return response.json();
@@ -628,7 +628,7 @@ function validateScriptContents() {
       } else {
         createAlert(
           "error",
-          `Script validation failed, ${data.error || "No details provided."}`
+          `Script validation failed, ${data.error || "No details provided."}`,
         );
         console.error("Validation failed response:", data);
       }
@@ -638,7 +638,7 @@ function validateScriptContents() {
         error.message || "A network or connection error occurred.";
       createAlert(
         "error",
-        `Validation request failed.<br/>Error: ${errorMessage}`
+        `Validation request failed.<br/>Error: ${errorMessage}`,
       );
       console.error("Validation Fetch Error:", error);
     });
@@ -655,7 +655,7 @@ window.addEventListener("load", (e) => {
 commandSelect.addEventListener("change", (event) => {
   var selectedCommandName = event.target.value;
   var selectedCommand = commandCollection.find(
-    (cmd) => cmd.commandName === selectedCommandName
+    (cmd) => cmd.commandName === selectedCommandName,
   );
 
   if (selectedCommand) {
@@ -677,14 +677,14 @@ executeButton.addEventListener("click", (e) => {
   if (jsMode && selectedCommandName !== "Add-JS-Code") {
     createAlert(
       "error",
-      "You are inside a JavaScript block. The next command must be 'Add-JS-Code'."
+      "You are inside a JavaScript block. The next command must be 'Add-JS-Code'.",
     );
     return;
   }
   if (!jsMode && selectedCommandName === "Add-JS-Code") {
     createAlert(
       "error",
-      "You must start a JavaScript block with 'Start-Javascript' before adding code."
+      "You must start a JavaScript block with 'Start-Javascript' before adding code.",
     );
     return;
   }
@@ -717,7 +717,7 @@ executeButton.addEventListener("click", (e) => {
   }
 
   const selectedCommand = commandCollection.find(
-    (cmd) => cmd.commandName === selectedCommandName
+    (cmd) => cmd.commandName === selectedCommandName,
   );
   if (!selectedCommand) {
     createAlert("error", "Error: Command definition not found.");
@@ -743,7 +743,7 @@ executeButton.addEventListener("click", (e) => {
     if (isDuplicateFeature) {
       createAlert(
         "error",
-        `The feature command '${selectedCommandName}' can only be added once to the script.`
+        `The feature command '${selectedCommandName}' can only be added once to the script.`,
       );
       return;
     }
@@ -769,7 +769,7 @@ executeButton.addEventListener("click", (e) => {
       if (otherProxyExists) {
         createAlert(
           "error",
-          "Only one proxy feature (http, https, socks4, or socks5) is allowed in a single script."
+          "Only one proxy feature (http, https, socks4, or socks5) is allowed in a single script.",
         );
         return;
       }
@@ -840,14 +840,14 @@ executeButton.addEventListener("click", (e) => {
   if (selectedCommandName === "Start-Javascript") {
     jsMode = true;
     var nextCommand = commandCollection.find(
-      (cmd) => cmd.commandName === "Add-JS-Code"
+      (cmd) => cmd.commandName === "Add-JS-Code",
     );
     commandSelect.value = "Add-JS-Code";
     renderArguments(nextCommand);
   } else if (selectedCommandName === "Add-JS-Code") {
     jsMode = false;
     var nextCommand = commandCollection.find(
-      (cmd) => cmd.commandName === "End-Javascript"
+      (cmd) => cmd.commandName === "End-Javascript",
     );
     commandSelect.value = "End-Javascript";
     renderArguments(nextCommand);
