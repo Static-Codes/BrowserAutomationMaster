@@ -305,7 +305,7 @@ namespace BrowserAutomationMaster.Parsing
                 
                 "add-header" => AddHeader(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                "click-at-position" => ClickAtPosition(fileName, line, lineNumber, firstArg, ref selectorString),
+                "click-at-position" => ClickAtPosition(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
                 "click-exp" => ClickExp(fileName, line, lineNumber, firstArg, ref lineArgs, ref selectorString),
 
@@ -323,7 +323,7 @@ namespace BrowserAutomationMaster.Parsing
 
                 "wait-for-seconds" => WaitForSeconds(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
-                "browser" => Browser(fileName, line, lineNumber, firstArg, lineArgs),
+                "browser" => Browser(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
                 "feature" => Feature(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString),
 
@@ -641,6 +641,7 @@ namespace BrowserAutomationMaster.Parsing
                     }
 
                     if (invalidLines.Count > 0)
+                    {
                         WriteAndExit(
                             message:
                                 GenerateErrorMessage(fileName, line, i,
@@ -654,6 +655,7 @@ namespace BrowserAutomationMaster.Parsing
                                 ),
                             status: 1
                         );
+                    }
 
                     #endregion End of Visit Feature Check
 
@@ -661,7 +663,9 @@ namespace BrowserAutomationMaster.Parsing
                     #region Start of JS Feature Check
 
                     else if (line.StartsWith("start-javascript"))
+                    {
                         jsBlockFinished = false;
+                    }
 
                     else if (line.StartsWith("end-javascript"))
                     {
@@ -670,12 +674,16 @@ namespace BrowserAutomationMaster.Parsing
                     }
 
                     else if (!HandleLineValidation(fileName, line, i + 1))
+                    {
                         return false;
+                    }
 
                     // Ignores comments
                     if (!line.StartsWith("//"))
-                        // This flag will be used to ensure all 'feature' commands are placed before all other commands, excluding 'browser'.
+                    {
+                        // Flag used to ensure all 'feature' commands are placed before all other commands, excluding 'browser'.
                         featureBlockFinished = true;
+                    }
 
                     #endregion End of JS Feature Check
 
@@ -746,9 +754,10 @@ namespace BrowserAutomationMaster.Parsing
         }
         
         // Used in EndpointFunctions.Validate
-        // This is extremely sloppy, I'm the first one to acknowledge so, 
-        // I could create a temp file with the contents streamed in then call IsValidFile(), 
-        // but im quite busy so this will have to do.
+        //
+        // This can be optimized by:
+        //
+        // - Creating a temp file with the contents streamed in then call IsValidFile(), 
         public static bool IsValidFileContents(string[] lines)
         {
             List<string> usedFeatures = [];
@@ -961,12 +970,12 @@ namespace BrowserAutomationMaster.Parsing
                             message:
                                 GenerateErrorMessage(fileName, line, i,
                                     issueText:
-                                        $"A 'visit' command must be placed after 'browser' and 'feature' commands." +
-                                        $"\n\nExample:\n\n" +
-                                        "browser \"firefox\"\n" +
-                                        "feature \"run-headless\"\n" +
-                                        "feature \"disable-pycache\"\n" +
-                                        "visit \"https://google.com\"\n"
+                                        "A 'visit' command must be placed after 'browser' and 'feature' commands." +
+                                        $"{NLC}{NLC}Example:{NLC}{NLC}" +
+                                        $"browser \"firefox\"{NLC}" +
+                                        $"feature \"run-headless\"{NLC}" +
+                                        $"feature \"disable-pycache\"{NLC}" +
+                                        $"visit \"https://google.com\"{NLC}"
                                 ),
                             status: 1
                         );

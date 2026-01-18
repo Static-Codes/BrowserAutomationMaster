@@ -1,4 +1,6 @@
-﻿using static BrowserAutomationMaster.Parsing.Parser;
+﻿using static BrowserAutomationMaster.Parsing.LineValidationHelpers;
+using static BrowserAutomationMaster.Parsing.Parser;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using System.Linq;
 using System.Collections.Generic;
@@ -10,54 +12,105 @@ namespace BrowserAutomationMaster.Parsing
 
     public static class LineValidationHelpers 
     {
-        // Implement this for Browser and other one Arg commands.
+
+        // Helper to check for integer validity (ignoring quotes)
+        public static bool IsInt(string s) => int.TryParse(s.Trim('"', '\'', ' '), out _);
+
         public static bool ValidateOneArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null) 
         {   
-            bool extraChecksRequired = optionalChecks != null;
+            var eMessage = $"BAM Manager (BAMM) ran into a BAMC validation error:{NLC}{NLC}" +
+                           $"File: \"{fileName}\"{NLC}Invalid syntax on line {lineNumber}{NLC}" +
+                           $"Line: {line}{NLC}" +
+                           $"Valid Syntax: {firstArg} {selectorString}{NLC}";
 
-            if (lineArgs.Length != 2 || !lineArgs[1].Trim().StartsWith('"') || !lineArgs[1].Trim().EndsWith('"'))
-            {
-                return extraChecksRequired switch
-                {
-                    // optionalChecks is guaranteed to not be null here.
-                    true when optionalChecks!.All(check => check) => true,
-                    true when !optionalChecks!.All(check => check) => WriteErrorAndReturnBool(
-                        message:
-                            $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                            $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}\n" +
-                            $"Line: {line}\n" +
-                            $"Valid Syntax: {firstArg} {selectorString}\n",
-                        returnBool: false
-                    ),
-                    _ => false,
-                };
+            bool extraChecksRequired = optionalChecks != null;
+            
+            if (lineArgs.Length != 2) {
+                return WriteErrorAndReturnBool(eMessage, returnBool: false);
+            };
+
+            var trimmedArg1 = lineArgs[1].Trim();
+
+            var firstArgQuoted = 
+                trimmedArg1.StartsWith('"') && 
+                trimmedArg1.EndsWith('"') ||
+                trimmedArg1.StartsWith('\'') && 
+                trimmedArg1.EndsWith('\'');
+
+            if (!firstArgQuoted) {
+                return WriteErrorAndReturnBool(eMessage, returnBool: false);
             }
 
-            return true;
+            // optionalChecks is guaranteed to not be null here.
+            return extraChecksRequired switch
+            {
+                // If extraChecksRequired and all extraChecks are passing.
+                true when optionalChecks!.All(check => check) => true,
+
+                // If extraChecksRequired and not all extraChecks are passing.
+                true when !optionalChecks!.All(check => check) => WriteErrorAndReturnBool(
+                    eMessage,
+                    returnBool: false
+                ),
+                _ => true,
+            };
         } 
 
-        public static bool ValidateTwoArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString) 
+        public static bool ValidateTwoArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null) 
         {
-            if (lineArgs.Length != 3 || !lineArgs[1].EndsWith('"') || !lineArgs[2].EndsWith('"'))
-            {
-                return WriteErrorAndReturnBool(
-                    message:
-                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                        $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}\n" +
-                        $"Line: {line}\n" +
-                        $"Valid Syntax: {firstArg} {selectorString}\n",
-                    returnBool: false
-                );
+            var eMessage = $"BAM Manager (BAMM) ran into a BAMC validation error:{NLC}{NLC}" +
+                         $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}{NLC}" +
+                         $"Line: {line}\n" +
+                         $"Valid Syntax: {firstArg} {selectorString}\n";
+
+
+            if (lineArgs.Length != 3) {
+                return WriteErrorAndReturnBool(eMessage, returnBool: false);
             }
-            return true;
+
+            var trimmedArg1 = lineArgs[1].Trim();
+            var trimmedArg2 = lineArgs[2].Trim();
+            
+            var firstArgQuoted = 
+                trimmedArg1.StartsWith('"') && 
+                trimmedArg1.EndsWith('"') ||
+                trimmedArg1.StartsWith('\'') && 
+                trimmedArg1.EndsWith('\'');
+
+            var secondArgQuoted = 
+                trimmedArg2.StartsWith('"') && 
+                trimmedArg2.EndsWith('"') ||
+                trimmedArg2.StartsWith('\'') && 
+                trimmedArg2.EndsWith('\'');
+
+            if (!firstArgQuoted || !secondArgQuoted) {
+                return WriteErrorAndReturnBool(eMessage, returnBool: false);
+            }
+
+            bool extraChecksRequired = optionalChecks != null;
+
+            // optionalChecks is guaranteed to not be null here.
+            return extraChecksRequired switch
+            {
+                // If extraChecksRequired and all extraChecks are passing.
+                true when optionalChecks!.All(check => check) => true,
+
+                // If extraChecksRequired and not all extraChecks are passing.
+                true when !optionalChecks!.All(check => check) => WriteErrorAndReturnBool(
+                    eMessage,
+                    returnBool: false
+                ),
+                _ => true,
+            };
         }
     }
+
     public static class LineValidation
     {
         public static bool AddCookie(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
         {
             selectorString = "\"cookie-name\" \"cookie-value\"";
-            return LineValidationHelpers.ValidateTwoArgCommand(
+            return ValidateTwoArgCommand(
                 fileName, line, lineNumber, firstArg, lineArgs, ref selectorString
             );
         }
@@ -135,29 +188,10 @@ namespace BrowserAutomationMaster.Parsing
             return true;
         }
 
-        public static bool Browser(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs)
+        public static bool Browser(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
         {
-            if (lineArgs.Length != 2 ||
-                !browserArgs.Contains(lineArgs[1].Replace("\"", "")) ||
-                !lineArgs[1].StartsWith('"') ||
-                !lineArgs[1].EndsWith('"')
-            )
-
-            
-            {
-
-                return WriteErrorAndReturnBool(
-                    message:
-                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                        $"File: \"{fileName}\"\n" +
-                        $"Invalid syntax on line {lineNumber}\n" +
-                        $"Line: {line}\n" +
-                        $"Valid Syntax: {firstArg} {"\"firefox\""}\n",
-                    returnBool: false
-                );
-            }
-
-            return true;
+            selectorString = "browser \"browser-name\"";
+            return ValidateOneArgCommand(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString);
         }
 
         public static void BuildJSBlock(string fileName, string line, List<string> lines, int index, ref string jsBlockContent, ref int jsBlockStartLine, ref bool jsBlockFinished, ref string jsError)
@@ -209,48 +243,23 @@ namespace BrowserAutomationMaster.Parsing
             }
         }
 
-        public static bool ClickAtPosition(string fileName, string line, int lineNumber, string firstArg, ref string selectorString)
+        public static bool ClickAtPosition(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
         {
-            var lineArgs = line.Trim().Split(" ");
             selectorString = "\"x-coordinate\" \"y-coordinate\"";
 
-            if (lineArgs.Length != 3)
-            {
-                return WriteErrorAndReturnBool(
-                    message:
-                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                        $"File: \"{fileName}\"\n" +
-                        $"Invalid syntax on line {lineNumber}\n" +
-                        $"Line: {line}\n" +
-                        $"Valid Syntax: {firstArg} {selectorString}\n",
-                    returnBool: false
-                );
-            }
+            // Safely extract args for validation. (Defaults to an empty string if length is invalid.)
+            var rawX = lineArgs.Length > 1 ? lineArgs[1] : string.Empty;
+            var rawY = lineArgs.Length > 2 ? lineArgs[2] : string.Empty;
 
-            string[] positionArgs = [lineArgs[1], lineArgs[2]];
-            foreach (var arg in positionArgs)
-            {
-                bool notQuoted = !arg.StartsWith('"') || !arg.EndsWith('"');
-
-                bool notParsable = !int.TryParse(
-                    arg.Replace('"', ' ').Trim(),
-                    out int _
-                );
-
-                if (notQuoted || notParsable)
-                {
-                    return WriteErrorAndReturnBool(
-                        message:
-                            $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                            $"File: \"{fileName}\"\n" +
-                            $"Invalid syntax on line {lineNumber}\n" +
-                            $"Line: {line}\n" +
-                            $"Valid Syntax: {firstArg} {selectorString}\n",
-                        returnBool: false
-                    );
-                }
-            }
-            return true;
+            return ValidateTwoArgCommand(
+                fileName,
+                line,
+                lineNumber,
+                firstArg,
+                lineArgs,
+                ref selectorString,
+                optionalChecks: [IsInt(rawX), IsInt(rawY)]
+            );
         }
 
         public static bool ClickExp(string fileName, string line, int lineNumber, string firstArg, ref string[] lineArgs, ref string selectorString)
