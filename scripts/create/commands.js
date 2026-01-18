@@ -35,6 +35,18 @@ const commandCollection = [
   },
 
   {
+    commandName: "Add-Cookie",
+    commandArgs: {
+      "cookie-name": null,
+      "cookie-value": null,
+    },
+    commandDescription:
+      "Adds a cookie to the current selenium instance. Both name and value must be quoted strings.",
+    disabledOnLoad: true,
+    placeholder: '"REQUEST-ID", "123456789"',
+  },
+
+  {
     commandName: "Add-Header",
     commandArgs: {
       "header-name": null,
