@@ -58,19 +58,13 @@ This command will try to get the text of a specific element, if it's found the r
 get-validated-text "selector" "desired result"
 ```
 
-### 2. Add Cookie
-This command will let you add a single cookie to the browser session.
-```
-add-cookie "name" "value"
-```
-
-### 3. Add Cookies
+### 2. Add Cookies
 For more complex scenarios, you'll be able to add multiple cookies using a JSON object.
 ```
 add-cookies {"name": "value", "name2": "value2"}
 ```
 
-### 4. Set Property
+### 3. Set Property
 This command will allow you to dynamically change properties of HTML elements.
 ```
 set-element-property "selector" "property" "value"
