@@ -344,14 +344,18 @@ namespace BrowserAutomationMaster.Compilation
             try
             {
                 if (!Path.Exists(desiredSaveDirectory))
+                {
                     Directory.CreateDirectory(desiredSaveDirectory);
+                }
             }
             catch { }
 
             try
             {
                 if (!Path.Exists(projectDirectory))
+                {
                     Directory.CreateDirectory(projectDirectory);
+                }
             }
             catch
             {
@@ -717,7 +721,7 @@ namespace BrowserAutomationMaster.Compilation
                 {
 
                     case "add-cookie":
-                        CompilationHandler.AddHeader(script.Body.scriptLines, sanitizedArg2, sanitizedArg3);
+                        CompilationHandler.AddCookie(script.Body.scriptLines, sanitizedArg2, sanitizedArg3);
                         break;
 
                     case "add-header":
