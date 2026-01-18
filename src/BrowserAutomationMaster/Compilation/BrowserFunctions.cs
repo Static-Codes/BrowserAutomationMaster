@@ -37,7 +37,7 @@ namespace BrowserAutomationMaster.Compilation
 
         public static string AddCookieFunction(string CookieName, string CookieValue)
         {
-            return $"{Indent(2)}driver.add_cookie({{'name' : '{CookieName}', 'value' : '{CookieValue}'}})";
+            return $"driver.add_cookie({{'name' : '{CookieName}', 'value' : '{CookieValue}'}})";
         }
 
         public static string? AddHeaderFunction(string HeaderName, string HeaderValue) {
