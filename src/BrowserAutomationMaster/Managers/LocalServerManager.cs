@@ -105,7 +105,7 @@ namespace BrowserAutomationMaster.Managers
                 return ("cmd.exe", "/c netstat -ano");
             
             else
-                throw new PlatformNotSupportedException("Invalid OS.");
+                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
         }
 
         /// <summary>
@@ -115,10 +115,13 @@ namespace BrowserAutomationMaster.Managers
         /// <exception cref="PlatformNotSupportedException"></exception>
         public static IEnumerable<Group>? GetValues(GroupCollection? groups)
         {
-            if (groups == null || groups.Count == 0) 
+            if (groups == null || groups.Count == 0)
+            {
                 return [];
+            }
 
             if (Platforms.IsWindows)
+            {
                 return groups
                     .Values
                     .Where(val =>
@@ -127,15 +130,18 @@ namespace BrowserAutomationMaster.Managers
                         !val.Value.StartsWith("UDP", OIC) &&
                         val.Value.All(c => char.IsNumber(c)) // Fixes issues with the matches including "localhost:"
                     );
+            }
 
             if (Platforms.IsUnixLike || Platforms.IsChromeOS)
+            {
                 return groups.Values
                     .Where(val => 
                         !string.IsNullOrEmpty(val.Value) &&
                         val.Value.All(c => char.IsNumber(c)) // Fixes issues with the matches including "localhost:"
                     );
-
-            throw new PlatformNotSupportedException("Invalid OS.");
+            }
+            
+            throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
         }
 
         public static async Task HandleEndpointRequests()
@@ -161,8 +167,9 @@ namespace BrowserAutomationMaster.Managers
                 }
 
                 if (request.HttpMethod.Equals("OPTIONS"))
+                {
                     AddOptionResponseHeaders(response);
-
+                }
 
 
 
@@ -235,6 +242,7 @@ namespace BrowserAutomationMaster.Managers
 
 
             if (ExitCode != 0)
+            {
                 WriteAndExit(
                     message:
                         string.Join(string.Empty, [
@@ -245,8 +253,10 @@ namespace BrowserAutomationMaster.Managers
                         ]),
                     status: 1
                 );
+            }
 
             if (STDOut.Count == 0)
+            {
                 WriteAndExit(
                     message:
                         string.Join(string.Empty, [
@@ -257,6 +267,7 @@ namespace BrowserAutomationMaster.Managers
                         ]),
                     status: 1
                 );
+            }
 
             var matches = PrecompiledNetStatRegex().Matches(string.Join(NLC, STDOut));
             var foundPorts = new StringBuilder();
@@ -269,10 +280,13 @@ namespace BrowserAutomationMaster.Managers
                     var values = GetValues(groups);
 
                     if (values == null)
+                    {
                         continue;
+                    }
 
-                    foreach (var value in values)
+                    foreach (var value in values) {
                         foundPorts.AppendLine(value.Value);
+                    }
                 }
             }
 
@@ -288,10 +302,10 @@ namespace BrowserAutomationMaster.Managers
 
         public static async Task StartServer(string port = DEFAULT_PORT)
         {
-
             var url = $"http://127.0.0.1:{port}/";
 
             if (!HttpListener.IsSupported)
+            {
                 WriteAndExit(
                     message:
                         string.Join(
@@ -303,17 +317,21 @@ namespace BrowserAutomationMaster.Managers
                         ), 
                     status: 1
                 );
+            }
 
             try
             {
                 var usedLHPorts = await ScanForUsedLHPorts();
 
                 if (usedLHPorts.Contains(port))
+                {
                     throw new HttpListenerException(1, "Access is denied");
+                }
 
                 var memoryInfo = GetMemoryInfo();
 
-                #pragma warning disable IDE0270 // Coalesce operator will break the current logic implementation, as such this warning can be ignored.
+                // Coalesce operator will break the current logic implementation, as such this warning can be ignored.
+                #pragma warning disable IDE0270
                 if (memoryInfo == null)
                 {
                     throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");

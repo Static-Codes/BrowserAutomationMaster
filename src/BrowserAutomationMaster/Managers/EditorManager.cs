@@ -95,7 +95,7 @@ namespace BrowserAutomationMaster.Managers
                 (true, false, false) => (chosenEditor.Value.Value, "", ""),
                 (false, true, false) => (chosenEditor.Value.Value, "", ""),
                 (false, false, true) => (chosenEditor.Value.Value, "", ""),
-                _ => throw new PlatformNotSupportedException("Invalid OS.")
+                _ => throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms")
             };
             
             // Will either return an Editor object, or throw an exception.
@@ -125,7 +125,7 @@ namespace BrowserAutomationMaster.Managers
                 (true, false, false) => GetSupportedWindowsEditors(),
                 (false, true, false) => GetSupportedMacEditors(),
                 (false, false, true) => GetSupportedLinuxEditors(),
-                _ => throw new PlatformNotSupportedException("Invalid OS.")
+                _ => throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms")
             };
         }
 
@@ -323,7 +323,7 @@ namespace BrowserAutomationMaster.Managers
                 (true, false, false) => DefaultEditor.Windows,
                 (false, true, false) => DefaultEditor.Mac,
                 (false, false, true) => DefaultEditor.Linux,
-                _ => throw new PlatformNotSupportedException("Invalid OS.")
+                _ => throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms")
             };
         }
 
@@ -392,7 +392,7 @@ namespace BrowserAutomationMaster.Managers
 
             else
             {
-                throw new PlatformNotSupportedException("Unsupported OS.");
+                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
             }
 
             ProcessStartInfo psi;
@@ -442,7 +442,7 @@ namespace BrowserAutomationMaster.Managers
 
             else
             {
-                throw new PlatformNotSupportedException("Unsupported OS.");
+                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
             }
             
             // Debug only do NOT leave in production release.

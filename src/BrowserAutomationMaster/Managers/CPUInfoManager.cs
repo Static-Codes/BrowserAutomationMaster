@@ -122,7 +122,7 @@ namespace BrowserAutomationMaster.Managers
             }
 
             else {
-                throw new PlatformNotSupportedException("Unsupported OS.");
+                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
             }
 
             var psi = new ProcessStartInfo()
