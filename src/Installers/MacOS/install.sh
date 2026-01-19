@@ -224,7 +224,7 @@ if [[ "$APP_NAME" == "bamm-silicon" ]]; then
     handle_adhoc_signing
 fi
 
-Creating an alias for the binary
+# Creating an alias for the binary
 show_info "Checking value for \$SHELL, please wait."
 
 if [[ -z $HOME ]]; then
