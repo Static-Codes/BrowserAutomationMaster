@@ -13,8 +13,8 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
 ## Quick Start Guide 🚀
 - To get started with BAMM:
-  - Download the VSCode/VSCodium Extension <a target="_blank" href="https://github.com/Static-Codes/BAMM-LSP/releases/tag/latest" >here</a>
-  - Visit the documentation <a target="_blank" href="https://static-codes.github.io/BAMM-Docs/">here</a>
+  - Download the VSCode/VSCodium Extension <a target="_new" href="https://github.com/Static-Codes/BAMM-LSP/releases/tag/latest">here</a>
+  - Visit the documentation <a href="https://static-codes.github.io/BAMM-Docs/" target="_new">here</a>
 
 
 ## Table of Contents 📖
