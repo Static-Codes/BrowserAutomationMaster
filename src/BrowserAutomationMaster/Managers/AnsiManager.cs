@@ -113,8 +113,7 @@ namespace BrowserAutomationMaster.Managers
             Color oldFG = AnsiConsole.Foreground;
             var newFG = GetForeground(isSuccess, isWarning, isError);
 
-            if (!oldFG.Equals(newFG))
-            {
+            if (!oldFG.Equals(newFG)) {
                 AnsiConsole.Foreground = newFG;
             }
         }

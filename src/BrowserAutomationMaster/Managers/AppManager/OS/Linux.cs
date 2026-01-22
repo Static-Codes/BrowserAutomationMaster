@@ -59,13 +59,14 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             try
             {
-                if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0)
+                if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0) {
                     WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to detect any of the following commands:\n\n" +
                             "dpkg\nflatpak\nrpm\n",
                         status: 1
                     );
+                }
 
                 var appSources = new List<(string Name, List<AppInfo> Apps)>
                 {
@@ -82,14 +83,17 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     
                     foreach (var (Name, Apps) in appSources)
                     {
-                        if (Apps.Count == 0)
+                        if (Apps.Count == 0) {
                             Warning.Write($"No apps found for: {Name}");
+                        }
 
-                        else if (Apps.Count == 1)
+                        else if (Apps.Count == 1) {
                             WriteSuccessMessage($"Found 1 app from: {Name}");
+                        }
 
-                        else
+                        else {
                             WriteSuccessMessage($"Found {Apps.Count} apps from: {Name}");
+                        }
                     }
                 }
 
@@ -110,9 +114,20 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static void ARM32Check()
         {
+
+            var invalidStates = [
+                Platforms.IsLinux,
+                Platforms.IsWindows,
+                Platforms.IsOSX,
+                !Platforms.IsChromeOS,
+                Platforms.CurrentArchitecture != Arm,
+            ];
+
+
             // If this is true, the OS does not require precompiled wheels.
-            if (Platforms.IsLinux || Platforms.IsWindows || Platforms.IsOSX || !Platforms.IsChromeOS || Platforms.CurrentArchitecture != Arm)
+            if (invalidStates.Any(invalidState => invalidState)) {
                 return;
+            }
            
             var psi = new ProcessStartInfo()
             {
@@ -132,19 +147,22 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 return;
             }
 
-            if (STDOut.Any(a => a.Contains("armhf", OIC)))
+            if (STDOut.Any(a => a.Contains("armhf", OIC))) {
                 Platforms.IsARMhf = true;
+            }
 
-            else if (STDOut.Any(a => a.Contains("armel", OIC)))
+            else if (STDOut.Any(a => a.Contains("armel", OIC))) {
                 Platforms.IsARMel = true;
+            }
 
         }
 
         public static void ChromeOSCheck()
         {
 
-            if (!OperatingSystem.IsLinux())
+            if (!OperatingSystem.IsLinux()) {
                 return;
+            }
 
             try
             {
@@ -216,12 +234,19 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static string? GetTerminalBackgroundColor()
         {
+            var statesToReturnBlack = [
+                Platforms.IsChromeOS,
+                Platforms.IsOSX,
+                Platforms.IsRaspi
+            ];
+
             try
             {
                 string black = "0000/0000/0000";
                 
-                if (Platforms.IsChromeOS || Platforms.IsOSX || Platforms.IsRaspi)
-                    return black; 
+                if (statesToReturnBlack.Any(stateToReturnBlack => stateToReturnBlack)) {
+                    return black;
+                }
                 
                 string tempFile = Path.GetTempFileName();
 
@@ -241,9 +266,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         var match = ForegroundMatch.Match(hexDump);
                         var groups = match.Groups;
                         
-                        if (groups.Count == 3) // groups[0] is the whole match
+                        // groups[0] is the whole match
+                        if (groups.Count == 3) {
                             return groups[1].Value + groups[2].Value;
-                        
+                        }
+
                         return hexDump;
                     }
                 }
@@ -258,7 +285,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static bool HasDisplayVarSet()
         {
-            if (!Platforms.IsUnixLike) { return true; } // This check doesnt need to include windows.
+            // This check doesnt need to non-unix systems.
+            if (!Platforms.IsUnixLike) { 
+                return true; 
+            }
+
             return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"));
         }
 
@@ -309,8 +340,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         _ => "UNSELECTED DISTO"
                     };
 
-                    if (PKM_CMD == "UNSELECTED DISTRO")
+                    if (PKM_CMD == "UNSELECTED DISTRO") {
                         WriteAndExit("An error occured while attempting to access your Distribution's Package Manager, please try again.", 1);
+                    }
                 }
 
 
@@ -342,17 +374,18 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     optionalPackages
                 ];
 
-                if (installPrefix == null)
+                if (installPrefix == null) {
                     WriteAndExit($"Unable to install the following required Linux Packages:\n{string.Join('\n', packages)}", 1);
-
+                }
 
                 string[] commands = new string[packages.Length];
 
                 for (int i = 0; i < packages.Length; i++)
                 {
                     // Skips installation of additional packages if browserstack isn't used.
-                    if (string.IsNullOrEmpty(packages[i]))
+                    if (string.IsNullOrEmpty(packages[i])) {
                         continue;
+                    }
 
                     commands[i] = $"{installCMD} {packages[i]}\"";
 
@@ -362,8 +395,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     };
 
                     // Skips pre-existing installations
-                    if (appsInfo.Contains(appInfo))
-                    {
+                    if (appsInfo.Contains(appInfo)) {
                         continue;
                     }
 
@@ -469,30 +501,36 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static void RPICheck()
         {
-            if (!OperatingSystem.IsLinux())
+            if (!OperatingSystem.IsLinux()) {
                 return;
+            }
 
             try
             {
                 var cpuContents = File.ReadAllLines("/proc/cpuinfo");
 
-                if (cpuContents == null)
+                if (cpuContents == null) {
                     return;
+                }
 
 
                 foreach (var line in cpuContents)
                 {
-                    if (string.IsNullOrEmpty(line)) continue;
+                    if (string.IsNullOrEmpty(line)) {
+                        continue;
+                    }
 
                     var match = PrecompiledRPIRegex().Match(line);
 
-                    if (match == null) continue;
-                    if (match.Groups.Count == 0) continue;
-
+                    if (match == null || match.Groups.Count == 0) { 
+                        continue;
+                    }
+                    
                     match.Groups.TryGetValue("model", out var modelNameMatch);
 
-                    if (modelNameMatch == null) continue;
-                    if (!modelNameMatch.Success) continue;
+                    if (modelNameMatch == null || !modelNameMatch.Success) { 
+                        continue;
+                    }
 
                     var modelName = $"Raspberry Pi {modelNameMatch.Value}";
 
@@ -512,7 +550,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     
                 }
             }
-            catch (Exception ex){
+            catch (Exception ex) {
                 Warning.Write($"A non fatal error occured while attempting to read from /proc/cpuinfo\n\nError Log:\n{ex.Message}");
             }
         }
@@ -535,14 +573,17 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 };
                 
                 using var proc = Process.Start(procStartInfo);
-                if (proc == null)
-                    return string.Empty;
                 
+                if (proc == null) {
+                    return string.Empty;
+                }
+
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit();
 
-                if (proc.ExitCode == 0)
+                if (proc.ExitCode == 0) {
                     return output;
+                }
 
                 return string.Empty;
             }
@@ -564,8 +605,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             try
             {
-                if (!File.Exists("/etc/os-release"))
-                {
+                if (!File.Exists("/etc/os-release")) {
                     return null;
                 }
 
@@ -575,13 +615,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 var osrMatch = PrecompiledOSR1Regex().Match(contentString);
 
-                if (osrMatch.Success){
+                if (osrMatch.Success) {
                     return osrMatch.Groups[1].Value;
                 }
 
                 osrMatch = PrecompiledOSR2Regex().Match(contentString);
 
-                if (osrMatch.Success){
+                if (osrMatch.Success) {
                     return osrMatch.Groups[1].Value;
                 }
             }
@@ -601,8 +641,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 var lsbrMatch = PrecompiledLSBRRegex().Match(lsbrResult);
 
-                if (!lsbrMatch.Success)
-                {
+                if (!lsbrMatch.Success) {
                     return null;
                 }
 
@@ -624,8 +663,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 var nfTmpFilePath = GetTemporaryNeofetchPath();
                 RunCommand("/bin/bash", $"-c \"neofetch > {nfTmpFilePath}\"");
 
-                if (!File.Exists(nfTmpFilePath))
-                {
+                if (!File.Exists(nfTmpFilePath)) {
                     return null;
                 }
 
@@ -638,10 +676,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 var contentString = StripANSI(rawContentString);
 
                 var nfMatch = PrecompiledNFRegex().Match(contentString);
-                if (nfMatch.Success)
-                {
+                
+                if (nfMatch.Success) {
                     return nfMatch.Groups[1].Value;
                 }
+
                 return null;
             }
             catch {
@@ -651,7 +690,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             // catch (Exception ex){}
             return null;
         }
-        private static string StripANSI(string text){
+        private static string StripANSI(string text) {
             string ANSIPattern = @"\x1b\[[0-?]*[ -/]*[@-~]";
             return Regex.Replace(text, ANSIPattern, string.Empty);
         }

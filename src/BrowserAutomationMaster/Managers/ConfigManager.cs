@@ -268,6 +268,7 @@ namespace BrowserAutomationMaster.Managers
                 File.WriteAllText(ConfigFilePath, configContents); // Fixed: was ConfigDirectory, should be ConfigFilePath
             }
         }
+
         private static string[]? GetPartsOfLine(string trimmedLine, string originalLine)
         {
             // Learned about spans and now I feel the need to refactor all string usage to ReadonlySpan<char>
@@ -280,19 +281,16 @@ namespace BrowserAutomationMaster.Managers
             string[] parts;
 
             // Skips "@Override " as its only needed to identify the command type.
-            if (span.StartsWith("@Override "))
-            {
+            if (span.StartsWith("@Override ")) {
                 parts = [.. trimmedLine[10..].Split('=').Select(part => part.Trim())];
                 return parts;
             }
 
             int index = trimmedLine.IndexOf('=');
-            if (index > 0)
-                parts = [trimmedLine[..index], trimmedLine[(index + 1)..]];
-            else
-                parts = [trimmedLine];
-            return parts;
+            
+            return index > 0 ? [trimmedLine[..index], trimmedLine[(index + 1)..]] : [trimmedLine];
         }
+
         private static Dictionary<string, Regex> GetPropsAndFuncs()
         {
             var propsAndFuncs = new Dictionary<string, Regex>();
@@ -302,15 +300,18 @@ namespace BrowserAutomationMaster.Managers
             {
                 foreach (var propKvp in rawSections[sectionName])
                 {
-                    if (propKvp.Key.Equals("theme_type"))
+                    if (propKvp.Key.Equals("theme_type")) {
                         propsAndFuncs.Add(propKvp.Key, RegexManager.ThemeRegex());
+                    }
 
-                    else if (bool.TryParse(propKvp.Value, out bool _))
+                    else if (bool.TryParse(propKvp.Value, out bool _)) {
                         propsAndFuncs.Add(propKvp.Key, RegexManager.BoolRegex());
+                    }
 
                     // Add support for integer properties if needed
-                    else if (int.TryParse(propKvp.Value, out int _))
+                    else if (int.TryParse(propKvp.Value, out int _)) {
                         propsAndFuncs.Add(propKvp.Key, RegexManager.IntRegex());
+                    }
                 }
             }
             return propsAndFuncs;
@@ -326,37 +327,42 @@ namespace BrowserAutomationMaster.Managers
             foreach (string originalLine in splitLines)
             {
                 string trimmedLine = ConfigParser.RemoveCommentIfPresent(originalLine.Replace('\r', ' ').Trim());
-                if (string.IsNullOrWhiteSpace(trimmedLine)) continue;
-
+                
+                if (string.IsNullOrWhiteSpace(trimmedLine)) {
+                    continue;
+                }
+                
                 // Handles section headers
                 if (trimmedLine.StartsWith('[') && trimmedLine.EndsWith(']')) {
                     currentSection = trimmedLine;
                     continue;
                 }
 
-                if (currentSection == null) 
+                if (currentSection == null) {
                     continue;
+                }
 
                 // Handles overrides (if present)
                 if (currentSection == "[overrides]")
                 {
-                    if (OverrideLineHasComment(trimmedLine)) 
+                    if (OverrideLineHasComment(trimmedLine)) {
                         continue;
+                    }
 
                     ProcessOverrideLine(trimmedLine, originalLine, splitLines);
                 }
 
                 // Handles regular config properties
-                else
+                else {
                     ProcessConfigProperty(trimmedLine, originalLine, splitLines);
-                
+                }
             }
             return GlobalConfig;
         }
         private static void LogOverrideError(string originalLine, string[] splitLines)
         {
-            string message = "\nInvalid override format. Expected '@Override PropertyName = value' " +
-                            "where PropertyName is one of the supported color properties and value is a valid color format.\n\n" +
+            string message = $"{NLC}Invalid override format. Expected '@Override PropertyName = value' " +
+                            $"where PropertyName is one of the supported color properties and value is a valid color format.{NLC}{NLC}" +
                             "For more information please check {}";
 
             Write(
@@ -421,8 +427,7 @@ namespace BrowserAutomationMaster.Managers
         private static void ProcessOverrideLine(string trimmedLine, string originalLine, string[] splitLines)
         {
             var result = ParseOverrideLine(trimmedLine);
-            if (!result.HasValue)
-            {
+            if (!result.HasValue) {
                 LogOverrideError(originalLine, splitLines);
                 return;
             }
@@ -442,8 +447,9 @@ namespace BrowserAutomationMaster.Managers
             if (line == null) { return true; } // If a line == null returning true will have it skipped.
             foreach (char c in line)
             {
-                if (char.IsWhiteSpace(c))
+                if (char.IsWhiteSpace(c)) {
                     continue;
+                }
 
                 if (c.Equals(commentChar)) {
                     hasComment = true;
@@ -455,31 +461,35 @@ namespace BrowserAutomationMaster.Managers
         private static ConfigOverrideResult? ParseOverrideLine(string line)
         {
             var match = RegexManager.OverrideRegex().Match(line); // Will fail if a line has a comment (This is expected)
-            if (!match.Success)
+            if (!match.Success) {
                 return null;
+            }
 
             string propertyName = match.Groups["PropertyName"].Value;
 
-            if (match.Groups["Hex"].Success)
+            if (match.Groups["Hex"].Success) {
                 return new ConfigOverrideResult() { 
                     PropertyName = propertyName, 
                     ColorType = "Hex", 
                     ColorValue = match.Groups["Hex"].Value 
                 };
+            }
             
-            else if (match.Groups["RGB"].Success)
+            else if (match.Groups["RGB"].Success) {
                 return new() { 
                     PropertyName = propertyName, 
                     ColorType = "RGB", 
                     ColorValue = match.Groups["RGB"].Value 
                 };
+            }
 
-            else if (match.Groups["XTerm"].Success)
+            else if (match.Groups["XTerm"].Success) {
                 return new() { 
                     PropertyName = propertyName, 
                     ColorType = "XTerm", 
                     ColorValue = match.Groups["XTerm"].Value 
                 };
+            }
 
             return null;
         }
@@ -497,15 +507,15 @@ namespace BrowserAutomationMaster.Managers
                     originalLine.Replace('\r', ' ').Trim()
                 );
 
-                if (string.IsNullOrWhiteSpace(trimmedLine))
+                if (string.IsNullOrWhiteSpace(trimmedLine)) {
                     continue; 
-                
+                }
 
                 if (trimmedLine.StartsWith('[') && trimmedLine.EndsWith(']'))
                 {
                     string sectionName = trimmedLine;
 
-                    if (!rawSections.ContainsKey(sectionName))
+                    if (!rawSections.ContainsKey(sectionName)) {
                         WriteAndExit(
                             GenerateErrorMessage(
                                 fileName: "config.ini",
@@ -515,8 +525,9 @@ namespace BrowserAutomationMaster.Managers
                             ),
                             status: 1
                         );
+                    }
 
-                    if (encounteredSections.Contains(sectionName))
+                    if (encounteredSections.Contains(sectionName)) {
                         WriteAndExit(
                             GenerateErrorMessage(
                                 fileName: "config.ini",
@@ -526,6 +537,7 @@ namespace BrowserAutomationMaster.Managers
                             ),
                             status: 1
                         );
+                    }
 
                     currentSection = sectionName;
                     encounteredSections.Add(sectionName);
@@ -547,12 +559,12 @@ namespace BrowserAutomationMaster.Managers
 
                     var parts = GetPartsOfLine(trimmedLine, originalLine);
 
-                    if (parts == null)
+                    if (parts == null) {
                         continue; // Returning null means the line was skipped this is intended.
-                    
+                    }
 
 
-                    if (parts.Length != 2)
+                    if (parts.Length != 2) {
                         WriteAndExit(
                             GenerateErrorMessage(
                                 fileName: "config.ini",
@@ -563,6 +575,7 @@ namespace BrowserAutomationMaster.Managers
                             ),
                             status: 1
                         );
+                    }
 
 
                     string propName = parts[0].Trim();
@@ -577,7 +590,8 @@ namespace BrowserAutomationMaster.Managers
                     if (!rawSections[currentSection].Any(pair => pair.Key.Equals(propName))) // Handles all sections but overrides
                     {
                         
-                        if (typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null) // Handles overrides
+                        if (typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null) // Handles overrides 
+                        {
                             WriteAndExit(
                                 GenerateErrorMessage(
                                     fileName: "config.ini",
@@ -587,12 +601,14 @@ namespace BrowserAutomationMaster.Managers
                                 ),
                                 status: 1
                             );
+                        }
                     }
 
                     if (propsAndFuncs.TryGetValue(propName, out Regex? func))
                     {
                         // The nested if statement is ideal but it allows for the application to fallthrough safely in the case no validation rule is provided
                         if (!ConfigParser.IsValidLine(trimmedLine, func))
+                        {
                             WriteAndExit(
                                 GenerateErrorMessage(
                                     fileName: "config.ini",
@@ -602,10 +618,12 @@ namespace BrowserAutomationMaster.Managers
                                 ),
                                 status: 1
                             );
+                        }
                     }
-                    else if (currentSection == "[overrides]")
-                        continue;
 
+                    else if (currentSection == "[overrides]") {
+                        continue;
+                    }
 
                     else
                     {
