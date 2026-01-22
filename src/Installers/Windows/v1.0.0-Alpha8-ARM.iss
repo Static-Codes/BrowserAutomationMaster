@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "BAM Manager (BAMM)"
-#define MyAppVersion "1.0.0-Alpha7"
+#define MyAppVersion "1.0.0-Alpha8"
 #define MyAppExeName "bamm.exe"
 #define MyAppAssocName "BAMM Config"
 #define MyAppAssocExt ".bamc"
@@ -20,8 +20,8 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
-OutputDir=..\..\Published Builds\BAMM-v1.0.0A7-x64
-OutputBaseFilename=BAMM-v1.0.0A7-x64-Setup
+OutputDir=..\..\Published Builds\BAMM-v1.0.0A8-ARM64
+OutputBaseFilename=BAMM-v1.0.0A8-ARM64-Setup
 SolidCompression=yes
 WizardStyle=modern
 
@@ -33,7 +33,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "addtopath"; Description: "Add application directory to your system PATH"; GroupDescription: "Advanced Options:"; Flags: checkedonce
 
 [Files]
-Source: "..\..\BrowserAutomationMaster\bin\Release\net10.0\win-x64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\BrowserAutomationMaster\bin\Release\net10.0\win-arm64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
 Root: HKLM; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
