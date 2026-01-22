@@ -39,18 +39,22 @@ namespace BrowserAutomationMaster.Managers
             {
                 Write(dataMessage);
                 response = Input.AskForInput("Have you backed up your data? [y/n]: ");
-                if (Input.ConditionAccepted(response))
+                if (Input.ConditionAccepted(response)) {
                     DoAppDataDeletion();
+                }
             }
 
-            if (Platforms.IsWindows)
+            if (Platforms.IsWindows) {
                 DoWindowsUninstall();
+            }
             
-            else if (Platforms.IsOSX)
+            else if (Platforms.IsOSX) {
                 DoMacUninstall();
+            }
 
-            else if (Platforms.IsLinux)
+            else if (Platforms.IsLinux) {
                 DoLinuxUninstall();
+            }
             
             else 
                 throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
@@ -62,9 +66,10 @@ namespace BrowserAutomationMaster.Managers
                     "'Add or remove programs' in your Windows Searchbar.";
             string installationDirectory = AppContext.BaseDirectory;
 
-            if (!Path.Exists(installationDirectory))
+            if (!Path.Exists(installationDirectory)) {
                 WriteAndExit(message: failureMessage, status: 1);
-
+            }
+            
             string uninstallerPath = Path.Combine(installationDirectory, "unins000.exe");
             try
             {

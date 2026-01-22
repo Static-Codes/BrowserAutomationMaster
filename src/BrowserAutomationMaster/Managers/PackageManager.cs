@@ -42,8 +42,10 @@ namespace BrowserAutomationMaster.Managers
             try
             {
                 var response = await NetworkClient.Instance.GetStringAsync(PACKAGES_LINK);
-                if (response == null)
+                if (response == null) {
                     WriteAndExit(nullMessage, 1);
+                }
+
                 File.WriteAllText(packagePath, response);
                 WriteSuccessMessage("Successfully downloaded required Python package data!\n");
             }
@@ -153,8 +155,9 @@ namespace BrowserAutomationMaster.Managers
                 RequestManager requestManager = RequestManager.Create(uriResult);
                 HttpResponseMessage? response = await requestManager.GetAsync(followRedirects: true);
                 
-                if (response == null)
+                if (response == null) {
                     return false; 
+                }
               
 
                 response.EnsureSuccessStatusCode();
@@ -200,8 +203,9 @@ namespace BrowserAutomationMaster.Managers
         {
             EnsureDirectoryExists(AppDataDirectory);
 
-            if (!File.Exists(packagePath))
+            if (!File.Exists(packagePath)) {
                 await DownloadPackageJSON();
+            }
 
             await SetPackageData();
         }

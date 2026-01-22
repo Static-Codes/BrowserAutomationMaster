@@ -52,8 +52,9 @@ namespace BrowserAutomationMaster.Compilation
                 "Error Log:\nUnable to reset the state of the current Script() object.";
 
             if (isNotEmpty)
+            {
                 WriteAndExit(message, 1);
-
+            }
         }
     }
 
@@ -116,11 +117,13 @@ namespace BrowserAutomationMaster.Compilation
 
         public void AddPackage(string package)
         {
-            if (string.IsNullOrEmpty(package))
+            if (string.IsNullOrEmpty(package)) {
                 return;
+            }
 
-            if (packageList.Contains(package))
+            if (packageList.Contains(package)) {
                 return;
+            }
 
             packageList.Add(package);
         }
@@ -156,26 +159,30 @@ namespace BrowserAutomationMaster.Compilation
 
         public void AddStatement(string statement)
         {
-            if (statement != null && !statementList.Contains(statement))
+            if (statement != null && !statementList.Contains(statement)) {
                 statementList.Add(statement);
+            }
         }
 
         public void AddStatement(string statement, int index)
         {
-            if (statement != null && !statementList.Contains(statement))
+            if (statement != null && !statementList.Contains(statement)) {
                 statementList.Insert(index, statement);
+            }
         }
 
         public void AddStatements(string[] statements)
         {
-            foreach (string statement in statements)
+            foreach (string statement in statements) {
                 AddStatement(statement);
+            }
         }
 
         public void AddStatements(Dictionary<string, int> statements)
         {
-            foreach (var (line, index) in statements)
+            foreach (var (line, index) in statements) {
                 AddStatement(line, index);
+            }
         }
 
         public void ResetStatements()

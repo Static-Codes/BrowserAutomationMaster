@@ -9,8 +9,7 @@ namespace BrowserAutomationMaster.Managers
         public static (int r, int g, int b) FromXTerm(string Ansi24bit) // Accepts XXXX/XXXX/XXXX
         {
             var parts = Ansi24bit.Split('/');
-            if (parts.Length != 3)
-            {
+            if (parts.Length != 3) {
                 throw new ArgumentException($"Invalid Ansi 24-bit color '{Ansi24bit}', expected format: 'XXXX/XXXX/XXXX'");
             }
             
@@ -23,21 +22,24 @@ namespace BrowserAutomationMaster.Managers
         }
         public static Color? FromRGB(string rgbString)
         {
-            if (string.IsNullOrEmpty(rgbString))
+            if (string.IsNullOrEmpty(rgbString)) {
                 return null;
+            }
 
             rgbString = rgbString.Replace("RGB(", "").Replace(')', ' ').Trim();
             var parts = rgbString.Split(", ");
 
-            if (parts.Length != 3)
+            if (parts.Length != 3) {
                 return null;
+            }
 
             var bytes = new byte[parts.Length];
 
             for (int i = 0; i < parts.Length; i++)
             {
-                if (!byte.TryParse(parts[i], out var byteRes))
+                if (!byte.TryParse(parts[i], out var byteRes)) {
                     return null;
+                }
 
                 bytes[i] = byteRes;
             }
@@ -59,6 +61,7 @@ namespace BrowserAutomationMaster.Managers
                 _ => ToSpectreColor(GlobalConfig.ThemeType.ForegroundColor)
             };
         }
+
         public static (Color HighlightBackground, Color HighlightForeground) GetHighlights()
         {
             return (
@@ -66,6 +69,7 @@ namespace BrowserAutomationMaster.Managers
                 ToSpectreColor(GlobalConfig.ThemeType.HighlightForeground)
             );
         }
+
         public static Style GetStyle(bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
             var newFG = GetForeground(isSuccess, isWarning, isError);
@@ -73,12 +77,18 @@ namespace BrowserAutomationMaster.Managers
                 foreground: newFG
             );
         }
+
         public static string? ReadKey()
         {
             var keyInfo = AnsiConsole.Console.Input.ReadKey(true);
-            if (keyInfo == null) { return null; }
+
+            if (keyInfo == null) { 
+                return null; 
+            }
+
             return SanitizeNumericValue(keyInfo.Value.Key.ToString());
         }
+
         public static string SanitizeNumericValue(string value)
         {
             var result = new StringBuilder();
@@ -103,8 +113,9 @@ namespace BrowserAutomationMaster.Managers
             Color oldFG = AnsiConsole.Foreground;
             var newFG = GetForeground(isSuccess, isWarning, isError);
 
-            if (!oldFG.Equals(newFG))
+            if (!oldFG.Equals(newFG)) {
                 AnsiConsole.Foreground = newFG;
+            }
         }
 
         public static System.Drawing.Color ToColor(Color color)
@@ -186,8 +197,9 @@ namespace BrowserAutomationMaster.Managers
             var currentHeight = AnsiConsole.Profile.Height;
 
             // No header will be displayed to the user if the console size is less than the minimum.
-            if (currentWidth < minimumWidthRequired || currentHeight == 0)
+            if (currentWidth < minimumWidthRequired || currentHeight == 0) {
                 return;
+            }
 
 
             seperator.Append(string.Concat(Enumerable.Repeat('=', currentWidth)));
@@ -232,8 +244,9 @@ namespace BrowserAutomationMaster.Managers
                 foreach (var replacement in replacements)
                     line = line.Replace(replacement, "");
 
-                if (line.Equals("\n") || string.IsNullOrEmpty(line))
+                if (line.Equals("\n") || string.IsNullOrEmpty(line)) {
                     continue; 
+                }
                 
                 var paddedLine = line.PadRight(Console.WindowWidth);
 
@@ -244,8 +257,9 @@ namespace BrowserAutomationMaster.Managers
                 
                 AnsiConsole.WriteLine();
 
-                if (i < lines.Length)
+                if (i < lines.Length) {
                     AnsiConsole.WriteLine();
+                }
             }
         }
         

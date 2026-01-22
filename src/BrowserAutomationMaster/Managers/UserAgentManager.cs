@@ -24,8 +24,9 @@ namespace BrowserAutomationMaster.Managers
         {
             //lock (_lock)
             //{
-                if (userAgentsData != null && userAgentsData.Count > 0)
+                if (userAgentsData != null && userAgentsData.Count > 0) {
                     return;
+                }
 
                 try
                 {
@@ -124,8 +125,10 @@ namespace BrowserAutomationMaster.Managers
             {
                 
                 var response = await RequestManager.NetworkClient.Instance.GetStringAsync(uri);
-                if (response == null)
+                if (response == null) {
                     return null;
+                }
+                
                 return response;
             }
             catch (Exception ex)
@@ -165,13 +168,15 @@ namespace BrowserAutomationMaster.Managers
                     "Error Log:\nJSON contents == null.";
 
             var contents = await RetrieveJSON();
-            if (contents == null)
+            
+            if (contents == null) {
                 WriteAndExit(message, 1);
+            }
 
-            try
-            {
+            try {
                 File.WriteAllText(userAgentPath, contents);
             }
+            
             catch (Exception ex) {
                 message =
                    "Unable to write useragents.json\n" +

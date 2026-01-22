@@ -80,9 +80,10 @@ namespace BrowserAutomationMaster.Compilation
         }
         public static string AddHeadersFunction(Dictionary<string, string> headers)
         {
-            if (headers == null || headers.Count == 0)
+            if (headers == null || headers.Count == 0) { 
                 return "# Unable to add headers using 'add-headers' command";
-
+            }
+            
             var sanitized = @$"{{{JsonSerializer.Serialize(headers, options)}}}"
                 .Replace("\"", "'")
                 .Replace("{", " ")

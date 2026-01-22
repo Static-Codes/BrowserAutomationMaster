@@ -38,8 +38,9 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 ParentDirectory = Path.GetDirectoryName(ScriptFilePath);
 
-                if (ParentDirectory == null)
+                if (ParentDirectory == null) {
                     return false;
+                }
 
                 VEnvPath = Path.Combine(ParentDirectory, "venv");
 
@@ -59,8 +60,10 @@ namespace BrowserAutomationMaster.Managers.Python
         public static VEnvManager CheckBSConfigAtRuntime(string scriptFilePath)
         {
             var config = LoadConfig();
-            if (config == null)
+            if (config == null) {
                 WriteAndExit($"Unable to load BrowserStack Config from:{NLC}{GetBrowserStackConfigPath()}", 1);
+            }
+
             return new VEnvManager("browserstack-sdk python", scriptFilePath);
         }
 
@@ -89,8 +92,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 (int ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(process);
                 
                 // If the process returned an error or the venv is not able to be accessed.
-                if (ExitCode != 0 || !VEnvExists())
-                {
+                if (ExitCode != 0 || !VEnvExists()) {
                     WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to create a virtual environment with the interpreter:\n" +
@@ -100,6 +102,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         status: 1
                     );
                 }
+
                 WriteSuccessMessage("Successfully created Project Virtual Environment!\n");
             }
 
@@ -120,21 +123,25 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private string GetVEnvStartArgs(string pythonPath)
         {
-            if (ParentDirectory == null)
+            if (ParentDirectory == null) {
                 throw new ArgumentException("ParentDirectory == null");
+            }
 
-            if (Platforms.IsWindows || Platforms.IsRaspi)
+            if (Platforms.IsWindows || Platforms.IsRaspi) {
                 return $"\"{ScriptFilePath}\"";
+            }
 
-            if (Platforms.IsARMel || Platforms.IsARMhf)
+            if (Platforms.IsARMel || Platforms.IsARMhf) {
                 return $"-c \"source '{Path.Combine(ParentDirectory, "venv", "bin", "activate")}'";
+            }
 
-            if (Platforms.IsLinux)
+            if (Platforms.IsLinux) {
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && python3 '{ScriptFilePath}'\"";
+            }
 
-            if (Platforms.IsOSX)
+            if (Platforms.IsOSX) {
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && '{pythonPath}' '{ScriptFilePath}'";
-
+            }
 
             ThrowUnsupportedPlatformException();
             return string.Empty; // Will not be executed.
@@ -147,7 +154,7 @@ namespace BrowserAutomationMaster.Managers.Python
             WriteSuccessMessage("Installing required project packages in the project's virtual environment, please wait..");
             await Task.Delay(1000);
 
-            if (ParentDirectory == null)
+            if (ParentDirectory == null) {
                 WriteAndExit(
                     message:
                         "Unable to install the required Python packages for the current project, please try again.\n" +
@@ -155,6 +162,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         "Error log:\nParentDirectory == null in InstallProjectPackages()",
                     status: 1
                 );
+            }
 
             var pipExecutable = GetProjectVEnvPipPath(ParentDirectory);
 
@@ -209,8 +217,9 @@ namespace BrowserAutomationMaster.Managers.Python
             await InstallProjectPackages();
             await Task.Delay(1000);
 
-            if (Platforms.IsChromeOS || GetBrowserStackStatus() || usingBrowserStack)
+            if (Platforms.IsChromeOS || GetBrowserStackStatus() || usingBrowserStack) {
                 await RunScriptWithBrowserStack();
+            }
 
             else
                 await StartScriptExecution(); // By this point there have been many checks regarding the user's OS, it's safe to proceed.
@@ -218,7 +227,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         private async Task StartScriptExecution()
         {
-            if (ParentDirectory == null)
+            if (ParentDirectory == null) {
                 WriteAndExit(
                     message:
                         "Unable to install the required Python packages for the current project, please try again.\n" +
@@ -226,16 +235,18 @@ namespace BrowserAutomationMaster.Managers.Python
                         "Error log:\nParentDirectory == null in InstallProjectPackages()",
                     status: 1
                 );
+            }
 
             // Special case where OSX needs to be difficult for developers in the pursuit of ease of access for its users.
             // Runs from /bin/bash instead of the VEnv's path.
             var pythonPath = GetProjectVEnvPythonPath(ParentDirectory);
             var scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
 
-            if (string.IsNullOrEmpty(scriptFileName))
+            if (string.IsNullOrEmpty(scriptFileName)) {
                 scriptFileName = ScriptFilePath;
+            }
 
-            if (!File.Exists(pythonPath))
+            if (!File.Exists(pythonPath)) {
                 WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
@@ -243,6 +254,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         $"Error log:\nUnable to find the python executable in virtual environment:\n{GetProjectVEnvPath(ParentDirectory)}",
                     status: 1
                 );
+            }
 
             //var args = IsOSX ? GetVEnvStartArgs(pythonPath).Replace("Application Support/", "Application\\ Support/") : GetVEnvStartArgs(pythonPath);
             var args = GetVEnvStartArgs(pythonPath);
@@ -283,7 +295,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public async Task RunScriptWithBrowserStack()
         {
-            if (string.IsNullOrEmpty(ParentDirectory))
+            if (string.IsNullOrEmpty(ParentDirectory)) {
                 WriteAndExit
                 (
                     message:
@@ -292,13 +304,14 @@ namespace BrowserAutomationMaster.Managers.Python
                         "Error log:\nParentDirectory == null in VEnvManager.RunScript()",
                     status: 1
                 );
+            }
 
             var ProjectName = $"{Path.GetDirectoryName(ParentDirectory)}/" ?? "latest/";
             AnsiManager.WriteBrowserStackHeader(ProjectName, ScriptFilePath);
 
             StackConfig = LoadConfig();
 
-            if (StackConfig == null)
+            if (StackConfig == null) {
                 WriteAndExit
                 (
                     message:
@@ -307,6 +320,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         "Error log:\nStackConfig == null in VEnvManager.RunScript()",
                     status: 1
                 );
+            }
 
             WriteSuccessMessage($"A valid BrowserStack Config file was found at: {browserStackConfig}\n");
             await Task.Delay(1000);
@@ -318,8 +332,9 @@ namespace BrowserAutomationMaster.Managers.Python
             var userChoice = Input.AskForInput("Would you like to use this config for the current test? [y/n]: ");
             await Task.Delay(1000);
 
-            if (Input.ConditionRejected(userChoice))
+            if (Input.ConditionRejected(userChoice)) {
                 StackConfig = BuildConfig();
+            }
 
             var projectConfigPath = Path.Combine(ParentDirectory, "browserstack.yml");
 
@@ -373,8 +388,9 @@ namespace BrowserAutomationMaster.Managers.Python
             var projectName = Path.GetFileNameWithoutExtension(ScriptFilePath);
             string fullMessage = baseMessage;
 
-            if (projectName != null)
+            if (projectName != null) {
                 fullMessage += $"/project/{projectName}/builds";
+            }
 
             WriteSuccessMessage(fullMessage);
         }
@@ -387,12 +403,12 @@ namespace BrowserAutomationMaster.Managers.Python
         /// <param name="fileName">The FileName you wish to execute as a string, defaults to null. (Must be provided if you specify useCMD=false) </param>
         public static void SetProcessFileName(ref ProcessStartInfo psi, bool useCMD = true, string? fileName = null)
         {
-            if (!useCMD && string.IsNullOrEmpty(fileName))
+            if (!useCMD && string.IsNullOrEmpty(fileName)) {
                 WriteAndExit("A filename param must be specified for SetProcessFileName when useShell = false", 1);
+            }
 
             // Set for Windows regardless of global status
-            if (Platforms.IsWindows && useCMD)
-            {
+            if (Platforms.IsWindows && useCMD) {
                 psi.FileName = "cmd.exe";
                 // Proactively preventing any encoding issues caused by crossplatform development
                 psi.StandardOutputEncoding = Encoding.UTF8;
@@ -400,19 +416,20 @@ namespace BrowserAutomationMaster.Managers.Python
             }
 
 
-            else if (Platforms.IsWindows && !useCMD)
-            {
+            else if (Platforms.IsWindows && !useCMD) {
                 psi.FileName = fileName;
                 psi.StandardOutputEncoding = Encoding.UTF8;
                 psi.StandardErrorEncoding = Encoding.UTF8;
             }
 
-            else if (Platforms.IsUnixLike && !useCMD)
+            else if (Platforms.IsUnixLike && !useCMD) {
                 psi.FileName = fileName;
+            }
 
 
-            else if (Platforms.IsUnixLike)
+            else if (Platforms.IsUnixLike) {
                 psi.FileName = "/bin/bash";
+            }
         }
     }
 }

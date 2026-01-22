@@ -56,8 +56,9 @@ namespace BrowserAutomationMaster.Managers
                 RequestManager requestManager = RequestManager.Create(uriResult);
                 response = await requestManager.GetAsync(followRedirects: false);
                 
-                if (response == null)
+                if (response == null) {
                     return string.Empty;
+                }
 
                 if (response.StatusCode != HttpStatusCode.Redirect)
                 {
@@ -83,8 +84,9 @@ namespace BrowserAutomationMaster.Managers
             }
 
             // This should never actually be hit but the line below has a "Dereference of possibly null reference" error so im leaving this in"
-            if (response == null)
+            if (response == null) {
                 return string.Empty;
+            }
 
             string url = 
                 response.Headers.Location != null ? response.Headers.Location.AbsoluteUri : string.Empty;
@@ -198,14 +200,17 @@ namespace BrowserAutomationMaster.Managers
             {
                 string currentReleaseUri = Path.Combine(RELEASES_DOWNLOAD_LINK, LatestVersion);
 
-                if (Platforms.IsWindows)
+                if (Platforms.IsWindows) {
                     OpenLatestForWindows(currentReleaseUri);
+                }
 
-                else if (Platforms.IsOSX)
+                else if (Platforms.IsOSX) {
                     OpenLatestForMacOS(currentReleaseUri);
+                }
 
-                else if (Platforms.IsLinux)
+                else if (Platforms.IsLinux) {
                     OpenLatestForLinux(currentReleaseUri);
+                }
             }
             catch (Exception e) { Write(
                 message:
@@ -230,8 +235,9 @@ namespace BrowserAutomationMaster.Managers
 
                 string response = Input.AskForInput("\nWould you like to continue? [y/n]:\n");
 
-                if (Input.ConditionRejected(response))
+                if (Input.ConditionRejected(response)) {
                     Environment.Exit(1); 
+                }
                 
                 return false;
             }

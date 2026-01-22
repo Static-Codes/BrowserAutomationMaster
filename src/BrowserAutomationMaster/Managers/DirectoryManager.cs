@@ -24,8 +24,9 @@ namespace BrowserAutomationMaster.Managers
 
                 var response = Input.AskForInput("Would you like to overwrite it? [y/n]: ");
 
-                if (Input.ConditionRejected(response))
+                if (Input.ConditionRejected(response)) {
                     Environment.Exit(0);
+                }
 
                 DeleteFile(backupPath);
             }
@@ -44,8 +45,10 @@ namespace BrowserAutomationMaster.Managers
                         {
                             var message = "Would you like to create a backup in the current directory? [y/n]: ";
                             var response = Input.AskForInput(message);
-                            if (Input.ConditionRejected(response))
+                            
+                            if (Input.ConditionRejected(response)) {
                                 Environment.Exit(0);
+                            }
 
                             backupPath = Environment.CurrentDirectory;
                         }
@@ -198,8 +201,9 @@ namespace BrowserAutomationMaster.Managers
         
         public static void EnsureDirectoryExists(string path)
         {
-            if (Directory.Exists(path))
+            if (Directory.Exists(path)) {
                 return;
+            }
 
             try { 
                 Directory.CreateDirectory(path); 
@@ -350,11 +354,13 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetProjectVEnvPythonPath(string ParentDirectory)
         {
-            if (Platforms.IsWindows)
+            if (Platforms.IsWindows) {
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "Scripts", "python.exe");
+            }
 
-            if (Platforms.IsUnixLike)
+            if (Platforms.IsUnixLike) {
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "python3");
+            }
 
             ThrowUnsupportedPlatformException();
             return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
@@ -362,11 +368,13 @@ namespace BrowserAutomationMaster.Managers
 
         public static string GetProjectVEnvPipPath(string ParentDirectory)
         {
-            if (Platforms.IsWindows)
+            if (Platforms.IsWindows) {
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "Scripts", "pip.exe");
+            }
 
-            if (Platforms.IsUnixLike)
+            if (Platforms.IsUnixLike) {
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "pip");
+            }
 
             ThrowUnsupportedPlatformException();
             return ""; // This wont be returned however rosyln being static in nature, doesn't know this.
@@ -384,12 +392,12 @@ namespace BrowserAutomationMaster.Managers
         private static string GetAppDataLinux(string appName)
         {
             string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            if (string.IsNullOrEmpty(homeDirectory))
+            if (string.IsNullOrEmpty(homeDirectory)) {
                 homeDirectory = Environment.GetEnvironmentVariable("HOME");
+            }
 
             // Fallback for second check
-            if (string.IsNullOrEmpty(homeDirectory))
-            {
+            if (string.IsNullOrEmpty(homeDirectory)) {
                 WriteAndExit(
                     message:
                         "BAM Manager (BAMM) could not determine home directory on Linux.\n" +
@@ -400,9 +408,10 @@ namespace BrowserAutomationMaster.Managers
 
             // Ensures compliance with XDG specs using $XDG_CONFIG_HOME or $HOME/.config
             string? configHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-            if (string.IsNullOrEmpty(configHome))
+            if (string.IsNullOrEmpty(configHome)) {
                 configHome = Path.Combine(homeDirectory, ".config");
-
+            }
+            
             string appDataDirectory = Path.Combine(configHome, appName);
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;

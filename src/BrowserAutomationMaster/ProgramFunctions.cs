@@ -377,8 +377,9 @@ namespace BrowserAutomationMaster
         ///<param name="pArgs">Program Arguments</param>
         private static void HandleBSOverwriteCommand()
         {
-            if (InstanceManager.PromptConfigOverride())
+            if (InstanceManager.PromptConfigOverride()) {
                 InstanceManager.WriteConfig(fileNotFound: false);
+            }
         }
 
 

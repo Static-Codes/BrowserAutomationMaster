@@ -48,8 +48,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             using (RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Registry64))
             using (RegistryKey? key = baseKey.OpenSubKey(subKeyPath))
             {
-                if (key == null)
+                if (key == null) {
                     return list;
+                }
 
                 foreach (var subkeyName in key.GetSubKeyNames())
                 {
@@ -131,13 +132,15 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         string potentialPath = match.Value.Trim();
 
                         // Excludes WindowsApp PyLauncher
-                        if (potentialPath.Contains(@"\Microsoft\WindowsApps\python.exe"))
+                        if (potentialPath.Contains(@"\Microsoft\WindowsApps\python.exe")) {
                             continue;
+                        }
                         
                         string versionOutput = GetIntepreterVersion(potentialPath, "--version");
                         
-                        if (versionOutput.StartsWith("Python 3.", OIC))
+                        if (versionOutput.StartsWith("Python 3.", OIC)) {
                             discoveredPython3Paths.Add(potentialPath); 
+                        }
                         
 
                         else if (versionOutput.StartsWith("Python 2.", OIC)) 
@@ -305,7 +308,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
 
                 // 122 is the err code for ERROR_INSUFFICIENT_BUFFER (it wont import for some reason)
-                if (!firstResult && Marshal.GetLastWin32Error() != 122)
+                if (!firstResult && Marshal.GetLastWin32Error() != 122) {
                     WriteAndExit(
                         message:
                             $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
@@ -314,9 +317,10 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                             $" the last Win32 Error was:\n{Marshal.GetLastWin32Error()}",
                         status: 1
                     );
+                }
 
                 // If the buffer is empty, a fatal error has occured.
-                if (bufferSize == 0)
+                if (bufferSize == 0) {
                     WriteAndExit(
                         message:
                             $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
@@ -324,6 +328,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                             $"Error log:\nAppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0.",
                         status: 1
                     );
+                }
 
                 var buffer = Marshal.AllocHGlobal((int)bufferSize); // Allocates N bytes from bufferSize
 
@@ -333,8 +338,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     ref bufferSize
                 );
 
-                if (!secondResult)
+                if (!secondResult) {
                     throw new Exception($"Failed to get logical processor information. Win32 Error: {Marshal.GetLastWin32Error()}");
+                }
 
                 int physicalCoreCount = 0;
                 uint bytesParsed = 0;
@@ -356,8 +362,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     // Spectre.Console.AnsiConsole.Write($"    Relationship: {currentInfoExHeader.Relationship}");
                     // Spectre.Console.AnsiConsole.Write($"    Entry Size: {currentInfoExHeader.Size}");
 
-                    if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore)
+                    if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore) {
                         physicalCoreCount++;
+                    }
 
                     // Move to the next structure in the buffer
                     currentPtr += (nint)currentInfoExHeader.Size; // I SPENT 10 minutes before I realized wasn't being incremented.
@@ -391,7 +398,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
                 PInvoke.FreeConsole();
 
-                if (!PInvoke.AttachConsole((uint)instances[1].Id))
+                if (!PInvoke.AttachConsole((uint)instances[1].Id)) {
                     Write(
                         string.Join(
                             string.Empty, 
@@ -402,6 +409,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                             ]
                         )
                     );
+                }
 
                 Environment.Exit(1);
             }

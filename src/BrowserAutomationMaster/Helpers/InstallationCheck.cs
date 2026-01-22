@@ -73,8 +73,9 @@ Supported versions include:
 
         void Add(ApplicationNames app)
         {
-            if (!AppNames.Contains(app))
+            if (!AppNames.Contains(app)) {
                 AppNames.Add(app);
+            }
         }
 
 
@@ -98,43 +99,52 @@ Supported versions include:
 
         void CheckApp(AppInfo app, bool pythonOnly, string? version = null)
         {
-            if (app == null || app.Name == null || app.Name.Length == 0)
+            if (app == null || app.Name == null || app.Name.Length == 0) {
                 return;
+            }
 
-            //if (app.Name.Contains("brave", CCIC))
-            //Add(ApplicationNames.Brave);
+            // if (app.Name.Contains("brave", CCIC)) {
+            //     Add(ApplicationNames.Brave);
+            // }
 
-            else if (!pythonOnly && app.Name.Contains("chrome", CCIC))
+            else if (!pythonOnly && app.Name.Contains("chrome", CCIC)) {
                 Add(ApplicationNames.Chrome);
+            }
 
-            else if (!pythonOnly && app.Name.Contains("firefox", CCIC))
+            else if (!pythonOnly && app.Name.Contains("firefox", CCIC)) {
                 Add(ApplicationNames.Firefox);
+            }
 
-            else if (version == null && GetEnumMemberFromString(app.Name, out ApplicationNames appName))
+            else if (version == null && GetEnumMemberFromString(app.Name, out ApplicationNames appName)) {
                 Add(appName);
+            }
 
             // Unix Specific Recursive Case
             // To prevent an infinite loop, version must have a value to continue
-            else if (Platforms.IsUnixLike && version != null && GetEnumMemberFromString(version, out ApplicationNames appName2))
+            else if (Platforms.IsUnixLike && version != null && GetEnumMemberFromString(version, out ApplicationNames appName2)) {
                 Add(appName2);
+            }
 
             else if (app.Name.StartsWith("python3"))
             {
                 var foundVersion = GetMissingPyVersion();
 
-                if (string.IsNullOrEmpty(foundVersion))
+                if (string.IsNullOrEmpty(foundVersion)) {
                     Add(ApplicationNames.Python3_X); // This will raise an error once Transpiler.New is executed.
+                }
 
-                else if (GetEnumMemberFromString(foundVersion, out ApplicationNames _))
+                else if (GetEnumMemberFromString(foundVersion, out ApplicationNames _)) {
                     CheckApp(app, pythonOnly: true, version: foundVersion);
+                }
 
             }
         }
             
         void CheckAndAdd(List<AppInfo> detectedApplications, string? verNum = null, bool pythonOnly = false)
         {
-            foreach (AppInfo app in detectedApplications)
+            foreach (AppInfo app in detectedApplications) {
                 CheckApp(app, pythonOnly: pythonOnly, version: verNum);
+            }
         }
 
         public Installations(List<AppInfo> detectedApplications)
@@ -144,11 +154,13 @@ Supported versions include:
 
             CheckAndAdd(detectedApplications);
 
-            if (!AppNames.Intersect(validBrowsersApps).Any())
+            if (!AppNames.Intersect(validBrowsersApps).Any()) {
                 WriteAndExit(NoBrowsersMessage, 1);
+            }
 
-            if (!AppNames.Intersect(validPythonVersions).Any() && !Platforms.IsChromeOS)
+            if (!AppNames.Intersect(validPythonVersions).Any() && !Platforms.IsChromeOS) {
                 WriteAndExit(NoPythonMessage, 1);
+            }
         }
 
         public Installations() // Empty constructor used as a fallback.
@@ -159,13 +171,15 @@ Supported versions include:
 
         public static string GetMissingPyVersion()
         {
-            if (!Platforms.IsUnixLike)
+            if (!Platforms.IsUnixLike) {
                 return string.Empty;
+            }
 
             var whichPyResp = Linux.RunCommand("which", "python3");
 
-            if (string.IsNullOrEmpty(whichPyResp))
+            if (string.IsNullOrEmpty(whichPyResp)) {
                 return string.Empty;
+            }
 
             var pyVersionResp = Linux.RunCommand("python3", "--version");
 

@@ -65,12 +65,14 @@ namespace BrowserAutomationMaster.Managers
             {
                 var needsAttention = instruction.Equals(SSE3) || instruction.Equals(SSE4);
 
-                if (!needsAttention)
+                if (!needsAttention) {
                     unsupportedInstructions.Add(instruction);
+                }
 
                 // Prevents duplicates
-                else if (needsAttention && !unsupportedInstructions.Contains(instruction))
+                else if (needsAttention && !unsupportedInstructions.Contains(instruction)) {
                     unsupportedInstructions.Add(instruction);
+                }
             };
 
             var conditionPairs = new Dictionary<bool, RequiredCPUInstruction>() 
@@ -94,8 +96,9 @@ namespace BrowserAutomationMaster.Managers
 
             foreach (var conditionPair in conditionPairs)
             {
-                if (!conditionPair.Key)
+                if (!conditionPair.Key) {
                     Add(conditionPair.Value);
+                }
             }
 
             return unsupportedInstructions.Count == 0; // The application will exit if this returns false
@@ -106,12 +109,11 @@ namespace BrowserAutomationMaster.Managers
             string? processName;
             string? processArgs;
 
-            if (Platforms.IsWindows){
+            if (Platforms.IsWindows) {
                 return GetCPUName();
             }
 
-            else if (Platforms.IsOSX)
-            {
+            else if (Platforms.IsOSX) {
                 processName = "/bin/bash";
                 processArgs = "-c \"sysctl -n machdep.cpu.brand_string\"";
             }
@@ -147,7 +149,7 @@ namespace BrowserAutomationMaster.Managers
 
             }
             catch (Exception e) {
-                Warning.Write($"Unable to determine CPU name.\n\nError Log:\n{e.Message}");
+                Warning.Write($"Unable to determine CPU name.{NLC}{NLC}Error Log:{NLC}{e.Message}");
             }
 
             return "Unknown";
@@ -163,20 +165,23 @@ namespace BrowserAutomationMaster.Managers
 
         public bool HasEnoughCores()
         {
-            if (Cores < 2)
+            if (Cores < 2) {
                 return false;
+            }
 
-            if (Cores <= 4 && GlobalConfig.ShowCpuCheck)
+            if (Cores <= 4 && GlobalConfig.ShowCpuCheck) {
                 Warning.Write(
                     $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
                     $"this might impact your performance slightly if your CPU is older.\n"
                 );
+            }
 
-            else if (GlobalConfig.ShowCpuCheck)
+            else if (GlobalConfig.ShowCpuCheck) {
                 WriteSuccessMessage(
                     $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
                     $"you should not experience any performance issues directly related to your CPU.\n"
                 );
+            }
                 
             
             return true;
@@ -268,8 +273,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     if (string.IsNullOrWhiteSpace(line))
                     {
-                        if (currentPhysicalID != null && currentCoreID != null)
-                        {
+                        if (currentPhysicalID != null && currentCoreID != null) {
                             uniqueCoreCombos.Add($"{currentPhysicalID}-{currentCoreID}");
                         }
 
@@ -279,16 +283,13 @@ namespace BrowserAutomationMaster.Managers
                         continue;
                     }
 
-                    if (line.StartsWith("physical id"))
-                    {
+                    if (line.StartsWith("physical id")) {
                         currentPhysicalID = line.Split(':')[1].Trim();
-                        if (currentPhysicalID != null)
-                        {
+                        if (currentPhysicalID != null) {
                             uniqueSocketIDs.Add(currentPhysicalID);
                         }
                     }
-                    else if (line.StartsWith("core id"))
-                    {
+                    else if (line.StartsWith("core id")) {
                         currentCoreID = line.Split(':')[1].Trim();
                     }
                 }

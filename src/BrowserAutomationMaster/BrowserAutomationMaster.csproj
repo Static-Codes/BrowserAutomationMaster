@@ -85,6 +85,27 @@
 
 	<ItemGroup>
 	  <Content Include="bamm.ico" />
+	  
+	  <!-- Application Data -->
+	  <Content Include="AppData/browserstack.json"/>
+	  <Content Include="AppData/colors.json"/>
+	  <Content Include="AppData/packages.json"/>
+	  <Content Include="AppData/useragents.json"/>
+	  <Content Include="AppData/browserstack.json"/>
+
+	  <!-- Precompiled Wheels -->
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl"/>
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/cffi-1.17.1-cp38-cp38-linux_armhf.whl"/>
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/cffi-2.0.0-cp311-cp311-linux_armv7l.whl"/>
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/psutil-7.1.2-cp36-abi3-linux_armv7l.whl"/>
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/zstandard-0.23.0-cp38-cp38-linux_armhf.whl"/>
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/zstandard-0.25.0-cp311-cp311-linux_armv7l.whl"/>
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/generic/brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl"/>
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/generic/cffi-2.0.0-cp311-cp311-linux_armv7l.whl"/>
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/generic/psutil-7.1.3-cp36-abi3-linux_armv7l.whl"/>
+	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/generic/zstandard-0.25.0-cp311-cp311-linux_armv7l.whl"/>
+
+
 	</ItemGroup>
 
 	

@@ -231,18 +231,15 @@ namespace BrowserAutomationMaster.Messaging
 
         public static bool TrySetText(string text)
         {
-            if (Platforms.IsWindows)
+            if (Platforms.IsWindows) {
                 Clipboard.Win.SetText(text);
-
-            else if (Platforms.IsOSX)
+            } else if (Platforms.IsOSX) {
                 Clipboard.OSX.SetText(text);
-
-            else if (Platforms.IsLinux)
+            } else if (Platforms.IsLinux) {
                 Clipboard.Linux.SetText(text);
-
-            else
+            } else {
                 return false;
-
+            }
             return true;
 
         }

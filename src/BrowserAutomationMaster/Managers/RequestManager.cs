@@ -60,8 +60,9 @@ namespace BrowserAutomationMaster.Managers
             {
                 using var response = await GetAsync();
 
-                if (response == null)
+                if (response == null) {
                     return null;
+                }
 
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadAsStringAsync();
