@@ -240,6 +240,7 @@ namespace BrowserAutomationMaster.Messaging
             } else {
                 return false;
             }
+            return true;
 
         }
     }

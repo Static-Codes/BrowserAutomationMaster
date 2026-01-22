@@ -115,7 +115,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         public static void ARM32Check()
         {
 
-            var invalidStates = [
+            bool[] invalidStates = [
                 Platforms.IsLinux,
                 Platforms.IsWindows,
                 Platforms.IsOSX,
@@ -234,7 +234,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static string? GetTerminalBackgroundColor()
         {
-            var statesToReturnBlack = [
+            bool[] statesToReturnBlack = [
                 Platforms.IsChromeOS,
                 Platforms.IsOSX,
                 Platforms.IsRaspi
