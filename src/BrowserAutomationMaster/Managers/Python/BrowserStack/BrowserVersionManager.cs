@@ -24,15 +24,17 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             try
             {
                 string? response;
-                if (File.Exists(browserJSONPath))
+                if (File.Exists(browserJSONPath)) {
                     response = File.ReadAllText(browserJSONPath);
+                }
 
                 var uri = new Uri("https://raw.githubusercontent.com/browser-update/browser-update/refs/heads/master/data/browsers.json");
                 var requestManager = new RequestManager(uri, timeout: 10);
                 response = await requestManager.GetStringAsync();
 
-                if (response == null)
+                if (response == null) {
                     return null;
+                }
 
                 using JsonDocument doc = JsonDocument.Parse(response);
                 JsonElement currentElement = doc.RootElement.GetProperty("current");

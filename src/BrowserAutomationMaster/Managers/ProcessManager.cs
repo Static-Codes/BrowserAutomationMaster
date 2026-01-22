@@ -41,8 +41,9 @@ namespace BrowserAutomationMaster.Managers
                 var instances = Process.GetProcessesByName(curProc.ProcessName);
                 if (instances.Length > 1)
                 {
-                    if (Platforms.IsWindows)
+                    if (Platforms.IsWindows) {
                         Win.HandleMultipleInstances(instances);  // Execution ends if this line is hit.
+                    }
 
                     WriteMessage(
                         "Only one instance of BAMM can be running at once, please close the current session and open bamm again.",
@@ -71,28 +72,32 @@ namespace BrowserAutomationMaster.Managers
                     "Error Log:\n" +
                     "driverName has a size of 0 in PreventMemoryLeaks()";
 
-            if (selectedBrowser == null)
+            if (selectedBrowser == null) {
                 WriteAndExit(errMessage, 1);
+            }
 
             var dBuilder = new StringBuilder();
 
-            if (selectedBrowser.Equals("chrome", CCIC))
+            if (selectedBrowser.Equals("chrome", CCIC)) {
                 dBuilder.Append("chromedriver");
+            }
 
-            else if (selectedBrowser.Equals("firefox", CCIC))
+            else if (selectedBrowser.Equals("firefox", CCIC)) {
                 dBuilder.Append("geckodriver");
+            }
 
-            if (dBuilder.Length == 0)
-                WriteAndExit(errMessage, 1);
+            if (dBuilder.Length == 0) {
+                WriteAndExit(errMessage, 1); 
+            }
 
-            if (Platforms.IsWindows)
+            if (Platforms.IsWindows) {
                 dBuilder.Append(".exe");
+            }
 
             string driverName = dBuilder.ToString();
             foreach (var process in Process.GetProcessesByName(driverName))
             {
-                try
-                {
+                try {
                     process.Kill();
                 }
                 catch (Exception e)
@@ -144,6 +149,7 @@ namespace BrowserAutomationMaster.Managers
             ArgumentNullException.ThrowIfNull(process);
 
             if (!Processes.ContainsKey(process))
+            {
                 WriteAndExit(
                     message:
                         "The process associated with the command: " +
@@ -152,10 +158,12 @@ namespace BrowserAutomationMaster.Managers
                         "ProcessFactory.Processes does not contain the requested process.",
                     status: 1
                 );
+            }
 
             // Handle a process is not yet completed.
-            while (ProcessIsRunning(process))
+            while (ProcessIsRunning(process)) {
                 await Task.Delay(200);
+            }
             
                 
             Processes.TryGetValue(process, out ProcessResponse response);
@@ -198,30 +206,34 @@ namespace BrowserAutomationMaster.Managers
                     // Declaring required event handlers -> STDOut, STDErr
                     newProc.OutputDataReceived += (sender, args) =>
                     {
-                        if (args.Data == null)
+                        if (args.Data == null) {
                             return;
+                        }
                             
                         outputLines.Add(args.Data);
 
-                        if (writeSTDInOut && !whiteOutput)
+                        if (writeSTDInOut && !whiteOutput) {
                             WriteSuccessMessage(args.Data + '\n');
+                        }
 
-                        else if (writeSTDInOut && whiteOutput)
+                        else if (writeSTDInOut && whiteOutput) {
                             Console.WriteLine(args.Data + '\n');
+                        }
                         
                     };
 
 
                     newProc.ErrorDataReceived += (sender, args) =>
                     {
-                        if (args.Data == null)
+                        if (args.Data == null) {
                             return;
+                        }
                         
                         errorLines.Add(args.Data);
 
-                        if (writeSTDInOut)
+                        if (writeSTDInOut) {
                             Write(args.Data + '\n');
-                            
+                        }
                     };
                 }
 
@@ -230,8 +242,9 @@ namespace BrowserAutomationMaster.Managers
 
                 Processes.Add(newProc, newProcResponse);
 
-                if (justSpawn)
+                if (justSpawn) {
                     return newProc;
+                }
 
                 newProc.Start();
                 ActiveProcesses.Add(newProc, newProcResponse); // Add new process to ActiveProcess upon invoke of Start().
@@ -251,8 +264,9 @@ namespace BrowserAutomationMaster.Managers
                     }
                 }
 
-                if (runSync)
+                if (runSync) {
                     newProc.WaitForExit();
+                }
 
                 else
                 {
@@ -262,9 +276,10 @@ namespace BrowserAutomationMaster.Managers
 
                 ActiveProcesses.Remove(newProc); // Remove new process from ActiveProcesses upon exit.
 
-                if (!Processes.TryGetValue(newProc, out var _))
+                if (!Processes.TryGetValue(newProc, out var _)) {
                     WriteAndExit($"Unable to find the process associated with the command:\n{psi.FileName} {psi.Arguments}", 1);
-
+                }
+                
                 // Get the ProcessResponse associated with the newly spawned Process
                 var procResponse = Processes[newProc];
 

@@ -216,22 +216,25 @@ namespace BrowserAutomationMaster.Compilation
         {
             bool validStatement = import.StartsWith("from") || import.StartsWith("import");
 
-            if (!validStatement)
+            if (!validStatement) {
                 WriteAndExit(
                     message: $"Invalid import statement: {import}.",
                     status: 1
                 );
+            }
 
-            if (addToReqs && !string.IsNullOrEmpty(reqText))
+            if (addToReqs && !string.IsNullOrEmpty(reqText)) {
                 WriteAndExit(
                     message: $"Invalid requirement statement: {reqText}.",
                     status: 1
                 );
+            }
 
             script.Imports.AddStatement(import);
 
-            if (addToReqs)
+            if (addToReqs) {
                 script.Requirements.AddPackage(reqText!);
+            }
         }
         
         private static void AddWatermark()
@@ -298,11 +301,13 @@ namespace BrowserAutomationMaster.Compilation
             }
 
             var lineCount = script.Body.GetLineCount();
-            if (lineCount != index)
+            if (lineCount != index) {
                 script.Body.AddLine(browserQuitCode, lineCount);
+            }
 
-            else
+            else {
                 Add(browserQuitCode);
+            }
         }
         
         public static void CheckBrowserStackStatus()
@@ -319,8 +324,9 @@ namespace BrowserAutomationMaster.Compilation
             
             var availableMemory = memoryInfo.Value.FreeMemory;
 
-            if (!usingBrowserstack)
+            if (!usingBrowserstack) {
                 usingBrowserstack = Platforms.IsChromeOS || GlobalConfig.UseBrowserstack || Platforms.IsRaspi && availableMemory < 2048;
+            }
         }
 
         private static void CreateProjectDirectory()
@@ -432,16 +438,19 @@ namespace BrowserAutomationMaster.Compilation
 
         private static void HandleAutoCopy()
         {
-            if (!GlobalConfig.AutoCopyPath)
+            if (!GlobalConfig.AutoCopyPath) {
                 return;
+            }
 
-            if (!Directory.Exists(projectDirectory))
+            if (!Directory.Exists(projectDirectory)) {
                 return;
+            }
 
-            if (!ClipboardHelper.TrySetText(projectDirectory))
+            if (!ClipboardHelper.TrySetText(projectDirectory)) {
                 Write(
                     $"Unable to copy project directory to clipboard, please manually copy this path:\n{projectDirectory}"
                 );
+            }
 
             WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
@@ -980,11 +989,13 @@ namespace BrowserAutomationMaster.Compilation
             int index = 0;
             foreach (ApplicationNames app in installations.AppNames)
             {
-                if (index == maxVersions)
+                if (index == maxVersions) {
                     break;
+                }
 
-                if (!versionMapping.TryGetValue(app, out string? appVersion))
+                if (!versionMapping.TryGetValue(app, out string? appVersion)) {
                     continue;
+                }
 
                 versionArray[index] = appVersion;
                 index += 1;
@@ -993,12 +1004,11 @@ namespace BrowserAutomationMaster.Compilation
             var foundVersions = versionArray.Where(ver => ver != null && ver.Contains("3."));
 
             // Checks for valid contents since the array is initialized at the beginning of the function.
-            if (!foundVersions.Any())
+            if (!foundVersions.Any()) {
                 WriteAndExit(errorMessage, 1);
+            }
 
-
-            if (foundVersions.Count() == 1)
-            {
+            if (foundVersions.Count() == 1) {
                 pythonVersion = versionArray[0];
                 return;
             }
@@ -1006,33 +1016,38 @@ namespace BrowserAutomationMaster.Compilation
             var response = Input.WriteListFromOptions(versionArray, noun: "version of Python");
             var version = GetVersionNumber(response);
 
-            if (version == "Not Found")
+            if (version == "Not Found") {
                 return;
+            }
 
-            if (IsValidPyVersion(version))
+            if (IsValidPyVersion(version)) {
                 pythonVersion = version;
+            }
 
         }
         
         public static async Task<bool> HandleRunOnCompile()
         {
-            if (!GlobalConfig.RunOnCompile)
+            if (!GlobalConfig.RunOnCompile) {
                 return false;
+            }
 
-            if (!Directory.Exists(projectDirectory))
+            if (!Directory.Exists(projectDirectory)) {
                 WriteAndExit(
                     "Unable to run the newly compiled project, please ensure this directory still exists.",
                     status: 1
                 );
+            }
 
             var path = Path.Combine(projectDirectory, pythonScriptFileName);
 
-            if (!File.Exists(path))
+            if (!File.Exists(path)) {
                 WriteAndExit(
                     "Unable to run the newly compiled project, please ensure this file still exists.\n\n" +
                     $"Path: {path}",
                     status: 1
                 );
+            }
 
             var runtimeManager = new RuntimeManager(path);
             await runtimeManager.RunScript(usingBrowserstack);
@@ -1112,16 +1127,19 @@ namespace BrowserAutomationMaster.Compilation
 
         public static bool IsLocalFile(string link)
         {
-            if (string.IsNullOrWhiteSpace(link))
+            if (string.IsNullOrWhiteSpace(link)) {
                 return false;
+            }
 
-            if (!link.StartsWith("file://"))
+            if (!link.StartsWith("file://")) {
                 return false;
+            }
 
             string filePath = link[7..];
 
-            if (string.IsNullOrWhiteSpace(filePath))
+            if (string.IsNullOrWhiteSpace(filePath)) {
                 return false;
+            }
 
             return File.Exists(filePath);
         }
@@ -1389,6 +1407,7 @@ namespace BrowserAutomationMaster.Compilation
                 Match match = ActionTimeoutRegex.Match(timeoutArg);
 
                 if (!match.Success)
+                {
                     // Case for when the argument starts with --set-timeout==
                     // but doesn't match the expected format
                     // (For example '--set-timeout==X')
@@ -1399,7 +1418,8 @@ namespace BrowserAutomationMaster.Compilation
                             $"Received: '{timeoutArg}'",
                         status: 1
                     );
-                    
+                }
+
                 string valueString = match.Groups[1].Value;
                 bool valueParsed = int.TryParse(valueString, out int parsedTimeout);
 
@@ -1493,16 +1513,17 @@ namespace BrowserAutomationMaster.Compilation
                     encoding: new UTF8Encoding(false)
                 );
 
-                foreach (string importStatement in sanitizedImportStatements)
-                {
+                foreach (string importStatement in sanitizedImportStatements) {
                     writer.WriteLine(importStatement);
                 }
 
-                if (importsCount > 0 && bodyLineCount > 0)
+                if (importsCount > 0 && bodyLineCount > 0) {
                     writer.WriteLine();
+                }
 
-                foreach (string scriptLine in script.Body.scriptLines)
+                foreach (string scriptLine in script.Body.scriptLines) {
                     writer.WriteLine(scriptLine);
+                }
             }
             catch (Exception e)
             {

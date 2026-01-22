@@ -63,59 +63,66 @@ namespace BrowserAutomationMaster.Parsing
             Match selectorMatch = SelectorRegex.Match(selectorTrimmed);
             if (selectorMatch.Success)
             {
-                if (selectorMatch.Groups["id"].Success)
+                if (selectorMatch.Groups["id"].Success) {
                     return new ParsedSelector(
                         SelectorCategory.Id,
                         selectorMatch.Groups["id"].Value,
                         selectorTrimmed
                     );
+                }
                 
-                else if (selectorMatch.Groups["class"].Success)
+                else if (selectorMatch.Groups["class"].Success) {
                     return new ParsedSelector(
                         SelectorCategory.ClassName, 
                         selectorMatch.Groups["class"].Value, 
                         selectorTrimmed
                     );
+                }
                 
 
                 Group DQVal = selectorMatch.Groups["nameValDQ"]; // Double quoted value
                 Group SQVal = selectorMatch.Groups["nameValSQ"]; // Single quoted value
                 Group UQVal = selectorMatch.Groups["nameValUQ"]; // Unquoted value.
 
-                if (DQVal.Success)
+                if (DQVal.Success) {
                     return new ParsedSelector(
                         SelectorCategory.NameAttribute,
                         UQVal.Value,
                         selectorTrimmed
                     );
+                }
                 
-                else if (SQVal.Success)
+                else if (SQVal.Success) {
                     return new ParsedSelector(
                         SelectorCategory.NameAttribute, 
                         SQVal.Value, 
                         selectorTrimmed
                     );
+                }
                 
-                else if (UQVal.Success) 
+                else if (UQVal.Success) {
                     return new ParsedSelector(
                         SelectorCategory.NameAttribute, 
                         UQVal.Value, 
                         selectorTrimmed
                     );
+                }
                 
-                else if (selectorMatch.Groups["xpath"].Success)
+                else if (selectorMatch.Groups["xpath"].Success) {
                     return new ParsedSelector(
                         SelectorCategory.XPath, 
                         selectorMatch.Groups["xpath"].Value, 
                         selectorTrimmed
                     );
+                }
                 
-                else if (selectorMatch.Groups["tag"].Success)
+                else if (selectorMatch.Groups["tag"].Success) {
                     return new ParsedSelector(
                         SelectorCategory.TagName, 
                         selectorMatch.Groups["tag"].Value, 
                         selectorTrimmed
                     );
+                }
                 
             }
 
@@ -124,27 +131,28 @@ namespace BrowserAutomationMaster.Parsing
                 Match cssMatch = CssComponentRegex.Match(selectorTrimmed);
                 if (cssMatch.Success)
                 {
-                    if (cssMatch.Groups["cssId"].Success)
+                    if (cssMatch.Groups["cssId"].Success) {
                         return new ParsedSelector(
                             SelectorCategory.Id, 
                             cssMatch.Groups["cssId"].Value, 
                             selectorTrimmed);
+                    }
                     
-
-                    if (cssMatch.Groups["cssClass"].Success)
+                    if (cssMatch.Groups["cssClass"].Success) {
                         return new ParsedSelector(
                             SelectorCategory.ClassName, 
                             cssMatch.Groups["cssClass"].Value, 
                             selectorTrimmed
                         );
+                    }
                     
-
-                    if (cssMatch.Groups["cssTagName"].Success)
+                    if (cssMatch.Groups["cssTagName"].Success) {
                         return new ParsedSelector(
                             SelectorCategory.TagName,
                             cssMatch.Groups["cssTagName"].Value,
                             selectorTrimmed
                         );
+                    }
                     
 
                     if (cssMatch.Groups["attributeName"].Success) 
@@ -197,20 +205,22 @@ namespace BrowserAutomationMaster.Parsing
                         );
                     }
 
-                    if (cssMatch.Groups["pseudoClass"].Success)
+                    if (cssMatch.Groups["pseudoClass"].Success) {
                         return new ParsedSelector(
                             SelectorCategory.PseudoClass, 
                             cssMatch.Groups["pseudoClass"].Value, 
                             selectorTrimmed
                         );
+                    }
                     
 
-                    if (cssMatch.Groups["pseudoElement"].Success)
+                    if (cssMatch.Groups["pseudoElement"].Success) {
                         return new ParsedSelector(
                             SelectorCategory.PseudoElement,
                             cssMatch.Groups["pseudoElement"].Value,
                             selectorTrimmed
                         );
+                    }
                  
                 }
             }
@@ -224,12 +234,13 @@ namespace BrowserAutomationMaster.Parsing
 
             string isSelector = Input.AskForInput("Is this a css selector? [y/n]: ");
             
-            if (Input.ConditionRejected(isSelector))
+            if (Input.ConditionRejected(isSelector)) {
                 Write(
                     message:
                         $"\nBAM Manager (BAMM) was unable to validate selector: '{selectorTrimmed}', " +
                         $"please ensure it's properly formatted then try compiling again."
                 );
+            }
             
             Warning.Write(
                 message: 

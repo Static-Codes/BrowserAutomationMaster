@@ -247,8 +247,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     Write("Unable to locate the BrowserStack Config.");
                     string response = Input.AskForInput("Do you already have an account on https://browserstack.com [y/n]: ");
 
-                    if (Input.ConditionRejected(response))
+                    if (Input.ConditionRejected(response)) {
                         WriteAndExit(tutorialMessage, 1);
+                    }
 
                     Warning.Write("Creating browserstack.yml now.\n\n");
                 }

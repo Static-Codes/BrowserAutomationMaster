@@ -479,19 +479,22 @@ namespace BrowserAutomationMaster.Compilation
         )
         {
             if (!IsResolvableLink(sanitizedArg2))
+            {
                 WriteAndExit(
                     message:
                         "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
                         $"{sanitizedArg2} was unresolvable, please check for typos.\n\n" +
                         $"If this error persists please make a bug report at {ISSUES_LINK}",
                     status: 1);
-
+            }
+            
             scriptBody.Add($"url = '{sanitizedArg2}'");
             if (firstVisitFinished)
             {
                 scriptBody.Add("make_request(url)");
                 return (true, string.Empty);
             }
+            
             scriptBody.AddRange([
                 "print('Initializing WebDriver...')\n",
                 "driver = None",

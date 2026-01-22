@@ -164,9 +164,9 @@ namespace BrowserAutomationMaster.Parsing
 
                 }
                 
-                if (rawFileName != null)
+                if (rawFileName != null) {
                     Spectre.Console.AnsiConsole.Write($"File {index} ----> {rawFileName}\n");
-                
+                }
             }
             Console.ForegroundColor = ConsoleColor.White;
             Spectre.Console.AnsiConsole.Write("\n\nPress any key to exit...");
@@ -267,8 +267,9 @@ namespace BrowserAutomationMaster.Parsing
             string selectorString = "selector"; // Defaults to "selector" for selector based actions
             string trimmedLine = line.Trim();
 
-            if (line.StartsWith(" //") || line.StartsWith("//"))
+            if (line.StartsWith(" //") || line.StartsWith("//")) {
                 return true; // This is assumed as a comment
+            }
 
             if (line.StartsWith("add-headers"))
             {
@@ -281,8 +282,9 @@ namespace BrowserAutomationMaster.Parsing
             string[] lineArgSpecialCases = ["add-header",  "fill-text", "fill-text-exp", "set-custom-useragent"];
 
             // Special case to handle lineArgSpecialCases
-            if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg)))
+            if (lineArgSpecialCases.Any(lineArg => line.StartsWith(lineArg))) {
                 lineArgs = line.Split(" \"");
+            }
 
             // Handles all others
             else
@@ -343,8 +345,9 @@ namespace BrowserAutomationMaster.Parsing
         public static int HandleUserSelection(Dictionary<int, string> mapping)
         {
 
-            if (mapping.Count == 0)
+            if (mapping.Count == 0) {
                 WriteAndExit(noFilesFoundMessage, 1);
+            }
 
             int numberOfFilesFound = mapping.Count;
            
@@ -354,16 +357,17 @@ namespace BrowserAutomationMaster.Parsing
             for (int i = 0; i < menuOptions.Length; i++) 
             {
                 string? rawFileName;
-                try 
-                { 
+                try { 
                     rawFileName = Path.GetFileName(mapping.Values.ElementAt(i)); 
                 }
-                catch 
-                {
-                    continue; // Silent continue is the intended be
+
+                catch {
+                    continue; // A Silent failure is the intended behavior
                 }
-                if (rawFileName != null)
+
+                if (rawFileName != null) {
                     menuOptions[i] = $"{i + 1}.  {rawFileName}";
+                }
             }
 
             if (menuOptions.Length == 0) 
@@ -376,38 +380,44 @@ namespace BrowserAutomationMaster.Parsing
             var rawInput = Input.WriteListFromOptions(menuOptions, "file");
             var input = GetFileNumber(rawInput);
 
-            if (input == null)
+            if (input == null) {
                 WriteAndExit(panicText, 1);
+            }
 
-            if (!int.TryParse(input, out int fileNumber))
+            if (!int.TryParse(input, out int fileNumber)) {
                 WriteAndExit(panicText, 1);
+            }
 
-            if (fileNumber < 1 || fileNumber > numberOfFilesFound)
+            if (fileNumber < 1 || fileNumber > numberOfFilesFound) {
                 WriteAndExit(panicText, 1);
+            }
 
             return fileNumber - 1; // index = fileNumber - 1;
         }
 
         public static bool IsValidHeaderFormat(string headerString)
         {
-            if (string.IsNullOrEmpty(headerString))
+            if (string.IsNullOrEmpty(headerString)) {
                 return false;
+            }
 
             return PrecompiledHeaderRegex().IsMatch(headerString);
         }
 
         public static bool IsValidNumberFormat(string numberString)
         {
-            if (string.IsNullOrEmpty(numberString))
+            if (string.IsNullOrEmpty(numberString)) {
                 return false;
+            }
 
             return PrecompiledNumberRegex().IsMatch(numberString);
         }
 
         public static bool IsValidLinkFormat(string linkString)
         {
-            if (string.IsNullOrWhiteSpace(linkString))
+            if (string.IsNullOrWhiteSpace(linkString)) {
                 return false;
+            }
 
             bool hasValidProtocol = false;
 
@@ -600,11 +610,13 @@ namespace BrowserAutomationMaster.Parsing
                         string proxyString = lineArgs[2].Replace("\"", "");
 
                         // Only one Proxy feature command is permitted per script.
-                        if (usedFeatures.Any(feature => feature.Contains(proxyFeatureString)))
+                        if (usedFeatures.Any(feature => feature.Contains(proxyFeatureString))) {
                             ExitOnDuplicateCommand(fileName, line, i);
+                        }
 
-                        if (!IsValidProxyFormat(proxyString))
+                        if (!IsValidProxyFormat(proxyString)) {
                             WriteAndExit(invalidProxyFeatureMessage, 1);
+                        }
 
                         usedFeatures.Add(line);
 
@@ -621,8 +633,9 @@ namespace BrowserAutomationMaster.Parsing
 
                     #region Start of Visit Feature Check
                     
-                    if (firstArg.Equals("visit") && visitBlockFinished)
+                    if (firstArg.Equals("visit") && visitBlockFinished) {
                         return true;
+                    }
 
                     List<string> invalidLines = [];
 
@@ -908,9 +921,9 @@ namespace BrowserAutomationMaster.Parsing
                     var proxyFeatureFound =
                         lineArgs.Any(arg => proxyFeatureArgs.Contains(arg.Replace('"', ' ').Trim()));
 
-                    if (potentialProxyLine && !proxyFeatureFound)
+                    if (potentialProxyLine && !proxyFeatureFound) {
                         return WriteErrorAndReturnBool(intendedToUseProxyMessage, false);
-
+                    }
 
                     Action AddValidatedProxy() => () =>
                     {

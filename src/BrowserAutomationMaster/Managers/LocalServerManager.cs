@@ -60,14 +60,16 @@ namespace BrowserAutomationMaster.Managers
             {
                 var response = await RequestManager.NetworkClient.Instance.GetAsync(GUI_ZIP_LINK);
                 
-                if (!response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode) {
                     return WriteErrorAndReturnBool(msg, false);
+                }
 
                 var content = await response.Content.ReadAsByteArrayAsync();
 
-                if (content == null)
+                if (content == null) {
                     return WriteErrorAndReturnBool(msg, false);
-
+                }
+                
                 await File.WriteAllBytesAsync(GUI_ZIP_PATH, content);
 
                 return File.Exists(GUI_ZIP_PATH);
@@ -98,12 +100,14 @@ namespace BrowserAutomationMaster.Managers
 
         public static (string name, string args) GetProcessNameAndArgs(bool scan = false)
         {
-            if (scan && Platforms.IsChromeOS || Platforms.IsUnixLike) 
+            if (scan && Platforms.IsChromeOS || Platforms.IsUnixLike) { 
                 return ("netstat", "-ltu");
-            
-            else if (scan && Platforms.IsWindows)
+            }
+
+            else if (scan && Platforms.IsWindows) {
                 return ("cmd.exe", "/c netstat -ano");
-            
+            }
+
             else
                 throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
         }
@@ -930,8 +934,9 @@ namespace BrowserAutomationMaster.Managers
         
         public static bool IsB64(string b64string)
         {
-            if (string.IsNullOrEmpty(b64string))
+            if (string.IsNullOrEmpty(b64string)) {
                 return false;
+            }
 
             return 
                 PrecompiledBase64Regex().IsMatch(b64string) &&

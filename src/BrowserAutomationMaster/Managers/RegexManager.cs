@@ -21,13 +21,15 @@ namespace BrowserAutomationMaster.Managers
 
             try
             {
-                if (string.IsNullOrEmpty(input))
+                if (string.IsNullOrEmpty(input)) {
                     return false;
+                }
 
                 var matches = regex.Matches(input);
 
-                if (matches.Count == 0)
+                if (matches.Count == 0) {
                     return false;
+                }
 
                 var builder = new StringBuilder();
 
@@ -39,8 +41,9 @@ namespace BrowserAutomationMaster.Managers
                         {
                             Group group = match.Groups[i];
 
-                            if (group.Success)
+                            if (group.Success) {
                                 builder.AppendLine(group.Value);
+                            }
                         }
                     }
                 }

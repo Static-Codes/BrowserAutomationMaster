@@ -51,17 +51,18 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         }
         public static string SanitizeOSVersion(string rawOSVersion, string rawOSName, string[] versions)
         {
-            if (rawOSVersion.EndsWith("Beta"))
+            if (rawOSVersion.EndsWith("Beta")) {
                 return rawOSVersion;
+            }
 
             bool isAndroid = rawOSName == "Android";
             var osVersion = GetVersionNumber(rawOSVersion, isAndroid);
 
-            if (osVersion == "Not Found")
-            {
+            if (osVersion == "Not Found") {
                 Warning.Write($"No version number was provided, using the most recent version of {rawOSName}.");
                 return versions[^1]; // Last element (Most recent version)
             }
+
             return osVersion;
         }
 
@@ -95,8 +96,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 index++;
             }
 
-            if (index == 0)
+            if (index == 0) {
                 return "Not Found";
+            }
 
             // Returns the raw version number or "Not Found"
             var version = chars[..index].ToString();
@@ -113,8 +115,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             {
                 var devicesJSON = await RequestManager.NetworkClient.Instance.GetStringAsync(BROWSER_STACK_LINK);
 
-                if (devicesJSON == null)
+                if (devicesJSON == null) {
                     return WriteErrorAndReturnBool(msg, false);
+                }
 
                 Devices = JsonSerializer.Deserialize<DeviceTypes>(devicesJSON);
                 return Devices != null;
@@ -205,8 +208,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         {
             public static string[] GetMobileDeviceNames()
             {
-                if (Devices == null || Devices.Mobile == null)
+                if (Devices == null || Devices.Mobile == null) {
                     return [];
+                }
 
                 var devices = Devices?.Mobile?
                     .SelectMany(mobile => mobile.Devices)
@@ -215,16 +219,18 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     .Distinct()
                     .ToArray();
 
-                if (devices == null || devices.Length == 0)
+                if (devices == null || devices.Length == 0) {
                     return [];
+                }
 
                 return devices!;
 
             }
             public static string[] GetAndroidDeviceNames(string osVersion, string browserName)
             {
-                if (Devices == null || Devices.Mobile == null)
+                if (Devices == null || Devices.Mobile == null) {
                     return [];
+                }
 
                 // OIC = OrdinalIgnoreCase (imported via ConstantManager)
                 return [.. Devices.Mobile
@@ -243,8 +249,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             public static string[] GetiOSDeviceNames(string osVersion, string browserName)
             {
-                if (Devices == null || Devices.Mobile == null)
+                if (Devices == null || Devices.Mobile == null) {
                     return [];
+                }
 
                 // OIC = OrdinalIgnoreCase (imported via ConstantManager)
                 return Devices.Mobile?
@@ -276,8 +283,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
             public static string[] GetBrowserVersionsSupported(string browserName, string osName)
             {
-                if (Devices == null || Devices.Mobile == null)
+                if (Devices == null || Devices.Mobile == null) {
                     return [];
+                }
 
                 if (osName == "OS X" || osName == "Windows")
                 {
@@ -306,11 +314,11 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             public static string GetDesiredBrowerVersion(string browserName, string osName, string osVersion)
             {
-                if (browserName == "Safari" && osName == "OS X")
+                if (browserName == "Safari" && osName == "OS X") {
                     return GetDesiredSafariVersion(osVersion);
-                else if (browserName == "Safari" && osName == "ios")
+                } else if (browserName == "Safari" && osName == "ios") {
                     return "";
-                else
+                } else
                     return "latest";
             }
 
@@ -325,8 +333,6 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                         "26" => "Tahoe",
                         _ => ""
                 };
-
-
             }
         }
 
