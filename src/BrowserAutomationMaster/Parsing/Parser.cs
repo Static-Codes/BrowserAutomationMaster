@@ -57,58 +57,21 @@ namespace BrowserAutomationMaster.Parsing
                 return false; 
             }
 
-            
-
-            if (Directory.Exists(userScriptsDirectory)) 
+            try 
             {
-                UserScriptExamples.WriteScriptExamples();
-                return true; 
-            }
-            
-            else
-            {
-                try
-                {
+                if (!Directory.Exists(userScriptsDirectory)) {
                     Directory.CreateDirectory(userScriptsDirectory);
-                    UserScriptExamples.WriteScriptExamples();
-                    return true;
                 }
-                catch (ArgumentNullException ane)
-                {
-                    Spectre.Console.AnsiConsole.Write(ane.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(ane.Message);
-                    return false;
-                }
-                catch (UnauthorizedAccessException uae)
-                {
-                    Spectre.Console.AnsiConsole.Write(uae.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(uae.Message);
-                    return false;
-                }
-                catch (PathTooLongException ptle)
-                {
-                    Spectre.Console.AnsiConsole.Write(ptle.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(ptle.Message);
-                    return false;
-                }
-                catch (DirectoryNotFoundException dnfe)
-                {
-                    Spectre.Console.AnsiConsole.Write(dnfe.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(dnfe.Message);
-                    return false;
-                }
-                catch (IOException ie)
-                {
-                    Spectre.Console.AnsiConsole.Write(ie.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(ie.Message);
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    Spectre.Console.AnsiConsole.Write($"An unexpected error occurred while creating userScript directory:\n{ex.GetType().Name}");
-                    Spectre.Console.AnsiConsole.Write(ex.Message);
-                    return false;
-                }
+                
+                UserScriptExamples.WriteScriptExamples();
+                return true;
+            }
+
+            catch (Exception ex)
+            {
+                Spectre.Console.AnsiConsole.Write($"An unexpected error occurred while creating userScript directory:\n{ex.GetType().Name}");
+                Spectre.Console.AnsiConsole.Write(ex.Message);
+                return false;
             }
         }
         
