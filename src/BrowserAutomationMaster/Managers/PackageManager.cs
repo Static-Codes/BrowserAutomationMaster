@@ -18,6 +18,7 @@ namespace BrowserAutomationMaster.Managers
     public partial class PackageManager
     {
         
+        public readonly CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));
         readonly private static string packagePath = GetPackagesPath();
         readonly private static string baseURL = "https://pypi.org/project";
         private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];
@@ -60,7 +61,7 @@ namespace BrowserAutomationMaster.Managers
         private static async Task SetPackageData()
         {
             var baseMessage =
-                $"Unable to get package data from:\n{packagePath}" +
+                $"Unable to get package data from:{NLC}{packagePath}{NLC}" +
                 $"If this error persists, please make a bug report at {ISSUES_LINK}\n" +
                 "Error Log:\n";
             
@@ -152,7 +153,7 @@ namespace BrowserAutomationMaster.Managers
             try
             {
                 if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { return false; }
-                RequestManager requestManager = RequestManager.Create(uriResult);
+                RequestManager requestManager = Create(uriResult);
                 HttpResponseMessage? response = await requestManager.GetAsync(followRedirects: true);
                 
                 if (response == null) {
@@ -203,8 +204,23 @@ namespace BrowserAutomationMaster.Managers
         {
             EnsureDirectoryExists(AppDataDirectory);
 
-            if (!File.Exists(packagePath)) {
-                await DownloadPackageJSON();
+            if (!File.Exists(packagePath)) 
+            {
+                var resourceName = "packages.json";
+                var resourcePattern = "BrowserAutomationMaster.AppData.packages.json";
+
+                // Declaration includes "using" for manual memory management to the Garbage Collector.
+                using Stream stream = EmbeddedResourceManager.GetEmbeddedResource(resourceName, resourcePattern);
+
+                if (stream.Length > int.MaxValue) {
+                    await DownloadPackageJSON();
+                } else {
+                    await EmbeddedResourceManager.WriteEmbeddedResourceToDisk(
+                        stream, 
+                        resourceName, 
+                        outputPath: packagePath
+                    );
+                }
             }
 
             await SetPackageData();

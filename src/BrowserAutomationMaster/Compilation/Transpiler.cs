@@ -82,13 +82,19 @@ namespace BrowserAutomationMaster.Compilation
 
                 SetBAMConfig(filePath);
 
-                CreateProjectDirectory(); // Also sets this.projectDirectory
+                // Sets this.projectDirectory
+                CreateProjectDirectory();
 
                 SetScriptName(filePath);
 
-                GetDesiredUrls(bamConfig!.Lines); // Null forgiveness here because SetBAMConfig ensure's the config is not null.
+                // Null forgiveness here because SetBAMConfig ensure's the config is not null.
+                GetDesiredUrls(bamConfig!.Lines);
 
-                await AddBrowserImportsAndRequirements(bamConfig);
+
+                // Sets UserAgentManager.userAgentsData
+                UserAgentManager.SetUserAgents();
+
+                AddBrowserImportsAndRequirements(bamConfig);
 
                 await HandleCompilation(filePath, args, bamConfig);
 
@@ -114,9 +120,9 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
 
-        private static async Task AddBrowserImportsAndRequirements(BAMConfig config)
+        private static void AddBrowserImportsAndRequirements(BAMConfig config)
         {
-            await HandleBrowserCmd(config);
+            HandleBrowserCmd(config);
 
             string noUrlsFound =
                 "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\n" +
@@ -455,12 +461,12 @@ namespace BrowserAutomationMaster.Compilation
             WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
         
-        private static async Task HandleBrowserCmd(BAMConfig config)
+        private static void HandleBrowserCmd(BAMConfig config)
         {
             // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of the nullable operator
             if (config.browserPresent)
             {
-                var potentialUA = await UserAgentManager.GetUserAgent(config.selectedBrowser);
+                var potentialUA = UserAgentManager.GetUserAgent(config.selectedBrowser);
                 if (potentialUA == null)
                 {
                     WriteErrorAndReturnNull("Unable to select custom user agent, please try again");

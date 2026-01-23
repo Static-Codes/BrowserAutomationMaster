@@ -1,10 +1,7 @@
 ﻿using BrowserAutomationMaster.Messaging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
@@ -108,12 +105,28 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         }
 
 
-        public static async Task<bool> PopulateDevices()
+        public static bool PopulateDevices()
         {
             var msg = "Unable to populate supported devices for browserstack integration, any use of browserstack will throw an error.";
+
             try
             {
-                var devicesJSON = await RequestManager.NetworkClient.Instance.GetStringAsync(BROWSER_STACK_LINK);
+                // Starting with a Stream
+                // Convert to a json string
+                // Deserialize the JSON string into a DeviceTypes Object
+            
+                var resourceName = "browserstack.json";
+                var resourcePattern = "BrowserAutomationMaster.AppData.browserstack.json";
+                using Stream stream = EmbeddedResourceManager.GetEmbeddedResource(resourceName, resourcePattern);
+
+
+                using StreamReader reader = new(stream);
+                // byte[] byteArray = reader.ReadBytes((int)stream.Length);
+
+                var devicesJSON = reader.ReadToEnd();
+                
+
+                // var devicesJSON = await RequestManager.NetworkClient.Instance.GetStringAsync(BROWSER_STACK_LINK);
 
                 if (devicesJSON == null) {
                     return WriteErrorAndReturnBool(msg, false);
@@ -121,6 +134,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
                 Devices = JsonSerializer.Deserialize<DeviceTypes>(devicesJSON);
                 return Devices != null;
+
             }
             catch (Exception ex)
             {

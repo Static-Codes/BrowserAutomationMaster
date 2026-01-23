@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -12,14 +13,13 @@ namespace BrowserAutomationMaster.Managers
         private static Dictionary<string, List<string>>? userAgentsData;
 
         private readonly static Random random = new();
-        private static readonly object _lock = new();
-        // private modifier is needed here so lock is not accessed by external code.
+        // private static readonly Lock _lock = new();
         // _ required because lock is a reserved keyword
 
-        private static async Task LoadUserAgents()
+        private static void LoadUserAgents()
         {
-            //lock (_lock)
-            //{
+            // lock (_lock)
+            // {
                 if (userAgentsData != null && userAgentsData.Count > 0) {
                     return;
                 }
@@ -27,7 +27,7 @@ namespace BrowserAutomationMaster.Managers
                 try
                 {
                     var userAgentsObj = new UserAgents();
-                    var jsonString = await userAgentsObj.LoadJSONString();
+                    var jsonString = userAgentsObj.LoadJSONString();
                     if (jsonString == null)
                     {
                         WriteAndExit(
@@ -72,13 +72,16 @@ namespace BrowserAutomationMaster.Managers
                     );
                 }
                     
-            //}
-
+            // }
         }
-        public static async Task<string?> GetUserAgent(string browserName)
-        {
-            await LoadUserAgents();
 
+        public static void SetUserAgents() {
+            LoadUserAgents();
+        }
+
+        public static string? GetUserAgent(string browserName)
+        {
+            // LoadUserAgents();
             if (userAgentsData == null || userAgentsData.Count == 0)
             {
                 WriteAndExit(
@@ -114,26 +117,26 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
-        private static async Task<string?> RetrieveJSON()
+        private static string? RetrieveJSON()
         {
-            var uri = new Uri(USERAGENTS_LINK);
+            var resourceName = "useragents.json";
+            var resourcePattern = "BrowserAutomationMaster.AppData.useragents.json";
+
             try 
             {
-                
-                var response = await RequestManager.NetworkClient.Instance.GetStringAsync(uri);
-                if (response == null) {
-                    return null;
-                }
-                
-                return response;
+                using Stream stream = EmbeddedResourceManager.GetEmbeddedResource(resourceName, resourcePattern);
+
+                using var reader = new StreamReader(stream, Encoding.UTF8);
+
+                return reader.ReadToEnd();
             }
             catch (Exception ex)
             {
                 var message =
-                    "Unable to load useragents.json\n" +
-                    $"This file should be placed in:\n{GetUserAgentsPath()}" +
-                    $"This file can be downloaded from:\n{uri}\n\n" +
-                    $"Error Log:\n\n{ex.Message}";
+                    $"Unable to load useragents.json{NLC}" +
+                    $"This file should be placed in:{NLC}{GetUserAgentsPath()}" +
+                    $"This file can be downloaded from:{NLC}{USERAGENTS_LINK}{NLC}{NLC}" +
+                    $"Error Log:{NLC}{NLC}{ex.Message}";
 
                 WriteAndExit(message, 1);
                 return null;
@@ -156,14 +159,14 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
-        private static async Task<bool> WriteJSON()
+        private static bool WriteJSON()
         {
             var message =
                     "Unable to read contents from useragents.json\n" +
                     $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
                     "Error Log:\nJSON contents == null.";
 
-            var contents = await RetrieveJSON();
+            var contents = RetrieveJSON();
             
             if (contents == null) {
                 WriteAndExit(message, 1);
@@ -189,14 +192,14 @@ namespace BrowserAutomationMaster.Managers
 
             public readonly bool fileDownloaded = File.Exists(userAgentPath);
 
-            public async Task<string?> LoadJSONString()
+            public string? LoadJSONString()
             {
                 try
                 {
                     if (!fileDownloaded)
                     {
-                        await WriteJSON();
-                        return await RetrieveJSON();
+                        WriteJSON();
+                        return RetrieveJSON();
                     }
                     return ReadJSONContents();
                 }
