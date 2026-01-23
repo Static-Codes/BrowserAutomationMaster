@@ -88,7 +88,7 @@
 	  
 	  <!-- Application Data -->
 	  <EmbeddedResource Include="AppData/browserstack.json"/>
-	  <EmbeddedResource Include="AppData/colors.json"/>
+	  <!-- <EmbeddedResource Include="AppData/colors.json"/> -->
 	  <EmbeddedResource Include="AppData/packages.json"/>
 	  <EmbeddedResource Include="AppData/useragents.json"/>
 
