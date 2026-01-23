@@ -90,7 +90,6 @@ namespace BrowserAutomationMaster.Compilation
                 // Null forgiveness here because SetBAMConfig ensure's the config is not null.
                 GetDesiredUrls(bamConfig!.Lines);
 
-
                 // Sets UserAgentManager.userAgentsData
                 UserAgentManager.SetUserAgents();
 
@@ -264,11 +263,12 @@ namespace BrowserAutomationMaster.Compilation
             // Checks if configLines contains each arg, if so the required function is be added.
             // add-header is added here since its in actionArg, but its not accessed in this function.
             foreach (string actionArg in Parser.actionArgs)
+            {
                 functionsPresent.Add(
                     actionArg,
                     config.Lines.Any(line => line.StartsWith(actionArg))
                 );
-
+            }
 
             int index = 1; // Accounts for the functions below in the script.Body.
             script.Body.AddLine(MakeRequestFunction(requestUserAgent), 0);
