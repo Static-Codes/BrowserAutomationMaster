@@ -2,9 +2,6 @@
 using static BrowserAutomationMaster.Parsing.Parser;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
-using System.Linq;
-using System.Collections.Generic;
-using BrowserAutomationMaster.Managers.Python;
 
 namespace BrowserAutomationMaster.Parsing
 {
