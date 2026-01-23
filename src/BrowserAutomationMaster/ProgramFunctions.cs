@@ -1,4 +1,5 @@
-﻿using BrowserAutomationMaster.Compilation;
+﻿using System.Text.Json;
+using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers.Python;
@@ -25,6 +26,15 @@ using static BrowserAutomationMaster.Parsing.Parser;
 
 namespace BrowserAutomationMaster
 {
+    public static class ByteArrayExtensions
+    {
+        public static async Task<T?> Deserialize<T>(this byte[] data) where T : class
+        {
+            using var stream = new MemoryStream(data);
+            return await JsonSerializer.DeserializeAsync(stream, typeof(T)) as T;
+        }
+    }
+    
     public class ProgramFunctions
     {
         /// <summary>Handles all of the initial application setup and prerequisite checks.</summary>
@@ -45,8 +55,8 @@ namespace BrowserAutomationMaster
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
 
-            // Populate DeviceManager.Devices
-            if (!await PopulateDevices())
+            // Populates DeviceManager.Devices
+            if (!PopulateDevices())
             {
                 Environment.Exit(0);
             }
