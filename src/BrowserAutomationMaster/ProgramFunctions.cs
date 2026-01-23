@@ -48,7 +48,7 @@ namespace BrowserAutomationMaster
             // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/main/stable/src/BrowserAutomationMaster/AppData/packages.json
             await PackageManager.Initalize();
 
-            // BUG FIXXED: DO NOT CHANGE POSITION
+            // BUG FIXED: DO NOT CHANGE POSITION
             // If GlobalConfig is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
             GlobalConfig = LoadConfig();
 
@@ -56,8 +56,7 @@ namespace BrowserAutomationMaster
             await PopulateInstallations();
 
             // Populates DeviceManager.Devices
-            if (!PopulateDevices())
-            {
+            if (!PopulateDevices()) {
                 Environment.Exit(0);
             }
             
