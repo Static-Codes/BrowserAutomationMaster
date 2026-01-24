@@ -71,16 +71,18 @@
 		<RpmDesktopName>$(CommonDesktopName)</RpmDesktopName>
 	</PropertyGroup>
 
-	<!-- macOS Silicon Specific AOT Logic -->
-	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">
+	<!-- macOS Specific Logic -->
+	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'osx-x64'">
 		<TargetFramework>net10.0</TargetFramework>
 		<PublishSingleFile>true</PublishSingleFile>
-		<!-- <PublishTrimmed>true</PublishTrimmed> -->
-		<!-- <PublishAot>true</PublishAot> -->
 		<StripSymbols>false</StripSymbols>
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 	</PropertyGroup>
 
+	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'osx-x64'">
+		<EmbeddedResource Include="Helpers/macOS/free" />
+	</ItemGroup>
+	<!-- End of macOS Specific Logic -->
 
 
 	<ItemGroup>
