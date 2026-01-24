@@ -326,7 +326,9 @@ namespace BrowserAutomationMaster.Compilation
             
             var memoryInfo = GetMemoryInfo();
 
-            if (memoryInfo == null) return;
+            if (memoryInfo == null) {
+                return;
+            }
             
             var availableMemory = memoryInfo.Value.FreeMemory;
 
@@ -346,8 +348,7 @@ namespace BrowserAutomationMaster.Compilation
             catch
             {
                 WriteAndExit(
-                    message:
-                        "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
+                    "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
                     status: 1
                 );
             }
@@ -355,26 +356,36 @@ namespace BrowserAutomationMaster.Compilation
             projectDirectory = Path.Combine(desiredSaveDirectory, projectName);
             try
             {
-                if (!Path.Exists(desiredSaveDirectory))
-                {
+                if (!Path.Exists(desiredSaveDirectory)) {
                     Directory.CreateDirectory(desiredSaveDirectory);
                 }
             }
-            catch { }
+            catch 
+            { 
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
+                        "Error Log:",
+                        ex.Message
+                    ]),
+                    status: 1
+                );
+            }
 
             try
             {
-                if (!Path.Exists(projectDirectory))
-                {
+                if (!Path.Exists(projectDirectory)) {
                     Directory.CreateDirectory(projectDirectory);
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 WriteAndExit(
-                    message:
-                        "BAMM Manager (BAMM) was unable to create the desired project directory, " +
-                        "please try again.",
+                    message: string.Join(NLC, [
+                        "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
+                        "Error Log:",
+                        ex.Message
+                    ]),
                     status: 1
                 );
             }
@@ -396,9 +407,13 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
         
-        public static BAMConfig? GetBAMConfig() { return bamConfig; }
+        public static BAMConfig? GetBAMConfig() { 
+            return bamConfig; 
+        }
 
-        public static bool GetBrowserStackStatus() { return usingBrowserstack; }
+        public static bool GetBrowserStackStatus() { 
+            return usingBrowserstack; 
+        }
 
         private static void GetDesiredUrls(string[] lines)
         {
@@ -424,13 +439,11 @@ namespace BrowserAutomationMaster.Compilation
             {
                 customName = Input.AskForInput("Please enter a name for this project: ");
 
-                if (string.IsNullOrEmpty(customName))
-                {
+                if (string.IsNullOrEmpty(customName)) {
                     continue;
                 }
 
-                if (ValidDirectoryRegex.IsMatch(customName))
-                {
+                if (ValidDirectoryRegex.IsMatch(customName)) {
                     return customName;
                 }
 
@@ -452,9 +465,13 @@ namespace BrowserAutomationMaster.Compilation
                 return;
             }
 
-            if (!ClipboardHelper.TrySetText(projectDirectory)) {
+            if (!ClipboardHelper.TrySetText(projectDirectory)) 
+            {
                 Write(
-                    $"Unable to copy project directory to clipboard, please manually copy this path:\n{projectDirectory}"
+                    string.Join(NLC, [
+                        "Unable to copy project directory to clipboard, please manually copy this path:",
+                        projectDirectory
+                    ])
                 );
             }
 
@@ -1122,7 +1139,20 @@ namespace BrowserAutomationMaster.Compilation
             if (!majorFound || !minorFound) { 
                 return false; 
             }
+            
+            // Since Python 3.15 is in beta, this is an attempt to support it.
+            // If this causes fatal crashes, and unexpected behavior, this will be rolled back.
+            if (major == 3 && minor >= 15) {
+                return WriteErrorAndReturnBool(
+                    message: string.Join(string.Empty, [
+                        "Python 3.15+ is currently not tested with BAMM, ", 
+                        "please be aware you might encounter bugs and other unexpected behavior."
+                    ]),
+                    returnBool: true
+                );
+            }
 
+            // This checks Python versions between 3.9 and 3.14, while the above handles those on beta releases.
             bool isValidVersion =
                 major == 3 &&
                 minor >= 9 &&
@@ -1154,8 +1184,7 @@ namespace BrowserAutomationMaster.Compilation
         {
             try
             {
-                if (IsLocalFile(link))
-                {
+                if (IsLocalFile(link)) {
                     return true;
                 }
 
@@ -1210,8 +1239,7 @@ namespace BrowserAutomationMaster.Compilation
                 // The server is responding that the content IS or WAS at this location, however the content is not accessible.
                 // A warning is provided, and the issue is assumed to be lack of adequate headers.
 
-                if (InvalidResponseEnums.Contains(response.StatusCode))
-                {
+                if (InvalidResponseEnums.Contains(response.StatusCode)) {
                     return true;
                 }
 
@@ -1228,6 +1256,7 @@ namespace BrowserAutomationMaster.Compilation
 
                 bool isExpectedErrType = ex.GetType() == typeof(PingException);
                 bool errPresent = isExpectedErrType && exceptionMessage.StartsWith("No such host is known");
+
                 if (errPresent)
                 {
                     Warning.Write(
@@ -1236,9 +1265,10 @@ namespace BrowserAutomationMaster.Compilation
                             $"Exception:{NLC}{NLC}{ex.InnerException}"
                     );
                 }
+                
                 string response = Input.AskForInput("Would you like to continue compilation? [y/n]: ");
-                if (Input.ConditionRejected(response))
-                {
+                
+                if (Input.ConditionRejected(response)){
                     return false;
                 }
             }
