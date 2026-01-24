@@ -97,33 +97,8 @@ namespace BrowserAutomationMaster.Managers
                 }
 
             }
-            
-            try 
-            {
-                var bufferArray = new byte[stream.Length];
 
-                var bytesLeftToRead = bufferArray.Length;
-
-                while (stream.Position < stream.Length) {
-
-                    // Using 1MB chunk size or the remaining buffer is less than 1MB in size (1024 bytes).
-                    var chunkSize = stream.Length - stream.Position > 1024 ? 1024 : (int)stream.Length;
-
-                    // Using chunked reading because the associated performance gains
-                    stream.ReadExactly(bufferArray, (int)stream.Position, chunkSize);
-                    
-                    // Reducing the number of remaining bytes to read.
-                    bytesLeftToRead -= chunkSize;
-
-                }
-
-                // Writing the contents to path/To/AppData/BrowserAutomationMaster/packages.json
-                await File.WriteAllBytesAsync(outputPath, bufferArray);
-            }
-
-            catch (Exception ex) {
-                Console.WriteLine(ex);
-            }
+            await ReadFromStreamAndWriteToPath(stream, resourceName, outputPath);
             
         }
 
@@ -168,16 +143,40 @@ namespace BrowserAutomationMaster.Managers
 
             }
             
+            await ReadFromStreamAndWriteToPath(stream, resourceName, outputPath);
+            
+        }
+
+        private static async Task ReadFromStreamAndWriteToPath(Stream stream, string resourceName, string outputPath)
+        {
             try 
             {
+
+                if (stream.Length == 0) {
+                    WriteAndExit(
+                        message: string.Join(NLC, [
+                            $"[ERROR]: Unable to write embedded resource '{resourceName}' to disk, please see below for more information.",
+                            "Error Log:",
+                            $"The stream object associated with '{resourceName}' has a length of 0."
+                        ]),
+                        status: 1
+                    );
+                }
+                
+                
                 var bufferArray = new byte[stream.Length];
 
                 var bytesLeftToRead = bufferArray.Length;
 
+                // // Debug only do not remove comments
+                // // Console.WriteLine($"stream.Length: {stream.Length}");
+                // // Console.WriteLine($"stream.Position: {stream.Position}");
+                // // Console.WriteLine($"bytesLeftToRead: {bytesLeftToRead}");
+
                 while (stream.Position < stream.Length) {
 
                     // Using 1MB chunk size or the remaining buffer is less than 1MB in size (1024 bytes).
-                    var chunkSize = stream.Length - stream.Position > 1024 ? 1024 : (int)stream.Length;
+                    var chunkSize = stream.Length - stream.Position > 1024 ? 1024 : (int)(stream.Length - stream.Position);
 
                     // Using chunked reading because the associated performance gains
                     stream.ReadExactly(bufferArray, (int)stream.Position, chunkSize);
@@ -185,16 +184,19 @@ namespace BrowserAutomationMaster.Managers
                     // Reducing the number of remaining bytes to read.
                     bytesLeftToRead -= chunkSize;
 
+                    // // Debug only do not remove comments
+                    // // Console.WriteLine($"stream.Position: {stream.Position}");
+                    // // Console.WriteLine($"bytesLeftToRead: {bytesLeftToRead}");
+
                 }
 
-                // Writing the contents to path/To/AppData/BrowserAutomationMaster/packages.json
+                // Writing the contents to outputPath
                 await File.WriteAllBytesAsync(outputPath, bufferArray);
             }
 
             catch (Exception ex) {
                 Console.WriteLine(ex);
             }
-            
         }
     }
 }
