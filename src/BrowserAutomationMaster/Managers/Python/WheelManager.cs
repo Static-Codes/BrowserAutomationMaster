@@ -1,7 +1,6 @@
 ﻿using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
-// using static BrowserAutomationMaster.Managers.RequestManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.Python
@@ -12,8 +11,6 @@ namespace BrowserAutomationMaster.Managers.Python
         public string FileName { get; private set; } = FileName;
         public string PlatformType { get; private set; } = PlatformType;
         public string PackageName { get; private set; } = SetPackageName(WheelName);
-        private string DownloadLink { get; set; } = SetDownloadLink(FileName);
-
         public string DownloadLocation { get; set; } = SetDownloadLocation(FileName);
         public int InstallationStatus { get; private set; } = -1;
         public string InstallationResponse { get; private set; } = string.Empty;
@@ -59,13 +56,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 WriteAndExit($"Unable to download: '{FileName}'\n\nError Log:\n{ex}", 1);
             }
         }
-
-        private static string SetDownloadLink(string fileName)
-        {
-            var baseLink = Platforms.IsARMel ? BASE_ARMEL_WHEEL_LINK : BASE_ARMHF_WHEEL_LINK;
-            return baseLink + fileName;
-        }
-
+        
         private static string SetDownloadLocation(string fileName)
         {
 

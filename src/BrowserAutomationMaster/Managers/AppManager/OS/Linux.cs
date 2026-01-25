@@ -293,6 +293,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"));
         }
 
+        // Installs the required packages and writes the required wheels to disks (if needed)
         public static async Task InstallRequiredLinuxPackages(List<AppInfo> appsInfo)
         {
             bool[] platformsThatRequireWheels = [
@@ -310,8 +311,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 // This empty file will be written once the packages are installed, then checked in subsequent runtimes.
                 var linuxPackageFile = GetLinuxPackageFile();
 
-                if (File.Exists(linuxPackageFile) && wheelsRequired) {
-                    await DownloadWheels(); // Do not remove this ensure the wheels will always be downloaded.
+                if (File.Exists(linuxPackageFile)) {
                     return;
                 }
 
