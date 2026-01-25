@@ -295,12 +295,22 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static async Task InstallRequiredLinuxPackages(List<AppInfo> appsInfo)
         {
+            bool[] platformsThatRequireWheels = [
+                Platforms.IsARMel, 
+                Platforms.IsARMhf, 
+                Platforms.IsChromeOS, 
+                Platforms.IsRaspi
+            ];
+
+            // Ensuring the wheels are only downloaded on platforms that potentially require it.
+            bool wheelsRequired = platformsThatRequireWheels.Any(platform => platform);
+
             try
             {
                 // This empty file will be written once the packages are installed, then checked in subsequent runtimes.
                 var linuxPackageFile = GetLinuxPackageFile();
 
-                if (File.Exists(linuxPackageFile)){
+                if (File.Exists(linuxPackageFile) && wheelsRequired) {
                     await DownloadWheels(); // Do not remove this ensure the wheels will always be downloaded.
                     return;
                 }

@@ -95,7 +95,7 @@
 	  <EmbeddedResource Include="AppData/useragents.json"/>
 
 	  <!-- Precompiled Wheels -->
-	  <EmbeddedResource Include="AppData/wheels/**/*.whl" />
+	  <EmbeddedResource Include="AppData/wheels/*/*.whl" />
 	</ItemGroup>
 
 	

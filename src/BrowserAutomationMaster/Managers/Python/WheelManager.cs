@@ -1,18 +1,16 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using static BrowserAutomationMaster.Managers.ConstantManager;
+﻿using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Managers.RequestManager;
+// using static BrowserAutomationMaster.Managers.RequestManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
-    public struct Wheel(string WheelName, string FileName)
+    public struct Wheel(string WheelName, string FileName, string PlatformType)
     {
         public string Name { get; private set; } = WheelName;
         public string FileName { get; private set; } = FileName;
+        public string PlatformType { get; private set; } = PlatformType;
         public string PackageName { get; private set; } = SetPackageName(WheelName);
         private string DownloadLink { get; set; } = SetDownloadLink(FileName);
 
@@ -22,10 +20,11 @@ namespace BrowserAutomationMaster.Managers.Python
         
         public async Task Download()
         {
+            string[] validPlatformTypes = ["armhf", "generic"];
             try
             {
                 var baseDir = GetPythonWheelDirectory();
-                var platformName = Platforms.IsARMhf ? "armhf" : "generic";
+                var platformName = PlatformType;
                 var platformWheelDir = Path.Combine(baseDir, platformName);
 
 
@@ -41,8 +40,19 @@ namespace BrowserAutomationMaster.Managers.Python
                     return;
                 }
                 
-                var responseStream = await NetworkClient.Instance.GetByteArrayAsync(DownloadLink);
-                await File.WriteAllBytesAsync(downloadPath, responseStream);
+
+                if (!validPlatformTypes.Contains(PlatformType)) {
+                    throw new Exception($"Invalid PlatformType provided: {PlatformType}, expected 'armhf' or 'generic'");
+                }
+
+                // Dynamically creating the path to each embedded resource.
+                var ResourcePattern = string.Format("BrowserAutomationMaster.AppData.wheels.{0}.{1}", PlatformType, FileName);
+                
+                // Retrieving the contents of the resource.
+                var responseStream = EmbeddedResourceManager.GetEmbeddedResource(FileName, ResourcePattern);
+                
+                // Writing the contents to disk.
+                await EmbeddedResourceManager.WriteEmbeddedResourceToDisk(FileName, ResourcePattern, downloadPath);
             }
             catch (Exception ex)
             {
@@ -98,21 +108,25 @@ namespace BrowserAutomationMaster.Managers.Python
 
     public static class WheelManager
     {
-        private static Wheel BrotliARMv7 = new("BrotliPY for ARMv7", "brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl");
-        private static Wheel CFFIARMv7 = new("CFFI for ARMv7", "cffi-2.0.0-cp311-cp311-linux_armv7l.whl");
-        private static Wheel PSUtilARMv7 = new("PSUtil for ARMhf", "psutil-7.1.2-cp36-abi3-linux_armv7l.whl");
-        private static Wheel ZSTDARMv7 = new("ZSTD for ARMv7", "zstandard-0.25.0-cp311-cp311-linux_armv7l.whl");
-        // private static Wheel PSUtilARMel = new Wheel
+        // Generic ARMv7 Wheels
+        private static Wheel BrotliARMv7 = new("BrotliPY for ARMv7", "brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl", "generic");
+        private static Wheel CFFIARMv7 = new("CFFI for ARMv7", "cffi-2.0.0-cp311-cp311-linux_armv7l.whl", "generic");
+        private static Wheel ZSTDARMv7 = new("ZSTD for ARMv7", "zstandard-0.25.0-cp311-cp311-linux_armv7l.whl", "generic");
 
-        private static Wheel BrotliARMhf = new("BrotliPY for ARMhf", "brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl");
-        private static Wheel CFFIARMhf = new("CFFI for ARMhf", "cffi-2.0.0-cp311-cp311-linux_armv7l.whl");
-        private static Wheel PSUtilARMhf = new("PSUtil for ARMhf", "psutil-7.1.2-cp36-abi3-linux_armv7l.whl");
-        private static Wheel ZSTDARMhf = new("ZSTD for ARMhf", "zstandard-0.25.0-cp311-cp311-linux_armv7l.whl");
+        // Specific ARMhf PSUtil Wheel
+        private static Wheel PSUtilARMv7 = new("PSUtil for ARMv7", "psutil-7.1.2-cp36-abi3-linux_armv7l.whl", "armhf");
 
-
-        public static readonly Wheel[] ArmWheels = 
-            Platforms.IsARMhf ? [PSUtilARMhf, BrotliARMhf, CFFIARMhf, ZSTDARMhf] 
-            : [PSUtilARMv7, BrotliARMv7, CFFIARMv7, ZSTDARMv7, ];
+        // Generic ARMv7 PSUtil Wheel
+        private static Wheel PSUtilARMhf = new("PSUtil for ARMhf", "psutil-7.1.3-cp36-abi3-linux_armv7l.whl", "generic");
+        
+        // The first 3 wheels are downloaded for both generic ARMv7 and ARMhf
+        // The PSUtil wheel differs between platforms.
+        public static readonly Wheel[] ArmWheels = [
+            BrotliARMv7,
+            CFFIARMv7,
+            ZSTDARMv7,
+            Platforms.IsARMhf ? PSUtilARMhf : PSUtilARMv7,
+        ];
 
         public static string[] GetRequirementStrings() 
         {
@@ -131,7 +145,10 @@ namespace BrowserAutomationMaster.Managers.Python
             {
                 try
                 {
-                    await wheel.Download();
+                    // Only download if the file doesn't already exist.
+                    if (!File.Exists(wheel.DownloadLocation)) {
+                        await wheel.Download();
+                    }
                 }
                 catch (Exception ex)
                 {
