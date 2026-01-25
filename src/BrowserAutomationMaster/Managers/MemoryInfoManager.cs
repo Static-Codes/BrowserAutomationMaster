@@ -91,7 +91,7 @@ namespace BrowserAutomationMaster.Managers
 
                 if (!File.Exists(freeBinaryPath)) 
                 {
-                    Console.WriteLine("BAMM bundled free-for-macOS, a MacOS application that allows for streamlined memory detection.");
+                    Console.WriteLine("BAMM bundles free-for-macOS, a MacOS application that allows for streamlined memory detection.");
                     Thread.Sleep(1000);
                     Console.WriteLine($"Please wait while free-for-macOS is written to: {freeBinaryPath}");
                     Thread.Sleep(1000);
