@@ -256,6 +256,8 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
+        public static string GetBinariesDirectory() { return Path.Combine(AppDataDirectory, "binaries"); }
+        
         public static string GetBrowserStackDirectory() { return Path.Combine(AppDataDirectory, "browserstack"); }
 
         public static string GetBrowserStackConfigPath() { return Path.Combine(GetBrowserStackDirectory(), "browserstack.yml"); }

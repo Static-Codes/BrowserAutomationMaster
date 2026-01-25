@@ -20,6 +20,7 @@ namespace BrowserAutomationMaster.Managers
         public const string USERAGENTS_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/stable/src/BrowserAutomationMaster/AppData/useragents.json";
         public const string GUI_DAEMON_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/stable/src/BrowserAutomationMaster/Helpers/UIDaemon.py";
         public const string GUI_ZIP_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip";
+        public const string FREE_FOR_MACOS_REPO_LINK = "https://github.com/zfdang/free-for-macOS";
         public const StringComparison CCIC = StringComparison.CurrentCultureIgnoreCase;
         public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
         public const char HORIZONTAL_TAB = '\t';

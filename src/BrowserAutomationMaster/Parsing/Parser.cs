@@ -190,16 +190,15 @@ namespace BrowserAutomationMaster.Parsing
         public static void HandleBAMCFileValidation(string[] BAMCFiles)
         {
             validFiles = [.. ValidateBAMCFiles(BAMCFiles)];
-            if (validFiles.Count == 0)
-            {
+            if (validFiles.Count == 0) {
                 WriteAndExit(noFilesFoundMessage, 1);
             }
-            if (validFilesMapping.Count != validFiles.Count)
-            {
+
+            if (validFilesMapping.Count != validFiles.Count) {
                 CreateValidFilesMapping(validFiles);
             }
-            if (validFilesMapping.Count == 0)
-            {
+
+            if (validFilesMapping.Count == 0) {
                 WriteAndExit(noFilesFoundMessage, 1);
             }
 
@@ -213,8 +212,9 @@ namespace BrowserAutomationMaster.Parsing
                 Help.ShowCommandDetails(command.Trim());
 
                 string choice = Input.AskForInput(
-                    "\nWould you like to continue learning more about BAM Manager (BAMM)? [y/n]:"
+                    $"{NLC}Would you like to continue learning more about BAM Manager (BAMM)? [y/n]:"
                 );
+
                 if (!choice.Equals("y")) {
                     Environment.Exit(1);
                 }
@@ -382,8 +382,7 @@ namespace BrowserAutomationMaster.Parsing
 
             foreach (string protocol in validProtocols)
             {
-                if (linkString.StartsWith(protocol))
-                {
+                if (linkString.StartsWith(protocol)) {
                     hasValidProtocol = true;
                     break;
                 }
@@ -393,13 +392,18 @@ namespace BrowserAutomationMaster.Parsing
 
         public static bool IsValidProxyFormat(string proxyString)
         {
-            if (string.IsNullOrWhiteSpace(proxyString)) { return false; }
+            if (string.IsNullOrWhiteSpace(proxyString)) { 
+                return false; 
+            }
             return PrecompiledProxyRegex().IsMatch(proxyString);
         }
 
         public static bool IsValidUserAgentFormat(string userAgentString)
         {
-            if (string.IsNullOrEmpty(userAgentString)) { return false; }
+            if (string.IsNullOrEmpty(userAgentString)) { 
+                return false; 
+            }
+
             return PrecompiledUserAgentRegex().IsMatch(userAgentString);
         }
 
@@ -430,7 +434,7 @@ namespace BrowserAutomationMaster.Parsing
                 {
                     var line = lines[i];
 
-                    if (!jsBlockFinished)
+                    if (!jsBlockFinished) 
                     {
                         BuildJSBlock(fileName, line, lines, i, ref currentJSBlockContent, ref lineCurrentJSBlockStarts, ref jsBlockFinished, ref jsError);
                         continue;
@@ -438,7 +442,7 @@ namespace BrowserAutomationMaster.Parsing
 
                     string[] lineArgs = line.Split(" ");
 
-                    if (lineArgs.Length == 0)
+                    if (lineArgs.Length == 0) 
                     {
                         return false;
                     }
@@ -449,7 +453,7 @@ namespace BrowserAutomationMaster.Parsing
                     #region Start of Browser Feature Check
 
                     // If a browser command is present in any line but the first line that contains characters.
-                    if (firstArg.Equals("browser") && i != 0 && browserBlockFinished)
+                    if (firstArg.Equals("browser") && i != 0 && browserBlockFinished) 
                     {
                         return WriteErrorAndReturnBool(
                             message: $"BAM Manager (BAMM) ran into a BAMC validation error:\n" +
@@ -460,7 +464,7 @@ namespace BrowserAutomationMaster.Parsing
                         );
                     }
 
-                    if (firstArg.Equals("browser") && !browserBlockFinished && !BrowserRegex.IsMatch(line))
+                    if (firstArg.Equals("browser") && !browserBlockFinished && !BrowserRegex.IsMatch(line)) 
                     {
                         // The error message here appears to be the same as the first one, 
                         // but the failure reason is different.
@@ -473,7 +477,7 @@ namespace BrowserAutomationMaster.Parsing
                         );
                     }
 
-                    if (firstArg.Equals("browser") && BrowserRegex.IsMatch(line))
+                    if (firstArg.Equals("browser") && BrowserRegex.IsMatch(line)) 
                     {
                         browserBlockFinished = true;
                         continue;
@@ -485,7 +489,7 @@ namespace BrowserAutomationMaster.Parsing
                     #region Start of Invalid Feature Check
 
                     // If a feature name is provided after defining non feature actions
-                    else if (firstArg.Equals("feature") && featureBlockFinished)
+                    else if (firstArg.Equals("feature") && featureBlockFinished) 
                     {
                         return WriteErrorAndReturnBool(
                             message:
@@ -498,13 +502,12 @@ namespace BrowserAutomationMaster.Parsing
                     }
 
                     // If a duplicate feature name is provided -> feature "duplicate-name"
-                    else if (firstArg.Equals("feature") && usedFeatures.Contains(line))
-                    {
+                    else if (firstArg.Equals("feature") && usedFeatures.Contains(line)) {
                         ExitOnDuplicateCommand(fileName, line, i);
                     }
 
                     // If an invalid feature name is provided -> feature "invalid-name"
-                    else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg)))
+                    else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg))) 
                     {
                         return WriteErrorAndReturnBool(
                             message:

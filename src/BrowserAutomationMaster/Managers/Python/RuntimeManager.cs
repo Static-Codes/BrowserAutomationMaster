@@ -46,9 +46,9 @@ namespace BrowserAutomationMaster.Managers.Python
             return [.. menu.Where(a => a != null)];
         }
         
-        public static void DoRuntimeCheck()
+        public static async Task DoRuntimeCheck()
         {
-            HasEnoughMemory();
+            await HasEnoughMemory();
             CPUInfoManager cpuInfoManager = new();
             CoreCount = cpuInfoManager.Cores;
             if (!cpuInfoManager.HasEnoughCores())
@@ -173,9 +173,9 @@ namespace BrowserAutomationMaster.Managers.Python
             }
         }
         
-        public static bool HasEnoughMemory()
+        public static async Task<bool> HasEnoughMemory()
         {
-            SetMemoryInfo();
+            await SetMemoryInfo();
 
             // Less than 2GiB Total (The check above ensures memoryInfo is not null)
             if (memoryInfo!.Value.TotalMemory < 2048)
@@ -250,9 +250,9 @@ namespace BrowserAutomationMaster.Managers.Python
         
         public static bool IsSupportedOSXVersion() { return OperatingSystem.IsMacOSVersionAtLeast(11); }
 
-        public static void SetMemoryInfo()
+        public static async Task SetMemoryInfo()
         {
-            memoryInfo = MemoryInfoManager.RunCheck();
+            memoryInfo = await MemoryInfoManager.RunCheck();
 
             if (!memoryInfo.HasValue)
             {

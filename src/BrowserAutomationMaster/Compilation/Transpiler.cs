@@ -360,7 +360,7 @@ namespace BrowserAutomationMaster.Compilation
                     Directory.CreateDirectory(desiredSaveDirectory);
                 }
             }
-            catch 
+            catch (Exception ex)
             { 
                 WriteAndExit(
                     message: string.Join(NLC, [

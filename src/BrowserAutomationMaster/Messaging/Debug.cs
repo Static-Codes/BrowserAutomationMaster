@@ -62,6 +62,7 @@ namespace BrowserAutomationMaster.Messaging
                     Platform: {Environment.OSVersion.Platform}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
+                    AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
@@ -79,6 +80,7 @@ namespace BrowserAutomationMaster.Messaging
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
+                    AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
@@ -96,6 +98,7 @@ namespace BrowserAutomationMaster.Messaging
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
+                    AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
@@ -111,6 +114,7 @@ namespace BrowserAutomationMaster.Messaging
                 return @$"Platform: {Environment.OSVersion.Platform}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
+                    AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------

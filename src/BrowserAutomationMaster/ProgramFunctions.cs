@@ -541,7 +541,7 @@ namespace BrowserAutomationMaster
             }
 
             if (doHardwareCheck) {
-                RuntimeManager.DoRuntimeCheck();
+                await RuntimeManager.DoRuntimeCheck();
                 return;
             }
 
@@ -554,7 +554,7 @@ namespace BrowserAutomationMaster
                 RuntimeManager.SetCoreCount(cpuInfoManager.Cores);
             }
 
-            RuntimeManager.SetMemoryInfo();
+            await RuntimeManager.SetMemoryInfo();
             
         }
 
