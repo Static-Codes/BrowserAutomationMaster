@@ -70,8 +70,15 @@ namespace BrowserAutomationMaster.Parsing
 
             catch (Exception ex)
             {
-                Spectre.Console.AnsiConsole.Write($"An unexpected error occurred while creating userScript directory:\n{ex.GetType().Name}");
-                Spectre.Console.AnsiConsole.Write(ex.Message);
+                // Spectre.Console.AnsiConsole is chosen over Errors.WriteAndReturnFalse due to:
+                // The potential for Platforms not to be set properly prior to this execution.
+                Spectre.Console.AnsiConsole.Write(
+                    string.Join(NLC, [
+                        "An unexpected error occurred while creating userScript directory:",
+                        ex.GetType().Name,
+                        ex.Message
+                    ])
+                );
                 return false;
             }
         }
