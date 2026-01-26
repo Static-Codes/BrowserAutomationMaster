@@ -6,10 +6,6 @@ using static BrowserAutomationMaster.Messaging.Menu;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Python;
 using Spectre.Console;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -70,9 +66,9 @@ namespace BrowserAutomationMaster.Messaging
             return MenuOption.Invalid;
         }
     
-        public static KeyValuePair<MenuOption, string> New()
+        public static async Task<KeyValuePair<MenuOption, string>> New()
         {
-            if (!CreateUserScriptsDirectory()) 
+            if (!await CreateUserScriptsDirectory()) 
             {
                 return MenuFunctions.Invalid("BAM Manager (BAMM) was unable to create the userScripts Directory.");
             }

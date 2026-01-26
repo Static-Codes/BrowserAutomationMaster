@@ -618,7 +618,7 @@ namespace BrowserAutomationMaster
             bool isRunning = true;
             while (isRunning)
             {
-                KeyValuePair<MenuOption, string> MenuResult = New();
+                KeyValuePair<MenuOption, string> MenuResult = await New();
                 switch (MenuResult.Key)
                 {
                     case MenuOption.Add:
