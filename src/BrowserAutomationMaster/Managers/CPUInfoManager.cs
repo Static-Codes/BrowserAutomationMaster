@@ -189,8 +189,15 @@ namespace BrowserAutomationMaster.Managers
 
         public static void DisplayMissingInstructions()
         {
-            foreach (RequiredCPUInstruction instruction in unsupportedInstructions) {
+            var message = "Would you like to learn more about this instruction? [y/n]: ";
+            
+            foreach (RequiredCPUInstruction instruction in unsupportedInstructions) 
+            {
                 Spectre.Console.AnsiConsole.Write($"{instruction} is unsupported on the current CPU.");
+
+                if (Input.ConditionAccepted(Input.AskForInput(message))) {
+                    Warning.Write(GetExplanationForInstruction(instruction));
+                }
             }
         }
 
