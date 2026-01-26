@@ -1,4 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static Tests.Runner;
@@ -10,9 +11,11 @@ await InitializeAsync(["--nohwc"]);
 // var stream = EmbeddedResourceManager.GetEmbeddedResource("browserstack.json", "BrowserAutomationMaster.AppData.browserstack.json");
 // var stream = EmbeddedResourceManager.GetEmbeddedResource("browserstack.json", "BrowserAutomationMaster.AppData.colors.json");
 // var stream = EmbeddedResourceManager.GetEmbeddedResource("browserstack.json", "BrowserAutomationMaster.AppData.packages.json");
-var stream = EmbeddedResourceManager.GetEmbeddedResource("browserstack.json", "BrowserAutomationMaster.AppData.useragents.json");
+// var stream = EmbeddedResourceManager.GetEmbeddedResource("browserstack.json", "BrowserAutomationMaster.AppData.useragents.json");
 
-Console.WriteLine(stream.Length);
+// Console.WriteLine(stream.Length);
+
+Console.WriteLine(DistroManager.DetermineDistroFromID().Name);
 
 // var data = new Dictionary<int, (object, object)>() {
 //     { 1, ( "A", "A" ) },

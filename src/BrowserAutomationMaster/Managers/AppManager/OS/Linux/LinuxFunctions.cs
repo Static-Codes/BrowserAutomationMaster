@@ -608,23 +608,24 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         // /etc/os-release
         private static string? RunOSR()
         {
+            var fileName = "/etc/os-release";
             try
             {
-                if (!File.Exists("/etc/os-release")) {
+                if (!File.Exists(fileName)) {
                     return null;
                 }
 
-                var contentArray = File.ReadAllLines("/etc/os-release");
+                var contentArray = File.ReadAllLines(fileName);
 
                 var contentString = string.Join(NLC, contentArray);
 
-                var osrMatch = PrecompiledOSR1Regex().Match(contentString);
+                var osrMatch = PrecompiledOSRPrettyNameRegex().Match(contentString);
 
                 if (osrMatch.Success) {
                     return osrMatch.Groups[1].Value;
                 }
 
-                osrMatch = PrecompiledOSR2Regex().Match(contentString);
+                osrMatch = PrecompiledOSRNameRegex().Match(contentString);
 
                 if (osrMatch.Success) {
                     return osrMatch.Groups[1].Value;

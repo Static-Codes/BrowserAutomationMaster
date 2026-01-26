@@ -242,12 +242,15 @@ namespace BrowserAutomationMaster.Managers
         
         [GeneratedRegex(@"OS:\s(.*)")] 
         public static partial Regex PrecompiledNFRegex();
-
-        [GeneratedRegex("PRETTY_NAME=\"(.*)\"")]
-        public static partial Regex PrecompiledOSR1Regex();
+        
+        [GeneratedRegex("^ID=(.*)$")]
+        public static partial Regex PrecompiledOSRIDRegex();
 
         [GeneratedRegex("NAME=\"(.*)\"")]
-        public static partial Regex PrecompiledOSR2Regex();
+        public static partial Regex PrecompiledOSRNameRegex();
+
+        [GeneratedRegex("PRETTY_NAME=\"(.*)\"")]
+        public static partial Regex PrecompiledOSRPrettyNameRegex();
 
         [GeneratedRegex(@"^(?:model name|Model)(?:	{1,2}):\s(?:Raspberry Pi\s)(?<model>.*)")]
         public static partial Regex PrecompiledRPIRegex();

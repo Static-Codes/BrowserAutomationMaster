@@ -1,11 +1,22 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Reflection;
 
 namespace BrowserAutomationMaster.Helpers
 {
     public static class ReflectionHelper
     {
+        public static IEnumerable<T> GetStaticFieldsOfType<T>(Type outerType, bool publicOnly = true)
+        {
+            BindingFlags flags = BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.Public | BindingFlags.NonPublic);
+
+            // Gets all fields of the provided class
+            // Filters for fields that are assignable to <T>
+            // Returns the value of each field
+            return outerType.GetFields(flags)
+                .Where(f => typeof(T).IsAssignableFrom(f.FieldType))
+                .Select(f => (T)f.GetValue(null)!);
+        }
+
         public static void PrintProperties(object? obj, int indent = 0)
         {
             if (obj == null)
