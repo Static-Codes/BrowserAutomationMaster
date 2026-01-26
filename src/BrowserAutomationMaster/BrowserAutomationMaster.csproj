@@ -96,6 +96,7 @@
 
 	  <!-- Precompiled Wheels -->
 	  <EmbeddedResource Include="AppData/wheels/*/*.whl" />
+	  <EmbeddedResource Include="userScripts/*.bamc" />
 	</ItemGroup>
 
 	

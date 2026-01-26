@@ -1,6 +1,14 @@
 browser "firefox"
 visit "https://google.com"
+
 fill-text "#APjFqb" "This is a test"
 wait-for-seconds .2
+
+start-javascript
+
+alert('This is an example javascript call');
+
+end-javascript
+
 take-screenshot "filename.png"
 save-as-html "filename.html"

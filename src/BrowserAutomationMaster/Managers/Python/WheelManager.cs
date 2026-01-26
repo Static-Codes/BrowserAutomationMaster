@@ -56,7 +56,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 WriteAndExit($"Unable to download: '{FileName}'\n\nError Log:\n{ex}", 1);
             }
         }
-        
+
         private static string SetDownloadLocation(string fileName)
         {
 
@@ -123,9 +123,10 @@ namespace BrowserAutomationMaster.Managers.Python
         {
             string[] reqStrings = new string[ArmWheels.Length];
 
-            for (int i = 0; i < ArmWheels.Length; i++)
+            for (int i = 0; i < ArmWheels.Length; i++) {
                 reqStrings[i] = ArmWheels[i].DownloadLocation;
-
+            }
+            
             return reqStrings;
         }
 
