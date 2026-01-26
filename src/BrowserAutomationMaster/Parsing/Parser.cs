@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading.Tasks;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.CommandManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -49,7 +50,7 @@ namespace BrowserAutomationMaster.Parsing
             """;
         
 
-        public static bool CreateUserScriptsDirectory() // Write more detailed error handling.
+        public static async Task<bool> CreateUserScriptsDirectory() // Write more detailed error handling.
         {
             
             if (string.IsNullOrEmpty(userScriptsDirectory)) 
@@ -63,7 +64,7 @@ namespace BrowserAutomationMaster.Parsing
                     Directory.CreateDirectory(userScriptsDirectory);
                 }
                 
-                UserScriptExamples.WriteScriptExamples();
+                await UserScriptExamples.WriteScriptExamples();
                 return true;
             }
 
