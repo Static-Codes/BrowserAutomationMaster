@@ -41,11 +41,13 @@ namespace BrowserAutomationMaster.Messaging
 
             var accentColor = GetAccentColor().ToMarkup();
             var (bgColor, fgColor) = GetHighlights();
+            
             var style = new Style(
                 foreground: fgColor,
                 background: bgColor,
                 decoration: Decoration.Bold
             );
+
             var selectionPrompt = new SelectionPrompt<string>()
                 .HighlightStyle(new Style(
                     foreground: GetForeground(),
@@ -60,9 +62,10 @@ namespace BrowserAutomationMaster.Messaging
             var selectedDisplayOption = AnsiConsole.Prompt(selectionPrompt);
             var parsed = Enum.TryParse(typeof(MenuOption), selectedDisplayOption, out object? selectedMenuOption);
 
-            if (parsed && selectedMenuOption is MenuOption castedOption){
+            if (parsed && selectedMenuOption is MenuOption castedOption) {
                 return castedOption;
             }
+
             return MenuOption.Invalid;
         }
     
@@ -95,15 +98,13 @@ namespace BrowserAutomationMaster.Messaging
         {
             string input = Input.WriteListFromOptions(["Select a File", "Exit"]);
 
-            if (input.Equals("Exit"))
-            {
+            if (input.Equals("Exit")) {
                 WriteAndExit("Operation cancelled by user, BAM Manager (BAMM) will exit now.", 1); 
             }
 
             string path = Input.AskForInput("Path: ");
                     
-            if (!File.Exists(path))
-            {
+            if (!File.Exists(path)) {
                 WriteAndExit(
                     message:
                         "BAMM Manager (BAMM) was unable to find the provided file, " +
