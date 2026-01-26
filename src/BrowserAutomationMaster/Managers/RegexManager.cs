@@ -242,9 +242,6 @@ namespace BrowserAutomationMaster.Managers
         
         [GeneratedRegex(@"OS:\s(.*)")] 
         public static partial Regex PrecompiledNFRegex();
-        
-        [GeneratedRegex("^ID=(.*)$")]
-        public static partial Regex PrecompiledOSRIDRegex();
 
         [GeneratedRegex("NAME=\"(.*)\"")]
         public static partial Regex PrecompiledOSRNameRegex();

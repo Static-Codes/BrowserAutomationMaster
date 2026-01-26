@@ -1,7 +1,6 @@
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.RegexManager;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux 
 {
