@@ -236,7 +236,7 @@ namespace BrowserAutomationMaster.Managers
         [GeneratedRegex("^((11\\.0)|(11\\.[1-9]\\d*)|([12]\\d*))(\\.\\d+)*$")]
         public static partial Regex PrecompiledMacOSVersionRegex();
 
-        // Used in AppManager.OS.Linux
+        // Used in AppManager.OS.LinuxFunctions
         [GeneratedRegex(@"(?:Description:\s)([^\n]*)")]
         public static partial Regex PrecompiledLSBRRegex();
         

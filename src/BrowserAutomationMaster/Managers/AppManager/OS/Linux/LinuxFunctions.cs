@@ -1,14 +1,8 @@
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
@@ -21,9 +15,9 @@ using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 using static System.Runtime.InteropServices.Architecture;
 
-namespace BrowserAutomationMaster.Managers.AppManager.OS
+namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 {
-    public static partial class Linux
+    public static partial class Functions
     {
 
         // Debian Package Manager
@@ -701,6 +695,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             // catch (Exception ex){}
             return null;
         }
+        
         private static string StripANSI(string text) {
             string ANSIPattern = @"\x1b\[[0-?]*[ -/]*[@-~]";
             return Regex.Replace(text, ANSIPattern, string.Empty);

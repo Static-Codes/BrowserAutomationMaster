@@ -1,7 +1,6 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Messaging;
-using System;
+﻿using BrowserAutomationMaster.Messaging;
 using System.Drawing;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 
@@ -48,7 +47,7 @@ namespace BrowserAutomationMaster.Managers
                     return LightTheme;
                 }
 
-                var Ansi24BitColor = Linux.GetTerminalBackgroundColor();
+                var Ansi24BitColor = GetTerminalBackgroundColor();
 
                 if (Ansi24BitColor == null)
                 {

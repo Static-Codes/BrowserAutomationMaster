@@ -1,8 +1,6 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Messaging;
-using System;
-using System.IO;
+﻿using BrowserAutomationMaster.Messaging;
 using System.IO.Compression;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -268,7 +266,7 @@ namespace BrowserAutomationMaster.Managers
 
         private static string GetDefaultBackupPath(string compression = "zip")
         {
-            if (Platforms.IsUnixLike && !Linux.HasDisplayVarSet())
+            if (Platforms.IsUnixLike && !HasDisplayVarSet())
             {
                 return Path.Combine("~", $"BAMM-Backup.{compression}");
             }

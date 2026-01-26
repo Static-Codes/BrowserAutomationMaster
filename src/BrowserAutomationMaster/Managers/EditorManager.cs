@@ -1,4 +1,4 @@
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
@@ -6,13 +6,8 @@ using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Input;
 using BrowserAutomationMaster.Managers.AppManager;
 using BrowserAutomationMaster.Messaging;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 
 namespace BrowserAutomationMaster.Managers
@@ -131,7 +126,7 @@ namespace BrowserAutomationMaster.Managers
 
         private static Dictionary<string, string> GetSupportedWindowsEditors() 
         {
-            if (InstalledApps.AppInfoList.Count() == 0) 
+            if (InstalledApps.AppInfoList.Count == 0) 
             {
                 Console.WriteLine($"A fatal error occured, please make a bug report with the following error at {ISSUES_LINK}");
                 WriteAndExit

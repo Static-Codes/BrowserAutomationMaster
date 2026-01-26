@@ -1,10 +1,9 @@
-﻿using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
-using BrowserAutomationMaster.Parsing;
+﻿using BrowserAutomationMaster.Parsing;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers;
-using System;
-using System.IO;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -94,7 +93,7 @@ namespace BrowserAutomationMaster.Messaging
             else if (Platforms.IsLinux)
             {
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
-                    Distro Name: {Linux.GetDistroNameString()}
+                    Distro Name: {GetDistroNameString()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}

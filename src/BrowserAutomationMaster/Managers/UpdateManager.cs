@@ -1,13 +1,9 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Messaging;
-using System;
+﻿using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static System.Runtime.InteropServices.Architecture;
@@ -181,7 +177,7 @@ namespace BrowserAutomationMaster.Managers
                     return;
                 }
 
-                if (Linux.CommandExists(openCMD))
+                if (CommandExists(openCMD))
                 {
                     var psi = new ProcessStartInfo("xdg-open", uri);
                     using var Process = ProcessFactory.SpawnProcess(psi, "open new release page", runSync: true, timeout: 20).Result;

@@ -1,10 +1,7 @@
 ﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager;
-using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Messaging;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -175,13 +172,13 @@ Supported versions include:
                 return string.Empty;
             }
 
-            var whichPyResp = Linux.RunCommand("which", "python3");
+            var whichPyResp = RunCommand("which", "python3");
 
             if (string.IsNullOrEmpty(whichPyResp)) {
                 return string.Empty;
             }
 
-            var pyVersionResp = Linux.RunCommand("python3", "--version");
+            var pyVersionResp = RunCommand("python3", "--version");
 
             Match pyVersionMatch = RegexManager.PyVersionRegex.Match(pyVersionResp);
 
