@@ -14,6 +14,8 @@ namespace BrowserAutomationMaster.Managers
         public bool IsARMhf { get; set; } // 32 Bit ARMv7 (hf = Hard Float)
         public bool IsChromeOS { get; set; }
         public bool IsRaspi { get; set; } // Raspberry Pi
+        public bool IsDebianBased { get; set; }
+        public bool IsFedoraBased { get; set; }
         public bool IsWindows { get; set; }
         public bool IsMacOS { get; set; }
         public bool IsLinux { get; set; }
