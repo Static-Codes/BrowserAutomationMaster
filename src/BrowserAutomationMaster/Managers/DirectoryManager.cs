@@ -225,7 +225,7 @@ namespace BrowserAutomationMaster.Managers
             //         $"IsARMhf: {Platforms.IsARMhf}",
             //         $"IsChromeOS: {Platforms.IsChromeOS}",
             //         $"IsLinux: {Platforms.IsLinux}",
-            //         $"IsOSX: {Platforms.IsOSX}",
+            //         $"IsMacOS: {Platforms.IsMacOS}",
             //         $"IsRaspi: {Platforms.IsRaspi}",
             //         $"Raspi Model: {Platforms.GetRaspiModelName()}",
             //         $"IsUnixLike: {Platforms.IsUnixLike}",
@@ -241,7 +241,7 @@ namespace BrowserAutomationMaster.Managers
                 return GetAppDataWindows(appName);
             }
 
-            else if (Platforms.IsOSX)
+            else if (Platforms.IsMacOS)
             {
                 return GetAppDataMacOS(appName);
             }

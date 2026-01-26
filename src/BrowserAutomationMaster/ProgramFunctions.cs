@@ -128,7 +128,7 @@ namespace BrowserAutomationMaster
                     $"IsARMhf: {Platforms.IsARMhf}",
                     $"IsChromeOS: {Platforms.IsChromeOS}",
                     $"IsLinux: {Platforms.IsLinux}",
-                    $"IsOSX: {Platforms.IsOSX}",
+                    $"IsMacOS: {Platforms.IsMacOS}",
                     $"IsRaspi: {Platforms.IsRaspi}",
                     $"Raspi Model: {Platforms.GetRaspiModelName()}",
                     $"IsUnixLike: {Platforms.IsUnixLike}",

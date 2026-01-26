@@ -113,7 +113,7 @@ namespace BrowserAutomationMaster.Managers
                 return GetCPUName();
             }
 
-            else if (Platforms.IsOSX) {
+            else if (Platforms.IsMacOS) {
                 processName = "/bin/bash";
                 processArgs = "-c \"sysctl -n machdep.cpu.brand_string\"";
             }
@@ -241,7 +241,7 @@ namespace BrowserAutomationMaster.Managers
                 return GetPhysicalCoreCountLinux();
             }
 
-            if (Platforms.IsOSX)
+            if (Platforms.IsMacOS)
             {
                 return GetPhysicalCoreCountMacOS();
             }

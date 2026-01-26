@@ -32,7 +32,7 @@ namespace BrowserAutomationMaster.Managers
             return true switch
             {
                 _ when Platforms.IsWindows => CheckForWindows(),
-                _ when Platforms.IsOSX => await CheckForOSX(),
+                _ when Platforms.IsMacOS => await CheckForOSX(),
                 _ when Platforms.IsLinux => CheckForLinux(),
                 _ => null
             };
@@ -406,9 +406,9 @@ namespace BrowserAutomationMaster.Managers
             var adjustedFreeMem = freeMem + cacheMem;
 
             // OSX Specific logic, since OSX reports in bytes unlike linux which reports in mebibytes
-            totalMem = Platforms.IsOSX ? totalMem / 1024 : totalMem;
-            usedMem = Platforms.IsOSX ? usedMem / 1024 : usedMem;
-            adjustedFreeMem = Platforms.IsOSX ? adjustedFreeMem / 1024 : adjustedFreeMem;
+            totalMem = Platforms.IsMacOS ? totalMem / 1024 : totalMem;
+            usedMem = Platforms.IsMacOS ? usedMem / 1024 : usedMem;
+            adjustedFreeMem = Platforms.IsMacOS ? adjustedFreeMem / 1024 : adjustedFreeMem;
 
             return (totalMem, usedMem, adjustedFreeMem);
         }

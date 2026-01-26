@@ -233,7 +233,7 @@ namespace BrowserAutomationMaster.Messaging
         {
             if (Platforms.IsWindows) {
                 Clipboard.Win.SetText(text);
-            } else if (Platforms.IsOSX) {
+            } else if (Platforms.IsMacOS) {
                 Clipboard.OSX.SetText(text);
             } else if (Platforms.IsLinux) {
                 Clipboard.Linux.SetText(text);

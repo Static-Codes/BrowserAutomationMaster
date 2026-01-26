@@ -21,7 +21,7 @@ namespace BrowserAutomationMaster.Managers.AppManager
                 return await Task.Run(Win.GetApps);
             }
 
-            if (Platforms.IsOSX) {
+            if (Platforms.IsMacOS) {
                 return await Task.Run(MacOS.GetApps);
             }
 

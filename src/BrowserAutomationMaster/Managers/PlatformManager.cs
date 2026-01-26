@@ -1,8 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -18,7 +15,7 @@ namespace BrowserAutomationMaster.Managers
         public bool IsChromeOS { get; set; }
         public bool IsRaspi { get; set; } // Raspberry Pi
         public bool IsWindows { get; set; }
-        public bool IsOSX { get; set; }
+        public bool IsMacOS { get; set; }
         public bool IsLinux { get; set; }
         public bool IsUnixLike { get; set; } // Linux + OSX
         public Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
@@ -107,7 +104,7 @@ namespace BrowserAutomationMaster.Managers
 
             else if (RuntimeManager.IsSupportedOSXVersion())
             {
-                Platforms.IsOSX = true;
+                Platforms.IsMacOS = true;
                 Platforms.IsUnixLike = true;
             }
 

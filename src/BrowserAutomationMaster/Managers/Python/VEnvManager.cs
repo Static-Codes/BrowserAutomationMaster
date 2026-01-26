@@ -139,7 +139,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && python3 '{ScriptFilePath}'\"";
             }
 
-            if (Platforms.IsOSX) {
+            if (Platforms.IsMacOS) {
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && '{pythonPath}' '{ScriptFilePath}'";
             }
 
@@ -256,7 +256,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 );
             }
 
-            //var args = IsOSX ? GetVEnvStartArgs(pythonPath).Replace("Application Support/", "Application\\ Support/") : GetVEnvStartArgs(pythonPath);
+            //var args = IsMacOS ? GetVEnvStartArgs(pythonPath).Replace("Application Support/", "Application\\ Support/") : GetVEnvStartArgs(pythonPath);
             var args = GetVEnvStartArgs(pythonPath);
 
             var psi = new ProcessStartInfo()

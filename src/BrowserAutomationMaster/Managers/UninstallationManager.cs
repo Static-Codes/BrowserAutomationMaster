@@ -48,7 +48,7 @@ namespace BrowserAutomationMaster.Managers
                 DoWindowsUninstall();
             }
             
-            else if (Platforms.IsOSX) {
+            else if (Platforms.IsMacOS) {
                 DoMacUninstall();
             }
 

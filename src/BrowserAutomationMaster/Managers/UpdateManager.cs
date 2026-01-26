@@ -204,7 +204,7 @@ namespace BrowserAutomationMaster.Managers
                     OpenLatestForWindows(currentReleaseUri);
                 }
 
-                else if (Platforms.IsOSX) {
+                else if (Platforms.IsMacOS) {
                     OpenLatestForMacOS(currentReleaseUri);
                 }
 

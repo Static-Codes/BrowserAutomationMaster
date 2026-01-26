@@ -286,7 +286,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 return;
             }
 
-            if (Platforms.IsOSX)
+            if (Platforms.IsMacOS)
             {
                 HandleVEnvExceptions(result.Errors);  // Will exit if an exception is found.
             }

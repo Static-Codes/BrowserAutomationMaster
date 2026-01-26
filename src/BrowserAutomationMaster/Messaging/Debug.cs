@@ -73,7 +73,7 @@ namespace BrowserAutomationMaster.Messaging
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }
 
-            else if (Platforms.IsOSX)
+            else if (Platforms.IsMacOS)
             {
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
                     macOS Version: {MacOS.GetMacOSVersion()}

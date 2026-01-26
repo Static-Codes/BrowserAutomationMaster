@@ -118,7 +118,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             bool[] invalidStates = [
                 Platforms.IsLinux,
                 Platforms.IsWindows,
-                Platforms.IsOSX,
+                Platforms.IsMacOS,
                 !Platforms.IsChromeOS,
                 Platforms.CurrentArchitecture != Arm,
             ];
@@ -236,7 +236,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         {
             bool[] statesToReturnBlack = [
                 Platforms.IsChromeOS,
-                Platforms.IsOSX,
+                Platforms.IsMacOS,
                 Platforms.IsRaspi
             ];
 

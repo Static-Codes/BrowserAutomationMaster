@@ -32,13 +32,13 @@ namespace BrowserAutomationMaster.Managers
                 
                 var editorNames = (
                     Platforms.IsWindows ? "Notepad" : "",
-                    Platforms.IsOSX ? "TextEdit" : "",
+                    Platforms.IsMacOS ? "TextEdit" : "",
                     Platforms.IsLinux ? "Vim" : ""
                 );
 
                 var editorPaths = (
                     Platforms.IsWindows ? defaultEditorPath : "",
-                    Platforms.IsOSX ? defaultEditorPath : "",
+                    Platforms.IsMacOS ? defaultEditorPath : "",
                     Platforms.IsLinux ? defaultEditorPath : ""
                 );
 
@@ -72,13 +72,13 @@ namespace BrowserAutomationMaster.Managers
                 );
                 var editorNames = (
                     Platforms.IsWindows ? "Notepad" : "",
-                    Platforms.IsOSX ? "TextEdit" : "",
+                    Platforms.IsMacOS ? "TextEdit" : "",
                     Platforms.IsLinux ? "Xed" : ""
                 );
 
                 var editorPaths = (
                     Platforms.IsWindows ? defaultEditorPath : "",
-                    Platforms.IsOSX ? defaultEditorPath : "",
+                    Platforms.IsMacOS ? defaultEditorPath : "",
                     Platforms.IsLinux ? defaultEditorPath : ""
                 );
 
@@ -91,7 +91,7 @@ namespace BrowserAutomationMaster.Managers
                 };
             }
 
-            var path = (Platforms.IsWindows, Platforms.IsOSX, Platforms.IsLinux) switch {
+            var path = (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
                 (true, false, false) => (chosenEditor.Value.Value, "", ""),
                 (false, true, false) => (chosenEditor.Value.Value, "", ""),
                 (false, false, true) => (chosenEditor.Value.Value, "", ""),
@@ -121,7 +121,7 @@ namespace BrowserAutomationMaster.Managers
         
         private static Dictionary<string, string> GetSupportedEditors() 
         {
-            return (Platforms.IsWindows, Platforms.IsOSX, Platforms.IsLinux) switch {
+            return (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
                 (true, false, false) => GetSupportedWindowsEditors(),
                 (false, true, false) => GetSupportedMacEditors(),
                 (false, false, true) => GetSupportedLinuxEditors(),
@@ -319,7 +319,7 @@ namespace BrowserAutomationMaster.Managers
         );
 
         public static string GetDefaultEditorPath() {
-            return (Platforms.IsWindows, Platforms.IsOSX, Platforms.IsLinux) switch {
+            return (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
                 (true, false, false) => DefaultEditor.Windows,
                 (false, true, false) => DefaultEditor.Mac,
                 (false, false, true) => DefaultEditor.Linux,
@@ -377,7 +377,7 @@ namespace BrowserAutomationMaster.Managers
                 editorParams = !string.IsNullOrEmpty(EditorParams.Windows) ? EditorParams.Windows : string.Empty;
             }
 
-            else if (Platforms.IsOSX)
+            else if (Platforms.IsMacOS)
             {
                 // On macOS, the default 'open' command is used, and the editor is passed via the '-a' flag.
                 editor = !string.IsNullOrEmpty(EditorPath.Mac) ? EditorPath.Mac : DefaultEditor.Mac;
@@ -408,7 +408,7 @@ namespace BrowserAutomationMaster.Managers
                 };
             }
 
-            else if (Platforms.IsOSX)
+            else if (Platforms.IsMacOS)
             {
                 // Uses the 'open' command which launches .app bundles and handles path association.
                 psi = new ProcessStartInfo
