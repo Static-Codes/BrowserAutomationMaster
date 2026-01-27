@@ -4,12 +4,29 @@ using static System.Runtime.InteropServices.Architecture;
 namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux 
 {
 
+    public enum PackageType {
+        DEB,
+        PKG_TAR_XZ, // Arch
+        PKG, // FreeBSD
+        RPM,
+        TBZ2, // Gentoo
+        UNKNOWN
+    };
+
+    public static class PackageTypeExtensions 
+    {
+        public static string GetPackageFileType(this PackageType packageType) {
+            return "." + packageType.ToString().ToLower();
+        }
+    }
+
     public enum DistroBase
     {
         ArchLinux,
         BSD,
         Debian,
         Fedora,
+        Standalone,
         Unknown,
     }
 
@@ -18,7 +35,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         string? ID, 
         DistroBase BaseDistro, 
         string PackageManager,
-        string InstallCommand
+        string InstallCommand,
+        PackageType PackageType,
+        string? Description = null
     ) 
     {
         public string Name { get; set; } = Name;
@@ -26,6 +45,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         public DistroBase BaseDistro { get; set; } = BaseDistro;
         public string PackageManager { get; set; } = PackageManager;
         public string InstallCommand { get; set; } = InstallCommand;
+        public PackageType PackageType { get; set; } = PackageType;
+        public string? Description { get; set; } = Description;
         public Architecture[] SupportedArchitectures = [ 
             X64, X86, Arm, Arm, Arm64
         ];
@@ -40,23 +61,46 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ID: "arch",
             BaseDistro: DistroBase.ArchLinux, 
             PackageManager: "pacman", 
-            InstallCommand: "-S"
+            InstallCommand: "-S",
+            PackageType: PackageType.PKG_TAR_XZ
+        );
+
+        public static Distro AltLinux = new(
+            Name: "ALT Linux",
+            ID: "altlinux",
+            BaseDistro: DistroBase.Standalone,
+            PackageManager: "epm",
+            InstallCommand: "install",
+            PackageType: PackageType.RPM,
+            Description: "A standalone linux distro utilizing apt-get but instead of .deb it uses .rpm Packages"
+        );
+
+        public static Distro PCLinuxOS = new(
+            Name: "PCLinuxOS",
+            ID: "pclinuxos",
+            BaseDistro: DistroBase.Standalone,
+            PackageManager: "apt-get",
+            InstallCommand: "install",
+            PackageType: PackageType.RPM,
+            Description: "A standalone linux distro utilizing apt-get but instead of .deb it uses .rpm Packages"
         );
 
         public static Distro Debian = new(
             Name: "Debian",
             ID: "debian", 
             BaseDistro: DistroBase.Debian, 
-            PackageManager: "apt-get", 
-            InstallCommand: "install"
+            PackageManager: "apt-get",
+            InstallCommand: "install",
+            PackageType: PackageType.DEB
         );
 
-        public static Distro ElmentaryOS = new(
+        public static Distro ElementaryOS = new(
             Name: "elementary OS",
             ID: "elementary", 
             BaseDistro: DistroBase.Debian, 
             PackageManager: "apt-get", 
-            InstallCommand: "install"
+            InstallCommand: "install",
+            PackageType: PackageType.DEB
         );
         
         // Free BSD doesn't use /etc/os-release they opt for uname or /etc/motd
@@ -65,7 +109,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ID: null, 
             BaseDistro: DistroBase.BSD, 
             PackageManager: "pkg", 
-            InstallCommand: "install"
+            InstallCommand: "install",
+            PackageType: PackageType.DEB
         );
 
         public static Distro KaliLinux = new(
@@ -73,7 +118,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ID: "kali",
             BaseDistro: DistroBase.Debian, 
             PackageManager: "apt-get", 
-            InstallCommand: "install"
+            InstallCommand: "install",
+            PackageType: PackageType.DEB
         );
 
         public static Distro LinuxMint = new(
@@ -81,7 +127,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ID: "linuxmint",
             BaseDistro: DistroBase.Debian, 
             PackageManager: "apt-get", 
-            InstallCommand: "install"
+            InstallCommand: "install",
+            PackageType: PackageType.DEB
         );
 
         public static Distro ParrotOS = new(
@@ -89,7 +136,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ID: "parrot",
             BaseDistro: DistroBase.Debian,
             PackageManager: "apt-get",
-            InstallCommand: "install"
+            InstallCommand: "install",
+            PackageType: PackageType.DEB
         );
 
         public static Distro PopOS = new(
@@ -97,7 +145,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ID: "pop",
             BaseDistro: DistroBase.Debian, 
             PackageManager: "apt-get", 
-            InstallCommand: "install"
+            InstallCommand: "install",
+            PackageType: PackageType.DEB
         );
 
         public static Distro Ubuntu = new(
@@ -105,7 +154,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ID: "ubuntu",
             BaseDistro: DistroBase.Debian, 
             PackageManager: "apt-get", 
-            InstallCommand: "install"
+            InstallCommand: "install",
+            PackageType: PackageType.DEB
             
         );
 
@@ -114,7 +164,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ID: null,
             BaseDistro: DistroBase.Unknown,
             PackageManager: "unknown",
-            InstallCommand: "unknown"
+            InstallCommand: "unknown",
+            PackageType: PackageType.UNKNOWN
         );
 
         public static Distro ZorinOS = new(
@@ -122,7 +173,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ID: "zorin", 
             BaseDistro: DistroBase.Debian, 
             PackageManager: "apt-get", 
-            InstallCommand: "install"
+            InstallCommand: "install",
+            PackageType: PackageType.DEB
         );
     }
 
