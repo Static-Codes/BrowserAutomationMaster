@@ -37,23 +37,32 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         string PackageManager,
         string InstallCommand,
         PackageType PackageType,
+        string ShellPath = "/bin/bash",
+        string ReleaseFilePath = "/etc/os-release",
+        string ReleaseIdentifier = "=",
+        string? BackupReleaseCommand = null,
         string? Description = null
+        
     ) 
     {
-        public string Name { get; set; } = Name;
-        public string? ID { get; set; } = ID;
-        public DistroBase BaseDistro { get; set; } = BaseDistro;
-        public string PackageManager { get; set; } = PackageManager;
-        public string InstallCommand { get; set; } = InstallCommand;
-        public PackageType PackageType { get; set; } = PackageType;
-        public string? Description { get; set; } = Description;
+        public string Name { get; private set; } = Name;
+        public string? ID { get; private set; } = ID;
+        public DistroBase BaseDistro { get; private set; } = BaseDistro;
+        public string PackageManager { get; private set; } = PackageManager;
+        public string InstallCommand { get; private set; } = InstallCommand;
+        public PackageType PackageType { get; private set; } = PackageType;
+        public string ShellPath { get; private set; } = ShellPath;
+        public string ReleaseFilePath { get; private set; } = ReleaseFilePath;
+        public string ReleaseIdentifier { get; private set; } = ReleaseIdentifier;
+        public string? BackupReleaseCommand { get; private set; } = BackupReleaseCommand;
+        public string? Description { get; private set; } = Description;
         public Architecture[] SupportedArchitectures = [ 
             X64, X86, Arm, Arm, Arm64
         ];
     }
 
 
-    // Ensure DistroManager.DetermineDistroFromID() is updated when a new distro is added.
+    // Ensure DistroManager.DetermineDistro() is updated when a new distro is added.
     public class Distros 
     {
         public static Distro ArchLinux = new(
@@ -110,7 +119,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             BaseDistro: DistroBase.BSD, 
             PackageManager: "pkg", 
             InstallCommand: "install",
-            PackageType: PackageType.DEB
+            PackageType: PackageType.DEB,
+            ReleaseFilePath: "/etc/os-release",
+            ReleaseIdentifier: "freebsd",
+            BackupReleaseCommand: "freebsd-version -u"
+            
         );
 
         public static Distro KaliLinux = new(

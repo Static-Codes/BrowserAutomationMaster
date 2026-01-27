@@ -201,7 +201,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             }
         }
 
-        // Unlike DistroManager.DetermineDistroFromID() this is only used for debugging purposes.
+        // Unlike DistroManager.DetermineDistro() this is only used for debugging purposes.
         public static string GetFullDistroName()
         {
             var lsbrPresent = CommandExists("lsb_release");
