@@ -21,7 +21,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                             "Unable to determine, the specific Linux distribution in use.",
                             "You will be prompted to select the base of your distro (Arch/Debian/Fedora/Etc)",
                             NLC,
-                            "Warning: /etc/os-release was not found."
+                            $"Warning: {fileName} was not found."
                         ])
                     );
                     return Distros.Unknown;
@@ -38,7 +38,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                             "Unable to determine, the specific Linux distribution in use.",
                             "You will be prompted to select the base of your distro (Arch/Debian/Fedora/Etc)",
                             NLC,
-                            "Warning: ID field not found in os-release."
+                            $"Warning: ID field not found in: {fileName}"
                         ])
                     );
                     return Distros.Unknown;
@@ -58,7 +58,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 Warning.Write(
                     string.Join(NLC, [
                         "Unable to determine, the specific Linux distribution in use.",
-                        "You will be prompted to select the base of your distro (Arch/Debian/Fedora/Etc)",
+                        "You will be prompted to select the base of your distro.",
                         NLC,
                         "Warning:",
                         ex.Message

@@ -119,8 +119,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             BaseDistro: DistroBase.BSD, 
             PackageManager: "pkg", 
             InstallCommand: "install",
-            PackageType: PackageType.DEB,
-            ReleaseFilePath: "/etc/os-release",
+            PackageType: PackageType.PKG,
             ReleaseIdentifier: "freebsd",
             BackupReleaseCommand: "freebsd-version -u"
             
