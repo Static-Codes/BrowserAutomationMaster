@@ -33,6 +33,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         BSD,
         Debian,
         Fedora,
+        OpenSUSE,
         Standalone,
         Unknown,
     }
@@ -196,6 +197,18 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             UninstallCommand: "remove --purge -y",
             PackageType: PackageType.DEB,
             InstallationType: InstallationType.Package
+        );
+
+        public readonly static Distro OpenSUSE = new(
+            Name: "openSUSE",
+            ID: "opensuse", 
+            BaseDistro: DistroBase.Standalone,
+            PackageManager: "zypper",
+            InstallCommand: "install -y",
+            UninstallCommand: "remove -u",
+            PackageType: PackageType.RPM,
+            InstallationType: InstallationType.Package,
+            Description: "Independent RPM-based distribution utilizing the Zypper package manager and YaST configuration tool."
         );
 
         public readonly static Distro ParrotOS = new(
