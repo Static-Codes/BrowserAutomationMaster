@@ -1,4 +1,5 @@
-﻿using BrowserAutomationMaster.Managers.Python;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
@@ -14,12 +15,12 @@ namespace BrowserAutomationMaster.Managers
         public bool IsARMhf { get; set; } // 32 Bit ARMv7 (hf = Hard Float)
         public bool IsChromeOS { get; set; }
         public bool IsRaspi { get; set; } // Raspberry Pi
-        public bool IsDebianBased { get; set; }
-        public bool IsFedoraBased { get; set; }
         public bool IsWindows { get; set; }
         public bool IsMacOS { get; set; }
         public bool IsLinux { get; set; }
         public bool IsUnixLike { get; set; } // Linux + OSX
+
+        public Distro? CurrentDistribution = null;
         public Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
         public KeyValuePair<string, bool>? RaspiModelInfo { get; set; }
 
