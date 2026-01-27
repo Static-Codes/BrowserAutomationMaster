@@ -115,6 +115,9 @@ namespace BrowserAutomationMaster.Managers
             {
                 Platforms.IsLinux = true;
                 Platforms.IsUnixLike = true;
+                Platforms.CurrentDistribution = DistroManager.DetermineDistro();
+                // This will be added in a later update.
+                // Platforms.CurrentDistribution = DistroManager.GetDistro.FromBase("elementary OS", DistroBase.Debian);
             }
 
             // Acts a fallthrough so the exception below is not thrown.

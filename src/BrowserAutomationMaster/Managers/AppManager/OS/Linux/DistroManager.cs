@@ -8,7 +8,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
     public class DistroManager() 
     {
         public readonly static Distro[] distroObjects = [.. ReflectionHelper.GetStaticFieldsOfType<Distro>(typeof(Distros), true)];
-        public readonly static IEnumerable<string> altCmds = distroObjects.Select(d => $"{d.BackupReleaseCmd} {d.BackupReleaseCmdArgs}");
+        private readonly static IEnumerable<string> altCmds = distroObjects.Select(d => $"{d.BackupReleaseCmd} {d.BackupReleaseCmdArgs}");
 
         public static Distro DetermineDistro() 
         {
@@ -43,8 +43,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 // Sanitizing captured value (For example: ID="ubuntu" -> ubuntu)
                 var sanitizedID = idLine.Split('=')[1].Trim('"').Trim('\'');
 
-                Console.WriteLine(sanitizedID);
-
                 return distroObjects.FirstOrDefault(distro => distro.ID == sanitizedID) ?? Distros.Unknown;
 
             }
@@ -63,6 +61,22 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 return Distros.Unknown;
             }
         }
+
+        // public class GetDistro()
+        // {
+        //     public static Distro FromBase(string DistroName, DistroBase BaseDistro) 
+        //     {
+        //         var EnumString = EnumHelper.GetEnumNameAsString(BaseDistro, []);
+
+        //         if (EnumString == null) {
+        //             return Distros.Unknown;
+        //         }
+
+        //         var Distro = Enum.GetValues<Distros>().Where(d => d.Name == EnumString).First() ?? Distros.Unknown;
+        //         Distro.Name = DistroName;
+        //         return Distro;
+        //     }
+        // }
 
         private static Distro? TryAltCmds() 
         {
