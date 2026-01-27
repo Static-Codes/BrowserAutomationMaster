@@ -1,9 +1,11 @@
-﻿using BrowserAutomationMaster.Messaging;
-using System;
+﻿using BrowserAutomationMaster.Helpers;
+using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using BrowserAutomationMaster.Messaging;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
+using System.Threading.Tasks;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -13,15 +15,14 @@ namespace BrowserAutomationMaster.Managers
 {
     public class UninstallationManager()
     {
-        public static void Uninstall()
+        public static async Task Uninstall()
         {
             Write("This will delete BAM Manager (BAMM) from your system.\n");
 
             var response = Input.AskForInput("Would you like to continue with the uninstallation process? [y/n]: ");
             var uninstallConfirmed = Input.ConditionAccepted(response);
             
-            if (!uninstallConfirmed) 
-            {
+            if (!uninstallConfirmed) {
                 Environment.Exit(0);
             }
             
@@ -53,11 +54,40 @@ namespace BrowserAutomationMaster.Managers
             }
 
             else if (Platforms.IsLinux) {
-                DoLinuxUninstall();
+                await DoLinuxUninstall();
             }
             
-            else 
+            else {
                 throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
+            }
+        }
+
+        private static void CheckLinuxDistro() 
+        {
+            if (Platforms.CurrentDistribution != null) {
+                return;
+            }
+            
+            
+            var distroChoices = EnumHelper.GetStringReprs(typeof(Distros));
+            
+            var distroChoice = Input.WriteListFromOptions(distroChoices, noun: "distro");
+            
+
+            var memberObject = EnumHelper.GetEnumMemberFromStringRepr(typeof(Distros), distroChoice);
+
+            if (memberObject == null) 
+            {
+                WriteAndExit(
+                    string.Join(' ', [
+                        "Unable to determine the current Linux Distribution in use,",
+                        $"please make a bug report at: {ISSUES_LINK}", 
+                    ]),
+                    status: 1
+                );
+            }
+
+            Platforms.CurrentDistribution = (Distro)memberObject;
         }
         private static void DoWindowsUninstall()
         {
@@ -109,32 +139,110 @@ namespace BrowserAutomationMaster.Managers
             WriteMessage(message, isWarning: true);
             Environment.Exit(0);
         }
-        private static void DoLinuxUninstall()
+        private static async Task DoLinuxUninstall()
         {
+            
+            string binaryPath = "/usr/local/bin/bamm";
+            
+            string unknownDistro = string.Join(NLC, [
+                "Currently unable to determine the current Distribution in use.",
+                "As such, BAMM does not know how to execute it's uninstallation.",
+                $"Please make a bug report at: {ISSUES_LINK}"
+            ]);
 
-            string platform = Input.WriteListFromOptions(["Debian Based", "Fedora Based", "Other"], noun: "distro");
+            string binaryNotFound = string.Join(NLC, [
+                $"Unable to locate the the BAMM executable at expected path: {binaryPath}",
+                "Please try executing:",
+                "which bamm",
+                NLC,
+                "If the above command returns a path, please execute:",
+                "sudo rm 'path/to/bamm'"
+            ]);
+            
+            // Attempts to prompt the user for a distro choice if Platforms.CurrentDistribution is null.
+            CheckLinuxDistro();
 
-            string debianMessage =
-                "To uninstall BAM Manager (BAMM) on Debian:\n" +
-                "   - Run the following command:\nsudo apt-get remove --purge bamm -y\n\n" +
-                "   - You may be prompted for your user password, enter it and press enter.";
+            var invalidStates = 
+                Platforms.CurrentDistribution == null || 
+                Platforms.CurrentDistribution.Equals(Distros.Unknown);
 
-            string fedoraMessage =
-                "To uninstall BAM Manager (BAMM) on Fedora:\n" +
-                "   - Run the following command" +
-                "   - sudo dnf remove bamm -y";
+            if (invalidStates) {
+                WriteAndExit(
+                    message: unknownDistro, 
+                    status: 1
+                );
+            }
 
-            var message = platform switch
+            if (!File.Exists(binaryPath)) 
             {
-                "Debian Based" => debianMessage,
-                "Fedora Based" => fedoraMessage,
-                "Other" => "Unsupported, please manually uninstall",
-                _ => "Invalid choice"
+                WriteAndExit(
+                    message: binaryNotFound,
+                    status: 1
+                );
+            }
+
+            
+            var psi = new ProcessStartInfo() {
+                FileName = Platforms.CurrentDistribution!.ShellPath,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
             };
 
-            WriteMessage(message);
-            Environment.Exit(0);
+            switch (Platforms.CurrentDistribution!.InstallationType)  {
+                case InstallationType.Binary:
+                    psi.Arguments = $"-c sudo rm {binaryPath}";
+                    break;
+
+                
+                case InstallationType.Package:
+                    psi.Arguments = $"-c {Platforms.CurrentDistribution.UninstallCommand}";
+                    break;
+                
+                default:
+                    Console.WriteLine("Default case not implemented in UninstallatioNManager.DoLinuxUninstall()");
+                    break;
+            };
+
+
+            if (psi.Arguments.Contains("sudo")) {
+                Warning.Write(
+                    string.Join(NLC, [
+                        $"Superuser privileges are required due to the location of the installed binary: {binaryPath}",
+                        "Please enter your password when prompted for the following command to execute:",
+                        $"{psi.FileName} {psi.Arguments}"
+                    ])
+                );
+            }
+
+            using var process = await ProcessFactory.SpawnProcess(psi, "attempting to uninstall", timeout: 60);
+            var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
+
+            if (ExitCode != 0) 
+            {
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "An exception occured while attempting to uninstall the BAMM binary.",
+                        "The command: ",
+                        $"{psi.FileName} {psi.Arguments}",
+                        $"returned a non zero exit code: {ExitCode}",
+                        "Error Log:",
+                        string.Join(NLC, STDErr)
+                    ]),
+                    status: 1
+                );
+            }
+
+            var acknowledgementMessage = string.Join(NLC, [
+                "Successfully uninstalled the BAMM binary.",
+                "Thank you for trying BAMM, I greatly appreciate it! - Static"
+            ]);
+
+            WriteSuccessMessageAndExit(acknowledgementMessage, 0);
         }
+
         private static void DoAppDataDeletion()
         {
             try
