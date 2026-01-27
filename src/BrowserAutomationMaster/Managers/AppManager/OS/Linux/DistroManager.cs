@@ -8,7 +8,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
     {
         public readonly static Distro[] distroObjects = [.. ReflectionHelper.GetStaticFieldsOfType<Distro>(typeof(Distros), true)];
 
-        public static Distro DetermineDistroFromID() 
+        public static Distro DetermineDistro() 
         {
             var fileName = "/etc/os-release";
             try
