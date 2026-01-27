@@ -21,21 +21,21 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
     {
 
         // Debian Package Manager
-        readonly public static bool HasDPKG = CommandExists("dpkg");
+        public static readonly bool HasDPKG = CommandExists("dpkg");
 
         // Flatpak Package Manager
-        readonly public static bool HasFlatpak = CommandExists("flatpak");
+        public static readonly bool HasFlatpak = CommandExists("flatpak");
 
         // Red Hat Package Manager
-        readonly public static bool HasRPM = CommandExists("rpm");
+        public static readonly bool HasRPM = CommandExists("rpm");
 
-        readonly public static List<AppInfo> dpkgApps = HasDPKG ? ParseDpkgList() : [];
+        public static readonly List<AppInfo> dpkgApps = HasDPKG ? ParseDpkgList() : [];
 
-        readonly public static List<AppInfo> flatpakApps = HasFlatpak ? ParseFlatpakList() : [];
+        public static readonly List<AppInfo> flatpakApps = HasFlatpak ? ParseFlatpakList() : [];
 
-        readonly public static List<AppInfo> rpmApps = HasRPM ? ParseRpmList() : [];
+        public static readonly List<AppInfo> rpmApps = HasRPM ? ParseRpmList() : [];
 
-        public readonly static Dictionary<string, bool> RPIModels = new()
+        public static readonly Dictionary<string, bool> RPIModels = new()
         {
             { "2 Model B", false },
             { "3 Model B", false },
@@ -201,30 +201,27 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             }
         }
 
-        public static string? GetDistroNameString()
+        // Unlike DistroManager.DetermineDistroFromID() this is only used for debugging purposes.
+        public static string GetFullDistroName()
         {
             var lsbrPresent = CommandExists("lsb_release");
             var neofetchPresent = CommandExists("neofetch");
             string? distroName;
 
-            if (lsbrPresent)
-            { 
+            if (lsbrPresent) { 
                 distroName = RunLSBR(); 
             }
 
-            else if (neofetchPresent)
-            {
+            else if (neofetchPresent) {
                 distroName = RunNeofetch();
             }
 
-            else 
-            {
+            else {
                 distroName = RunOSR();
             }
 
-            return distroName;
+            return distroName ?? "Generic Linux";
         }
-
 
         public static string? GetTerminalBackgroundColor()
         {
@@ -605,7 +602,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             }
         }
 
-        // /etc/os-release
+        // Executing: 'cat /etc/os-release'
         private static string? RunOSR()
         {
             var fileName = "/etc/os-release";
@@ -638,7 +635,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             return null;
         }
         
-        // lsb_release -a 
+        // Executing: 'lsb_release -a' 
         private static string? RunLSBR()
         {
             try
@@ -657,11 +654,10 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 Warning.Write("Unable to determine detailed OS info for debugging purposes.");
                 Warning.Write("You may see the generic \"Linux\" identifier.");
             }
-            // catch (Exception ex){}
             return null;
         }
 
-        // neofetch
+        // Executing: 'neofetch'
         private static string? RunNeofetch()
         {
             try

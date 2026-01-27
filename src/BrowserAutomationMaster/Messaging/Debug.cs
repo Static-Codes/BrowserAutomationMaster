@@ -93,7 +93,7 @@ namespace BrowserAutomationMaster.Messaging
             else if (Platforms.IsLinux)
             {
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
-                    Distro Name: {GetDistroNameString()}
+                    Distro Name: {GetFullDistroName()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
