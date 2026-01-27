@@ -40,7 +40,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         string ShellPath = "/bin/bash",
         string ReleaseFilePath = "/etc/os-release",
         string ReleaseIdentifier = "=",
-        string? BackupReleaseCommand = null,
+        string? BackupReleaseCmd = null,
+        string? BackupReleaseCmdArgs = null,
         string? Description = null
         
     ) 
@@ -54,7 +55,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         public string ShellPath { get; private set; } = ShellPath;
         public string ReleaseFilePath { get; private set; } = ReleaseFilePath;
         public string ReleaseIdentifier { get; private set; } = ReleaseIdentifier;
-        public string? BackupReleaseCommand { get; private set; } = BackupReleaseCommand;
+        public string? BackupReleaseCmd { get; private set; } = BackupReleaseCmd;
+        public string? BackupReleaseCmdArgs { get; private set; } = BackupReleaseCmdArgs;
         public string? Description { get; private set; } = Description;
         public Architecture[] SupportedArchitectures = [ 
             X64, X86, Arm, Arm, Arm64
@@ -112,7 +114,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             PackageType: PackageType.DEB
         );
         
-        // Free BSD doesn't use /etc/os-release they opt for uname or /etc/motd
         public static Distro FreeBSD = new(
             Name: "FreeBSD",
             ID: null, 
@@ -121,8 +122,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             InstallCommand: "install",
             PackageType: PackageType.PKG,
             ReleaseIdentifier: "freebsd",
-            BackupReleaseCommand: "freebsd-version -u"
-            
+            BackupReleaseCmd: "uname",
+            BackupReleaseCmdArgs: "-o"
         );
 
         public static Distro KaliLinux = new(
@@ -173,11 +174,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 
         public static Distro Unknown = new(
             Name: "Generic Linux",
-            ID: null,
+            ID: "unknown",
             BaseDistro: DistroBase.Unknown,
             PackageManager: "unknown",
             InstallCommand: "unknown",
-            PackageType: PackageType.UNKNOWN
+            PackageType: PackageType.UNKNOWN,
+            BackupReleaseCmd: "uname",
+            BackupReleaseCmdArgs: "-o"
         );
 
         public static Distro ZorinOS = new(

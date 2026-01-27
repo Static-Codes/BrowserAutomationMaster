@@ -244,7 +244,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 string command = "bash";
                 string args = $"-c \"printf '\\e]11;?\\e\\\\' >/dev/tty; read -rs -t 3 -d $'\\\\' response </dev/tty; echo \\\"$response\\\" | xxd > {tempFile}\"";
                 
-                string response = RunCommand(command, args);
+                (var output, var error) = RunCommand(command, args);
                 Thread.Sleep(300);
 
                 if (File.Exists(tempFile))
@@ -402,7 +402,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                     }
 
                     Warning.Write($"Installing package: {packages[i]}");
-                    WriteSuccessMessage(RunCommand("/bin/bash", $"{commands[i]}"));
+                    (var output, _) = RunCommand("/bin/bash", $"{commands[i]}");
+                    WriteSuccessMessage(output);
                 }
 
                 await DownloadWheels();
@@ -424,7 +425,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             try
             {
                 var apps = new List<AppInfo>();
-                var output = RunCommand("dpkg-query", "-W -f \"${Package}\t${Version}\n\"");
+                (var output, var error) = RunCommand("dpkg-query", "-W -f \"${Package}\t${Version}\n\"");
                 foreach (var line in output.Split('\n'))
                 {
                     var parts = line.Trim('\'').Split("\t");
@@ -453,7 +454,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         private static List<AppInfo> ParseRpmList()
         {
             var apps = new List<AppInfo>();
-            var output = RunCommand("rpm", "-qa");
+            (var output, _) = RunCommand("rpm", "-qa");
             
             foreach (var line in output.Split('\n'))
             {
@@ -478,7 +479,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         private static List<AppInfo> ParseFlatpakList()
         {
             var apps = new List<AppInfo>();
-            var output = RunCommand("flatpak", "list");
+            (var output, _) = RunCommand("flatpak", "list");
 
             foreach (var line in output.Split('\n'))
             {
@@ -557,12 +558,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             }
         }
 
-        public static string RunCommand(string cmd, string args)
+        public static (string, string) RunCommand(string cmd, string args)
         {
+            string output = string.Empty;
+            string error = string.Empty;
             try
             {
-
-
                 ProcessStartInfo procStartInfo = new()
                 {
                     FileName = cmd,
@@ -577,18 +578,18 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 using var proc = Process.Start(procStartInfo);
                 
                 if (proc == null) {
-                    return string.Empty;
+                    return (output, error);
                 }
 
-                string output = proc.StandardOutput.ReadToEnd();
+                output = proc.StandardOutput.ReadToEnd();
+                error = proc.StandardError.ReadToEnd();
                 proc.WaitForExit();
 
                 if (proc.ExitCode == 0) {
-                    return output;
+                    return (output, error);
                 }
-
-                return string.Empty;
             }
+
             catch (Exception ex)
             {
                 WriteAndExit(
@@ -598,8 +599,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                         $"{cmd}\nException:\n{ex.Message}",
                     status: 1
                 );
-                return string.Empty;
             }
+
+            return (output, error);
         }
 
         // Executing: 'cat /etc/os-release'
@@ -640,7 +642,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         {
             try
             {
-                var lsbrResult = RunCommand("/bin/bash", "-c \"lsb_release -a\"");
+                (var lsbrResult, _) = RunCommand("/bin/bash", "-c \"lsb_release -a\"");
 
                 var lsbrMatch = PrecompiledLSBRRegex().Match(lsbrResult);
 
