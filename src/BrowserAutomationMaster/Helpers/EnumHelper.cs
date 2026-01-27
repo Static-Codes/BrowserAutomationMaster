@@ -1,9 +1,4 @@
-﻿using BrowserAutomationMaster.Managers.Python.BrowserStack;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 
 namespace BrowserAutomationMaster.Helpers
 {
@@ -27,5 +22,35 @@ namespace BrowserAutomationMaster.Helpers
             try { return Enum.GetNames(e.GetType()); }
             catch { return []; }
         }
+
+        public static object? GetEnumMemberFromStringRepr(Type type, string StringRepr) 
+        {
+            if (type == null) { 
+                return null;
+            }
+
+            // Handles case where Distros members are Distro object
+            var returnType = type.Name.Equals("Distros") ? typeof(Distro) : type;
+
+            try { 
+                return Enum.Parse(returnType, StringRepr) != null; 
+            }
+            
+            catch { 
+                return null; 
+            }
+        }
+        public static string GetEnumNameAsString(Enum e, Dictionary<string, string> replacements) 
+        {
+            var enumStrRepr = e.ToString();
+            foreach (var r in replacements) {
+                enumStrRepr = enumStrRepr.Replace(r.Key, r.Value);
+            }
+            var lastIndex = enumStrRepr.LastIndexOf('.');
+
+            return lastIndex != -1 ? enumStrRepr[(lastIndex + 1)..] : enumStrRepr;
+        }
+
+
     }
 }
