@@ -172,13 +172,13 @@ Supported versions include:
                 return string.Empty;
             }
 
-            var whichPyResp = RunCommand("which", "python3");
+            (var whichPyResp, _) = RunCommand("which", "python3");
 
             if (string.IsNullOrEmpty(whichPyResp)) {
                 return string.Empty;
             }
 
-            var pyVersionResp = RunCommand("python3", "--version");
+            (var pyVersionResp, _) = RunCommand("python3", "--version");
 
             Match pyVersionMatch = RegexManager.PyVersionRegex.Match(pyVersionResp);
 

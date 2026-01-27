@@ -275,7 +275,7 @@ namespace BrowserAutomationMaster.Managers
                     {
                         // DEBUGGING ONLY DO NOT REMOVE
                         // Console.WriteLine($"Executing:{NLC}/bin/bash -c {command}");
-                        var commandOutput = RunCommand("/bin/bash", $"-c {command}");
+                        (var commandOutput, _) = RunCommand("/bin/bash", $"-c {command}");
 
                         if (!string.IsNullOrEmpty(commandOutput))
                         {
