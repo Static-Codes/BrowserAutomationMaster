@@ -172,6 +172,6 @@ fi
 
 rm -rf "$TEMP_INSTALL_PATH" || show_error_and_exit "Unable to remove the installer from $TEMP_INSTALL_PATH/$FILENAME, please manually remove this file."
 show_info "Successfully installed latest release of BAMM ($VERSION_TAG)"
-show_info "Installation location: /usr/bin/local/bamm"
+show_info "Installation location: /usr/local/bin/bamm"
 
 ###### End of installation logic ######
