@@ -44,7 +44,7 @@
 		<DebianPackageMaintainer>$(Authors)</DebianPackageMaintainer>
 		<DebianPackageDescription>$(Description)</DebianPackageDescription>
 		<DebianPackageSection>utils</DebianPackageSection>
-		<DebianPackagePriority>optional</DebianPackagePriority>
+		<DebianPackagePriority>standard</DebianPackagePriority>
 		<DebianPackageRequires>libicu-dev, python3</DebianPackageRequires>
 		<DebianDesktopFile>$(CommonPackageName).desktop</DebianDesktopFile>
 		<DebianDesktopCategories>Utility;Console;</DebianDesktopCategories>

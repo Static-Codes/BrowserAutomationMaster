@@ -324,36 +324,24 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 
                     Version: ".Replace("                    ", "");
 
-                var PKM_CMD = (HasDPKG, HasRPM) switch
+
+                // Exits if Platforms.CurrentDistribution is null.
+                DistroManager.CheckLinuxDistro();
+
+
+                // Adds the DEBIAN_FRONTEND=noninteractive prefix if the current distro in use is based off Debian.
+                var installPrefix = Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
                 {
-                    (true, _) => "apt-get", // Debian-Based
-                    (_, true) => "dnf",     // Fedora-Based
-                    (_, _) => null
-                };
+                    true => string.Join(' ', [
+                        "DEBIAN_FRONTEND=noninteractive", 
+                        Platforms.CurrentDistribution!.PackageManager,
+                        Platforms.CurrentDistribution.InstallCommand
+                    ]),
 
-                if (PKM_CMD == null)
-                {
-                    Warning.Write("An error occured while attempting to retrieve the Package Manager associated with your Distribution.");
-                    var response = Input.WriteListFromOptions(["Debian-Based", "Fedora-Based"], "operating system");
-                    PKM_CMD = response switch
-                    {
-                        "Debian-Based" => "apt-get", // Debian-Based
-                        "Fedora-Based" => "dnf",     // Fedora Based
-                        _ => "UNSELECTED DISTO"
-                    };
-
-                    if (PKM_CMD == "UNSELECTED DISTRO") {
-                        WriteAndExit("An error occured while attempting to access your Distribution's Package Manager, please try again.", 1);
-                    }
-                }
-
-
-
-                var installPrefix = (HasDPKG, HasRPM) switch
-                {
-                    (true, _) => $"DEBIAN_FRONTEND=noninteractive {PKM_CMD} install -y",
-                    (_, true) => $"{PKM_CMD} install -y",
-                    (_, _) => null
+                    _ => string.Join(' ', [
+                        Platforms.CurrentDistribution!.PackageManager,
+                        Platforms.CurrentDistribution.InstallCommand
+                    ])
                 };
 
                 var installCMD = $"-c \"sudo {installPrefix}";
