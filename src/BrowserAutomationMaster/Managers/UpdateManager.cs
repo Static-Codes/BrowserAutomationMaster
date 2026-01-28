@@ -3,12 +3,14 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static System.Runtime.InteropServices.Architecture;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
+using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -141,27 +143,51 @@ namespace BrowserAutomationMaster.Managers
 
         private static void OpenLatestForLinux(string currentReleaseUri)
         {
-            string choice = Input.WriteListFromOptions(["Debian Based", "Fedora Based", "Other"], noun: "distro");
+            CheckLinuxDistro();
+            
+            var invalidDistro = Platforms.CurrentDistribution!.Equals(Distros.Unknown);
+
+            if (invalidDistro) {
+                WriteAndExit(
+                    message: invalidDistroMessage, 
+                    status: 1
+                );
+            }
 
             string? uri = null;
 
-            if (choice == "Debian Based")
+            // Handling Linux installations that are bundled as packages for the CurrentDistribution
+            if (Platforms.CurrentDistribution.InstallationType.Equals(InstallationType.Package))
             {
-                uri = RuntimeInformation.ProcessArchitecture switch
+                if (Platforms.CurrentDistribution.PackageType.Equals(PackageType.DEB)) 
                 {
-                    Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.deb"),
-                    X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.deb"),
-                    _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-cpu-bypass flag.")
+                    uri = RuntimeInformation.ProcessArchitecture switch
+                    {
+                        Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.deb"),
+                        X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.deb"),
+                        _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-cpu-bypass flag.")
 
-                };
+                    };
+                }
+
+                else if (Platforms.CurrentDistribution.PackageType.Equals(PackageType.RPM))
+                {
+                    uri = RuntimeInformation.ProcessArchitecture switch
+                    {
+                        Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.rpm"),
+                        X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.rpm"),
+                        _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-cpu-bypass flag.")
+
+                    };
+                }
             }
 
-            else if (choice == "Fedora Based")
+            else 
             {
                 uri = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64.rpm"),
-                    X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64.rpm"),
+                    Arm64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-arm64"),
+                    X64 => Path.Combine(currentReleaseUri, $"bamm.{LatestVersion}.linux-x64"),
                     _ => throw new PlatformNotSupportedException("Unsupported CPU architecture, try running BAMM on linux with the --linux-cpu-bypass flag.")
 
                 };
@@ -208,14 +234,19 @@ namespace BrowserAutomationMaster.Managers
                     OpenLatestForLinux(currentReleaseUri);
                 }
             }
-            catch (Exception e) { Write(
-                message:
-                    $"BAM Manager (BAMM) was unable to check github for the latest version.\n" + 
-                    "If this issue persists, and you are positive your network connection is stable, " + 
-                    $"please make a bug report at:\n{ISSUES_LINK}\n" + 
-                    $"Error log:\n\n" +
-                    $"Unable to download latest release using the user's default browser.\n{e.Message}:" +
-                ""); 
+            
+            catch (Exception e) 
+            { 
+                Write(
+                    string.Join(NLC, [
+                        $"BAM Manager (BAMM) was unable to check github for the latest version.", 
+                        "If this issue persists, and you are positive your network connection is stable:", 
+                        $"Please make a bug report at: {ISSUES_LINK}", 
+                        $"Error Log:",
+                        NLC, 
+                        e.Message 
+                    ])
+                ); 
             }
 
         }
@@ -224,9 +255,10 @@ namespace BrowserAutomationMaster.Managers
         {
             if (!HasNetworkConnection()) {
                 Write(
-                    message:
-                        "BAM Manager (BAMM) was unable to check for an update, " +
+                    string.Join(' ', [
+                        "BAM Manager (BAMM) was unable to check for an update,", 
                         "this likely means your system doesn't currently have an internet connection."
+                    ])
                 );
 
                 string response = Input.AskForInput("\nWould you like to continue? [y/n]:\n");
@@ -239,7 +271,8 @@ namespace BrowserAutomationMaster.Managers
             }
             LatestVersion = await GetLatestVersion();
 
-            if (string.IsNullOrEmpty(LatestVersion) || !LatestVersion.StartsWith('v')) {
+            if (string.IsNullOrEmpty(LatestVersion) || !LatestVersion.StartsWith('v')) 
+            {
                 WriteErrorAndReturnBool(
                     message:
                         "BAM Manager (BAMM) was unable to determine the latest release version, please check:\n" +

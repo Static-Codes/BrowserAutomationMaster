@@ -1,7 +1,9 @@
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux 
 {
@@ -9,6 +11,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
     {
         public readonly static Distro[] distroObjects = [.. ReflectionHelper.GetStaticFieldsOfType<Distro>(typeof(Distros), true)];
         private readonly static IEnumerable<string> altCmds = distroObjects.Select(d => $"{d.BackupReleaseCmd} {d.BackupReleaseCmdArgs}");
+
+        public readonly static string invalidDistroMessage = string.Join(NLC, [
+            "Currently unable to determine the current Distribution in use.",
+            "As such, BAMM does not know how to execute it's uninstallation.",
+            $"Please make a bug report at: {ISSUES_LINK}"
+        ]);
 
         public static Distro DetermineDistro() 
         {
@@ -77,6 +85,34 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         //         return Distro;
         //     }
         // }
+
+        public static void CheckLinuxDistro() 
+        {
+            if (Platforms.CurrentDistribution != null) {
+                return;
+            }
+            
+            
+            var distroChoices = EnumHelper.GetStringReprs(typeof(Distros));
+            
+            var distroChoice = Input.WriteListFromOptions(distroChoices, noun: "distro");
+            
+
+            var memberObject = EnumHelper.GetEnumMemberFromStringRepr(typeof(Distros), distroChoice);
+
+            if (memberObject == null) 
+            {
+                WriteAndExit(
+                    string.Join(' ', [
+                        "Unable to determine the current Linux Distribution in use,",
+                        $"please make a bug report at: {ISSUES_LINK}", 
+                    ]),
+                    status: 1
+                );
+            }
+
+            Platforms.CurrentDistribution = (Distro)memberObject;
+        }
 
         private static Distro? TryAltCmds() 
         {

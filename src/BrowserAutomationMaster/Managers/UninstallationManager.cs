@@ -1,9 +1,8 @@
-﻿using BrowserAutomationMaster.Helpers;
-using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using BrowserAutomationMaster.Messaging;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading.Tasks;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -61,34 +60,7 @@ namespace BrowserAutomationMaster.Managers
                 throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
             }
         }
-
-        private static void CheckLinuxDistro() 
-        {
-            if (Platforms.CurrentDistribution != null) {
-                return;
-            }
-            
-            
-            var distroChoices = EnumHelper.GetStringReprs(typeof(Distros));
-            
-            var distroChoice = Input.WriteListFromOptions(distroChoices, noun: "distro");
-            
-
-            var memberObject = EnumHelper.GetEnumMemberFromStringRepr(typeof(Distros), distroChoice);
-
-            if (memberObject == null) 
-            {
-                WriteAndExit(
-                    string.Join(' ', [
-                        "Unable to determine the current Linux Distribution in use,",
-                        $"please make a bug report at: {ISSUES_LINK}", 
-                    ]),
-                    status: 1
-                );
-            }
-
-            Platforms.CurrentDistribution = (Distro)memberObject;
-        }
+        
         private static void DoWindowsUninstall()
         {
             string failureMessage = "BAM Manager (BAMM) was unable to determine the current directory, " +
@@ -143,12 +115,6 @@ namespace BrowserAutomationMaster.Managers
         {
             
             string binaryPath = "/usr/local/bin/bamm";
-            
-            string unknownDistro = string.Join(NLC, [
-                "Currently unable to determine the current Distribution in use.",
-                "As such, BAMM does not know how to execute it's uninstallation.",
-                $"Please make a bug report at: {ISSUES_LINK}"
-            ]);
 
             string binaryNotFound = string.Join(NLC, [
                 $"Unable to locate the the BAMM executable at expected path: {binaryPath}",
@@ -162,13 +128,12 @@ namespace BrowserAutomationMaster.Managers
             // Attempts to prompt the user for a distro choice if Platforms.CurrentDistribution is null.
             CheckLinuxDistro();
 
-            var invalidStates = 
-                Platforms.CurrentDistribution == null || 
-                Platforms.CurrentDistribution.Equals(Distros.Unknown);
+            // CheckLinuxDistro exits if Platform.CurrentDistribution is null.
+            var invalidDistro = Platforms.CurrentDistribution!.Equals(Distros.Unknown);
 
-            if (invalidStates) {
+            if (invalidDistro) {
                 WriteAndExit(
-                    message: unknownDistro, 
+                    message: invalidDistroMessage, 
                     status: 1
                 );
             }
