@@ -44,8 +44,8 @@
 		<DebianPackageMaintainer>$(Authors)</DebianPackageMaintainer>
 		<DebianPackageDescription>$(Description)</DebianPackageDescription>
 		<DebianPackageSection>utils</DebianPackageSection>
-		<DebianPackagePriority>standard</DebianPackagePriority>
-		<DebianPackageRequires>libicu-dev, python3</DebianPackageRequires>
+		<DebianPackagePriority>optional</DebianPackagePriority>
+		<DebianPackageRequires>libicu-dev, python3, python3-venv, python3-dev, build-essential, xclip</DebianPackageRequires>
 		<DebianDesktopFile>$(CommonPackageName).desktop</DebianDesktopFile>
 		<DebianDesktopCategories>Utility;Console;</DebianDesktopCategories>
 		<DebianDesktopTerminal>true</DebianDesktopTerminal>
@@ -64,7 +64,7 @@
 		<RpmVendor>$(Authors)</RpmVendor>
 		<RpmPackager>$(Authors)</RpmPackager>
 		<RpmGroup>Applications/Utilities</RpmGroup>
-		<RpmRequires>$(RpmRequires) libicu, python3</RpmRequires>
+		<RpmRequires>$(RpmRequires) libicu-dev, python3, python3-venv, python3-dev, build-essential, xclip</RpmRequires>
 		<RpmDesktopFile>$(CommonPackageName).desktop</RpmDesktopFile>
 		<RpmDesktopCategories>Utility;Console;Development;</RpmDesktopCategories>
 		<RpmDesktopTerminal>true</RpmDesktopTerminal>

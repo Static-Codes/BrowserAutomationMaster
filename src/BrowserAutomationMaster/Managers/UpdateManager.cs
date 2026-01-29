@@ -71,6 +71,7 @@ namespace BrowserAutomationMaster.Managers
                     );
                 }
             }
+            
             catch (Exception e)
             {
                 WriteErrorAndReturnEmptyString(
@@ -253,7 +254,8 @@ namespace BrowserAutomationMaster.Managers
 
         private static async Task<bool> UpdateAvailable()
         {
-            if (!HasNetworkConnection()) {
+            if (!HasNetworkConnection()) 
+            {
                 Write(
                     string.Join(' ', [
                         "BAM Manager (BAMM) was unable to check for an update,", 
@@ -269,6 +271,7 @@ namespace BrowserAutomationMaster.Managers
                 
                 return false;
             }
+
             LatestVersion = await GetLatestVersion();
 
             if (string.IsNullOrEmpty(LatestVersion) || !LatestVersion.StartsWith('v')) 
