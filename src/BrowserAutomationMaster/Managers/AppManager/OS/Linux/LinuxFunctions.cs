@@ -151,6 +151,14 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 
         }
 
+        // Due to the unique nature of how ANSI is handled on Kali Linux
+        public static bool IsKali() 
+        {
+            return 
+                Platforms.CurrentDistribution != null && 
+                Platforms.CurrentDistribution.Name.Equals("Kali Linux");
+        }
+
         public static void ChromeOSCheck()
         {
 
@@ -228,7 +236,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             bool[] statesToReturnBlack = [
                 Platforms.IsChromeOS,
                 Platforms.IsMacOS,
-                Platforms.IsRaspi
+                Platforms.IsRaspi,
+                IsKali()
             ];
 
             try
@@ -242,8 +251,16 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 string tempFile = Path.GetTempFileName();
 
                 string command = "bash";
-                string args = $"-c \"printf '\\e]11;?\\e\\\\' >/dev/tty; read -rs -t 3 -d $'\\\\' response </dev/tty; echo \\\"$response\\\" | xxd > {tempFile}\"";
-                
+
+                string args = string.Join(' ', [
+                    "-c",
+                    "\"printf '\\e]11;?\\e\\\\' >/dev/tty;",
+                    "read -rs -t 3 -d $'\\\\' response </dev/tty;",
+                    $"echo \\\"$response\\\" | xxd > {tempFile}\""
+                ]);
+
+                // string args = $"-c \"printf '\\e]11;?\\e\\\\' >/dev/tty; read -rs -t 3 -d $'\\\\' response </dev/tty; echo \\\"$response\\\" | xxd > {tempFile}\"";
+
                 (var output, var error) = RunCommand(command, args);
                 Thread.Sleep(300);
 
