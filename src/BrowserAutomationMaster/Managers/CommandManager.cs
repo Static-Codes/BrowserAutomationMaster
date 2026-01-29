@@ -146,6 +146,15 @@ namespace BrowserAutomationMaster.Managers
                     type: CommandType.Argument
                 )
             },
+            
+            {
+                new Command(
+                    name: "--show-distro",
+                    description: "Displays information about the distribution detected by BAMM, useful for debugging.",
+                    examples: [ "bamm --show-distro" ],
+                    type: CommandType.Argument
+                )
+            },
 
             {
                 new Command(

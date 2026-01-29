@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
+using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
@@ -162,6 +163,12 @@ namespace BrowserAutomationMaster
             if (pArgs.Any(arg => arg.Equals("--force-error")))
             {
                 WriteAndExit("", 0);
+            }
+
+            if (pArgs.Any(arg => arg.Equals("--show-distro"))) 
+            {
+                var distro = Platforms.CurrentDistribution ?? Distros.Unknown;
+                WriteSuccessMessage(distro.ToString());
             }
             
             if (pArgs.Any(arg => arg.Equals("--gui") && !Directory.Exists(userScriptsDirectory))){
