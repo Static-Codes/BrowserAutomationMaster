@@ -5,7 +5,8 @@ using static System.Runtime.InteropServices.Architecture;
 namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux 
 {
 
-    public enum PackageType {
+    public enum PackageType 
+    {
         DEB,
         PKG_TAR_XZ, // Arch
         PKG, // FreeBSD
