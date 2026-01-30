@@ -54,8 +54,15 @@ namespace BrowserAutomationMaster.Managers
         public static Color GetForeground(bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
             // If the GlobalConfig failed to load, GlobalConfig.ThemeType will be null.
-            if (GlobalConfig?.ThemeType == null) {
-                return isError ? Color.Red : Color.White;
+            if (GlobalConfig?.ThemeType == null) 
+            {
+                // Handling cases where the ThemeType isnt set.
+                return (isSuccess, isWarning, isError) switch {
+                    (true, false, false) => Color.Green,
+                    (false, true, false) => Color.Yellow,
+                    (false, false, true) => Color.Red,
+                    _ => Color.White
+                };
             }
 
             return (isSuccess, isWarning, isError) switch
