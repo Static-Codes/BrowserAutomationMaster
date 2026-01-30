@@ -8,15 +8,6 @@ using static Tests.Runner;
 SetPlatform();
 await InitializeAsync(["--nohwc"]);
 
-// var stream = EmbeddedResourceManager.GetEmbeddedResource("browserstack.json", "BrowserAutomationMaster.AppData.browserstack.json");
-// var stream = EmbeddedResourceManager.GetEmbeddedResource("browserstack.json", "BrowserAutomationMaster.AppData.colors.json");
-// var stream = EmbeddedResourceManager.GetEmbeddedResource("browserstack.json", "BrowserAutomationMaster.AppData.packages.json");
-// var stream = EmbeddedResourceManager.GetEmbeddedResource("browserstack.json", "BrowserAutomationMaster.AppData.useragents.json");
-
-// Console.WriteLine(stream.Length);
-
-Console.WriteLine(DistroManager.DetermineDistroFromID().Name);
-
 // var data = new Dictionary<int, (object, object)>() {
 //     { 1, ( "A", "A" ) },
 //     { 2, ( "B", "B" ) },
