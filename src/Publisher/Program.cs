@@ -10,25 +10,26 @@ using System.Runtime.InteropServices;
 SetPlatform();
 await InitializeAsync(["--nohwc"]);
 
+await SourceControl.DownloadSourceOfLatestRelease();
+Environment.Exit(0);
 
 string[] packagingOptions = [
     "Debian Package (.deb)",
     "Fedora Package (.rpm)",
     "Arch Package (.pkg.tar.xz)",
     "Gentoo Package (.tbz2)",
-    "Standalone Binary"
+    "Standalone Binary",
+    "Windows Installer"
 ];
 
-string desiredBuildProcess = Input.WriteListFromOptions(packagingOptions, "build process");
+string desiredBuildProcess = Input.WriteListFromOptions(packagingOptions, "build process", pageSize: packagingOptions.Length);
 
-string[] availableOSNames = [.. GetAvailableOSNames() ];
-string selectedOS = Input.WriteListFromOptions(availableOSNames, "operating system");
+Packager.SetSelectedOS(desiredBuildProcess, out string? selectedOS);
 
 var availableArches = GetAvailableArchitectures(selectedOS)
                       .Select(arch => arch.ToString())
                       .ToArray();
                       
-
 var selectedArch = Enum.Parse<Architecture>(
     Input.WriteListFromOptions(availableArches, "architecture")
 );
@@ -48,6 +49,5 @@ var platformOption = new PlatformOption() {
     ArchitectureInfo = new(selectedArch, RID)
 };
 
-
 var packager = new Packager(platformOption); 
-await packager.BuildStandaloneBinary();
+await packager.HandlePackaging(desiredBuildProcess);

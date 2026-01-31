@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static Publisher.DotnetHelper;
+using static Publisher.PlatformSelection;
 
 namespace Publisher 
 {
@@ -10,17 +12,7 @@ namespace Publisher
     {
         private readonly PlatformOption platformOption = platformOption;
         
-        public Dictionary<string, Task<bool>> GeneratePackagingOptions() 
-        {
-            return new() 
-            {
-                { "Debian Package (.deb)", BuildDebianPackage() },
-                { "Fedora Package (.rpm)", BuildFedoraPackage() },
-                { "Arch Package (.pkg.tar.xz)", BuildArchPackage() },
-                { "Gentoo Package (.tbz2)", BuildGentooPackage() },
-                { "Standalone Binary", BuildStandaloneBinary() },
-            };
-        }
+        
 
         private async Task PrebuildActions() 
         {
@@ -44,12 +36,12 @@ namespace Publisher
             }
         }
         
-        public async Task<bool> BuildArchPackage() {
+        private async Task<bool> BuildArchPackage() {
             await Task.Delay(1);
             return true;   
         }
 
-        public async Task<bool> BuildDebianPackage() 
+        private async Task<bool> BuildDebianPackage() 
         {
             await PrebuildActions();
 
@@ -61,17 +53,17 @@ namespace Publisher
             return await BuildCommands(buildCommand);
         }
 
-        public async Task<bool> BuildFedoraPackage() {
+        private async Task<bool> BuildFedoraPackage() {
             await Task.Delay(1);
             return true;   
         }
 
-        public async Task<bool> BuildGentooPackage() {
+        private async Task<bool> BuildGentooPackage() {
             await Task.Delay(1);
             return true;   
         }
 
-        public async Task<bool> BuildStandaloneBinary()
+        private async Task<bool> BuildStandaloneBinary()
         {
             await PrebuildActions();
 
@@ -84,7 +76,7 @@ namespace Publisher
             return await BuildCommands(buildCommand);
         }
 
-        private ProcessStartInfo GetPSI(string buildCommand)
+        private static ProcessStartInfo GetPSI(string buildCommand)
         {
             return new ProcessStartInfo() {
                 FileName = GetShellPath(),
@@ -97,7 +89,7 @@ namespace Publisher
             };
         }
 
-        private async Task<bool> BuildCommands(string buildCommand)
+        private static async Task<bool> BuildCommands(string buildCommand)
         {
             var psi = GetPSI(buildCommand);
 
@@ -109,7 +101,7 @@ namespace Publisher
             return true;
 
         }
-        private void HandleInvalidExitCodeIfPresent(int ExitCode, List<string> STDErr) 
+        private static void HandleInvalidExitCodeIfPresent(int ExitCode, List<string> STDErr) 
         {
             if (ExitCode != 0) {
 
@@ -130,7 +122,53 @@ namespace Publisher
                 );
             }
         }
+        
+        public async Task<bool> HandlePackaging(string desiredBuildProcess) 
+        {
+            return desiredBuildProcess switch
+            {
+                "Debian Package (.deb)" => await BuildDebianPackage(),
+                "Fedora Package (.rpm)" => await BuildFedoraPackage(),
+                "Arch Package (.pkg.tar.xz)" => await BuildArchPackage(),
+                "Gentoo Package (.tbz2)" => await BuildGentooPackage(),
+                "Standalone Binary" => await BuildStandaloneBinary(),
+                "Windows Installer" => await BuildStandaloneBinary(),
+                _ => WriteErrorAndReturnBool(
+                        message: "Invalid option selected, please try again.",
+                        returnBool: false
+                    ),
+            };
+        }
 
+        public static void SetSelectedOS(string desiredBuildProcess, out string selectedOS) 
+        {
+            selectedOS = string.Empty;
+
+            switch (desiredBuildProcess) {
+                case "Debian Package (.deb)":
+                case "Fedora Package (.rpm)":
+                case "Arch Package (.pkg.tar.xz)":
+                case "Gentoo Package (.tbz2)":
+                    selectedOS = "Linux";
+                    break;
+                
+                case "Standalone Binary":
+                    string[] options = [.. GetAvailableOSNames()];
+                    selectedOS = Input.WriteListFromOptions(options, "operating system", pageSize: options.Length);
+                    break;
+
+                case "Windows Installer":
+                    selectedOS = "Windows";
+                    break;
+                
+                default:
+                    WriteAndExit(
+                        message: "Invalid option selected, please try again.", 
+                        status: 1
+                    );
+                    break;
+            }
+        }
 
     }
 }
