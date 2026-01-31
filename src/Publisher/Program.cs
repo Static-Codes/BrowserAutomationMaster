@@ -10,8 +10,9 @@ using System.Runtime.InteropServices;
 SetPlatform();
 await InitializeAsync(["--nohwc"]);
 
-await SourceControl.DownloadSourceOfLatestRelease();
-Environment.Exit(0);
+
+// Download latest release of source
+await SourceControl.DownloadSourceOfLatestRelease(args);
 
 string[] packagingOptions = [
     "Debian Package (.deb)",

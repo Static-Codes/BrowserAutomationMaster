@@ -31,7 +31,7 @@ namespace Publisher
             return latest?.TagName ?? null; 
         }
 
-        public static async Task<bool> DownloadSourceOfLatestRelease()
+        public static async Task<bool> DownloadSourceOfLatestRelease(string[] args)
         {
             try 
             {
@@ -41,8 +41,6 @@ namespace Publisher
                 var chosenDownload = LatestRelease.Downloads.Where(
                     download => download.URL.EndsWith(chosenFileType)
                 ).First();
-
-                Console.WriteLine(chosenDownload.URL);
 
                 var sourceBytes = await Instance.GetByteArrayAsync(
                     requestUri: chosenDownload.URL, 
@@ -81,10 +79,20 @@ namespace Publisher
 
                 var sourceFilePath = Path.Join(sourceDirectory, sourceFileName);
 
-                var noConfirmationRequired = !File.Exists(sourceFilePath);
+                var useExistingDownload = args.Any(arg => arg.Equals("--no-download"));
+
+                var filePresent = File.Exists(sourceFilePath);
+
+                if (useExistingDownload && filePresent)
+                {
+                    Warning.Write($"{NLC}Download skipped, using codebase at: {sourceFilePath}");
+                    return true;
+                }
+
+
 
                 // If the file doesn't already exist, the contents can safely be written to disk.
-                if (noConfirmationRequired) 
+                if (!filePresent)
                 {
                     Warning.Write("Writing the BAMM Codebase to disk, please wait..");
                     File.WriteAllBytes(sourceFilePath, sourceBytes);
