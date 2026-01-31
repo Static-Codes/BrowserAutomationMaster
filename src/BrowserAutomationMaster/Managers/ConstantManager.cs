@@ -9,6 +9,7 @@ namespace BrowserAutomationMaster.Managers
         public static readonly string eNLC = NLC.Replace("\r", "\\r").Replace("\n", "\\n");
         public const string DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/147.0";
         public const string BASE_REPO_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/";
+        public const string BASE_SOURCE_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/archive/refs/tags/";
         public const string DOCUMENTATION_LINK = "https://static-codes.github.io/BAMM-Docs/";
         public const string ISSUES_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/issues";
         public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
