@@ -54,15 +54,6 @@ namespace Publisher
 
         ];
 
-        public string[] LinuxOptions = [
-            "Debian Package (.deb)",
-            "Fedora Package (.rpm)",
-            "Arch Package (.pkg.tar.xz)",
-            "Gentoo Package (.tbz2)",
-            "Standalone Binary"
-        ];
-
-
         public static List<string> GetAvailableOSNames()
         {
             return [.. PlatformOptions.Select(platform => platform.OSName)];

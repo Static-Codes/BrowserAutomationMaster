@@ -10,6 +10,18 @@ namespace Publisher
     {
         private readonly PlatformOption platformOption = platformOption;
         
+        public Dictionary<string, Task<bool>> GeneratePackagingOptions() 
+        {
+            return new() 
+            {
+                { "Debian Package (.deb)", BuildDebianPackage() },
+                { "Fedora Package (.rpm)", BuildFedoraPackage() },
+                { "Arch Package (.pkg.tar.xz)", BuildArchPackage() },
+                { "Gentoo Package (.tbz2)", BuildGentooPackage() },
+                { "Standalone Binary", BuildStandaloneBinary() },
+            };
+        }
+
         private async Task PrebuildActions() 
         {
             if (!await DotnetIsInstalled()) 
@@ -37,9 +49,16 @@ namespace Publisher
             return true;   
         }
 
-        public async Task<bool> BuildDebianPackage() {
-            await Task.Delay(1);
-            return true;   
+        public async Task<bool> BuildDebianPackage() 
+        {
+            await PrebuildActions();
+
+            var buildCommand = string.Join(' ', [
+                $"dotnet deb --runtime {platformOption.ArchitectureInfo.RID}",
+                "--configuration Release -- -p:BuildDebPackage=true",
+            ]);
+            
+            return await BuildCommands(buildCommand);
         }
 
         public async Task<bool> BuildFedoraPackage() {
@@ -62,7 +81,12 @@ namespace Publisher
                 "--self-contained true\""
             ]);
 
-            var psi = new ProcessStartInfo() {
+            return await BuildCommands(buildCommand);
+        }
+
+        private ProcessStartInfo GetPSI(string buildCommand)
+        {
+            return new ProcessStartInfo() {
                 FileName = GetShellPath(),
                 Arguments = $"{GetShellArg()} {buildCommand}",
                 RedirectStandardError = true,
@@ -71,13 +95,26 @@ namespace Publisher
                 UseShellExecute = false,
                 CreateNoWindow = true,
             };
+        }
+
+        private async Task<bool> BuildCommands(string buildCommand)
+        {
+            var psi = GetPSI(buildCommand);
 
             using var process = await ProcessFactory.SpawnProcess(psi, "attempting to build the standalone binary for BAMM");
             var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
             
+            HandleInvalidExitCodeIfPresent(ExitCode, STDErr);
+            
+            return true;
+
+        }
+        private void HandleInvalidExitCodeIfPresent(int ExitCode, List<string> STDErr) 
+        {
             if (ExitCode != 0) {
 
-                var errorLog = (STDErr != null) switch {
+                var errorLog = (STDErr != null) switch 
+                {
                     true => string.Join(NLC, STDErr),
                     false => $"the {GetWhichCommand()} returned a non zero status code: {ExitCode}"
                 };
@@ -92,10 +129,6 @@ namespace Publisher
                     status: 1
                 );
             }
-            
-            return true;
-
-            
         }
 
 

@@ -11,6 +11,16 @@ SetPlatform();
 await InitializeAsync(["--nohwc"]);
 
 
+string[] packagingOptions = [
+    "Debian Package (.deb)",
+    "Fedora Package (.rpm)",
+    "Arch Package (.pkg.tar.xz)",
+    "Gentoo Package (.tbz2)",
+    "Standalone Binary"
+];
+
+string desiredBuildProcess = Input.WriteListFromOptions(packagingOptions, "build process");
+
 string[] availableOSNames = [.. GetAvailableOSNames() ];
 string selectedOS = Input.WriteListFromOptions(availableOSNames, "operating system");
 
