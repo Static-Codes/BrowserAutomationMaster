@@ -88,7 +88,14 @@ namespace BrowserAutomationMaster.Managers
                 );
                 return null;
             }
-            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
+
+            bool[] invalidStates = [
+                !packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings), 
+                packageVersionMappings == null
+            ];
+
+            // Checking if any of the invalidStates are true.
+            if (invalidStates.Any(state => state))
             {
                 WriteAndExit(
                     message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
@@ -96,7 +103,9 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
-            List<string> supportedPackageVersions = [.. packageVersionMappings
+            // Null forgiveness is used here because: 
+            // The null check done in invalidStates is not seen by the compile due to the manner in which it was handled.
+            List<string> supportedPackageVersions = [.. packageVersionMappings!
                 .Where(pair => pair.Value != null && pair.Value.Contains(pythonVersion))
                 .Select(pair => pair.Key)];
 
