@@ -13,6 +13,10 @@ using System.Runtime.InteropServices;
 SetPlatform();
 await InitializeAsync(["--nohwc"]);
 
+if (Platforms.IsRaspi || Platforms.IsARMel || Platforms.IsARMhf || Platforms.IsChromeOS) {
+    Warning.Write("Your system was determined to be potentially underpowered for the purposed of compiling BAMM from source.");
+    Warning.Write("If you experience build related issues, please try a more powerful system.");
+};
 
 var archiveFileType = SetArchiveFileType();
 
