@@ -103,11 +103,11 @@ namespace Publisher
                 // Add code here to execute UnixFilePermissionManager.SetExecutablePermissions() on Platforms.IsUnixLike systems.
                 // Also a warning for all compilations on Raspi Devices.
 
-                if (Platforms.IsUnixLike) {
-                    Console.WriteLine("Permissions Set: {0}", 
-                        UnixFilePermissionManager.SetExecutablePermissions(finalBinaryPath)
-                    );
-                }
+                // if (Platforms.IsUnixLike) {
+                //     Console.WriteLine("Permissions Set: {0}", 
+                //         UnixFilePermissionManager.SetExecutablePermissions(finalBinaryPath)
+                //     );
+                // }
             }
 
             catch (Exception ex) 
