@@ -386,6 +386,24 @@ namespace BrowserAutomationMaster.Managers
             return Path.Combine(AppDataDirectory, "neofetch.tmp");
         }
         
+        public static string GetSourceDirectory() 
+        {
+            // This will be modified if it does not resolve from DirectoryManager.
+            var AppDataPath = AppDataDirectory;
+                
+            if (AppDataPath == null) {
+                Write("DirectoryManager.AppDataDirectory could not be resolved.");
+                AppDataPath = Input.AskForInput("Please enter the directory to save the BAMM codebase.");
+            }
+
+            if (!Directory.Exists(AppDataPath)) 
+            {
+                WriteAndExit("DirectoryManager.AppDataPath could not be resolved, please try another directory.", 1);
+            }
+
+            return Path.Join(AppDataPath, "source");
+        }
+
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
 
         // ~/.config/BrowserAutomationMaster

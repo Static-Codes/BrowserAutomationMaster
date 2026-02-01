@@ -212,7 +212,8 @@ namespace BrowserAutomationMaster.Managers
                             
                         outputLines.Add(args.Data);
 
-                        if (writeSTDInOut && !whiteOutput) {
+                        // "declare -x ..." is returned when the which command is executed.
+                        if (writeSTDInOut && !whiteOutput && !args.Data.StartsWith("declare -x")) {
                             WriteSuccessMessage(args.Data + '\n');
                         }
 

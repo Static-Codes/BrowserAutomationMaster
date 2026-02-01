@@ -24,8 +24,8 @@ namespace Publisher
             using var process = await ProcessFactory.SpawnProcess(psi, "checking for the dotnet SDK binary", timeout: 20);
             var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
 
-            if (ExitCode != 0) {
-
+            if (ExitCode != 0) 
+            {
                 var errorLog = (STDErr != null) switch {
                     true => string.Join(NLC, STDErr),
                     false => $"the {GetWhichCommand()} returned a non zero status code: {ExitCode}"
@@ -41,7 +41,7 @@ namespace Publisher
                     status: 1
                 );
             }
-
+            
             if (STDOut.Count == 1 && STDOut[0].Contains("dotnet")) 
             {
                 return true;

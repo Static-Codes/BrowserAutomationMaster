@@ -19,6 +19,8 @@ namespace Publisher
         public static Source LatestRelease = new Source(
             Downloads: [.. FileTypes.Select(fileType => new Download(fileType))]
         );
+        public static string SetArchiveFileType() => Input.WriteListFromOptions(FileTypes, "desired file type for the source");
+
 
         public static async Task<string?> DetermineLatestReleaseTag() 
         {
@@ -31,16 +33,35 @@ namespace Publisher
             return latest?.TagName ?? null; 
         }
 
-        public static async Task<bool> DownloadSourceOfLatestRelease(string[] args)
+        public static async Task<string?> DownloadSourceOfLatestRelease(string[] args, string archiveFileType)
         {
+            string? sourceFilePath = null;
             try 
             {
-                var chosenFileType = Input.WriteListFromOptions(FileTypes, "file type for the downloaded source");
-                
                 // This should not throw an exception because the user is only allowed to choose between two filetypes.
                 var chosenDownload = LatestRelease.Downloads.Where(
-                    download => download.URL.EndsWith(chosenFileType)
+                    download => download.URL.EndsWith(archiveFileType)
                 ).First();
+
+                var sourceDirectory = GetSourceDirectory();
+
+                // Writing the sourceDirectory if it doesn't already exist.
+                EnsureDirectoryExists(sourceDirectory);
+
+                var sourceFileName = Path.GetFileName(chosenDownload.URL) ?? $"BAMM-Source{chosenDownload.FileType}";
+
+                sourceFilePath = Path.Join(sourceDirectory, sourceFileName);
+
+                // Skipping download logic
+                var useExistingDownload = args.Any(arg => arg.Equals("--no-download"));
+                
+                var filePresent = File.Exists(sourceFilePath);
+
+                if (useExistingDownload || filePresent)
+                {
+                    Warning.Write($"{NLC}Download skipped, codebase at: {sourceFilePath}");
+                    return sourceFilePath;
+                }
 
                 var sourceBytes = await Instance.GetByteArrayAsync(
                     requestUri: chosenDownload.URL, 
@@ -57,37 +78,7 @@ namespace Publisher
                     );
                 }
 
-                // This will be modified if it does not resolve from DirectoryManager.
-                var AppDataPath = AppDataDirectory;
                 
-                if (AppDataPath == null) {
-                    Errors.Write("DirectoryManager.AppDataDirectory could not be resolved.");
-                    AppDataPath = Input.AskForInput("Please enter the directory to save the BAMM codebase.");
-                }
-
-                if (!Directory.Exists(AppDataPath)) 
-                {
-                    Errors.WriteAndExit("DirectoryManager.AppDataPath could not be resolved, please try another directory.", 1);
-                }
-
-                var sourceDirectory = Path.Join(AppDataPath, "source");
-
-                // Writing the sourceDirectory if it doesn't already exist.
-                EnsureDirectoryExists(sourceDirectory);
-
-                var sourceFileName = Path.GetFileName(chosenDownload.URL) ?? $"BAMM-Source{chosenDownload.FileType}";
-
-                var sourceFilePath = Path.Join(sourceDirectory, sourceFileName);
-
-                var useExistingDownload = args.Any(arg => arg.Equals("--no-download"));
-
-                var filePresent = File.Exists(sourceFilePath);
-
-                if (useExistingDownload && filePresent)
-                {
-                    Warning.Write($"{NLC}Download skipped, using codebase at: {sourceFilePath}");
-                    return true;
-                }
 
 
 
@@ -98,7 +89,7 @@ namespace Publisher
                     File.WriteAllBytes(sourceFilePath, sourceBytes);
                     Success.WriteSuccessMessage("Operation successful!");
                     Warning.Write($"{NLC}Codebase Location: {sourceFilePath}");
-                    return true;
+                    return sourceFilePath;
                 }
 
 
@@ -113,26 +104,26 @@ namespace Publisher
                 }
 
                 Success.WriteSuccessMessage("The archive overwrite operation has been authorized, please wait..");
-                Warning.Write("Writing the BAMM Codebase to disk, please wait..");
+                Warning.Write("Writing the BAMM Codebase archive to disk, please wait..");
                 File.WriteAllBytes(sourceFilePath, sourceBytes);
                 Success.WriteSuccessMessage("Operation successful!");
-                Warning.Write($"{NLC}Codebase Location: {sourceFilePath}");
+                Warning.Write($"{NLC}Archive Location: {sourceFilePath}");
             }
 
             catch (Exception ex) 
             {
-                return Errors.WriteErrorAndReturnBool(
+                Errors.WriteAndExit(
                     message: string.Join(NLC, [
                         "An unknown exception occured while writing the BAMM Codebase to disk.",
                         "Error Log:",
                         NLC,
                         ex.Message ?? ex.StackTrace
                     ]),
-                    returnBool: false
+                    status: 1
                 );
             }
 
-            return true;
+            return sourceFilePath;
         }
 
     }

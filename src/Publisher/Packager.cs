@@ -2,6 +2,7 @@ using System.Diagnostics;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
@@ -36,34 +37,46 @@ namespace Publisher
             }
         }
         
-        private async Task<bool> BuildArchPackage() {
+        private async Task<bool> BuildArchPackage(string workingDir) {
             await Task.Delay(1);
             return true;   
         }
-
-        private async Task<bool> BuildDebianPackage() 
+        
+        private async Task<bool> BuildDebianPackage(string workingDir) 
         {
+
             await PrebuildActions();
 
             var buildCommand = string.Join(' ', [
-                $"dotnet deb --runtime {platformOption.ArchitectureInfo.RID}",
-                "--configuration Release -- -p:BuildDebPackage=true",
+                GetRollForwardCommand(),
+                $"\"dotnet deb --runtime {platformOption.ArchitectureInfo.RID}",
+                // "-v diagnostic",
+                "--configuration Release -- -p:BuildDebPackage=true\"",
             ]);
             
-            return await BuildCommands(buildCommand);
+            Warning.Write("Building Debian package, please wait...");
+            return await BuildCommands(buildCommand, workingDir);
         }
 
-        private async Task<bool> BuildFedoraPackage() {
+        private async Task<bool> BuildFedoraPackage(string workingDir) {
+            await PrebuildActions();
+
+            var buildCommand = string.Join(' ', [
+                GetRollForwardCommand(),
+                $"\"dotnet rpm --runtime {platformOption.ArchitectureInfo.RID}",
+                // "-v diagnostic",
+                "--configuration Release -- -p:BuildRpmPackage=true\"",
+            ]);
+            
+            return await BuildCommands(buildCommand, workingDir);
+        }
+
+        private async Task<bool> BuildGentooPackage(string workingDir) {
             await Task.Delay(1);
             return true;   
         }
 
-        private async Task<bool> BuildGentooPackage() {
-            await Task.Delay(1);
-            return true;   
-        }
-
-        private async Task<bool> BuildStandaloneBinary()
+        private async Task<bool> BuildStandaloneBinary(string workingDir)
         {
             await PrebuildActions();
 
@@ -73,10 +86,16 @@ namespace Publisher
                 "--self-contained true\""
             ]);
 
-            return await BuildCommands(buildCommand);
+            return await BuildCommands(buildCommand, workingDir);
         }
 
-        private static ProcessStartInfo GetPSI(string buildCommand)
+        private async Task<bool> BuildWindowsInstaller(string workingDir) 
+        {
+            await BuildStandaloneBinary(workingDir);
+            // DO .ISS logic here
+            return true;
+        }
+        private static ProcessStartInfo GetPSI(string buildCommand, string workingDir)
         {
             return new ProcessStartInfo() {
                 FileName = GetShellPath(),
@@ -86,21 +105,36 @@ namespace Publisher
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
+                WorkingDirectory = workingDir
             };
         }
 
-        private static async Task<bool> BuildCommands(string buildCommand)
+        private static string GetRollForwardCommand()
         {
-            var psi = GetPSI(buildCommand);
+            // dotnet-deb and dotnet-rpm are still on .NET 9 as of 01/31/2026
+            return Platforms.IsWindows switch {
+                true => "set DOTNET_ROLL_FORWARD=Major &&",
+                false => "export DOTNET_ROLL_FORWARD=Major &&", 
+            };
+        }
 
-            using var process = await ProcessFactory.SpawnProcess(psi, "attempting to build the standalone binary for BAMM");
+        private static async Task<bool> BuildCommands(string buildCommand, string workingDir)
+        {
+            var psi = GetPSI(buildCommand, workingDir);
+
+            using var process = await ProcessFactory.SpawnProcess(psi, "attempting to package BAMM");
             var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
             
             HandleInvalidExitCodeIfPresent(ExitCode, STDErr);
+
+            Console.WriteLine(string.Join(NLC, STDOut));
+
+            // Success.WriteSuccessMessage("Successfully built Debian package at: ");
             
             return true;
 
         }
+
         private static void HandleInvalidExitCodeIfPresent(int ExitCode, List<string> STDErr) 
         {
             if (ExitCode != 0) {
@@ -123,16 +157,16 @@ namespace Publisher
             }
         }
         
-        public async Task<bool> HandlePackaging(string desiredBuildProcess) 
+        public async Task<bool> HandlePackaging(string desiredBuildProcess, string workingDir) 
         {
             return desiredBuildProcess switch
             {
-                "Debian Package (.deb)" => await BuildDebianPackage(),
-                "Fedora Package (.rpm)" => await BuildFedoraPackage(),
-                "Arch Package (.pkg.tar.xz)" => await BuildArchPackage(),
-                "Gentoo Package (.tbz2)" => await BuildGentooPackage(),
-                "Standalone Binary" => await BuildStandaloneBinary(),
-                "Windows Installer" => await BuildStandaloneBinary(),
+                "Debian Package (.deb)" => await BuildDebianPackage(workingDir),
+                "Fedora Package (.rpm)" => await BuildFedoraPackage(workingDir),
+                "Arch Package (.pkg.tar.xz)" => await BuildArchPackage(workingDir),
+                "Gentoo Package (.tbz2)" => await BuildGentooPackage(workingDir),
+                "Standalone Binary" => await BuildStandaloneBinary(workingDir),
+                "Windows Installer" => await BuildWindowsInstaller(workingDir),
                 _ => WriteErrorAndReturnBool(
                         message: "Invalid option selected, please try again.",
                         returnBool: false

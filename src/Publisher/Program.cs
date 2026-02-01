@@ -1,9 +1,12 @@
-using Publisher;
-using static Publisher.PlatformSelection;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.ProgramFunctions;
+using static Publisher.PlatformSelection;
+using static Publisher.SourceControl;
 using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers;
+using Publisher;
 using System.Runtime.InteropServices;
 
 // Logic from Main application around colored text.
@@ -11,8 +14,40 @@ SetPlatform();
 await InitializeAsync(["--nohwc"]);
 
 
+var archiveFileType = SetArchiveFileType();
+
 // Download latest release of source
-await SourceControl.DownloadSourceOfLatestRelease(args);
+var archiveFilePath = await DownloadSourceOfLatestRelease(args, archiveFileType);
+
+if (archiveFilePath == null) {
+    WriteAndExit(
+        message: "Unable to locate the BAMM codebase archive, please try again.", 
+        status: 1
+    );
+}
+
+
+var archiveManager = new ArchiveManager(archiveFileType, archiveFilePath);
+
+// Removes the starting "v" in "v1.0.0A(X)"
+var tagWithoutVersionMarker = LatestTag != null ? LatestTag[1..] : "Source";
+ 
+var codebaseSourceDir = Path.Join(
+    GetSourceDirectory(),
+    $"BrowserAutomationMaster-{tagWithoutVersionMarker}/"
+);
+
+// While this exits in the event an exception is thrown:
+// Directory.Exists(codebaseSourceDir) can potentially return false.
+if (!archiveManager.UnarchiveFile(args, codebaseSourceDir)) 
+{
+    WriteAndExit(
+        message: "Unable to locate the BAMM codebase source directory, please try again.", 
+        status: 1
+    );
+}
+
+var workingDir = Path.Join(codebaseSourceDir, "src/BrowserAutomationMaster");
 
 string[] packagingOptions = [
     "Debian Package (.deb)",
@@ -51,4 +86,4 @@ var platformOption = new PlatformOption() {
 };
 
 var packager = new Packager(platformOption); 
-await packager.HandlePackaging(desiredBuildProcess);
+await packager.HandlePackaging(desiredBuildProcess, workingDir);
