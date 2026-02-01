@@ -404,6 +404,14 @@ namespace BrowserAutomationMaster.Managers
             return Path.Join(AppDataPath, "source");
         }
 
+        public static string GetSourceBuildsDirectory() 
+        {
+            var sourceDir = GetSourceDirectory();
+            var sourceBuildsDir = Path.Join(sourceDir, "builds");
+            EnsureDirectoryExists(sourceBuildsDir);
+            return sourceBuildsDir;
+        }
+        
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
 
         // ~/.config/BrowserAutomationMaster

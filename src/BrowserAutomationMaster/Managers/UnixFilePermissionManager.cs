@@ -20,7 +20,7 @@ namespace BrowserAutomationMaster.Managers
         // If successful, chmod() returns 0.
         // If unsuccessful, chmod() returns -1
         // https://www.ibm.com/docs/en/zos/2.1.0?topic=functions-chmod-change-mode-file-directory#rtchm
-        private static partial int chmod(string pathname, uint mode);
+        private static partial int chmod(string pathname, UInt32 mode);
 
         // X_OK is a Bitmask for the libc "Execute" permission, where:
         // 1 = Permission Denied
@@ -34,7 +34,7 @@ namespace BrowserAutomationMaster.Managers
         // Docs: https://www.ibm.com/docs/en/zos/2.1.0?topic=functions-chmod-change-mode-file-directory#rtchm
         
         // Since C# interprets Octals as Decimals, 0755 must be written as it's hex representation.
-        private const uint READ_WRITE_EXECUTE_MODE = 0x1ED;
+        private const UInt32 READ_WRITE_EXECUTE_MODE = 0x1ED;
 
         public static bool HasExecutablePermissions(string filePath) {
             return access(filePath, X_OK) == 0;

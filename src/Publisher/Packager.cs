@@ -1,11 +1,14 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
+using YamlDotNet.Core.Events;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -47,12 +50,78 @@ namespace Publisher
             }
         }
         
-        private async Task<(bool, string?)>BuildArchPackage(string workingDir) {
+
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Platforms.IsUnixLike handles checks.")]
+        private async Task<(bool, string?)> BuildArchPackage(string workingDir) 
+        {
             await PrebuildActions();
 
-            await BuildStandaloneBinary(workingDir);
-            // return await StartBuild(buildCommand, workingDir);
-            return (true, null);
+            (var compilationStatus, var compiledBinaryPath) = await BuildStandaloneBinary(workingDir);
+
+            if (!compilationStatus || compiledBinaryPath == null) {
+                WriteAndExit("Binary compilation failed, please try again.", 1);
+            }
+
+            var archBuild = new ArchBuild() {
+                binaryPath = compiledBinaryPath
+            };
+
+            var sourceBuildsDir = GetSourceBuildsDirectory();
+            
+
+            var archBuildDir = Path.Combine(sourceBuildsDir, "arch");
+            // Dont include this in the refactoring of EnsureDirectoryExists usage
+            EnsureDirectoryExists(archBuildDir);
+
+            var PKGBUILDPath = Path.Combine(archBuildDir, "PKGBUILD");
+
+            var finalBinaryPath = Path.Combine(archBuildDir, "bamm");
+
+            (var pkgBuildStatus, var binaryStream) = await archBuild.WritePKGBUILDFile(PKGBUILDPath);
+
+            if (!pkgBuildStatus || binaryStream == null) {
+                WriteAndExit("Failed to write PKGBUILD to disk.", 1);
+            }
+
+            if (binaryStream.CanSeek) {
+                binaryStream.Position = 0;
+            }
+
+            try 
+            {
+                using var finalBinaryStream = new FileStream(
+                    finalBinaryPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 4096,
+                    useAsync: true
+                );
+                await binaryStream.CopyToAsync(finalBinaryStream);
+                await finalBinaryStream.FlushAsync();
+
+                // Add code here to execute UnixFilePermissionManager.SetExecutablePermissions() on Platforms.IsUnixLike systems.
+                // Also a warning for all compilations on Raspi Devices.
+
+                if (Platforms.IsUnixLike) {
+                    Console.WriteLine("Permissions Set: {0}", 
+                        UnixFilePermissionManager.SetExecutablePermissions(finalBinaryPath)
+                    );
+                }
+            }
+
+            catch (Exception ex) 
+            {
+                WriteAndExit($"Error writing binary: {ex.Message}", 1);
+            }
+
+            finally 
+            {
+                // Since the stream is no longer needed it can be disposed of safely.
+                await binaryStream.DisposeAsync();
+            }
+
+            return (true, archBuildDir);
         }
         
         private async Task<(bool, string?)> BuildDebianPackage(string workingDir) 
@@ -71,7 +140,7 @@ namespace Publisher
             return await StartBuild(buildCommand, workingDir);
         }
 
-        private async Task<(bool, string?)>BuildFedoraPackage(string workingDir) {
+        private async Task<(bool, string?)> BuildFedoraPackage(string workingDir) {
             await PrebuildActions();
 
             var buildCommand = string.Join(' ', [
@@ -313,7 +382,7 @@ namespace Publisher
             """u8.ToArray();
 
         /// <summary>
-        /// <param name="outputPath">The path to the PKGBUILD file to be written to the system's disk.</param>
+        /// <param name="outputPath">outputPath: The path to the PKGBUILD file to be written to the system's disk.</param>
         /// <br />
         /// <returns>Returns a tuple: 
         /// <br />
@@ -322,13 +391,17 @@ namespace Publisher
         /// Item2: The Stream object with the contents of the binaryPath passed to ArchBuild
         /// </returns>
         /// </summary>
-        public async Task<(bool, Stream?)> WritePKGBUILDFile(string outputPath) 
+        public async Task<(bool, FileStream?)> WritePKGBUILDFile(string outputPath) 
         {
             var success = false;
-            Stream? stream = null;
+            FileStream? binaryStream = null;
+            FileStream? tempStream = null;
+            
             try 
             {
-                (var sha512Hash, var fileStream) = await Sha512SumsAndStream();
+                // Assigning a value to the already defined binaryStream
+                (var sha512Hash, binaryStream) = await Sha512SumsAndStream();
+
                 var NLCBytes = Encoding.UTF8.GetBytes(NLC);
                 
                 var staticFields = ReflectionHelper.GetStaticFieldsOfType<byte[]>(typeof(ArchBuild), false);
@@ -356,8 +429,9 @@ namespace Publisher
                     bytesWritten += NLCBytes.Length;
                 }
 
-                stream = new FileStream(outputPath, System.IO.FileMode.CreateNew);
-                await stream.WriteAsync(fileContents);
+                tempStream = new(outputPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read, 4096, true);
+
+                await tempStream.WriteAsync(fileContents);
                 success = true;
             }
 
@@ -373,7 +447,15 @@ namespace Publisher
                 );
             }
 
-            return (success, stream);
+            finally 
+            {
+                if (tempStream != null) {
+                    // Since the stream is no longer needed it can be disposed of safely.
+                    await tempStream.DisposeAsync();
+                }
+            }
+
+            return (success, binaryStream);
         }
 
     }
