@@ -49,9 +49,9 @@ namespace Publisher
 
             var buildCommand = string.Join(' ', [
                 GetRollForwardCommand(),
-                $"\"dotnet deb --runtime {platformOption.ArchitectureInfo.RID}",
+                $"dotnet deb --runtime {platformOption.ArchitectureInfo.RID}",
                 // "-v diagnostic",
-                "--configuration Release -- -p:BuildDebPackage=true\"",
+                "--configuration Release -- -p:BuildDebPackage=true",
             ]);
             
             Warning.Write("Building Debian package, please wait...");
@@ -63,9 +63,9 @@ namespace Publisher
 
             var buildCommand = string.Join(' ', [
                 GetRollForwardCommand(),
-                $"\"dotnet rpm --runtime {platformOption.ArchitectureInfo.RID}",
+                $"dotnet rpm --runtime {platformOption.ArchitectureInfo.RID}",
                 // "-v diagnostic",
-                "--configuration Release -- -p:BuildRpmPackage=true\"",
+                "--configuration Release -- -p:BuildRpmPackage=true",
             ]);
             
             return await BuildCommands(buildCommand, workingDir);
@@ -99,7 +99,7 @@ namespace Publisher
         {
             return new ProcessStartInfo() {
                 FileName = GetShellPath(),
-                Arguments = $"{GetShellArg()} {buildCommand}",
+                Arguments = $"{GetShellArg()} \"{buildCommand}\"",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -121,16 +121,15 @@ namespace Publisher
         private static async Task<bool> BuildCommands(string buildCommand, string workingDir)
         {
             var psi = GetPSI(buildCommand, workingDir);
-
+            
             using var process = await ProcessFactory.SpawnProcess(psi, "attempting to package BAMM");
             var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
             
             HandleInvalidExitCodeIfPresent(ExitCode, STDErr);
 
-            Console.WriteLine(string.Join(NLC, STDOut));
+            // Handling STDOut ("declare x" is shown on linux systems for env vars due the use of the "which" command)
+            Console.WriteLine(string.Join(NLC, STDOut.Where(line => !line.StartsWith("declare x"))));
 
-            // Success.WriteSuccessMessage("Successfully built Debian package at: ");
-            
             return true;
 
         }

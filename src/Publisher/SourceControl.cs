@@ -1,4 +1,3 @@
-using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
