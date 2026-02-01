@@ -29,9 +29,6 @@ namespace BrowserAutomationMaster.Managers
                 return true; 
             }
 
-            Console.WriteLine(noExtractionRequested);
-            Console.WriteLine(alreadyExtracted);
-
             return archiveType.Equals(".tar.gz") 
                 ? UnarchiveGZIP(codebaseSourceDir) 
                 : UnarchiveZip(codebaseSourceDir);

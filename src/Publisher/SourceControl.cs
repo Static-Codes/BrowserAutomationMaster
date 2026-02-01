@@ -78,10 +78,6 @@ namespace Publisher
                     );
                 }
 
-                
-
-
-
                 // If the file doesn't already exist, the contents can safely be written to disk.
                 if (!filePresent)
                 {
@@ -91,7 +87,6 @@ namespace Publisher
                     Warning.Write($"{NLC}Codebase Location: {sourceFilePath}");
                     return sourceFilePath;
                 }
-
 
                 Warning.Write($"A version of the BAMM Codebase exists at: {sourceFilePath}");
                 var confirmationStatus = Input.AskForInput("Would you like to overwrite the current archive? [y/n]: ");
