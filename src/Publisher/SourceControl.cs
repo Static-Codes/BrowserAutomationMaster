@@ -8,17 +8,18 @@ namespace Publisher
 {
     public class SourceControl 
     {
-        private static string[] FileTypes = new string[2] {
+        private static readonly string[] FileTypes = [
             ".tar.gz",
             ".zip"
-        };
+        ];
 
         public static string? LatestTag => DetermineLatestReleaseTag().Result;
         
-        public static Source LatestRelease = new Source(
+        public readonly static Source LatestRelease = new(
             Downloads: [.. FileTypes.Select(fileType => new Download(fileType))]
         );
-        public static string SetArchiveFileType() => Input.WriteListFromOptions(FileTypes, "desired file type for the source");
+
+        public static string SetArchiveFileType() => Input.WriteListFromOptions(FileTypes, "file type for the source");
 
 
         public static async Task<string?> DetermineLatestReleaseTag() 
