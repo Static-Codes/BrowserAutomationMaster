@@ -86,4 +86,7 @@ var platformOption = new PlatformOption() {
 };
 
 var packager = new Packager(platformOption); 
-await packager.HandlePackaging(desiredBuildProcess, workingDir);
+(var result, var binaryPath) = await packager.HandlePackaging(desiredBuildProcess, workingDir);
+
+Console.WriteLine(result);
+Console.WriteLine(binaryPath);

@@ -259,5 +259,15 @@ namespace BrowserAutomationMaster.Managers
         // Alloc-free calls do not support capture groups due the cost associated with heap allocation of capture groups.
         // @"(?:<main class=""LDZgRb"" jslog=""171177; metadata:)(.*)(?:;""\sjsdata=""PM4Exd;_;\$1"">)";
         
+
+        // Used in Publisher.Packager
+        [GeneratedRegex("Created DEB package '(.*)' from folder")]
+        public static partial Regex DebianPackageRegex();
+
+        [GeneratedRegex("Creating RPM package (.*)\\s")]
+        public static partial Regex FedoraPackageRegex();
+
+        [GeneratedRegex(@"->\s+(?<path>.*publish/)", RegexOptions.IgnoreCase)]
+        public static partial Regex StandaloneBinaryRegex();
     }
 }
