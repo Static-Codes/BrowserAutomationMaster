@@ -6,11 +6,11 @@ using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
-using YamlDotNet.Core.Events;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.UnixFilePermissionManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
@@ -88,7 +88,7 @@ namespace Publisher
             }
 
             try 
-            {
+            {   
                 using var finalBinaryStream = new FileStream(
                     finalBinaryPath,
                     FileMode.Create,
@@ -97,22 +97,50 @@ namespace Publisher
                     bufferSize: 4096,
                     useAsync: true
                 );
+
                 await binaryStream.CopyToAsync(finalBinaryStream);
                 await finalBinaryStream.FlushAsync();
 
-                // Add code here to execute UnixFilePermissionManager.SetExecutablePermissions() on Platforms.IsUnixLike systems.
                 // Also a warning for all compilations on Raspi Devices.
 
-                // if (Platforms.IsUnixLike) {
-                //     Console.WriteLine("Permissions Set: {0}", 
-                //         UnixFilePermissionManager.SetExecutablePermissions(finalBinaryPath)
-                //     );
-                // }
+
+                if (!Platforms.IsUnixLike) {
+                    WriteAndExit("Currently arch package compilation is only supported on Unix based systems. (Linux and macOS)", 1);
+                };
+
+                
+                // If the binary already has executable permissions (very unlikely), execution stops here.
+                if (HasExecutablePermissions(finalBinaryPath)) {
+                    return (true, finalBinaryPath);
+                }
+                
+                // If Linux's glibc or Apple's libc fail to give the binary executable permissions
+                // Another attempt is made using .NET's builtin UnixFileMode
+                if (!SetExecutablePermissions(finalBinaryPath))
+                {
+                    // Equivalent to 0755 (-rwxr-xr-x)
+                    var unixFileMode = (
+                        UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                        UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute
+                    );
+
+                    // This may throw an exception if the application was downloaded as root.
+                    File.SetUnixFileMode(finalBinaryPath, unixFileMode);
+                }
             }
 
             catch (Exception ex) 
             {
-                WriteAndExit($"Error writing binary: {ex.Message}", 1);
+                WriteAndExit
+                (
+                    message: string.Join(NLC, 
+                    [
+                        $"Error build Arch Package",
+                        "Error Log:",
+                        ex.Message
+                    ]), 
+                    status: 1
+                );
             }
 
             finally 
@@ -222,6 +250,18 @@ namespace Publisher
             }
         }
         
+        /// <summary>
+        /// Summary:<br/><br/>
+        /// Handles the packaging of BAMM from the downloaded codebase. <br/>
+        /// Params: <br/><br/>
+        /// <param name="desiredBuildProcess">desiredBuildProcess: <br/>- The selected process to execute.</param> <br/>
+        /// <param name="workingDir">workingDir: <br/>- The directory to execute the selected process.</param> <br/>
+        /// <returns> <br/>
+        /// Returns: <br/><br/>
+        /// Item1: <br/>- A boolean representing the packaging status <br/>
+        /// Item2: <br/>- The path to the package or build directory (This will be handled in Publisher.Program) <br/>
+        /// </returns>
+        /// </summary>
         public async Task<(bool, string?)> HandlePackaging(string desiredBuildProcess, string workingDir) 
         {
             return desiredBuildProcess switch
@@ -335,11 +375,11 @@ namespace Publisher
     public class ArchBuild
     {
         public required string binaryPath;
-        private readonly static byte[] pkgName = "pkgname=\"bamm\""u8.ToArray();
-        private readonly static byte[] pkgVer = "pkgver=\"1.0.0A8\""u8.ToArray();
-        private readonly static byte[] pkgDesc = "pkgdesc=\"BAM Manager (BAMM) is a Dynamic Scripting Language (DSL) that compiles into Python 3.9+ code.\""u8.ToArray();
+        private readonly static byte[] pkgName = "pkgname='bamm'"u8.ToArray();
+        private readonly static byte[] pkgVer = "pkgver='1.0.0A8'"u8.ToArray();
+        private readonly static byte[] pkgDesc = "pkgdesc='BAM Manager (BAMM) is a Dynamic Scripting Language (DSL) that compiles into Python 3.9+ code.'"u8.ToArray();
         private readonly static byte[] arch = "arch=('x86_x64' 'aarch64', 'armv7h')"u8.ToArray();
-        private readonly static byte[] license = "MIT"u8.ToArray();
+        private readonly static byte[] license = "license='MIT'"u8.ToArray();
         private readonly static byte[] depends = "depends=('icu' 'openssl' 'zlib' 'krb5' 'xclip')"u8.ToArray();
         private readonly static byte[] makeDepends = "makedepends=('dotnet-sdk') # Dotnet 10 is required for compilation"u8.ToArray();
         private async Task<(string, FileStream)> Sha512SumsAndStream() 
