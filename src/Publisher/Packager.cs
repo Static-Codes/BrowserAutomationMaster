@@ -102,8 +102,6 @@ namespace Publisher
                 await finalBinaryStream.FlushAsync();
 
                 // Also a warning for all compilations on Raspi Devices.
-
-
                 if (!Platforms.IsUnixLike) {
                     WriteAndExit("Currently arch package compilation is only supported on Unix based systems. (Linux and macOS)", 1);
                 };
@@ -444,10 +442,14 @@ namespace Publisher
 
                 var NLCBytes = Encoding.UTF8.GetBytes(NLC);
                 
-                var staticFields = ReflectionHelper.GetStaticFieldsOfType<byte[]>(typeof(ArchBuild), false);
+                var staticFields = ReflectionHelper.GetStaticFieldsOfType<byte[]>(
+                    outerType: typeof(ArchBuild), 
+                    publicOnly: false
+                );
                 
                 // Calculates sum of all field lengths + a newline for each field
                 int totalLength = 0;
+                
                 foreach (var field in staticFields) {
                     totalLength += field.Length + NLCBytes.Length;
                 }
@@ -469,7 +471,14 @@ namespace Publisher
                     bytesWritten += NLCBytes.Length;
                 }
 
-                tempStream = new(outputPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read, 4096, true);
+                tempStream = new(
+                    outputPath, 
+                    FileMode.Create, 
+                    FileAccess.ReadWrite, 
+                    FileShare.Read, 
+                    4096, 
+                    true
+                );
 
                 await tempStream.WriteAsync(fileContents);
                 success = true;
