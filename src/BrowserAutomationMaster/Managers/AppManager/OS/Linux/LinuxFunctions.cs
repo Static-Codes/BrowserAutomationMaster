@@ -57,11 +57,16 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         {
             try
             {
-                if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0) {
+                var totalAppCount = dpkgApps.Count + 
+                                    flatpakApps.Count + 
+                                    rpmApps.Count + 
+                                    pacmanApps.Count;
+
+                if (totalAppCount == 0) {
                     WriteAndExit(
                         message:
-                            "BAM Manager (BAMM) was unable to detect any of the following commands:\n\n" +
-                            "dpkg\nflatpak\nrpm\n",
+                            $"BAM Manager (BAMM) was unable to detect any of the following commands:{NLC}{NLC}" +
+                            "dpkg\nflatpak\nrpm\npacman\n",
                         status: 1
                     );
                 }
@@ -97,7 +102,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 }
 
                 AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
-                return [.. dpkgApps.Concat(flatpakApps).Concat(rpmApps).Distinct()];
+                return [.. dpkgApps
+                            .Concat(flatpakApps)
+                            .Concat(rpmApps)
+                            .Concat(pacmanApps)
+                            .Distinct()];
             }
 
             catch (Exception ex)
