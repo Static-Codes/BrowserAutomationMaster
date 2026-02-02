@@ -378,7 +378,7 @@ namespace Publisher
         private readonly static byte[] pkgDesc = "pkgdesc='BAM Manager (BAMM) is a Dynamic Scripting Language (DSL) that compiles into Python 3.9+ code.'"u8.ToArray();
         private readonly static byte[] arch = "arch=('x86_x64' 'aarch64', 'armv7h')"u8.ToArray();
         private readonly static byte[] license = "license='MIT'"u8.ToArray();
-        private readonly static byte[] depends = "depends=('icu' 'openssl' 'zlib' 'krb5' 'xclip')"u8.ToArray();
+        private readonly static byte[] depends = "depends=('python>3.8 python<3.16' 'which' 'icu' 'openssl' 'zlib' 'krb5' 'xclip')"u8.ToArray();
         private readonly static byte[] makeDepends = "makedepends=('dotnet-sdk') # Dotnet 10 is required for compilation"u8.ToArray();
         private async Task<(string, FileStream)> Sha512SumsAndStream() 
         {
