@@ -56,8 +56,6 @@ namespace BrowserAutomationMaster.Managers
                 WriteAndExit(exMessage, 1);
             }
         }
-
-
         private static async Task SetPackageData()
         {
             var baseMessage =
@@ -161,7 +159,10 @@ namespace BrowserAutomationMaster.Managers
 
             try
             {
-                if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { return false; }
+                if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { 
+                    return false; 
+                }
+                
                 RequestManager requestManager = Create(uriResult);
                 HttpResponseMessage? response = await requestManager.GetAsync(followRedirects: true);
                 

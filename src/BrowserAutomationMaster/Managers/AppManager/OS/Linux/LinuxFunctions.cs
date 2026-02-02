@@ -497,7 +497,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             try
             {
                 var apps = new List<AppInfo>();
-                (var output, var error) = RunCommand("pacman", "-Q");
+                var command = "-Ql | grep '/usr/bin/[^/]\\+$' | awk '{print $1, $2}' | sort -u -k1,1";
+                (var output, var error) = RunCommand("pacman", command);
                 foreach (var line in output.Split('\n'))
                 {
                     var parts = line.Trim().Split(' ');
@@ -507,8 +508,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                         apps.Add(
                             new AppInfo { 
                                 Name = parts[0], 
-                                Version = parts[1],
-                                Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
+                                Version = "",
+                                Path = parts[1],
                             }
                         );
                     }
