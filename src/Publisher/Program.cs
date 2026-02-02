@@ -92,5 +92,5 @@ var platformOption = new PlatformOption() {
 var packager = new Packager(platformOption); 
 (var result, var binaryPath) = await packager.HandlePackaging(desiredBuildProcess, workingDir);
 
-Console.WriteLine(result);
-Console.WriteLine(binaryPath);
+Console.WriteLine("Compilation Complete: {0}", result);
+Console.WriteLine("Path: {0}", binaryPath);
