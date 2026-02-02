@@ -29,11 +29,15 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         // Red Hat Package Manager
         public static readonly bool HasRPM = CommandExists("rpm");
 
+        public static readonly bool HasPacman = CommandExists("pacman");
+
         public static readonly List<AppInfo> dpkgApps = HasDPKG ? ParseDpkgList() : [];
 
         public static readonly List<AppInfo> flatpakApps = HasFlatpak ? ParseFlatpakList() : [];
 
         public static readonly List<AppInfo> rpmApps = HasRPM ? ParseRpmList() : [];
+
+        public static readonly List<AppInfo> pacmanApps = HasPacman ? ParsePacmanList() : [];
 
         public static readonly Dictionary<string, bool> RPIModels = new()
         {
@@ -66,7 +70,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 {
                     ("Debian Package Manager (dpkg)", dpkgApps),
                     ("Flatpak", flatpakApps),
-                    ("RedHat Package Manager (rpm)", rpmApps)
+                    ("RedHat Package Manager (rpm)", rpmApps),
+                    ("Pacman", pacmanApps)
                 };
 
 
@@ -476,6 +481,35 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             }
 
             return apps;
+        }
+
+        private static List<AppInfo> ParsePacmanList() 
+        {
+            try
+            {
+                var apps = new List<AppInfo>();
+                (var output, var error) = RunCommand("pacman", "-Q");
+                foreach (var line in output.Split('\n'))
+                {
+                    var parts = line.Trim().Split(' ');
+                    
+                    if (parts.Length >= 2)
+                    {
+                        apps.Add(
+                            new AppInfo { 
+                                Name = parts[0], 
+                                Version = parts[1],
+                                Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
+                            }
+                        );
+                    }
+                }
+                return apps;
+            }
+            catch { 
+                Write("Pacman not found, checking another method."); 
+                return []; 
+            }
         }
 
 
