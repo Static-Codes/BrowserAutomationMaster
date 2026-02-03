@@ -507,6 +507,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 (var output, var error) = RunCommand("pacman", command);
                 foreach (var line in output.Split('\n'))
                 {
+                    Console.WriteLine(line);
                     var parts = line.Trim().Split(' ');
                     
                     if (parts.Length >= 2)
