@@ -497,7 +497,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             try
             {
                 var apps = new List<AppInfo>();
-                var command = "-Ql | grep '/usr/bin/[^/]\\+$' | awk '{print $1, $2}' | sort -u -k1,1";
+                var command = "-Ql | grep '/usr/bin/[^/]' | awk '{print $1, $2}' | sort -u -k1,1";
                 (var output, var error) = RunCommand("pacman", command);
                 foreach (var line in output.Split('\n'))
                 {
