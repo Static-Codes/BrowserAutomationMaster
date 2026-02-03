@@ -99,12 +99,23 @@ Supported versions include:
             if (app == null || app.Name == null || app.Name.Length == 0) {
                 return;
             }
+            
+            // Arch specific case (May also work for UnixLike machines that are unconventional)
+            if (app.Path.Equals("/usr/bin/python"))  {
+                HandleArchLinuxPythonCheck();
+            }
 
+            // Uncomment these two when readding brave support
             // if (app.Name.Contains("brave", CCIC)) {
             //     Add(ApplicationNames.Brave);
             // }
 
-            else if (!pythonOnly && app.Name.Contains("chrome", CCIC)) {
+            // else if (!pythonOnly && app.Name.Contains("chrome", CCIC)) {
+            //     Add(ApplicationNames.Chrome);
+            // }
+            
+            // Delete this line if the above two checks are reintroduced.
+            if (!pythonOnly && app.Name.Contains("chrome", CCIC)) {
                 Add(ApplicationNames.Chrome);
             }
 
@@ -166,24 +177,38 @@ Supported versions include:
             AppNames = []; // This wont be reached, its purely to appease the compilers static nature.
         }
 
-        public static string GetMissingPyVersion()
+        public static string GetMissingPyVersion(string pythonVar = "python3")
         {
             if (!Platforms.IsUnixLike) {
                 return string.Empty;
             }
 
-            (var whichPyResp, _) = RunCommand("which", "python3");
+            (var whichPyResp, _) = RunCommand("which", pythonVar);
 
             if (string.IsNullOrEmpty(whichPyResp)) {
                 return string.Empty;
             }
 
-            (var pyVersionResp, _) = RunCommand("python3", "--version");
+            (var pyVersionResp, _) = RunCommand(pythonVar, "--version");
 
             Match pyVersionMatch = RegexManager.PyVersionRegex.Match(pyVersionResp);
 
             return pyVersionMatch.Success ? pyVersionMatch.Value : string.Empty;
 
+        }
+
+        private void HandleArchLinuxPythonCheck() 
+        {
+            var missingVersion = GetMissingPyVersion(pythonVar: "python");
+
+            if (string.IsNullOrEmpty(missingVersion)) {
+                WriteAndExit(NoPythonMessage, 1);
+            }
+
+            // This will return bool if successful, however:
+            // As a fallback ApplicationNames.Python3_X is returned, thus no check is required.
+            GetEnumMemberFromString(missingVersion, out ApplicationNames appName);
+            Add(appName);
         }
 
     }
