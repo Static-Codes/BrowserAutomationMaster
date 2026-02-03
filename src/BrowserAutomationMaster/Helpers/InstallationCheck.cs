@@ -101,7 +101,7 @@ Supported versions include:
             }
             
             // Arch specific case (May also work for UnixLike machines that are unconventional)
-            if (app.Path.Equals("/usr/bin/python"))  {
+            if (app.Name.Equals("python") && Platforms.IsLinux)  {
                 HandleArchLinuxPythonCheck();
             }
 
