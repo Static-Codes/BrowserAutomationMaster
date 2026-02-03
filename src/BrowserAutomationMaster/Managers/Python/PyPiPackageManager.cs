@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System.Net;
 using System.Text.Json;
-using System.Threading.Tasks;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
@@ -15,7 +9,7 @@ using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {
-    public partial class PackageManager
+    public partial class PyPiPackageManager
     {
         
         public readonly CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));
@@ -162,7 +156,7 @@ namespace BrowserAutomationMaster.Managers
                 if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { 
                     return false; 
                 }
-                
+
                 RequestManager requestManager = Create(uriResult);
                 HttpResponseMessage? response = await requestManager.GetAsync(followRedirects: true);
                 

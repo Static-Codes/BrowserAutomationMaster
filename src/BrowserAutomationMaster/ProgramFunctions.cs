@@ -46,9 +46,8 @@ namespace BrowserAutomationMaster
             // Sets PlatformManager.PlatformName to be used across the session duration.
             SetPlatform();
 
-            // Downloads a local copy of:
-            // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/main/stable/src/BrowserAutomationMaster/AppData/packages.json
-            await PackageManager.Initalize();
+            // Writes packages.json to disk (bundled with the binary in BrowserAutomationMaster.csproj)
+            await PyPiPackageManager.Initalize();
 
             // BUG FIXED: DO NOT CHANGE POSITION
             // If GlobalConfig is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
