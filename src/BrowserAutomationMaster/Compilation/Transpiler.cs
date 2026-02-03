@@ -249,9 +249,9 @@ namespace BrowserAutomationMaster.Compilation
 
             // Remove the import from this text once the function above is fixed.
             var watermarkText =
-                "stdout.write('''Made using BAM Manager (BAMM!)\n" +
-                $"{BASE_REPO_LINK}\n''')\n" +
-                $"sleep(3)\n\n";
+                $"stdout.write('''Made using BAM Manager (BAMM!){NLC}" +
+                $"{BASE_REPO_LINK}{NLC}'''){NLC}" +
+                $"sleep(3){NLC}{NLC}";
 
             script.Body.AddLine(watermarkText, 0);
         }
