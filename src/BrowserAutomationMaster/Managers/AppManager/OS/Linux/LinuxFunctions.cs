@@ -65,8 +65,14 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 if (totalAppCount == 0) {
                     WriteAndExit(
                         message:
-                            $"BAM Manager (BAMM) was unable to detect any of the following commands:{NLC}{NLC}" +
-                            "dpkg\nflatpak\nrpm\npacman\n",
+                            string.Join(NLC, [
+                                "BAM Manager (BAMM) was unable to detect any packages from the following package managers:",
+                                NLC,
+                                "- dpkg",
+                                "- flatpak", 
+                                "- rpm",
+                                "- pacman"
+                            ]),
                         status: 1
                     );
                 }
