@@ -503,11 +503,19 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             try
             {
                 var apps = new List<AppInfo>();
-                var command = "-Ql | grep '/usr/bin/[^/]' | awk '{print $1, $2}' | sort -u -k1,1";
-                (var output, var error) = RunCommand("pacman", command);
+                var command = string.Join(' ', [
+                    "-c",
+                    "\"pacman -Ql |", 
+                    "grep '/usr/bin/[^/]' |",
+                    "awk '{print $1, $2}' |", 
+                    "sort -u -k1,1\""
+                ]);
+
+                (var output, var error) = RunCommand("/bin/bash", command);
+                Console.WriteLine(output.Length);
+                
                 foreach (var line in output.Split('\n'))
                 {
-                    Console.WriteLine(line);
                     var parts = line.Trim().Split(' ');
                     
                     if (parts.Length >= 2)
