@@ -44,7 +44,7 @@ namespace BrowserAutomationMaster.Managers.AppManager
             InstallationsList = new Installations(AppInfoList);
 
             if (Platforms.IsLinux) {
-                await InstallRequiredLinuxPackages(AppInfoList);
+                await InstallRequiredLinuxPackages();
             }
         }
 
