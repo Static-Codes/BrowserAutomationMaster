@@ -416,7 +416,6 @@ namespace Publisher
 
         private readonly static byte[] package = """
             package() {
-                cp bamm "${srcdir}/bamm"
                 mkdir -p "${pkgdir}/usr/bin"
                 cp "${srcdir}/bamm" "${pkgdir}/usr/bin/bamm"
                 install -Dm755 "${srcdir}/bamm" "${pkgdir}/usr/bin/bamm"
