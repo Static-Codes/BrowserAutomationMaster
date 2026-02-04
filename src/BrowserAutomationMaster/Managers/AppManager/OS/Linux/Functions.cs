@@ -3,6 +3,7 @@ using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using YamlDotNet.Core.Tokens;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;
@@ -53,6 +54,23 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             { "Compute Module 4", true },
             { "Compute Module 4S", true }
         };
+
+        private static readonly string pyVerInputMessage = 
+        @"Supported versions include:
+            - Python 3.9.X
+            - Python 3.10.X
+            - Python 3.11.X
+            - Python 3.12.X
+            - Python 3.13.X
+            - Python 3.14.X
+            - Python 3.15.X (UNTESTED BUT HYPOTHETICALLY SUPPORTED)
+
+        Examples:
+            - Python 3.9
+            - Python 3.12.7
+            - Python 3.9.8
+
+        Version: ".Replace("            ", "");
 
         public static List<AppInfo> GetApps()
         {
@@ -323,7 +341,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         }
 
         // Installs the required packages and writes the required wheels to disks (if needed)
-        public static async Task InstallRequiredLinuxPackages(List<AppInfo> appsInfo)
+        public static async Task InstallRequiredLinuxPackages()
         {
             bool[] platformsThatRequireWheels = [
                 Platforms.IsARMel, 
@@ -344,23 +362,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 //     return;
                 // }
 
-                Warning.Write("Installing the Required Linux Packages (if not already installed), please wait up to 60 seconds");
+                Warning.Write("Querying packages, please wait...");
 
-                var inputMessage = @"Supported versions include:
-                    - Python 3.9.X
-                    - Python 3.10.X
-                    - Python 3.11.X
-                    - Python 3.12.X
-                    - Python 3.13.X
-                    - Python 3.14.X
-                    - Python 3.15.X (UNTESTED BUT HYPOTHETICALLY SUPPORTED)
-
-                    Examples:
-                    - Python 3.9
-                    - Python 3.12.7
-                    - Python 3.9.8
-
-                    Version: ".Replace("                    ", "");
+                
 
 
                 // Exits if Platforms.CurrentDistribution is null.
@@ -388,19 +392,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 while (pyVersion == null || !PyVersionRegex.IsMatch(pyVersion))
                 {
                     Warning.Write("Unable to detect the installed version of Python.");
-                    pyVersion = Input.AskForInput(inputMessage);
+                    pyVersion = Input.AskForInput(pyVerInputMessage);
                 }
-
-                // python3-dev is used for brotli and zstandard for compression and decompression
-                // var optionalPackages = GetBrowserStackStatus() ?
-                //     $"libffi-dev build-essential python{pyVersion.Replace("Python ", "")}-dev" :
-                //     string.Empty;
-
-                // string[] packages = [
-                //     "xclip", // Used for auto_copy_path
-                //     $"python{pyVersion.Replace("Python ", "")}-venv",  // Used for majority of BAMM to create vEnv(s)
-                //     optionalPackages
-                // ];
 
                 string[] requiredPackages = Platforms.CurrentDistribution!.RequiredPackages;
                 string[] optionalPackages = GetBrowserStackStatus() ? Platforms.CurrentDistribution!.OptionalPackages : [];
@@ -420,21 +413,25 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                     );
                 }
 
+                if (missingPackages.Count == 0) 
+                {
+                    WriteSuccessMessage("No additional package installations are required.");
+                    return;
+                }
+
                 string[] commands = new string[missingPackages.Count];
+
+                Warning.Write("Installing required packages:");
+                foreach (var package in missingPackages) {
+                    Console.WriteLine($"\t- {package}");
+                }
+
+                Write("You will be prompted for your super user password shortly.");
+                Thread.Sleep(500);
 
                 for (int i = 0; i < commands.Length; i++)
                 {
                     commands[i] = $"{installCMD} {packages[i]}\"";
-
-                    // var appInfo = new AppInfo() { 
-                    //     Name = packages[i],
-                    //     Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
-                    // };
-
-                    // // Skips pre-existing installations
-                    // if (appsInfo.Contains(appInfo)) {
-                    //     continue;
-                    // }
 
                     Warning.Write($"Installing package: {packages[i]}");
                     (var output, _) = RunCommand("/bin/bash", $"{commands[i]}");
@@ -442,8 +439,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 }
 
                 await DownloadWheels();
-                
-                // File.Create(linuxPackageFile);
             }
             catch (Exception e)
             {
