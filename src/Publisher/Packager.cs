@@ -411,7 +411,7 @@ namespace Publisher
             }
 
 
-            return (Encoding.UTF8.GetString(result), stream);
+            return (Convert.ToHexString(result).ToLowerInvariant(), stream);
         }
 
         private readonly static byte[] package = """
