@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,6 +7,7 @@ using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -58,11 +58,17 @@ namespace Publisher
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Platforms.IsUnixLike handles checks.")]
         private async Task<(bool, string?)> BuildArchPackage(string workingDir) 
         {
-            if (!Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.ArchLinux)) 
+            bool[] invalidStates = [
+                !Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.ArchLinux),
+                !Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian)
+            ];
+
+            // If both cases are true, execution haults, and an exception is thrown.
+            if (invalidStates.All(state => state)) 
             {
                 WriteAndExit(
                     message: string.Join(NLC, [
-                        "Packaging for Arch is only available on Arch Based distros, please pick another option."
+                        "Packaging for Arch is only available on Arch and Debian Based distros, please pick another option."
                     ]),
                     status: 1 
                 );
@@ -122,29 +128,30 @@ namespace Publisher
                 await finalBinaryStream.FlushAsync();
 
                 // Also a warning for all compilations on Raspi Devices.
-                if (!Platforms.IsUnixLike) {
+                if (!Platforms.IsLinux) {
                     WriteAndExit("Currently arch package compilation is only supported on Unix based systems. (Linux and macOS)", 1);
                 };
 
                 
-                // If the binary already has executable permissions (very unlikely), execution stops here.
-                if (HasExecutablePermissions(finalBinaryPath)) {
-                    // return (true, finalBinaryPath);
+                // If the binary doesn't has executable permissions, they are granted here.
+                if (!HasExecutablePermissions(finalBinaryPath)) 
+                {
+                    // If Linux's glibc or Apple's libc fail to give the binary executable permissions
+                    // Another attempt is made using .NET's builtin UnixFileMode
+                    if (!SetExecutablePermissions(finalBinaryPath))
+                    {
+                        // Equivalent to 0755 (-rwxr-xr-x)
+                        var unixFileMode = (
+                            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                            UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute
+                        );
+
+                        // This may throw an exception if the application was downloaded as root.
+                        File.SetUnixFileMode(finalBinaryPath, unixFileMode);
+                    }
                 }
                 
-                // If Linux's glibc or Apple's libc fail to give the binary executable permissions
-                // Another attempt is made using .NET's builtin UnixFileMode
-                if (!SetExecutablePermissions(finalBinaryPath))
-                {
-                    // Equivalent to 0755 (-rwxr-xr-x)
-                    var unixFileMode = (
-                        UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
-                        UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute
-                    );
-
-                    // This may throw an exception if the application was downloaded as root.
-                    File.SetUnixFileMode(finalBinaryPath, unixFileMode);
-                }
+                
             }
 
             catch (Exception ex) 
@@ -153,7 +160,7 @@ namespace Publisher
                 (
                     message: string.Join(NLC, 
                     [
-                        $"Error build Arch Package",
+                        $"Error building Arch Package",
                         "Error Log:",
                         ex.Message
                     ]), 
@@ -167,40 +174,27 @@ namespace Publisher
                 await binaryStream.DisposeAsync();
             }
 
-            try {
-                var isMissingMakePKG = !CommandExists("makepkg");
+            
+            string[] packages = 
+                Platforms.CurrentDistribution.BaseDistro.Equals(DistroBase.ArchLinux) ? 
+                ["pacman", "makepkg"] : 
+                ["pacman-package-manager", "makepkg", "libarchive-tools"];
+            
+            var missingPackages = await FindMissingPackages(packages);
 
-                if (isMissingMakePKG) {
-                    var installPrefix = Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
-                    {
-                        true => string.Join(' ', [
-                            "DEBIAN_FRONTEND=noninteractive", 
-                            Platforms.CurrentDistribution!.PackageManager,
-                            Platforms.CurrentDistribution.InstallCommand
-                        ]),
-
-                        _ => string.Join(' ', [
-                            Platforms.CurrentDistribution!.PackageManager,
-                            Platforms.CurrentDistribution.InstallCommand
-                        ])
-                    };
-
-                    var installArgs = $"-c \"sudo {installPrefix} makepkg\"";
-
-                    Warning.Write($"Installing makepkg");
-                    (var output, _) = RunCommand("/bin/bash", installArgs);
-                    Success.WriteSuccessMessage(output);
-                }
+            bool needsAptCacheRefresh = 
+                Platforms.CurrentDistribution.BaseDistro.Equals(DistroBase.Debian) &&
+                missingPackages.Contains("libarchive-tools");
+            
+            if (needsAptCacheRefresh) {
+                RefreshDebianAptCache();
             }
 
-            catch {
-                WriteAndExit("Failed to install makepkg, please ensure it is installed, then try again.", 1);
-            }
-
+            InstallMissingPackages([.. missingPackages]);
 
             var psi = new ProcessStartInfo() {
                 FileName = "makepkg",
-                Arguments = "-si",
+                Arguments = "-s --nodeps",
                 RedirectStandardInput = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
@@ -209,14 +203,14 @@ namespace Publisher
                 WorkingDirectory = archBuildDir
             };
 
-            using var process = await ProcessFactory.SpawnProcess(psi, "packaging bamm as an arch package");
+            using var process = await ProcessFactory.SpawnProcess(psi, "package bamm as an arch package");
             (var ExitCode, var STDOut, var STDErr) = await ProcessFactory.GetProcessResponse(process);
-            
-            if (ExitCode != 0) {
-                return (false, archBuildDir);
+
+            if (ExitCode == 0) {
+                return (true, archBuildDir);
             }
 
-            return (true, archBuildDir);
+            return (false, archBuildDir);
         }
         
         private async Task<(bool, string?)> BuildDebianPackage(string workingDir) 
@@ -347,6 +341,46 @@ namespace Publisher
                     null
                 )
             };
+        }
+
+        private static void InstallMissingPackage(string packageName) {
+            try 
+            {
+                var isMissingMakePKG = !CommandExists(packageName);
+
+                if (isMissingMakePKG) {
+                    var installPrefix = Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
+                    {
+                        true => string.Join(' ', [
+                            "DEBIAN_FRONTEND=noninteractive", 
+                            Platforms.CurrentDistribution!.PackageManager,
+                            Platforms.CurrentDistribution.InstallCommand
+                        ]),
+
+                        _ => string.Join(' ', [
+                            Platforms.CurrentDistribution!.PackageManager,
+                            Platforms.CurrentDistribution.InstallCommand
+                        ])
+                    };
+
+                    var installArgs = $"-c \"sudo {installPrefix} {packageName}\"";
+
+                    Warning.Write($"Installing {packageName}");
+                    (var output, _) = RunCommand("/bin/bash", installArgs);
+                    Success.WriteSuccessMessage(output);
+                }
+            }
+
+            catch {
+                WriteAndExit($"Failed to install {packageName}, please ensure it is installed, then try again.", 1);
+            }
+        }
+
+        private static void InstallMissingPackages(string[] packageNames) 
+        {
+            foreach (var packageName in packageNames) {
+                InstallMissingPackage(packageName);
+            }
         }
 
         public static void SetSelectedOS(string desiredBuildProcess, out string selectedOS) 

@@ -57,7 +57,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         string ReleaseIdentifier = "=",
         string? BackupReleaseCmd = null,
         string? BackupReleaseCmdArgs = null,
-        string? Description = null
+        string? Description = null,
+        string? InstallationKeyword = null
     ) 
     {
         public string Name { get; set; } = Name;
@@ -68,6 +69,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         public string UninstallCommand { get; private set; } = UninstallCommand;
         public string QueryCommand { get; private set; } = QueryCommand;
         public string QueryArguments { get; private set; } = QueryArguments;
+        public string? InstallationKeyword { get; private set; } = InstallationKeyword;
         public string[] RequiredPackages { get; private set; } = RequiredPackages;
         public string[] OptionalPackages { get; private set; } = OptionalPackages;
         public PackageType PackageType { get; private set; } = PackageType;
@@ -154,7 +156,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             InstallCommand: "install -y",
             UninstallCommand: "remove --purge -y",
             QueryCommand: "dpkg-query",
-            QueryArguments: "-W",
+            QueryArguments: "-W -f=${db:Status-Status}",
+            InstallationKeyword: "installed",
             RequiredPackages: [
                 "xclip",
                 "python3-venv"
@@ -173,22 +176,16 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             Name: "elementary OS",
             ID: "elementary", 
             BaseDistro: DistroBase.Debian, 
-            PackageManager: "apt-get",
-            InstallCommand: "install -y",
-            UninstallCommand: "remove --purge -y",
-            QueryCommand: "dpkg-query",
-            QueryArguments: "-W",
-            RequiredPackages: [
-                "xclip",
-                "python3-venv"
-            ],
-            OptionalPackages: [
-                "libffi-dev",
-                "build-essential",
-                "python3-dev",
-            ],
-            PackageType: PackageType.DEB,
-            InstallationType: InstallationType.Package
+            PackageManager: Debian.PackageManager,
+            InstallCommand: Debian.InstallCommand,
+            UninstallCommand: Debian.UninstallCommand,
+            QueryCommand: Debian.QueryCommand,
+            QueryArguments: Debian.QueryArguments,
+            InstallationKeyword: Debian.InstallationKeyword,
+            RequiredPackages: Debian.RequiredPackages,
+            OptionalPackages: Debian.OptionalPackages,
+            PackageType: Debian.PackageType,
+            InstallationType: Debian.InstallationType
         );
 
         // python3-venv is included by default with python3 on Fedora and RHEL based distros.
@@ -239,44 +236,32 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             Name: "Kali Linux",
             ID: "kali",
             BaseDistro: DistroBase.Debian, 
-            PackageManager: "apt-get", 
-            InstallCommand: "install -y",
-            UninstallCommand: "remove --purge -y",
-            QueryCommand: "dpkg-query",
-            QueryArguments: "-W",
-            RequiredPackages: [
-                "xclip",
-                "python3-venv"
-            ],
-            OptionalPackages: [
-                "libffi-dev",
-                "build-essential",
-                "python3-dev",
-            ],
-            PackageType: PackageType.DEB,
-            InstallationType: InstallationType.Package
+            PackageManager: Debian.PackageManager,
+            InstallCommand: Debian.InstallCommand,
+            UninstallCommand: Debian.UninstallCommand,
+            QueryCommand: Debian.QueryCommand,
+            QueryArguments: Debian.QueryArguments,
+            InstallationKeyword: Debian.InstallationKeyword,
+            RequiredPackages: Debian.RequiredPackages,
+            OptionalPackages: Debian.OptionalPackages,
+            PackageType: Debian.PackageType,
+            InstallationType: Debian.InstallationType
         );
 
         public readonly static Distro LinuxMint = new(
             Name: "Linux Mint", 
             ID: "linuxmint",
             BaseDistro: DistroBase.Debian, 
-            PackageManager: "apt-get", 
-            InstallCommand: "install -y",
-            UninstallCommand: "remove --purge -y",
-            QueryCommand: "dpkg-query",
-            QueryArguments: "-W",
-            RequiredPackages: [
-                "xclip",
-                "python3-venv"
-            ],
-            OptionalPackages: [
-                "libffi-dev",
-                "build-essential",
-                "python3-dev",
-            ],
-            PackageType: PackageType.DEB,
-            InstallationType: InstallationType.Package
+            PackageManager: Debian.PackageManager,
+            InstallCommand: Debian.InstallCommand,
+            UninstallCommand: Debian.UninstallCommand,
+            QueryCommand: Debian.QueryCommand,
+            QueryArguments: Debian.QueryArguments,
+            InstallationKeyword: Debian.InstallationKeyword,
+            RequiredPackages: Debian.RequiredPackages,
+            OptionalPackages: Debian.OptionalPackages,
+            PackageType: Debian.PackageType,
+            InstallationType: Debian.InstallationType
         );
 
         public readonly static Distro OpenSUSE = new(
@@ -304,23 +289,17 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         public readonly static Distro ParrotOS = new(
             Name: "Parrot OS",
             ID: "parrot",
-            BaseDistro: DistroBase.Debian,
-            PackageManager: "apt-get",
-            InstallCommand: "install -y",
-            UninstallCommand: "remove --purge -y",
-            QueryCommand: "dpkg-query",
-            QueryArguments: "-W",
-            RequiredPackages: [
-                "xclip",
-                "python3-venv"
-            ],
-            OptionalPackages: [
-                "libffi-dev",
-                "build-essential",
-                "python3-dev",
-            ],
-            PackageType: PackageType.DEB,
-            InstallationType: InstallationType.Package
+            BaseDistro: DistroBase.Debian, 
+            PackageManager: Debian.PackageManager,
+            InstallCommand: Debian.InstallCommand,
+            UninstallCommand: Debian.UninstallCommand,
+            QueryCommand: Debian.QueryCommand,
+            QueryArguments: Debian.QueryArguments,
+            InstallationKeyword: Debian.InstallationKeyword,
+            RequiredPackages: Debian.RequiredPackages,
+            OptionalPackages: Debian.OptionalPackages,
+            PackageType: Debian.PackageType,
+            InstallationType: Debian.InstallationType
         );
 
         // python-venv is included by default with python on PCLinuxOS.
@@ -350,45 +329,32 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             Name: "Pop!_OS", 
             ID: "pop",
             BaseDistro: DistroBase.Debian, 
-            PackageManager: "apt-get", 
-            InstallCommand: "install -y",
-            UninstallCommand: "remove --purge -y",
-            QueryCommand: "dpkg-query",
-            QueryArguments: "-W",
-            RequiredPackages: [
-                "xclip",
-                "python3-venv"
-            ],
-            OptionalPackages: [
-                "libffi-dev",
-                "build-essential",
-                "python3-dev",
-            ],
-            PackageType: PackageType.DEB,
-            InstallationType: InstallationType.Package
+            PackageManager: Debian.PackageManager,
+            InstallCommand: Debian.InstallCommand,
+            UninstallCommand: Debian.UninstallCommand,
+            QueryCommand: Debian.QueryCommand,
+            QueryArguments: Debian.QueryArguments,
+            InstallationKeyword: Debian.InstallationKeyword,
+            RequiredPackages: Debian.RequiredPackages,
+            OptionalPackages: Debian.OptionalPackages,
+            PackageType: Debian.PackageType,
+            InstallationType: Debian.InstallationType
         );
 
         public readonly static Distro Ubuntu = new(
             Name: "Ubuntu", 
             ID: "ubuntu",
             BaseDistro: DistroBase.Debian, 
-            PackageManager: "apt-get", 
-            InstallCommand: "install -y",
-            UninstallCommand: "remove --purge -y",
-            QueryCommand: "dpkg-query",
-            QueryArguments: "-W",
-            RequiredPackages: [
-                "xclip",
-                "python3-venv"
-            ],
-            OptionalPackages: [
-                "libffi-dev",
-                "build-essential",
-                "python3-dev",
-            ],
-            PackageType: PackageType.DEB,
-            InstallationType: InstallationType.Package
-            
+            PackageManager: Debian.PackageManager,
+            InstallCommand: Debian.InstallCommand,
+            UninstallCommand: Debian.UninstallCommand,
+            QueryCommand: Debian.QueryCommand,
+            QueryArguments: Debian.QueryArguments,
+            InstallationKeyword: Debian.InstallationKeyword,
+            RequiredPackages: Debian.RequiredPackages,
+            OptionalPackages: Debian.OptionalPackages,
+            PackageType: Debian.PackageType,
+            InstallationType: Debian.InstallationType
         );
 
         public readonly static Distro Unknown = new(
@@ -412,22 +378,16 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             Name: "Zorin OS",
             ID: "zorin", 
             BaseDistro: DistroBase.Debian, 
-            PackageManager: "apt-get", 
-            InstallCommand: "install -y",
-            UninstallCommand: "remove --purge -y",
-            QueryCommand: "dpkg-query",
-            QueryArguments: "-W",
-            RequiredPackages: [
-                "xclip",
-                "python3-venv"
-            ],
-            OptionalPackages: [
-                "libffi-dev",
-                "build-essential",
-                "python3-dev",
-            ],
-            PackageType: PackageType.DEB,
-            InstallationType: InstallationType.Package
+            PackageManager: Debian.PackageManager,
+            InstallCommand: Debian.InstallCommand,
+            UninstallCommand: Debian.UninstallCommand,
+            QueryCommand: Debian.QueryCommand,
+            QueryArguments: Debian.QueryArguments,
+            InstallationKeyword: Debian.InstallationKeyword,
+            RequiredPackages: Debian.RequiredPackages,
+            OptionalPackages: Debian.OptionalPackages,
+            PackageType: Debian.PackageType,
+            InstallationType: Debian.InstallationType
         );
     }
 

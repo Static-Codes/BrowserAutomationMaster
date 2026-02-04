@@ -157,7 +157,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 var psi = new ProcessStartInfo() 
                 {
                     FileName = Platforms.CurrentDistribution!.QueryCommand,
-                    Arguments = Platforms.CurrentDistribution.QueryArguments,
+                    Arguments = $"{Platforms.CurrentDistribution.QueryArguments} {packageName}",
                     RedirectStandardError = true,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
@@ -173,12 +173,16 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 );
 
                 var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
-                return (
-                    ExitCode == 0, 
-                    ExitCode, 
-                    STDOut, 
-                    STDErr
-                );
+                
+                bool status = ExitCode == 0;
+                
+
+                // If a keyword check is required.
+                if (status && !string.IsNullOrWhiteSpace(Platforms.CurrentDistribution!.InstallationKeyword)) {
+                    status = STDOut.Any(line => line.Contains(Platforms.CurrentDistribution!.InstallationKeyword));
+                }
+
+                return (status, ExitCode, STDOut, STDErr);
                 
             }
 

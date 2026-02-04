@@ -567,6 +567,27 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             return apps;
         }
 
+        public static void RefreshDebianAptCache() 
+        {
+            try 
+            {
+                if (Platforms.CurrentDistribution!.Equals(DistroBase.Debian)) {
+                    Warning.Write("One or more dependencies are requiring a refresh of the apt-cache, please wait.");
+                    RunCommand("apt-get", "update");
+                }
+            }
+            catch (Exception ex) {
+                WriteAndExit(
+                    message: 
+                        string.Join(NLC, [
+                            "Failed to update apt-cache using apt-get update",
+                            "Error Log:",
+                            ex.Message
+                        ]),
+                    status: 1
+                );
+            }
+        }
         public static void RPICheck()
         {
             if (!OperatingSystem.IsLinux()) {
