@@ -446,45 +446,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 
 
         }
-
-        /// <summary> Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.) </summary>
-        /// <returns>A List of AppInfo</returns>
-        // private static List<AppInfo> ParseDpkgList()
-        // {
-        //     try
-        //     {
-        //         var apps = new List<AppInfo>();
-        //         var tempFile = Path.GetTempFileName();
-
-        //         (var output, var error) = RunCommand("dpkg-query", $"-W -f \"${{Package}}\t${{Version}}\n\" > {tempFile}");
-
-        //         if (!File.Exists(tempFile)) {
-        //             return [];
-        //         }
-
-        //         foreach (var line in File.ReadAllLines(tempFile))
-        //         {
-        //             Console.WriteLine(line);
-        //             var parts = line.Trim('\'').Split("\t");
-                    
-        //             if (parts.Length >= 2)
-        //             {
-        //                 apps.Add(
-        //                     new AppInfo { 
-        //                         Name = parts[0], 
-        //                         Version = parts[1],
-        //                         Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
-        //                     }
-        //                 );
-        //             }
-        //         }
-        //         return apps;
-        //     }
-        //     catch { 
-        //         Write("DPKG not found, checking another method."); 
-        //         return []; 
-        //     }
-        // }
+        
         private static List<AppInfo> ParseDpkgList()
         {
             try

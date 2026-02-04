@@ -9,6 +9,7 @@ namespace Publisher
     public class SourceControl 
     {
         private static readonly string[] FileTypes = [
+            "Skip Compilation and Start Packaging",
             ".tar.gz",
             ".zip"
         ];

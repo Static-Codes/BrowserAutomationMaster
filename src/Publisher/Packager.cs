@@ -1,16 +1,20 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using BrowserAutomationMaster.Messaging;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.UnixFilePermissionManager;
+using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
@@ -70,6 +74,7 @@ namespace Publisher
             
 
             var archBuildDir = Path.Combine(sourceBuildsDir, "arch");
+
             // Dont include this in the refactoring of EnsureDirectoryExists usage
             EnsureDirectoryExists(archBuildDir);
 
@@ -145,6 +150,55 @@ namespace Publisher
             {
                 // Since the stream is no longer needed it can be disposed of safely.
                 await binaryStream.DisposeAsync();
+            }
+
+            try {
+                var isMissingMakePKG = !CommandExists("makepkg");
+                Console.WriteLine(isMissingMakePKG);
+
+                if (isMissingMakePKG) {
+                    var installPrefix = Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
+                    {
+                        true => string.Join(' ', [
+                            "DEBIAN_FRONTEND=noninteractive", 
+                            Platforms.CurrentDistribution!.PackageManager,
+                            Platforms.CurrentDistribution.InstallCommand
+                        ]),
+
+                        _ => string.Join(' ', [
+                            Platforms.CurrentDistribution!.PackageManager,
+                            Platforms.CurrentDistribution.InstallCommand
+                        ])
+                    };
+
+                    var installCMD = $"-c \"sudo {installPrefix}";
+                    Warning.Write($"Installing makepkg");
+                    (var output, _) = RunCommand("/bin/bash", installCMD);
+                    Success.WriteSuccessMessage(output);
+                }
+            }
+
+            catch {
+                WriteAndExit("Failed to install makepkg, please ensure it is installed, then try again.", 1);
+            }
+
+
+            var psi = new ProcessStartInfo() {
+                FileName = "makepkg",
+                Arguments = "-si",
+                RedirectStandardInput = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                WorkingDirectory = archBuildDir
+            };
+
+            using var process = await ProcessFactory.SpawnProcess(psi, "packaging bamm as an arch package");
+            (var ExitCode, var STDOut, var STDErr) = await ProcessFactory.GetProcessResponse(process);
+            
+            if (ExitCode != 0) {
+                return (false, archBuildDir);
             }
 
             return (true, archBuildDir);
@@ -374,7 +428,7 @@ namespace Publisher
     {
         public required string binaryPath;
         private readonly static byte[] pkgName = "pkgname='bamm'"u8.ToArray();
-        private readonly static byte[] pkgVer = "pkgver='1.0.0A8'"u8.ToArray();
+        private readonly static byte[] pkgVer = Encoding.UTF8.GetBytes($"pkgver='{PreviousVersion}'");
         private readonly static byte[] pkgRel = "pkgrel=1"u8.ToArray();
         private readonly static byte[] pkgDesc = "pkgdesc='BAM Manager (BAMM) is a Dynamic Scripting Language (DSL) that compiles into Python 3.9+ code.'"u8.ToArray();
         private readonly static byte[] arch = "arch=(any)"u8.ToArray();
