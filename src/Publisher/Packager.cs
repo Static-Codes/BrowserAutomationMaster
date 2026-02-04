@@ -58,6 +58,16 @@ namespace Publisher
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Platforms.IsUnixLike handles checks.")]
         private async Task<(bool, string?)> BuildArchPackage(string workingDir) 
         {
+            if (!Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.ArchLinux)) 
+            {
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "Packaging for Arch is only available on Arch Based distros, please pick another option."
+                    ]),
+                    status: 1 
+                );
+            }
+            
             await PrebuildActions();
 
             (var compilationStatus, var compiledBinaryPath) = await BuildStandaloneBinary(workingDir);
@@ -74,6 +84,11 @@ namespace Publisher
             
 
             var archBuildDir = Path.Combine(sourceBuildsDir, "arch");
+            
+            // Deleting any previous builds to prevent unexpected behavior
+            if (Directory.Exists(archBuildDir)) {
+                Directory.Delete(archBuildDir, true);
+            }
 
             // Dont include this in the refactoring of EnsureDirectoryExists usage
             EnsureDirectoryExists(archBuildDir);
@@ -170,9 +185,10 @@ namespace Publisher
                         ])
                     };
 
-                    var installCMD = $"-c \"sudo {installPrefix}";
+                    var installArgs = $"-c \"sudo {installPrefix} makepkg\"";
+
                     Warning.Write($"Installing makepkg");
-                    (var output, _) = RunCommand("/bin/bash", installCMD);
+                    (var output, _) = RunCommand("/bin/bash", installArgs);
                     Success.WriteSuccessMessage(output);
                 }
             }
