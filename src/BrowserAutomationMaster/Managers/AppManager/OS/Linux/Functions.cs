@@ -3,7 +3,6 @@ using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using YamlDotNet.Core.Tokens;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;

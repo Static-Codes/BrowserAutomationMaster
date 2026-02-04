@@ -375,10 +375,12 @@ namespace Publisher
         public required string binaryPath;
         private readonly static byte[] pkgName = "pkgname='bamm'"u8.ToArray();
         private readonly static byte[] pkgVer = "pkgver='1.0.0A8'"u8.ToArray();
+        private readonly static byte[] pkgRel = "pkgrel=1"u8.ToArray();
         private readonly static byte[] pkgDesc = "pkgdesc='BAM Manager (BAMM) is a Dynamic Scripting Language (DSL) that compiles into Python 3.9+ code.'"u8.ToArray();
-        private readonly static byte[] arch = "arch=('x86_x64' 'aarch64', 'armv7h')"u8.ToArray();
-        private readonly static byte[] license = "license='MIT'"u8.ToArray();
-        private readonly static byte[] depends = "depends=('python>3.8 python<3.16' 'which' 'icu' 'openssl' 'zlib' 'krb5' 'xclip')"u8.ToArray();
+        private readonly static byte[] arch = "arch=(any)"u8.ToArray();
+        private readonly static byte[] license = "license=('MIT')"u8.ToArray();
+        private readonly static byte[] source = "source=('src/bamm')"u8.ToArray();
+        private readonly static byte[] depends = "depends=('python>3.8' 'which' 'icu' 'openssl' 'zlib' 'krb5' 'xclip')"u8.ToArray();
         private readonly static byte[] makeDepends = "makedepends=('dotnet-sdk') # Dotnet 10 is required for compilation"u8.ToArray();
         private async Task<(string, FileStream)> Sha512SumsAndStream() 
         {
@@ -414,7 +416,9 @@ namespace Publisher
 
         private readonly static byte[] package = """
             package() {
-                
+                cp bamm "${srcdir}/bamm"
+                mkdir -p "${pkgdir}/usr/bin"
+                cp "${srcdir}/bamm" "${pkgdir}/usr/bin/bamm"
                 install -Dm755 "${srcdir}/bamm" "${pkgdir}/usr/bin/bamm"
             }
             """u8.ToArray();
@@ -440,6 +444,8 @@ namespace Publisher
                 // Assigning a value to the already defined binaryStream
                 (var sha512Hash, binaryStream) = await Sha512SumsAndStream();
 
+                var sha512sums = Encoding.UTF8.GetBytes($"sha512sums=({sha512Hash})");
+
                 var NLCBytes = Encoding.UTF8.GetBytes(NLC);
                 
                 var staticFields = ReflectionHelper.GetStaticFieldsOfType<byte[]>(
@@ -450,8 +456,10 @@ namespace Publisher
                 // Calculates sum of all field lengths + a newline for each field
                 int totalLength = 0;
                 
-                foreach (var field in staticFields) {
-                    totalLength += field.Length + NLCBytes.Length;
+                foreach (var field in staticFields) 
+                {
+                    // NLCBytes will be used twice
+                    totalLength += field.Length + sha512sums.Length + (NLCBytes.Length*2);
                 }
 
                 var fileContents = new byte[totalLength];
@@ -470,6 +478,9 @@ namespace Publisher
                     NLCBytes.CopyTo(buffer[bytesWritten..]);
                     bytesWritten += NLCBytes.Length;
                 }
+
+                sha512sums.CopyTo(buffer[bytesWritten..]);
+                bytesWritten += sha512sums.Length;
 
                 tempStream = new(
                     outputPath, 
