@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -337,13 +338,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             try
             {
                 // This empty file will be written once the packages are installed, then checked in subsequent runtimes.
-                var linuxPackageFile = GetLinuxPackageFile();
+                // var linuxPackageFile = GetLinuxPackageFile();
 
-                if (File.Exists(linuxPackageFile)) {
-                    return;
-                }
+                // if (File.Exists(linuxPackageFile)) {
+                //     return;
+                // }
 
-                Warning.Write("Installing the Required Linux Packages (if not already installed.), please wait up to 60 seconds");
+                Warning.Write("Installing the Required Linux Packages (if not already installed), please wait up to 60 seconds");
 
                 var inputMessage = @"Supported versions include:
                     - Python 3.9.X
@@ -363,7 +364,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 
 
                 // Exits if Platforms.CurrentDistribution is null.
-                DistroManager.CheckLinuxDistro();
+                CheckLinuxDistro();
 
 
                 // Adds the DEBIAN_FRONTEND=noninteractive prefix if the current distro in use is based off Debian.
@@ -390,41 +391,50 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                     pyVersion = Input.AskForInput(inputMessage);
                 }
 
-                // Python3.X-dev is used for brotli and zstandard for compression and decompression
-                var optionalPackages = GetBrowserStackStatus() ?
-                    $"libffi-dev build-essential python{pyVersion.Replace("Python ", "")}-dev" :
-                    string.Empty;
+                // python3-dev is used for brotli and zstandard for compression and decompression
+                // var optionalPackages = GetBrowserStackStatus() ?
+                //     $"libffi-dev build-essential python{pyVersion.Replace("Python ", "")}-dev" :
+                //     string.Empty;
 
-                string[] packages = [
-                    "xclip", // Used for auto_copy_path
-                    $"python{pyVersion.Replace("Python ", "")}-venv",  // Used for majority of BAMM to create vEnv(s)
-                    optionalPackages
-                ];
+                // string[] packages = [
+                //     "xclip", // Used for auto_copy_path
+                //     $"python{pyVersion.Replace("Python ", "")}-venv",  // Used for majority of BAMM to create vEnv(s)
+                //     optionalPackages
+                // ];
 
-                if (installPrefix == null) {
-                    WriteAndExit($"Unable to install the following required Linux Packages:\n{string.Join('\n', packages)}", 1);
+                string[] requiredPackages = Platforms.CurrentDistribution!.RequiredPackages;
+                string[] optionalPackages = GetBrowserStackStatus() ? Platforms.CurrentDistribution!.OptionalPackages : [];
+                string[] packages = [.. requiredPackages, .. optionalPackages];
+
+                var missingPackages = await FindMissingPackages(packages);
+
+                if (installPrefix == null) 
+                {
+                    WriteAndExit(
+                        message: 
+                            string.Join(NLC, [
+                                "Unable to install the following required Linux Packages:",
+                                string.Join(NLC, packages), 
+                            ]), 
+                        status: 1
+                    );
                 }
 
-                string[] commands = new string[packages.Length];
+                string[] commands = new string[missingPackages.Count];
 
-                for (int i = 0; i < packages.Length; i++)
+                for (int i = 0; i < commands.Length; i++)
                 {
-                    // Skips installation of additional packages if browserstack isn't used.
-                    if (string.IsNullOrEmpty(packages[i])) {
-                        continue;
-                    }
-
                     commands[i] = $"{installCMD} {packages[i]}\"";
 
-                    var appInfo = new AppInfo() { 
-                        Name = packages[i],
-                        Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
-                    };
+                    // var appInfo = new AppInfo() { 
+                    //     Name = packages[i],
+                    //     Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
+                    // };
 
-                    // Skips pre-existing installations
-                    if (appsInfo.Contains(appInfo)) {
-                        continue;
-                    }
+                    // // Skips pre-existing installations
+                    // if (appsInfo.Contains(appInfo)) {
+                    //     continue;
+                    // }
 
                     Warning.Write($"Installing package: {packages[i]}");
                     (var output, _) = RunCommand("/bin/bash", $"{commands[i]}");
@@ -433,7 +443,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 
                 await DownloadWheels();
                 
-                File.Create(linuxPackageFile);
+                // File.Create(linuxPackageFile);
             }
             catch (Exception e)
             {
@@ -445,6 +455,42 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 
         /// <summary> Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.) </summary>
         /// <returns>A List of AppInfo</returns>
+        // private static List<AppInfo> ParseDpkgList()
+        // {
+        //     try
+        //     {
+        //         var apps = new List<AppInfo>();
+        //         var tempFile = Path.GetTempFileName();
+
+        //         (var output, var error) = RunCommand("dpkg-query", $"-W -f \"${{Package}}\t${{Version}}\n\" > {tempFile}");
+
+        //         if (!File.Exists(tempFile)) {
+        //             return [];
+        //         }
+
+        //         foreach (var line in File.ReadAllLines(tempFile))
+        //         {
+        //             Console.WriteLine(line);
+        //             var parts = line.Trim('\'').Split("\t");
+                    
+        //             if (parts.Length >= 2)
+        //             {
+        //                 apps.Add(
+        //                     new AppInfo { 
+        //                         Name = parts[0], 
+        //                         Version = parts[1],
+        //                         Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
+        //                     }
+        //                 );
+        //             }
+        //         }
+        //         return apps;
+        //     }
+        //     catch { 
+        //         Write("DPKG not found, checking another method."); 
+        //         return []; 
+        //     }
+        // }
         private static List<AppInfo> ParseDpkgList()
         {
             try
@@ -512,7 +558,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 ]);
 
                 (var output, var error) = RunCommand("/bin/bash", command);
-                Console.WriteLine(output.Length);
                 
                 foreach (var line in output.Split('\n'))
                 {

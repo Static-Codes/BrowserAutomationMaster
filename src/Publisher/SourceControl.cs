@@ -93,7 +93,7 @@ namespace Publisher
 
                 if (Input.ConditionRejected(confirmationStatus)) 
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         "Operation cancelled by user, the BAMM Publisher will exit now.", status: 1
                     );
                 }
@@ -107,7 +107,7 @@ namespace Publisher
 
             catch (Exception ex) 
             {
-                Errors.WriteAndExit(
+                WriteAndExit(
                     message: string.Join(NLC, [
                         "An unknown exception occured while writing the BAMM Codebase to disk.",
                         "Error Log:",

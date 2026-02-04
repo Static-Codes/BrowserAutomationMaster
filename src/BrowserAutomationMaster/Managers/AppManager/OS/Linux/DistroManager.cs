@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
@@ -137,5 +138,81 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             }
             return null;
         }
+    
+        /// <summary>
+        /// Checks if the provided package is installed on the current distro<br/>
+        /// <param name="packageName">The package to check</param><br/>
+        /// <returns>
+        /// Returns:
+        /// status: A boolean representing the installation status, true means installed.<br/>
+        /// ExitCode: An integer representing the exit code returned by the process invoked.<br/>
+        /// STDOut: A list of strings representing the lines from standard output.<br/>
+        /// STDErr: A list of strings representing the lines from standard error.<br/>
+        /// </returns>
+        /// </summary>
+        public static async Task<(bool status, int ExitCode, List<string> STDOut, List<string> STDErr)> GetPackageStatus(string packageName) 
+        {
+            try 
+            {
+                var psi = new ProcessStartInfo() 
+                {
+                    FileName = Platforms.CurrentDistribution!.QueryCommand,
+                    Arguments = Platforms.CurrentDistribution.QueryArguments,
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
+
+                using var process = await ProcessFactory.SpawnProcess(
+                    psi, 
+                    processAction: $"check the installation status of the package: {packageName}", 
+                    timeout: 30,
+                    writeSTDInOut: false
+                );
+
+                var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
+                return (
+                    ExitCode == 0, 
+                    ExitCode, 
+                    STDOut, 
+                    STDErr
+                );
+                
+            }
+
+            catch (Exception ex) 
+            {
+                Warning.Write(
+                    string.Join(NLC, [
+                        $"A non fatal exception occured while querying the installation status of the package: {packageName}",
+                        "Error Log:",
+                        ex.Message
+                    ])
+                );
+            }
+
+            return (
+                status: false, 
+                ExitCode: -1, 
+                STDOut: [], 
+                STDErr: []
+            );
+        }
+
+        public static async Task<HashSet<string>> FindMissingPackages(string[] packageNames)
+        {
+            var missingPackages = new HashSet<string>();
+            foreach (var packageName in packageNames) 
+            {
+                (bool status, _, _, _) = await GetPackageStatus(packageName);
+
+                if (!status) {
+                    missingPackages.Add(packageName);
+                }
+            }
+            return missingPackages;
+        } 
     }
 }
