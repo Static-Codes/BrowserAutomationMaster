@@ -453,14 +453,10 @@ namespace Publisher
                     publicOnly: false
                 );
                 
-                // Calculates sum of all field lengths + a newline for each field
-                int totalLength = 0;
-                
-                foreach (var field in staticFields) 
-                {
-                    // NLCBytes will be used twice
-                    totalLength += field.Length + sha512sums.Length + (NLCBytes.Length*2);
-                }
+                // Refined calculation logic due to the previous being inconsistent.
+                int totalLength = staticFields.Sum(f => f.Length + NLCBytes.Length) 
+                  + sha512sums.Length 
+                  + NLCBytes.Length;
 
                 var fileContents = new byte[totalLength];
                 int bytesWritten = 0;
