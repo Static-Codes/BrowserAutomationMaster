@@ -114,7 +114,7 @@ namespace Publisher
                 
                 // If the binary already has executable permissions (very unlikely), execution stops here.
                 if (HasExecutablePermissions(finalBinaryPath)) {
-                    return (true, finalBinaryPath);
+                    // return (true, finalBinaryPath);
                 }
                 
                 // If Linux's glibc or Apple's libc fail to give the binary executable permissions
@@ -154,7 +154,6 @@ namespace Publisher
 
             try {
                 var isMissingMakePKG = !CommandExists("makepkg");
-                Console.WriteLine(isMissingMakePKG);
 
                 if (isMissingMakePKG) {
                     var installPrefix = Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
@@ -508,8 +507,7 @@ namespace Publisher
                 
                 // Refined calculation logic due to the previous being inconsistent.
                 int totalLength = staticFields.Sum(f => f.Length + NLCBytes.Length) 
-                  + sha512sums.Length 
-                  + NLCBytes.Length;
+                  + sha512sums.Length;
 
                 var fileContents = new byte[totalLength];
                 int bytesWritten = 0;
