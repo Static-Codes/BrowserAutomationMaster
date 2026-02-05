@@ -171,7 +171,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             InstallationType: InstallationType.Package
         );
 
-        // public readonly static Distro ElementaryOS = DistroManager.GetDistro.FromBase("elementary OS", DistroBase.Debian)
         public readonly static Distro ElementaryOS = new(
             Name: "elementary OS",
             ID: "elementary", 

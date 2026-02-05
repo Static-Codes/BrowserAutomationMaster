@@ -1,13 +1,14 @@
-using static BrowserAutomationMaster.Managers.DirectoryManager;
-using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.ProgramFunctions;
-using static Publisher.PlatformSelection;
-using static Publisher.SourceControl;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Managers;
 using Publisher;
 using System.Runtime.InteropServices;
+using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.UpdateManager;
+using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.ProgramFunctions;
+using static Publisher.PlatformSelection;
+using static Publisher.SourceControl;
 
 // Logic from Main application around colored text.
 SetPlatform();
@@ -21,6 +22,7 @@ if (Platforms.IsRaspi || Platforms.IsARMel || Platforms.IsARMhf || Platforms.IsC
 var archiveFileType = SetArchiveFileType();
 string? archiveFilePath;
 string? workingDir;
+string appVersion;
 string[]? packagingOptions;
 
 // Download latest release of source
@@ -57,6 +59,7 @@ if (archiveFileType != "Skip Compilation and Start Packaging")
         );
     }
 
+
     workingDir = Path.Join(codebaseSourceDir, "src/BrowserAutomationMaster");
     packagingOptions = [
         "Debian Package (.deb)",
@@ -66,7 +69,10 @@ if (archiveFileType != "Skip Compilation and Start Packaging")
         "Standalone Binary",
         "Windows Installer"
     ];
-} 
+
+    appVersion = LatestTag!;
+}
+
 else 
 {
     archiveFilePath = Input.AskForInput("Enter the path to the standalone binary: ");
@@ -76,12 +82,9 @@ else
         "Gentoo Package (.tbz2)",
         "Windows Installer"
     ];
+
+    appVersion = CurrentVersion;
 }
-
-
-
-
-
 
 string desiredBuildProcess = Input.WriteListFromOptions(packagingOptions, "build process", pageSize: packagingOptions.Length);
 
@@ -112,7 +115,7 @@ var platformOption = new PlatformOption() {
 
 var packager = new Packager(platformOption);
 
-(var result, var binaryPath) = await packager.HandlePackaging(desiredBuildProcess, workingDir!);
+(var result, var binaryPath) = await packager.HandlePackaging(desiredBuildProcess, workingDir!, appVersion);
 
 Console.WriteLine("Compilation Complete: {0}", result);
 Console.WriteLine("Path: {0}", binaryPath);

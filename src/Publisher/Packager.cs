@@ -14,7 +14,6 @@ using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.UnixFilePermissionManager;
-using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
@@ -56,7 +55,7 @@ namespace Publisher
         
 
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Platforms.IsUnixLike handles checks.")]
-        private async Task<(bool, string?)> BuildArchPackage(string workingDir) 
+        private async Task<(bool, string?)> BuildArchPackage(string workingDir, string appVersion) 
         {
             bool[] invalidStates = [
                 !Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.ArchLinux),
@@ -103,7 +102,7 @@ namespace Publisher
 
             var finalBinaryPath = Path.Combine(archBuildDir, "bamm");
 
-            (var pkgBuildStatus, var binaryStream) = await archBuild.WritePKGBUILDFile(PKGBUILDPath);
+            (var pkgBuildStatus, var binaryStream) = await archBuild.WritePKGBUILDFile(PKGBUILDPath, appVersion);
 
             if (!pkgBuildStatus || binaryStream == null) {
                 WriteAndExit("Failed to write PKGBUILD to disk.", 1);
@@ -206,11 +205,26 @@ namespace Publisher
             using var process = await ProcessFactory.SpawnProcess(psi, "package bamm as an arch package");
             (var ExitCode, var STDOut, var STDErr) = await ProcessFactory.GetProcessResponse(process);
 
-            if (ExitCode == 0) {
-                return (true, archBuildDir);
+            if (ExitCode != 0) {
+                Write($"Failed to package bamm due to a non zero status code: {ExitCode}");
+                return (false, "Not Built.");
             }
 
-            return (false, archBuildDir);
+            var pkgDir = Path.Combine(archBuildDir, "pkg");
+
+            if (!Directory.Exists(pkgDir)) {
+                Write($"Failed to locate package directory: {pkgDir}");
+                return (false, "Not Built.");
+            }
+
+            var fileName = string.Concat("bamm-", appVersion, "-1-x86_64.pkg.tar.gz");
+            var filePath = Path.Combine(archBuildDir, fileName);
+
+            return (true, filePath);
+
+            // Currently unused but kept for reference.
+            // Warning.Write("Compressing the bamm package, please wait...");
+            // return CreateArchGZIPArchive(pkgDir, archBuildDir, appVersion);
         }
         
         private async Task<(bool, string?)> BuildDebianPackage(string workingDir) 
@@ -323,13 +337,13 @@ namespace Publisher
         /// Item2: <br/>- The path to the package or build directory (This will be handled in Publisher.Program) <br/>
         /// </returns>
         /// </summary>
-        public async Task<(bool, string?)> HandlePackaging(string desiredBuildProcess, string workingDir) 
+        public async Task<(bool, string?)> HandlePackaging(string desiredBuildProcess, string workingDir, string appVersion) 
         {
             return desiredBuildProcess switch
             {
                 "Debian Package (.deb)" => await BuildDebianPackage(workingDir),
                 "Fedora Package (.rpm)" => await BuildFedoraPackage(workingDir),
-                "Arch Package (.pkg.tar.xz)" => await BuildArchPackage(workingDir),
+                "Arch Package (.pkg.tar.xz)" => await BuildArchPackage(workingDir, appVersion),
                 "Gentoo Package (.tbz2)" => await BuildGentooPackage(workingDir),
                 "Standalone Binary" => await BuildStandaloneBinary(workingDir),
                 "Windows Installer" => await BuildWindowsInstaller(workingDir),
@@ -477,10 +491,10 @@ namespace Publisher
     {
         public required string binaryPath;
         private readonly static byte[] pkgName = "pkgname='bamm'"u8.ToArray();
-        private readonly static byte[] pkgVer = Encoding.UTF8.GetBytes($"pkgver='{PreviousVersion}'");
         private readonly static byte[] pkgRel = "pkgrel=1"u8.ToArray();
         private readonly static byte[] pkgDesc = "pkgdesc='BAM Manager (BAMM) is a Dynamic Scripting Language (DSL) that compiles into Python 3.9+ code.'"u8.ToArray();
-        private readonly static byte[] arch = "arch=(any)"u8.ToArray();
+        // private readonly static byte[] arch = "arch=(any)"u8.ToArray();
+        private readonly static byte[] arch = "arch=('x86_64' 'aarch64' 'armv6h')"u8.ToArray();
         private readonly static byte[] license = "license=('MIT')"u8.ToArray();
         private readonly static byte[] source = "source=('src/bamm')"u8.ToArray();
         private readonly static byte[] depends = "depends=('python>3.8' 'which' 'icu' 'openssl' 'zlib' 'krb5' 'xclip')"u8.ToArray();
@@ -535,7 +549,7 @@ namespace Publisher
         /// Item2: The Stream object with the contents of the binaryPath passed to ArchBuild
         /// </returns>
         /// </summary>
-        public async Task<(bool, FileStream?)> WritePKGBUILDFile(string outputPath) 
+        public async Task<(bool, FileStream?)> WritePKGBUILDFile(string outputPath, string appVersion) 
         {
             var success = false;
             FileStream? binaryStream = null;
@@ -548,6 +562,8 @@ namespace Publisher
 
                 var sha512sums = Encoding.UTF8.GetBytes($"sha512sums=({sha512Hash})");
 
+                var pkgVer = Encoding.UTF8.GetBytes($"pkgver='{appVersion}'");
+
                 var NLCBytes = Encoding.UTF8.GetBytes(NLC);
                 
                 var staticFields = ReflectionHelper.GetStaticFieldsOfType<byte[]>(
@@ -557,7 +573,9 @@ namespace Publisher
                 
                 // Refined calculation logic due to the previous being inconsistent.
                 int totalLength = staticFields.Sum(f => f.Length + NLCBytes.Length) 
-                  + sha512sums.Length;
+                  + sha512sums.Length
+                  + NLCBytes.Length
+                  + pkgVer.Length;
 
                 var fileContents = new byte[totalLength];
                 int bytesWritten = 0;
@@ -576,8 +594,17 @@ namespace Publisher
                     bytesWritten += NLCBytes.Length;
                 }
 
+                // Writes the sha512sums string
                 sha512sums.CopyTo(buffer[bytesWritten..]);
                 bytesWritten += sha512sums.Length;
+
+                // Adds a new line char.
+                NLCBytes.CopyTo(buffer[bytesWritten..]);
+                bytesWritten += NLCBytes.Length;
+
+                // Writes the pkgVer string
+                pkgVer.CopyTo(buffer[bytesWritten..]);
+                bytesWritten += pkgVer.Length;
 
                 tempStream = new(
                     outputPath, 

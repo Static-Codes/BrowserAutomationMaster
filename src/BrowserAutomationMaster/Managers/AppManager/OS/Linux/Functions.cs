@@ -588,6 +588,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 );
             }
         }
+        
         public static void RPICheck()
         {
             if (!OperatingSystem.IsLinux()) {

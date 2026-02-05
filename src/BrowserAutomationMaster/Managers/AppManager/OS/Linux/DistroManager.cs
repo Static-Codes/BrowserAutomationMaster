@@ -71,22 +71,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             }
         }
 
-        // public class GetDistro()
-        // {
-        //     public static Distro FromBase(string DistroName, DistroBase BaseDistro) 
-        //     {
-        //         var EnumString = EnumHelper.GetEnumNameAsString(BaseDistro, []);
-
-        //         if (EnumString == null) {
-        //             return Distros.Unknown;
-        //         }
-
-        //         var Distro = Enum.GetValues<Distros>().Where(d => d.Name == EnumString).First() ?? Distros.Unknown;
-        //         Distro.Name = DistroName;
-        //         return Distro;
-        //     }
-        // }
-
         public static void CheckLinuxDistro() 
         {
             if (Platforms.CurrentDistribution != null) {

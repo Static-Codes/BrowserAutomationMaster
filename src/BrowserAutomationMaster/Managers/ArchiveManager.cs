@@ -2,6 +2,7 @@ using System.Formats.Tar;
 using System.IO.Compression;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.UpdateManager;
 
 namespace BrowserAutomationMaster.Managers 
 {
@@ -34,6 +35,35 @@ namespace BrowserAutomationMaster.Managers
                 : UnarchiveZip(codebaseSourceDir);
         }
 
+        public static (bool, string) CreateArchGZIPArchive(string sourceDir, string outputDir, string appVersion) 
+        {
+            var filePath = string.Empty;
+            try 
+            {
+                var fileName = $"bamm-{appVersion}.pkg.tar.gz";
+                filePath = Path.Combine(outputDir, fileName);
+
+                Warning.Write($"Creating {filePath}, please wait..");
+                using FileStream fileStream = new(filePath, FileMode.OpenOrCreate, FileAccess.Write);
+                
+                TarFile.CreateFromDirectory(sourceDir, fileStream, includeBaseDirectory: false);
+            }
+            
+            catch (Exception ex) 
+            {
+                Errors.WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "An unknown exception occured while decompressing the BAMM Codebase .tar.gz archive.",
+                        "Error Log:",
+                        ex.Message
+                    ]),
+                    status: 1
+                );
+            }
+            return (Directory.Exists(sourceDir), filePath);
+        }
+
         private bool UnarchiveGZIP(string codebaseSourceDir) 
         {
             try 
@@ -60,6 +90,8 @@ namespace BrowserAutomationMaster.Managers
             }
             return Directory.Exists(codebaseSourceDir);
         }
+
+        
 
         private bool UnarchiveZip(string codebaseSourceDir) 
         {
