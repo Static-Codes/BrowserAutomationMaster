@@ -9,6 +9,7 @@ namespace BrowserAutomationMaster.Managers
         public static readonly string eNLC = NLC.Replace("\r", "\\r").Replace("\n", "\\n");
         public const string DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/147.0";
         public const string BASE_REPO_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/";
+        public const string BASE_SOURCE_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/archive/refs/tags/";
         public const string DOCUMENTATION_LINK = "https://static-codes.github.io/BAMM-Docs/";
         public const string ISSUES_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/issues";
         public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
@@ -20,6 +21,7 @@ namespace BrowserAutomationMaster.Managers
         public const string USERAGENTS_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/stable/src/BrowserAutomationMaster/AppData/useragents.json";
         public const string GUI_DAEMON_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/stable/src/BrowserAutomationMaster/Helpers/UIDaemon.py";
         public const string GUI_ZIP_LINK = "https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip";
+        public const string FREE_FOR_MACOS_REPO_LINK = "https://github.com/zfdang/free-for-macOS";
         public const StringComparison CCIC = StringComparison.CurrentCultureIgnoreCase;
         public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
         public const char HORIZONTAL_TAB = '\t';

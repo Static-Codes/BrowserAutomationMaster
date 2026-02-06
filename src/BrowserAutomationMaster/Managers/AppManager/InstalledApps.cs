@@ -1,8 +1,7 @@
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
@@ -21,12 +20,12 @@ namespace BrowserAutomationMaster.Managers.AppManager
                 return await Task.Run(Win.GetApps);
             }
 
-            if (Platforms.IsOSX) {
+            if (Platforms.IsMacOS) {
                 return await Task.Run(MacOS.GetApps);
             }
 
             if (Platforms.IsLinux) {
-                return await Task.Run(Linux.GetApps);
+                return await Task.Run(GetApps);
             }
 
             ThrowUnsupportedPlatformException();
@@ -45,7 +44,7 @@ namespace BrowserAutomationMaster.Managers.AppManager
             InstallationsList = new Installations(AppInfoList);
 
             if (Platforms.IsLinux) {
-                await Linux.InstallRequiredLinuxPackages(AppInfoList);
+                await InstallRequiredLinuxPackages();
             }
         }
 

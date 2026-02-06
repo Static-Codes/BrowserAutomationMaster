@@ -1,10 +1,8 @@
-﻿using BrowserAutomationMaster.Managers.Python;
+﻿using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static System.Runtime.InteropServices.Architecture;
@@ -18,9 +16,11 @@ namespace BrowserAutomationMaster.Managers
         public bool IsChromeOS { get; set; }
         public bool IsRaspi { get; set; } // Raspberry Pi
         public bool IsWindows { get; set; }
-        public bool IsOSX { get; set; }
+        public bool IsMacOS { get; set; }
         public bool IsLinux { get; set; }
         public bool IsUnixLike { get; set; } // Linux + OSX
+
+        public Distro? CurrentDistribution = null;
         public Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
         public KeyValuePair<string, bool>? RaspiModelInfo { get; set; }
 
@@ -107,7 +107,7 @@ namespace BrowserAutomationMaster.Managers
 
             else if (RuntimeManager.IsSupportedOSXVersion())
             {
-                Platforms.IsOSX = true;
+                Platforms.IsMacOS = true;
                 Platforms.IsUnixLike = true;
             }
 
@@ -115,6 +115,9 @@ namespace BrowserAutomationMaster.Managers
             {
                 Platforms.IsLinux = true;
                 Platforms.IsUnixLike = true;
+                Platforms.CurrentDistribution = DistroManager.DetermineDistro();
+                // This will be added in a later update.
+                // Platforms.CurrentDistribution = DistroManager.GetDistro.FromBase("elementary OS", DistroBase.Debian);
             }
 
             // Acts a fallthrough so the exception below is not thrown.

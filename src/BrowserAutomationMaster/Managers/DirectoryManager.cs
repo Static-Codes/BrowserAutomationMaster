@@ -1,8 +1,6 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Messaging;
-using System;
-using System.IO;
+﻿using BrowserAutomationMaster.Messaging;
 using System.IO.Compression;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -225,7 +223,7 @@ namespace BrowserAutomationMaster.Managers
             //         $"IsARMhf: {Platforms.IsARMhf}",
             //         $"IsChromeOS: {Platforms.IsChromeOS}",
             //         $"IsLinux: {Platforms.IsLinux}",
-            //         $"IsOSX: {Platforms.IsOSX}",
+            //         $"IsMacOS: {Platforms.IsMacOS}",
             //         $"IsRaspi: {Platforms.IsRaspi}",
             //         $"Raspi Model: {Platforms.GetRaspiModelName()}",
             //         $"IsUnixLike: {Platforms.IsUnixLike}",
@@ -241,7 +239,7 @@ namespace BrowserAutomationMaster.Managers
                 return GetAppDataWindows(appName);
             }
 
-            else if (Platforms.IsOSX)
+            else if (Platforms.IsMacOS)
             {
                 return GetAppDataMacOS(appName);
             }
@@ -256,6 +254,8 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
+        public static string GetBinariesDirectory() { return Path.Combine(AppDataDirectory, "binaries"); }
+        
         public static string GetBrowserStackDirectory() { return Path.Combine(AppDataDirectory, "browserstack"); }
 
         public static string GetBrowserStackConfigPath() { return Path.Combine(GetBrowserStackDirectory(), "browserstack.yml"); }
@@ -266,7 +266,7 @@ namespace BrowserAutomationMaster.Managers
 
         private static string GetDefaultBackupPath(string compression = "zip")
         {
-            if (Platforms.IsUnixLike && !Linux.HasDisplayVarSet())
+            if (Platforms.IsUnixLike && !HasDisplayVarSet())
             {
                 return Path.Combine("~", $"BAMM-Backup.{compression}");
             }
@@ -384,6 +384,32 @@ namespace BrowserAutomationMaster.Managers
         
         public static string GetTemporaryNeofetchPath(){
             return Path.Combine(AppDataDirectory, "neofetch.tmp");
+        }
+        
+        public static string GetSourceDirectory() 
+        {
+            // This will be modified if it does not resolve from DirectoryManager.
+            var AppDataPath = AppDataDirectory;
+                
+            if (AppDataPath == null) {
+                Write("DirectoryManager.AppDataDirectory could not be resolved.");
+                AppDataPath = Input.AskForInput("Please enter the directory to save the BAMM codebase.");
+            }
+
+            if (!Directory.Exists(AppDataPath)) 
+            {
+                WriteAndExit("DirectoryManager.AppDataPath could not be resolved, please try another directory.", 1);
+            }
+
+            return Path.Join(AppDataPath, "source");
+        }
+
+        public static string GetSourceBuildsDirectory() 
+        {
+            var sourceDir = GetSourceDirectory();
+            var sourceBuildsDir = Path.Join(sourceDir, "builds");
+            EnsureDirectoryExists(sourceBuildsDir);
+            return sourceBuildsDir;
         }
         
         public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }

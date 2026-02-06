@@ -22,7 +22,7 @@
 		<!-- NuGet Package Metadata -->
 		<PackAsTool>false</PackAsTool>
 		<PackageId>bamm</PackageId>
-		<PackageVersion>1.0.0-alpha7</PackageVersion>
+		<PackageVersion>1.0.0-alpha8</PackageVersion>
 		<!-- Windows & OSX License -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<ApplicationIcon>bamm.ico</ApplicationIcon>
@@ -45,7 +45,7 @@
 		<DebianPackageDescription>$(Description)</DebianPackageDescription>
 		<DebianPackageSection>utils</DebianPackageSection>
 		<DebianPackagePriority>optional</DebianPackagePriority>
-		<DebianPackageRequires>libicu-dev, python3</DebianPackageRequires>
+		<DebianPackageRequires>libicu-dev, python3, python3-venv, python3-dev, build-essential, xclip</DebianPackageRequires>
 		<DebianDesktopFile>$(CommonPackageName).desktop</DebianDesktopFile>
 		<DebianDesktopCategories>Utility;Console;</DebianDesktopCategories>
 		<DebianDesktopTerminal>true</DebianDesktopTerminal>
@@ -64,48 +64,39 @@
 		<RpmVendor>$(Authors)</RpmVendor>
 		<RpmPackager>$(Authors)</RpmPackager>
 		<RpmGroup>Applications/Utilities</RpmGroup>
-		<RpmRequires>$(RpmRequires) libicu, python3</RpmRequires>
+		<RpmRequires>$(RpmRequires) libicu-dev, python3, python3-venv, python3-dev, build-essential, xclip</RpmRequires>
 		<RpmDesktopFile>$(CommonPackageName).desktop</RpmDesktopFile>
 		<RpmDesktopCategories>Utility;Console;Development;</RpmDesktopCategories>
 		<RpmDesktopTerminal>true</RpmDesktopTerminal>
 		<RpmDesktopName>$(CommonDesktopName)</RpmDesktopName>
 	</PropertyGroup>
 
-	<!-- macOS Silicon Specific AOT Logic -->
-	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">
+	<!-- macOS Specific Logic -->
+	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'osx-x64'">
 		<TargetFramework>net10.0</TargetFramework>
 		<PublishSingleFile>true</PublishSingleFile>
-		<!-- <PublishTrimmed>true</PublishTrimmed> -->
-		<!-- <PublishAot>true</PublishAot> -->
 		<StripSymbols>false</StripSymbols>
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 	</PropertyGroup>
 
+	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'osx-x64'">
+		<EmbeddedResource Include="Helpers/macOS/free" />
+	</ItemGroup>
+	<!-- End of macOS Specific Logic -->
 
 
 	<ItemGroup>
-	  <Content Include="bamm.ico" />
+	  <EmbeddedResource Include="bamm.ico" />
 	  
 	  <!-- Application Data -->
-	  <Content Include="AppData/browserstack.json"/>
-	  <Content Include="AppData/colors.json"/>
-	  <Content Include="AppData/packages.json"/>
-	  <Content Include="AppData/useragents.json"/>
-	  <Content Include="AppData/browserstack.json"/>
+	  <EmbeddedResource Include="AppData/browserstack.json"/>
+	  <!-- <EmbeddedResource Include="AppData/colors.json"/> -->
+	  <EmbeddedResource Include="AppData/packages.json"/>
+	  <EmbeddedResource Include="AppData/useragents.json"/>
 
 	  <!-- Precompiled Wheels -->
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl"/>
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/cffi-1.17.1-cp38-cp38-linux_armhf.whl"/>
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/cffi-2.0.0-cp311-cp311-linux_armv7l.whl"/>
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/psutil-7.1.2-cp36-abi3-linux_armv7l.whl"/>
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/zstandard-0.23.0-cp38-cp38-linux_armhf.whl"/>
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/armhf/zstandard-0.25.0-cp311-cp311-linux_armv7l.whl"/>
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/generic/brotlipy-0.7.0-cp311-cp311-linux_armv7l.whl"/>
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/generic/cffi-2.0.0-cp311-cp311-linux_armv7l.whl"/>
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/generic/psutil-7.1.3-cp36-abi3-linux_armv7l.whl"/>
-	  <Content Include="src/BrowserAutomationMaster/AppData/wheels/generic/zstandard-0.25.0-cp311-cp311-linux_armv7l.whl"/>
-
-
+	  <EmbeddedResource Include="AppData/wheels/*/*.whl" />
+	  <EmbeddedResource Include="userScripts/*.bamc" />
 	</ItemGroup>
 
 	

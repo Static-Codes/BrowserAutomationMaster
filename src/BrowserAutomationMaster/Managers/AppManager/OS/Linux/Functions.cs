@@ -1,16 +1,11 @@
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -21,27 +16,31 @@ using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 using static System.Runtime.InteropServices.Architecture;
 
-namespace BrowserAutomationMaster.Managers.AppManager.OS
+namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 {
-    public static partial class Linux
+    public static partial class Functions
     {
 
         // Debian Package Manager
-        readonly public static bool HasDPKG = CommandExists("dpkg");
+        public static readonly bool HasDPKG = CommandExists("dpkg");
 
         // Flatpak Package Manager
-        readonly public static bool HasFlatpak = CommandExists("flatpak");
+        public static readonly bool HasFlatpak = CommandExists("flatpak");
 
         // Red Hat Package Manager
-        readonly public static bool HasRPM = CommandExists("rpm");
+        public static readonly bool HasRPM = CommandExists("rpm");
 
-        readonly public static List<AppInfo> dpkgApps = HasDPKG ? ParseDpkgList() : [];
+        public static readonly bool HasPacman = CommandExists("pacman");
 
-        readonly public static List<AppInfo> flatpakApps = HasFlatpak ? ParseFlatpakList() : [];
+        public static readonly List<AppInfo> dpkgApps = HasDPKG ? ParseDpkgList() : [];
 
-        readonly public static List<AppInfo> rpmApps = HasRPM ? ParseRpmList() : [];
+        public static readonly List<AppInfo> flatpakApps = HasFlatpak ? ParseFlatpakList() : [];
 
-        public readonly static Dictionary<string, bool> RPIModels = new()
+        public static readonly List<AppInfo> rpmApps = HasRPM ? ParseRpmList() : [];
+
+        public static readonly List<AppInfo> pacmanApps = HasPacman ? ParsePacmanList() : [];
+
+        public static readonly Dictionary<string, bool> RPIModels = new()
         {
             { "2 Model B", false },
             { "3 Model B", false },
@@ -55,15 +54,43 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             { "Compute Module 4S", true }
         };
 
+        private static readonly string pyVerInputMessage = 
+        @"Supported versions include:
+            - Python 3.9.X
+            - Python 3.10.X
+            - Python 3.11.X
+            - Python 3.12.X
+            - Python 3.13.X
+            - Python 3.14.X
+            - Python 3.15.X (UNTESTED BUT HYPOTHETICALLY SUPPORTED)
+
+        Examples:
+            - Python 3.9
+            - Python 3.12.7
+            - Python 3.9.8
+
+        Version: ".Replace("            ", "");
+
         public static List<AppInfo> GetApps()
         {
             try
             {
-                if (dpkgApps.Count == 0 && flatpakApps.Count == 0 && rpmApps.Count == 0) {
+                var totalAppCount = dpkgApps.Count + 
+                                    flatpakApps.Count + 
+                                    rpmApps.Count + 
+                                    pacmanApps.Count;
+
+                if (totalAppCount == 0) {
                     WriteAndExit(
                         message:
-                            "BAM Manager (BAMM) was unable to detect any of the following commands:\n\n" +
-                            "dpkg\nflatpak\nrpm\n",
+                            string.Join(NLC, [
+                                "BAM Manager (BAMM) was unable to detect any packages from the following package managers:",
+                                NLC,
+                                "- dpkg",
+                                "- flatpak", 
+                                "- rpm",
+                                "- pacman"
+                            ]),
                         status: 1
                     );
                 }
@@ -72,7 +99,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 {
                     ("Debian Package Manager (dpkg)", dpkgApps),
                     ("Flatpak", flatpakApps),
-                    ("RedHat Package Manager (rpm)", rpmApps)
+                    ("RedHat Package Manager (rpm)", rpmApps),
+                    ("Pacman", pacmanApps)
                 };
 
 
@@ -98,7 +126,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 }
 
                 AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
-                return [.. dpkgApps.Concat(flatpakApps).Concat(rpmApps).Distinct()];
+                return [.. dpkgApps
+                            .Concat(flatpakApps)
+                            .Concat(rpmApps)
+                            .Concat(pacmanApps)
+                            .Distinct()];
             }
 
             catch (Exception ex)
@@ -118,7 +150,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             bool[] invalidStates = [
                 Platforms.IsLinux,
                 Platforms.IsWindows,
-                Platforms.IsOSX,
+                Platforms.IsMacOS,
                 !Platforms.IsChromeOS,
                 Platforms.CurrentArchitecture != Arm,
             ];
@@ -155,6 +187,14 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 Platforms.IsARMel = true;
             }
 
+        }
+
+        // Due to the unique nature of how ANSI is handled on Kali Linux
+        public static bool IsKali() 
+        {
+            return 
+                Platforms.CurrentDistribution != null && 
+                Platforms.CurrentDistribution.Name.Equals("Kali Linux");
         }
 
         public static void ChromeOSCheck()
@@ -207,37 +247,35 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
-        public static string? GetDistroNameString()
+        // Unlike DistroManager.DetermineDistro() this is only used for debugging purposes.
+        public static string GetFullDistroName()
         {
             var lsbrPresent = CommandExists("lsb_release");
             var neofetchPresent = CommandExists("neofetch");
             string? distroName;
 
-            if (lsbrPresent)
-            { 
+            if (lsbrPresent) { 
                 distroName = RunLSBR(); 
             }
 
-            else if (neofetchPresent)
-            {
+            else if (neofetchPresent) {
                 distroName = RunNeofetch();
             }
 
-            else 
-            {
+            else {
                 distroName = RunOSR();
             }
 
-            return distroName;
+            return distroName ?? "Generic Linux";
         }
-
 
         public static string? GetTerminalBackgroundColor()
         {
             bool[] statesToReturnBlack = [
                 Platforms.IsChromeOS,
-                Platforms.IsOSX,
-                Platforms.IsRaspi
+                Platforms.IsMacOS,
+                Platforms.IsRaspi,
+                IsKali()
             ];
 
             try
@@ -251,9 +289,17 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 string tempFile = Path.GetTempFileName();
 
                 string command = "bash";
-                string args = $"-c \"printf '\\e]11;?\\e\\\\' >/dev/tty; read -rs -t 3 -d $'\\\\' response </dev/tty; echo \\\"$response\\\" | xxd > {tempFile}\"";
-                
-                string response = RunCommand(command, args);
+
+                string args = string.Join(' ', [
+                    "-c",
+                    "\"printf '\\e]11;?\\e\\\\' >/dev/tty;",
+                    "read -rs -t 3 -d $'\\\\' response </dev/tty;",
+                    $"echo \\\"$response\\\" | xxd > {tempFile}\""
+                ]);
+
+                // string args = $"-c \"printf '\\e]11;?\\e\\\\' >/dev/tty; read -rs -t 3 -d $'\\\\' response </dev/tty; echo \\\"$response\\\" | xxd > {tempFile}\"";
+
+                (var output, var error) = RunCommand(command, args);
                 Thread.Sleep(300);
 
                 if (File.Exists(tempFile))
@@ -293,65 +339,50 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"));
         }
 
-        public static async Task InstallRequiredLinuxPackages(List<AppInfo> appsInfo)
+        // Installs the required packages and writes the required wheels to disks (if needed)
+        public static async Task InstallRequiredLinuxPackages()
         {
+            bool[] platformsThatRequireWheels = [
+                Platforms.IsARMel, 
+                Platforms.IsARMhf, 
+                Platforms.IsChromeOS, 
+                Platforms.IsRaspi
+            ];
+
+            // Ensuring the wheels are only downloaded on platforms that potentially require it.
+            bool wheelsRequired = platformsThatRequireWheels.Any(platform => platform);
+
             try
             {
                 // This empty file will be written once the packages are installed, then checked in subsequent runtimes.
-                var linuxPackageFile = GetLinuxPackageFile();
+                // var linuxPackageFile = GetLinuxPackageFile();
 
-                if (File.Exists(linuxPackageFile)){
-                    await DownloadWheels(); // Do not remove this ensure the wheels will always be downloaded.
-                    return;
-                }
+                // if (File.Exists(linuxPackageFile)) {
+                //     return;
+                // }
 
-                Warning.Write("Installing the Required Linux Packages (if not already installed.), please wait up to 60 seconds");
+                Warning.Write("Querying packages, please wait...");
 
-                var inputMessage = @"Supported versions include:
-                    - Python 3.9.X
-                    - Python 3.10.X
-                    - Python 3.11.X
-                    - Python 3.12.X
-                    - Python 3.13.X
-                    - Python 3.14.X
+                
 
-                    Examples:
-                    - Python 3.9
-                    - Python 3.12.7
-                    - Python 3.9.8
 
-                    Version: ".Replace("                    ", "");
+                // Exits if Platforms.CurrentDistribution is null.
+                CheckLinuxDistro();
 
-                var PKM_CMD = (HasDPKG, HasRPM) switch
+
+                // Adds the DEBIAN_FRONTEND=noninteractive prefix if the current distro in use is based off Debian.
+                var installPrefix = Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
                 {
-                    (true, _) => "apt-get", // Debian-Based
-                    (_, true) => "dnf",     // Fedora-Based
-                    (_, _) => null
-                };
+                    true => string.Join(' ', [
+                        "DEBIAN_FRONTEND=noninteractive", 
+                        Platforms.CurrentDistribution!.PackageManager,
+                        Platforms.CurrentDistribution.InstallCommand
+                    ]),
 
-                if (PKM_CMD == null)
-                {
-                    Warning.Write("An error occured while attempting to retrieve the Package Manager associated with your Distribution.");
-                    var response = Input.WriteListFromOptions(["Debian-Based", "Fedora-Based"], "operating system");
-                    PKM_CMD = response switch
-                    {
-                        "Debian-Based" => "apt-get", // Debian-Based
-                        "Fedora-Based" => "dnf",     // Fedora Based
-                        _ => "UNSELECTED DISTO"
-                    };
-
-                    if (PKM_CMD == "UNSELECTED DISTRO") {
-                        WriteAndExit("An error occured while attempting to access your Distribution's Package Manager, please try again.", 1);
-                    }
-                }
-
-
-
-                var installPrefix = (HasDPKG, HasRPM) switch
-                {
-                    (true, _) => $"DEBIAN_FRONTEND=noninteractive {PKM_CMD} install -y",
-                    (_, true) => $"{PKM_CMD} install -y",
-                    (_, _) => null
+                    _ => string.Join(' ', [
+                        Platforms.CurrentDistribution!.PackageManager,
+                        Platforms.CurrentDistribution.InstallCommand
+                    ])
                 };
 
                 var installCMD = $"-c \"sudo {installPrefix}";
@@ -360,52 +391,53 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 while (pyVersion == null || !PyVersionRegex.IsMatch(pyVersion))
                 {
                     Warning.Write("Unable to detect the installed version of Python.");
-                    pyVersion = Input.AskForInput(inputMessage);
+                    pyVersion = Input.AskForInput(pyVerInputMessage);
                 }
 
-                // Python3.X-dev is used for brotli and zstandard for compression and decompression
-                var optionalPackages = GetBrowserStackStatus() ?
-                    $"libffi-dev build-essential python{pyVersion.Replace("Python ", "")}-dev" :
-                    string.Empty;
+                string[] requiredPackages = Platforms.CurrentDistribution!.RequiredPackages;
+                string[] optionalPackages = GetBrowserStackStatus() ? Platforms.CurrentDistribution!.OptionalPackages : [];
+                string[] packages = [.. requiredPackages, .. optionalPackages];
 
-                string[] packages = [
-                    "xclip", // Used for auto_copy_path
-                    $"python{pyVersion.Replace("Python ", "")}-venv",  // Used for majority of BAMM to create vEnv(s)
-                    optionalPackages
-                ];
+                var missingPackages = await FindMissingPackages(packages);
 
-                if (installPrefix == null) {
-                    WriteAndExit($"Unable to install the following required Linux Packages:\n{string.Join('\n', packages)}", 1);
-                }
-
-                string[] commands = new string[packages.Length];
-
-                for (int i = 0; i < packages.Length; i++)
+                if (installPrefix == null) 
                 {
-                    // Skips installation of additional packages if browserstack isn't used.
-                    if (string.IsNullOrEmpty(packages[i])) {
-                        continue;
-                    }
+                    WriteAndExit(
+                        message: 
+                            string.Join(NLC, [
+                                "Unable to install the following required Linux Packages:",
+                                string.Join(NLC, packages), 
+                            ]), 
+                        status: 1
+                    );
+                }
 
+                if (missingPackages.Count == 0) 
+                {
+                    WriteSuccessMessage("No additional package installations are required.");
+                    return;
+                }
+
+                string[] commands = new string[missingPackages.Count];
+
+                Warning.Write("Installing required packages:");
+                foreach (var package in missingPackages) {
+                    Console.WriteLine($"\t- {package}");
+                }
+
+                Write("You will be prompted for your super user password shortly.");
+                Thread.Sleep(500);
+
+                for (int i = 0; i < commands.Length; i++)
+                {
                     commands[i] = $"{installCMD} {packages[i]}\"";
 
-                    var appInfo = new AppInfo() { 
-                        Name = packages[i],
-                        Path = "", // Path is required per the struct but isnt needed here, thus the empty string.
-                    };
-
-                    // Skips pre-existing installations
-                    if (appsInfo.Contains(appInfo)) {
-                        continue;
-                    }
-
                     Warning.Write($"Installing package: {packages[i]}");
-                    WriteSuccessMessage(RunCommand("/bin/bash", $"{commands[i]}"));
+                    (var output, _) = RunCommand("/bin/bash", $"{commands[i]}");
+                    WriteSuccessMessage(output);
                 }
 
                 await DownloadWheels();
-                
-                File.Create(linuxPackageFile);
             }
             catch (Exception e)
             {
@@ -414,15 +446,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
 
         }
-
-        /// <summary> Parses apps installed via DPKG (Debian Package Manager) (apt utilizes DPKG so most users will be using apt install.) </summary>
-        /// <returns>A List of AppInfo</returns>
+        
         private static List<AppInfo> ParseDpkgList()
         {
             try
             {
                 var apps = new List<AppInfo>();
-                var output = RunCommand("dpkg-query", "-W -f \"${Package}\t${Version}\n\"");
+                (var output, var error) = RunCommand("dpkg-query", "-W -f \"${Package}\t${Version}\n\"");
                 foreach (var line in output.Split('\n'))
                 {
                     var parts = line.Trim('\'').Split("\t");
@@ -451,7 +481,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         private static List<AppInfo> ParseRpmList()
         {
             var apps = new List<AppInfo>();
-            var output = RunCommand("rpm", "-qa");
+            (var output, _) = RunCommand("rpm", "-qa");
             
             foreach (var line in output.Split('\n'))
             {
@@ -470,13 +500,51 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             return apps;
         }
 
+        private static List<AppInfo> ParsePacmanList() 
+        {
+            try
+            {
+                var apps = new List<AppInfo>();
+                var command = string.Join(' ', [
+                    "-c",
+                    "\"pacman -Ql |", 
+                    "grep '/usr/bin/[^/]' |",
+                    "awk '{print $1, $2}' |", 
+                    "sort -u -k1,1\""
+                ]);
+
+                (var output, var error) = RunCommand("/bin/bash", command);
+                
+                foreach (var line in output.Split('\n'))
+                {
+                    var parts = line.Trim().Split(' ');
+                    
+                    if (parts.Length >= 2)
+                    {
+                        apps.Add(
+                            new AppInfo { 
+                                Name = parts[0], 
+                                Version = "",
+                                Path = parts[1],
+                            }
+                        );
+                    }
+                }
+                return apps;
+            }
+            catch { 
+                Write("Pacman not found, checking another method."); 
+                return []; 
+            }
+        }
+
 
         /// <summary> Parses apps installed via Flatpak </summary>
         /// <returns>A List of AppInfo</returns>
         private static List<AppInfo> ParseFlatpakList()
         {
             var apps = new List<AppInfo>();
-            var output = RunCommand("flatpak", "list");
+            (var output, _) = RunCommand("flatpak", "list");
 
             foreach (var line in output.Split('\n'))
             {
@@ -499,6 +567,28 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             return apps;
         }
 
+        public static void RefreshDebianAptCache() 
+        {
+            try 
+            {
+                if (Platforms.CurrentDistribution!.Equals(DistroBase.Debian)) {
+                    Warning.Write("One or more dependencies are requiring a refresh of the apt-cache, please wait.");
+                    RunCommand("apt-get", "update");
+                }
+            }
+            catch (Exception ex) {
+                WriteAndExit(
+                    message: 
+                        string.Join(NLC, [
+                            "Failed to update apt-cache using apt-get update",
+                            "Error Log:",
+                            ex.Message
+                        ]),
+                    status: 1
+                );
+            }
+        }
+        
         public static void RPICheck()
         {
             if (!OperatingSystem.IsLinux()) {
@@ -555,12 +645,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             }
         }
 
-        public static string RunCommand(string cmd, string args)
+        public static (string, string) RunCommand(string cmd, string args)
         {
+            string output = string.Empty;
+            string error = string.Empty;
             try
             {
-
-
                 ProcessStartInfo procStartInfo = new()
                 {
                     FileName = cmd,
@@ -575,18 +665,18 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 using var proc = Process.Start(procStartInfo);
                 
                 if (proc == null) {
-                    return string.Empty;
+                    return (output, error);
                 }
 
-                string output = proc.StandardOutput.ReadToEnd();
+                output = proc.StandardOutput.ReadToEnd();
+                error = proc.StandardError.ReadToEnd();
                 proc.WaitForExit();
 
                 if (proc.ExitCode == 0) {
-                    return output;
+                    return (output, error);
                 }
-
-                return string.Empty;
             }
+
             catch (Exception ex)
             {
                 WriteAndExit(
@@ -596,30 +686,32 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         $"{cmd}\nException:\n{ex.Message}",
                     status: 1
                 );
-                return string.Empty;
             }
+
+            return (output, error);
         }
 
-        // /etc/os-release
+        // Executing: 'cat /etc/os-release'
         private static string? RunOSR()
         {
+            var fileName = "/etc/os-release";
             try
             {
-                if (!File.Exists("/etc/os-release")) {
+                if (!File.Exists(fileName)) {
                     return null;
                 }
 
-                var contentArray = File.ReadAllLines("/etc/os-release");
+                var contentArray = File.ReadAllLines(fileName);
 
                 var contentString = string.Join(NLC, contentArray);
 
-                var osrMatch = PrecompiledOSR1Regex().Match(contentString);
+                var osrMatch = PrecompiledOSRPrettyNameRegex().Match(contentString);
 
                 if (osrMatch.Success) {
                     return osrMatch.Groups[1].Value;
                 }
 
-                osrMatch = PrecompiledOSR2Regex().Match(contentString);
+                osrMatch = PrecompiledOSRNameRegex().Match(contentString);
 
                 if (osrMatch.Success) {
                     return osrMatch.Groups[1].Value;
@@ -632,12 +724,12 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             return null;
         }
         
-        // lsb_release -a 
+        // Executing: 'lsb_release -a' 
         private static string? RunLSBR()
         {
             try
             {
-                var lsbrResult = RunCommand("/bin/bash", "-c \"lsb_release -a\"");
+                (var lsbrResult, _) = RunCommand("/bin/bash", "-c \"lsb_release -a\"");
 
                 var lsbrMatch = PrecompiledLSBRRegex().Match(lsbrResult);
 
@@ -651,11 +743,10 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 Warning.Write("Unable to determine detailed OS info for debugging purposes.");
                 Warning.Write("You may see the generic \"Linux\" identifier.");
             }
-            // catch (Exception ex){}
             return null;
         }
 
-        // neofetch
+        // Executing: 'neofetch'
         private static string? RunNeofetch()
         {
             try
@@ -690,6 +781,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             // catch (Exception ex){}
             return null;
         }
+        
         private static string StripANSI(string text) {
             string ANSIPattern = @"\x1b\[[0-?]*[ -/]*[@-~]";
             return Regex.Replace(text, ANSIPattern, string.Empty);

@@ -1,10 +1,9 @@
-﻿using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
-using BrowserAutomationMaster.Parsing;
+﻿using BrowserAutomationMaster.Parsing;
 using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers;
-using System;
-using System.IO;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 
 namespace BrowserAutomationMaster.Messaging
 {
@@ -62,6 +61,7 @@ namespace BrowserAutomationMaster.Messaging
                     Platform: {Environment.OSVersion.Platform}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
+                    AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
@@ -72,13 +72,14 @@ namespace BrowserAutomationMaster.Messaging
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }
 
-            else if (Platforms.IsOSX)
+            else if (Platforms.IsMacOS)
             {
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
                     macOS Version: {MacOS.GetMacOSVersion()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
+                    AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
@@ -92,10 +93,11 @@ namespace BrowserAutomationMaster.Messaging
             else if (Platforms.IsLinux)
             {
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
-                    Distro Name: {Linux.GetDistroNameString()}
+                    Distro Name: {GetFullDistroName()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
+                    AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
@@ -111,6 +113,7 @@ namespace BrowserAutomationMaster.Messaging
                 return @$"Platform: {Environment.OSVersion.Platform}
                     Current Dir: {Environment.CurrentDirectory}
                     Installation Dir: {AppContext.BaseDirectory}
+                    AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------

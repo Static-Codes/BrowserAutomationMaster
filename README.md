@@ -65,4 +65,4 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
     - Raspberry Pi 3 Model B
       - 4 Core ARM CPU @ 1.4GHz 
       - 1GB SDRAM
-      - An SD Card with 10GB of Free Space.
+      - An SD Card with 1GB of Free Space.

@@ -1,12 +1,15 @@
-﻿using BrowserAutomationMaster.Compilation;
+﻿using System.Text.Json;
+using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
+using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -25,6 +28,15 @@ using static BrowserAutomationMaster.Parsing.Parser;
 
 namespace BrowserAutomationMaster
 {
+    public static class ByteArrayExtensions
+    {
+        public static async Task<T?> Deserialize<T>(this byte[] data) where T : class
+        {
+            using var stream = new MemoryStream(data);
+            return await JsonSerializer.DeserializeAsync(stream, typeof(T)) as T;
+        }
+    }
+    
     public class ProgramFunctions
     {
         /// <summary>Handles all of the initial application setup and prerequisite checks.</summary>
@@ -34,20 +46,18 @@ namespace BrowserAutomationMaster
             // Sets PlatformManager.PlatformName to be used across the session duration.
             SetPlatform();
 
-            // Downloads a local copy of:
-            // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/main/stable/src/BrowserAutomationMaster/AppData/packages.json
-            await PackageManager.Initalize();
+            // Writes packages.json to disk (bundled with the binary in BrowserAutomationMaster.csproj)
+            await PyPiPackageManager.Initalize();
 
-            // BUG FIXXED: DO NOT CHANGE POSITION
+            // BUG FIXED: DO NOT CHANGE POSITION
             // If GlobalConfig is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
             GlobalConfig = LoadConfig();
 
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
 
-            // Populate DeviceManager.Devices
-            if (!await PopulateDevices())
-            {
+            // Populates DeviceManager.Devices
+            if (!PopulateDevices()) {
                 Environment.Exit(0);
             }
             
@@ -119,7 +129,7 @@ namespace BrowserAutomationMaster
                     $"IsARMhf: {Platforms.IsARMhf}",
                     $"IsChromeOS: {Platforms.IsChromeOS}",
                     $"IsLinux: {Platforms.IsLinux}",
-                    $"IsOSX: {Platforms.IsOSX}",
+                    $"IsMacOS: {Platforms.IsMacOS}",
                     $"IsRaspi: {Platforms.IsRaspi}",
                     $"Raspi Model: {Platforms.GetRaspiModelName()}",
                     $"IsUnixLike: {Platforms.IsUnixLike}",
@@ -131,7 +141,7 @@ namespace BrowserAutomationMaster
 
             if (Platforms.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
                 Console.WriteLine("====================================");
-                Console.WriteLine("$DISPLAY Set: {0}", Linux.HasDisplayVarSet());
+                Console.WriteLine("$DISPLAY Set: {0}", HasDisplayVarSet());
                 Console.WriteLine("===================================={0}{1}", NLC, NLC);
             }
 
@@ -153,6 +163,12 @@ namespace BrowserAutomationMaster
             {
                 WriteAndExit("", 0);
             }
+
+            if (pArgs.Any(arg => arg.Equals("--show-distro"))) 
+            {
+                var distro = Platforms.CurrentDistribution ?? Distros.Unknown;
+                WriteSuccessMessage(distro.ToString());
+            }
             
             if (pArgs.Any(arg => arg.Equals("--gui") && !Directory.Exists(userScriptsDirectory))){
                 WriteAndExit(
@@ -170,7 +186,7 @@ namespace BrowserAutomationMaster
             }
 
             // If no display is set and the user attempts to user the GUI, browserstack will be set.
-            if (pArgs.Any(arg => arg.Equals("--gui")) && !Linux.HasDisplayVarSet())
+            if (pArgs.Any(arg => arg.Equals("--gui")) && !HasDisplayVarSet())
             {
                 Warning.Write($"Unable to query $DISPLAY, BAMM's GUI will not work.");
                 SetBrowserStackStatus(true);
@@ -306,8 +322,8 @@ namespace BrowserAutomationMaster
             // Handles 'uninstall' command
             if (pArgs[0].Equals("uninstall", CCIC))
             {
-                UninstallationManager.Uninstall();
-                return true;
+                // This will exit regardless of success status so no return is neccessary.
+                await UninstallationManager.Uninstall();
             }
 
             // Handles 'validate' command variations
@@ -532,7 +548,7 @@ namespace BrowserAutomationMaster
             }
 
             if (doHardwareCheck) {
-                RuntimeManager.DoRuntimeCheck();
+                await RuntimeManager.DoRuntimeCheck();
                 return;
             }
 
@@ -545,7 +561,7 @@ namespace BrowserAutomationMaster
                 RuntimeManager.SetCoreCount(cpuInfoManager.Cores);
             }
 
-            RuntimeManager.SetMemoryInfo();
+            await RuntimeManager.SetMemoryInfo();
             
         }
 
@@ -609,7 +625,7 @@ namespace BrowserAutomationMaster
             bool isRunning = true;
             while (isRunning)
             {
-                KeyValuePair<MenuOption, string> MenuResult = New();
+                KeyValuePair<MenuOption, string> MenuResult = await New();
                 switch (MenuResult.Key)
                 {
                     case MenuOption.Add:

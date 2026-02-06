@@ -113,7 +113,7 @@ namespace BrowserAutomationMaster.Managers
                 return GetCPUName();
             }
 
-            else if (Platforms.IsOSX) {
+            else if (Platforms.IsMacOS) {
                 processName = "/bin/bash";
                 processArgs = "-c \"sysctl -n machdep.cpu.brand_string\"";
             }
@@ -189,8 +189,15 @@ namespace BrowserAutomationMaster.Managers
 
         public static void DisplayMissingInstructions()
         {
-            foreach (RequiredCPUInstruction instruction in unsupportedInstructions) {
+            var message = "Would you like to learn more about this instruction? [y/n]: ";
+            
+            foreach (RequiredCPUInstruction instruction in unsupportedInstructions) 
+            {
                 Spectre.Console.AnsiConsole.Write($"{instruction} is unsupported on the current CPU.");
+
+                if (Input.ConditionAccepted(Input.AskForInput(message))) {
+                    Warning.Write(GetExplanationForInstruction(instruction));
+                }
             }
         }
 
@@ -234,7 +241,7 @@ namespace BrowserAutomationMaster.Managers
                 return GetPhysicalCoreCountLinux();
             }
 
-            if (Platforms.IsOSX)
+            if (Platforms.IsMacOS)
             {
                 return GetPhysicalCoreCountMacOS();
             }

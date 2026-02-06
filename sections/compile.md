@@ -12,7 +12,7 @@ Before you begin, ensure you have the following installed on your system:
 In most cases you will need the **.NET 10.x SDK** only use the **.NET 8.X SDK** for legacy builds!
 
 1.  **.NET 8/10 SDK:**
-    - For the stable/main branch you will need **the .NET 10.X SDK**, it can be downloaded <a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0" target="_blank">here</a>
+    - For the stable/canary branch you will need **the .NET 10.X SDK**, it can be downloaded <a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0" target="_blank">here</a>
 
     - If you are building from the ![dotnet8-legacy](https://github.com/Static-Codes/BrowserAutomationMaster/tree/dotnet8-legacy) branch you will need the **.NET 8.X SDK**, it can be downloaded <a href="https://dotnet.microsoft.com/en-us/download/dotnet/8.0" target="_blank">here</a>
       

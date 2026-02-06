@@ -1,7 +1,5 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Windows.Win32.System.SystemInformation;
@@ -9,6 +7,7 @@ using Windows.Win32;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -23,14 +22,17 @@ namespace BrowserAutomationMaster.Managers
 
     public class MemoryInfoManager
     {
+
+
+
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
-        public static MemoryInfo? RunCheck()
+        public static async Task<MemoryInfo?> RunCheck()
         {
             return true switch
             {
                 _ when Platforms.IsWindows => CheckForWindows(),
-                _ when Platforms.IsOSX => CheckForOSX(),
+                _ when Platforms.IsMacOS => await CheckForOSX(),
                 _ when Platforms.IsLinux => CheckForLinux(),
                 _ => null
             };
@@ -72,173 +74,103 @@ namespace BrowserAutomationMaster.Managers
             };
         }
             
-
-        private static MemoryInfo? CheckForOSX() {
-            string scriptFileContents = @"#!/bin/bash
-
-    BYTES_IN_MB=$((1024 * 1024))
-    PAGESIZE_BYTES=$(pagesize)
-    TOTAL_MEM_BYTES=$(sysctl -n hw.memsize)
-    TOTAL_MEM_MB=$((TOTAL_MEM_BYTES / BYTES_IN_MB))
-    VM_STAT_OUTPUT=$(vm_stat)
-
-    get_page_count() {
-        echo ""$VM_STAT_OUTPUT"" | awk -v metric=""^$1:"" '$0 ~ metric {gsub(/\./,"""",$3); print $3; exit}' | grep -o '[0-9]*'
-    }
-
-    FREE_PAGES=$(get_page_count ""Pages free"")
-    INACTIVE_PAGES=$(get_page_count ""Pages inactive"")
-    SPECULATIVE_PAGES=$(get_page_count ""Pages speculative"")
-    PURGEABLE_PAGES=$(get_page_count ""Pages purgeable"")
-
-    TOTAL_PAGES=$((TOTAL_MEM_BYTES / PAGESIZE_BYTES))
-    AVAILABLE_PAGES=$(( ${FREE_PAGES:-0} + ${INACTIVE_PAGES:-0} + ${SPECULATIVE_PAGES:-0} + ${PURGEABLE_PAGES:-0} ))
-    USED_PAGES=$((TOTAL_PAGES - AVAILABLE_PAGES))
-    USED_PAGES=$((USED_PAGES < 0 ? 0 : USED_PAGES))
-
-    USED_MEM_MB=$(((USED_PAGES * PAGESIZE_BYTES) / BYTES_IN_MB))
-    FREE_MEM_MB=$((TOTAL_MEM_MB - USED_MEM_MB))
-
-    echo $TOTAL_MEM_MB
-    echo $USED_MEM_MB
-    echo $FREE_MEM_MB";
-
-            var scriptDirectory = Path.GetTempPath(); // Creates a temp file for {scriptFileName}
-            var scriptFileName = "memcheck.sh";
-            var scriptFilePath = Path.Combine(scriptDirectory, scriptFileName);
-
-            try
+        [UnsupportedOSPlatform("windows")]
+        private static async Task<MemoryInfo?> CheckForOSX() 
+        {
+            try 
             {
-                File.WriteAllText(scriptFilePath, scriptFileContents);
+                var binariesDirectory = DirectoryManager.GetBinariesDirectory();
+                var binaryName = "free";
+                var binaryResourcePattern = "BrowserAutomationMaster.Helpers.macOS.free";
 
-                ProcessStartInfo chmodStartInfo = new()
-                {
-                    FileName = "/bin/bash",
-                    Arguments = $"-c \"chmod +x \"{scriptFilePath}\"\"",
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                };
+                var freeBinaryPath = Path.Combine(binariesDirectory, binaryName);
 
-                Process chmodProcess = new() { StartInfo = chmodStartInfo };
-                chmodProcess.Start();
-                chmodProcess.WaitForExit();
-
-                if (chmodProcess.ExitCode != 0) {
-                    WriteAndExit(
-                        message: $"BAM Manager (BAMM) was unable to give {scriptFileName} executable permissions.\n\n" +
-                                 $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                                 $"Error log:\nchmod failed with exit code {chmodProcess.ExitCode}",
-                        status: 1);
+                if (!Directory.Exists(binariesDirectory)) {
+                    DirectoryManager.EnsureDirectoryExists(binariesDirectory);
                 }
 
-                ProcessStartInfo sedProcessInfo = new()
+                if (!File.Exists(freeBinaryPath)) 
                 {
-                    FileName = "/bin/bash",
-                    Arguments = $"-c \"sed -i '' 's/\\r$//' \"{scriptFilePath}\"\"",
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardError = true
-                };
+                    Console.WriteLine("BAMM bundles free-for-macOS, a MacOS application that allows for streamlined memory detection.");
+                    Thread.Sleep(1000);
+                    Console.WriteLine($"Please wait while free-for-macOS is written to: {freeBinaryPath}");
+                    Thread.Sleep(1000);
+                    Console.WriteLine("For more information on free-for-macOS, please see the github repo:");
+                    Console.WriteLine(FREE_FOR_MACOS_REPO_LINK);
 
-                Process sedProcess = new() { StartInfo = sedProcessInfo };
-                sedProcess.Start();
-                sedProcess.WaitForExit();
+                    await EmbeddedResourceManager.WriteEmbeddedResourceToDisk(
+                        resourceName: binaryName,
+                        resourcePattern: binaryResourcePattern,
+                        outputPath: freeBinaryPath
+                    );
+                }
 
-                if (sedProcess.ExitCode != 0) {
+                // Checking if the free-for-macOS binary has executable permissions
+                var binaryHasPermissions = UnixFilePermissionManager.HasExecutablePermissions(freeBinaryPath);
+                
+                // If binaryHasPermissions is true, this changes nothing. 
+                // However, if binaryHasPermissions is false, this attempts to give the binary exutable permissions using chmod.
+                binaryHasPermissions = binaryHasPermissions || UnixFilePermissionManager.SetExecutablePermissions(freeBinaryPath);
+                
+
+                if (!binaryHasPermissions) 
+                {
                     WriteAndExit(
-                        message: $"BAM Manager (BAMM) was unable to give {scriptFileName} executable permissions.\n\n" +
-                                 $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                                 $"Error log:\nsed failed with exit code {sedProcess.ExitCode}", 
+                        message: string.Join(NLC, [
+                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.{NLC}",
+                            $"If this issue persists please make a bug report at {ISSUES_LINK}{NLC}",
+                            "Error log:",
+                            $"Unable to give executable permissions to '{freeBinaryPath}'"
+                        ]),
                         status: 1
                     );
                 }
 
+                // Executing the actual memory check using free-for-macOS
+                // https://github.com/zfdang/free-for-macOS
+                ExecuteFreeCommand(
+                    binaryPath: freeBinaryPath, 
+                    argument: "", 
+                    out string? output, 
+                    out Process? process
+                );
 
-                ProcessStartInfo scriptRunInfo = new() {
-                    FileName = scriptFilePath,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                };
+                return ProcessFreeCommandOutput(output, process);
+            }
 
-                Process? process = Process.Start(scriptRunInfo);
-
-                if (process == null) {
-                    WriteAndExit(
-                        message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
-                                 $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                                 "Error log:\n" +
-                                 $"Process associated with {scriptFileName} returned null, but it successfully received +x privileges.",
-                        status: 1
-                    ); 
-                }
-
-                string output = process!.StandardOutput.ReadToEnd(); // Null check above thus the null forgiveness operator.
-                string errorOutput = process.StandardError.ReadToEnd();
-
-                process.WaitForExit();
-
-                if (process.ExitCode != 0) {
-                    WriteAndExit(
-                        message: 
-                            "BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
-                            $"If this continues, please make a bug report at {ISSUES_LINK}\n\nError log:\n" +
-                            $"{scriptFileName} returned the following error:\n{errorOutput}\nExit Code: {process.ExitCode}",
-                        status: 1
-                    );
-                }
-
-                // Handles the cross system issues caused by pasting a unix script on a windows machine
-                var lines = output.Split(["\n", "\r"], StringSplitOptions.RemoveEmptyEntries); 
-
-                // Used for debug only do not forget to comment this out.
-                //foreach (string line in lines) { Spectre.Console.AnsiConsole.Write(line); } 
-
-                if (lines.Length < 3) { return null; }
-
-                if (double.TryParse(lines[0], out double total) && 
-                    double.TryParse(lines[1], out double used) && 
-                    double.TryParse(lines[2], out double free)
-                ) 
-                {
-                    var usedPercent = Math.Round(used / total * 100.0, 2); // 100 is required to go from a double to a decimal to prevent this error
-                    var freePercent = Math.Round(100.0 - usedPercent, 2);  // The call is ambiguous between the following methods or properties: 'System.Math.Round(double, int)' and 'System.Math.Round(decimal, int)
-
-                    return new MemoryInfo()
-                    {
-                        TotalMemory = total,
-                        UsedMemory = used,
-                        FreeMemory = free,
-                        UsedPercent = usedPercent,
-                        FreePercent = freePercent
-                    };
-                }
+            catch (Exception e)
+            {
                 WriteAndExit(
-                    message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
-                    $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                    $"Error log:\n{scriptFileName} returned the following error:\n{errorOutput}\nExit Code: {process.ExitCode}",
+                    message: 
+                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again, " +
+                        $"if this issue persists, please make a bug report at {ISSUES_LINK}{NLC}{NLC}" +
+                        $"Error log:{NLC}{NLC}MemoryInfoManager.CheckForOSX exited with stack trace of:{NLC}{NLC}{e}",
                     status: 1
                 );
-            }
-            catch (Exception ex)
-            {
-                WriteAndExit(
-                    message: $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
-                             $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                             $"Error log:\n{ex.Message}",
-                    status: 1);
+                return null;
             }
 
-            return null;
         }
 
-        private static MemoryInfo? CheckForLinux() {
-            var output = "";
+
+        private static MemoryInfo? CheckForLinux() 
+        {
+    
+            ExecuteFreeCommand("free", "", out string? output, out Process? process);
+            return ProcessFreeCommandOutput(output, process);
+            
+        }
+
+        private static void ExecuteFreeCommand(string binaryPath, string argument, out string? output, out Process? process) 
+        {
+            output = null;
+            process = null;
 
             var info = new ProcessStartInfo {
-                FileName = "free",
-                Arguments = "-m", // Learned what the hell a mebibyte was today and now I'm upset that it's not the standard unit of storage. Thanks, marketing departments for selling us base-10 dreams on base-2 hardware.
+                FileName = binaryPath,
+                // Learned what the hell a mebibyte was today and now I'm upset that it's not the standard unit of storage. 
+                // Thanks, marketing departments for selling us base-10 dreams on base-2 hardware.
+                Arguments = argument, 
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -247,86 +179,295 @@ namespace BrowserAutomationMaster.Managers
 
             try
             { 
-                Process? process = Process.Start(info);
-                using (process) {
-                    if (process == null) { 
+                process = Process.Start(info);
+                using (process) 
+                {
+                    if (process == null) 
+                    { 
                         WriteAndExit(
-                            message: 
-                                $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
-                                $"If this issue persists please make a bug report at {ISSUES_LINK}\n\n" +
-                                $"Error log:\nfree -m command process returned null.",
+                            message: string.Join(NLC, [
+                                $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.",
+                                $"If this issue persists please make a bug report at {ISSUES_LINK}{NLC}",
+                                "Error log:",
+                                "The process associated with the command:",
+                                $"'{binaryPath}' {argument}",
+                                "returned null."
+                            ]),
                             status: 1
                         ); 
                     }
                     output = process!.StandardOutput.ReadToEnd(); // Null check above prevents process from being null at this point thus the !.
                 }
-
-                var lines = output.Split("\n");
-                if (lines.Length == 0) {
-                    WriteAndExit(
-                        message: 
-                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
-                            $"as the linux 'free' command returned nothing, please try again.\n\n" +
-                            $"If this issue persists please make a bug report at {ISSUES_LINK}\n\n" +
-                            $"Error log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}, " +
-                            $"and no valid output was received.",
-                        status: 1
-                    );
-                }
-
-                var memory = lines[1].Split(" ", StringSplitOptions.RemoveEmptyEntries);
-                if (memory.Length == 0) {
-                    WriteAndExit(
-                        message:
-                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
-                            $"as the linux 'free' command returned nothing, please try again.\n\n" +
-                            $"If this issue persists please make a bug report at {ISSUES_LINK}\n\n" +
-                            $"Error log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}, " +
-                            $"and no valid output was received.",
-                        status: 1
-                    );
-                }
-
-                bool invalidTotal = !double.TryParse(memory[1], out double total);
-                bool invalidUsed = !double.TryParse(memory[2], out double used);
-                bool invalidFree = !double.TryParse(memory[3], out double free);
-
-                if (invalidTotal || invalidUsed || invalidFree)
-                {
-                    WriteAndExit(
-                        message: 
-                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory as the linux 'free' command returned " +
-                            $"unexpected output for 'total', please try again.\n\n" +
-                            $"If this issue persists please make a bug report at {ISSUES_LINK}\n\n" +
-                            $"Error log:\n\nRuntimeManager.GetMemoryInfo for linux exited with a status code of {process.ExitCode}," +
-                            $" and no valid output was received.", 
-                        status: 1
-                    );
-                }
-
-                var usedPercent = Math.Round(used / total * 100, 2);
-                var freePercent = Math.Round(100 - usedPercent, 2);
-
-                return new MemoryInfo()
-                {
-                    TotalMemory = total,
-                    UsedMemory = used,
-                    FreeMemory = free,
-                    UsedPercent = usedPercent,
-                    FreePercent = freePercent
-                };
             }
+
             catch (Exception e)
             {
                 WriteAndExit(
                     message: 
                         $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again, " +
-                        $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\n\nRuntimeManager.GetMemoryInfo for linux exited with stack trace of:\n\n{e}",
+                        $"if this issue persists, please make a bug report at {ISSUES_LINK}{NLC}{NLC}" +
+                        $"Error log:{NLC}{NLC}MemoryInfoManager.ExecuteFreeCommand exited with stack trace of:{NLC}{NLC}{e}",
+                    status: 1
+                );
+            }
+        }
+
+        private static MemoryInfo? ProcessFreeCommandOutput(string? output, Process? process)
+        {
+            try 
+            {
+                // Logging an exception if output or process are null
+                if (output == null || process == null) 
+                {
+                    WriteAndExit(
+                        message: string.Join(string.Empty, [
+                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
+                            $"as the unix 'free' command returned nothing, please try again.{NLC}{NLC}" +
+                            $"If this issue persists please make a bug report at {ISSUES_LINK}{NLC}{NLC}" +
+                            $"Error log:",
+                            NLC,
+                            NLC,
+                            $"MemoryInfoManager.CheckForUnixLike exited with an unknown status code as no valid output was received."
+                        ]),
+                        status: 1
+                    );
+                }
+
+                // Using NLC would also would here, but for verbosity "\n" was chosen.
+                var lines = output.Split("\n");
+                
+                
+                // Preventing an IndexOutOfRangeException
+                if (lines.Length < 3) 
+                {
+                    WriteAndExit(
+                        message: string.Join(string.Empty, [
+                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
+                            $"as the unix 'free' command returned nothing, please try again.{NLC}{NLC}" +
+                            $"If this issue persists please make a bug report at {ISSUES_LINK}{NLC}{NLC}" +
+                            $"Error log:",
+                            NLC,
+                            NLC,
+                            $"MemoryInfoManager.CheckForUnixLike exited with a status code of {process.ExitCode}, ",
+                            $"and no valid output was received."
+                        ]),
+                        status: 1
+                    );
+                }
+
+                // Retrieving Main and Swap memory data 
+                // This will terminate the program if an exception is thrown.
+                (var totalMem, var usedMem, var freeMem) = ProcessMemData(lines, process);
+                (var totalSwap, var usedSwap, var freeSwap) = ProcessSwapData(lines, process);
+
+
+                // Adding the Main and Swap memory values to reflect the accurate amounts in bytes.
+                var memTotalBytes = totalMem; // Swap is already included in total
+                var memUsedBytes = usedMem + usedSwap;
+                var memFreeBytes = freeMem + freeSwap;
+
+                var memTotalMiB = memTotalBytes / 1024;
+                var memUsedMiB = memUsedBytes / 1024;
+                var memFreeMiB = memFreeBytes / 1024;
+
+                // Calculating used and free percent.
+                var usedPercent = Math.Round(memUsedMiB / memTotalMiB * 100, 2);
+                var freePercent = Math.Round(100 - usedPercent, 2);
+
+                // Debug ONLY do not uncomment in public releases.
+                // Console.WriteLine($"totalMem: {totalMem}");
+                // Console.WriteLine($"usedMem: {usedMem}");
+                // Console.WriteLine($"freeMem: {freeMem}");
+                // Console.WriteLine($"totalSwap: {totalSwap}");
+                // Console.WriteLine($"usedSwap: {usedSwap}");
+                // Console.WriteLine($"freeSwap: {freeSwap}");
+                // Console.WriteLine($"memTotalBytes: {memTotalBytes}");
+                // Console.WriteLine($"memUsedBytes: {memUsedBytes}");
+                // Console.WriteLine($"memFreeBytes: {memFreeBytes}");
+                // Console.WriteLine($"memTotalGiB: {memTotalMiB}");
+                // Console.WriteLine($"memUsedGiB: {memUsedMiB}");
+                // Console.WriteLine($"memFreeGiB: {memFreeMiB}");
+                // Console.WriteLine($"usedPercent: {usedPercent}");
+                // Console.WriteLine($"freePercent: {freePercent}");
+
+                return new MemoryInfo()
+                {
+                    TotalMemory = memTotalMiB,
+                    UsedMemory = memUsedMiB,
+                    FreeMemory = memFreeMiB,
+                    UsedPercent = usedPercent,
+                    FreePercent = freePercent
+                };
+            }
+
+            catch (Exception e)
+            {
+                WriteAndExit(
+                    message: 
+                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again, " +
+                        $"if this issue persists, please make a bug report at {ISSUES_LINK}{NLC}{NLC}" +
+                        $"Error log:{NLC}{NLC}MemoryInfoManager.CheckForLinux exited with stack trace of:{NLC}{NLC}{e}",
                     status: 1
                 );
                 return null;
             }
         }
+
+        private static (double totalMem, double usedMem, double freeMem) ProcessMemData(string[] lines, Process process) 
+        {
+            // Retrieving the memory info from output string
+            var memory = lines[1].Split(" ", StringSplitOptions.RemoveEmptyEntries);
+
+            // Preventing an IndexOutOfRangeException
+            if (memory.Length < 4) 
+            {
+                WriteAndExit(
+                    message: string.Join(string.Empty, [
+                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
+                        $"as the unix 'free' command returned nothing, please try again.{NLC}{NLC}" +
+                        $"If this issue persists please make a bug report at {ISSUES_LINK}{NLC}{NLC}" +
+                        $"Error log:",
+                        NLC,
+                        NLC,
+                        $"MemoryInfoManager.ProcessMemData exited with a status code of {process.ExitCode}, ",
+                        $"because memory.Length returned a value less than 4."
+                    ]),
+                    status: 1
+                );
+            }
+
+            // Setting cache index for use below.
+            // On Linux, cache is the 6th entry (5th index) on the second line of the output from the 'free' command.
+            // On MacOS, cache is the 5th entry (4th index) on the second line of the output from the 'free-for-macOS' binary.
+            var cacheIndex = Platforms.IsLinux ? 5 : 4;
+
+            // Assigning a flag that will be tested below to determine if the cached RAM amount should be queried.
+            var checkCache = true;
+
+            if (cacheIndex > memory.Length) {
+                Warning.Write(
+                    message: string.Join(string.Empty, [
+                        $"BAM Manager (BAMM) was unable to determine the amount of cached system memory.{NLC}",
+                        "As such, BAMM can't accurately determine the total available system memory.",
+                        $"If this persists, and causes bugs, please make a bug report at {ISSUES_LINK}{NLC}",
+                        $"Error log:",
+                        NLC,
+                        $"cacheIndex in MemoryInfoManager.ProcessMemData is greater than the total number of elements in memory.Length."
+                    ])
+                );
+                checkCache = false;
+            }
+
+            
+
+            // Parsing members of memory output
+            bool invalidTotalMem = !double.TryParse(memory[1], out double totalMem);
+            bool invalidUsedMem = !double.TryParse(memory[2], out double usedMem);
+            bool invalidFreeMem = !double.TryParse(memory[3], out double freeMem);
+            
+            // Assigning a default value that will be tested below to determine if the attempt to query cacheMem failed unexpectedly.
+            bool invalidCacheMem = false;
+
+            // Assigning the default value to cacheMem that will only be modified if checkCache is true.
+            double cacheMem = 0;
+
+            // invalidCacheMem can only be true if both:
+            // chechCache is true
+            // The conversion fails
+
+            if (checkCache) {
+                invalidCacheMem = !double.TryParse(memory[cacheIndex], out cacheMem); 
+            }
+
+
+            // Checking for invalid states
+            if (invalidTotalMem || invalidUsedMem || invalidFreeMem || invalidCacheMem)
+            {
+                WriteAndExit(
+                    message: string.Join(string.Empty, [
+                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory ",
+                        $"as the unix 'free' command returned nothing, please try again.{NLC}{NLC}",
+                        $"If this issue persists please make a bug report at {ISSUES_LINK}{NLC}{NLC}",
+                        $"Error log:",
+                        NLC,
+                        NLC,
+                        $"MemoryInfoManager.HandleMemFromFreeCommand exited with a status code of {process.ExitCode}.",
+                        NLC,
+                        $"invalidMemTotal: {invalidTotalMem}",
+                        $"invalidMemUsed: {invalidUsedMem}",
+                        $"invalidMemFree: {invalidFreeMem}",
+                        $"invalidMemCache: {invalidCacheMem}"
+                    ]),
+                    status: 1
+                );
+            }
+
+            // Adding the cached memory to the free memory amount, since it can be reallocated as needed.
+            var adjustedFreeMem = freeMem + cacheMem;
+
+            // OSX Specific logic, since OSX reports in bytes unlike linux which reports in mebibytes
+            totalMem = Platforms.IsMacOS ? totalMem / 1024 : totalMem;
+            usedMem = Platforms.IsMacOS ? usedMem / 1024 : usedMem;
+            adjustedFreeMem = Platforms.IsMacOS ? adjustedFreeMem / 1024 : adjustedFreeMem;
+
+            return (totalMem, usedMem, adjustedFreeMem);
+        }
+
+        private static (double totalSwap, double usedSwap, double freeSwap) ProcessSwapData(string[] lines, Process process) 
+        {
+
+            // Retrieving the memory info from output string
+            var swap = lines[2].Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            
+            // Preventing an IndexOutOfRangeException
+            if (swap.Length < 4) 
+            {
+                WriteAndExit(
+                    message: string.Join(string.Empty, [
+                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory " +
+                        $"as the unix 'free' command returned nothing, please try again.{NLC}{NLC}" +
+                        $"If this issue persists please make a bug report at {ISSUES_LINK}{NLC}{NLC}" +
+                        $"Error log:",
+                        NLC,
+                        NLC,
+                        $"MemoryInfoManager.ProcessSwapData exited with a status code of {process.ExitCode}, ",
+                        $"and no valid output was received."
+                    ]),
+                    status: 1
+                );
+            }
+
+            // Parsing members of swap output
+            bool invalidSwapTotal = !double.TryParse(swap[1], out double totalSwap);
+            bool invalidSwapUsed = !double.TryParse(swap[2], out double usedSwap);
+            bool invalidSwapFree = !double.TryParse(swap[3], out double freeSwap);
+
+            // Checking for invalid states
+            if (invalidSwapTotal || invalidSwapUsed || invalidSwapFree)
+            {
+                WriteAndExit(
+                    message: string.Join(string.Empty, [
+                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory ",
+                        $"as the unix 'free' command returned nothing, please try again.{NLC}{NLC}",
+                        $"If this issue persists please make a bug report at {ISSUES_LINK}{NLC}{NLC}",
+                        $"Error log:",
+                        NLC,
+                        NLC,
+                        $"MemoryInfoManager.ProcessSwapData exited with a status code of {process.ExitCode}.",
+                        NLC,
+                        $"invalidSwapTotal: {invalidSwapTotal}",
+                        $"invalidSwapUsed: {invalidSwapUsed}",
+                        $"invalidSwapFree: {invalidSwapFree}"
+                    ]),
+                    status: 1
+                );
+            }
+
+            return (totalSwap, usedSwap, freeSwap);
+
+
+        }
+
+        
     }
 }

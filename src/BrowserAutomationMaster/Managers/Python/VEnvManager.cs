@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -139,7 +135,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && python3 '{ScriptFilePath}'\"";
             }
 
-            if (Platforms.IsOSX) {
+            if (Platforms.IsMacOS) {
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && '{pythonPath}' '{ScriptFilePath}'";
             }
 
@@ -256,7 +252,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 );
             }
 
-            //var args = IsOSX ? GetVEnvStartArgs(pythonPath).Replace("Application Support/", "Application\\ Support/") : GetVEnvStartArgs(pythonPath);
+            //var args = IsMacOS ? GetVEnvStartArgs(pythonPath).Replace("Application Support/", "Application\\ Support/") : GetVEnvStartArgs(pythonPath);
             var args = GetVEnvStartArgs(pythonPath);
 
             var psi = new ProcessStartInfo()

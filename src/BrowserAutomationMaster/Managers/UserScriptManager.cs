@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using BrowserAutomationMaster.Compilation;
+﻿using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
+using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
@@ -189,186 +186,46 @@ namespace BrowserAutomationMaster.Managers
 
     public static class UserScriptExamples
     {
-        public readonly static string EBayExample = @"browser ""chrome""
-visit ""https://www.ebay.com/""
-wait-for-seconds 1.5
-fill-text ""#gh-ac"" ""Awesome deals""
-wait-for-seconds 1
-click ""#gh-search-btn""
-wait-for-seconds 10
-save-as-html ""ebay-search.html""";
-
-        public readonly static string CodedpadExample = @"browser ""firefox""
-visit ""https://www.codedpad.com/""
-wait-for-seconds 2
-fill-text ""#pad_code"" ""Thisisapasswordexamplethatisnotverysecure""
-wait-for-seconds 1
-click ""#home_submit_open""
-wait-for-seconds 1.5
-fill-text ""#pad_content"" ""If you are reading this then this script has worked for you""
-wait-for-seconds .5
-click ""#submit_save""";
-
-        public readonly static string GoogleFillExample = @"browser ""firefox""
-visit ""https://google.com""
-fill-text ""#APjFqb"" ""This is a test""
-wait-for-seconds .2
-take-screenshot ""filename.png""
-save-as-html ""filename.html""";
-
-        public readonly static string GoogleGeminiExample = @"browser ""chrome""
-visit ""https://gemini.google.com/app""
-wait-for-seconds 3
-start-javascript
-document.querySelector('.ql-editor p').textContent = 'What is the perceived meaning of life?'
-new Promise((resolve) => setTimeout(resolve, 1000));
-end-javascript
-click "".send-button""
-wait-for-seconds 30
-take-screenshot ""gemini-response.png""";
-
-        public readonly static string GoogleMapsExample = @"visit ""https://www.google.com/maps/""
-wait-for-seconds 1.5
-fill-text ""#searchboxinput"" ""Topeka, KS""
-click ""#searchbox-searchbutton""
-wait-for-seconds 5
-take-screenshot ""google-maps.png""";
-
-        public readonly static string JSEmbedExample = @"browser ""firefox""
-visit ""https://google.com""
-start-javascript
-// Single and double quotes
-let singleQuote = 'This is a single-quoted string';
-let doubleQuote = ""This is a double-quoted string"";
-let mixedQuotes = 'He said, ""It\'s a great day!""';
-
-// Escaped characters
-let path = ""C:\\Users\\Test\\Desktop"";
-let escapeTest = ""Line1\\nLine2\\tTabbed\\\""Quote\\\"""";
-
-// Template literal with interpolation
-let name = ""Alice"";
-let greeting = `Hello, ${name}! Today is ${new Date().toDateString()}.`;
-
-// Multiline string using newline characters
-let multiline = ""This is line one.\nThis is line two.\nThis is line three."";
-
-// Tabs in string
-let tabbed = ""Item1\tItem2\tItem3"";
-
-// Regular expression literal
-let regex = /^[A-Z]+\s\d+$/gm;
-
-// Unicode and special characters
-let unicode = ""Emoji: 😀 — Symbols: ≈ ≤ ∑"";
-
-// Mixed quote escaping
-let tricky = 'He said, ""Don\'t forget to escape backslashes: \\\\""';
-
-// JavaScript comment examples
-// This is a single-line comment
-/*
-This is a
-multi-line comment
-*/
-
-function complexFunction() {
-    let inner = ""Nested \""quotes\"" and 'single quotes' with tabs\tand newlines\n."";
-    console.log(inner);
-}
-
-console.log(""All tests executed."");
-end-javascript";
-
-        public readonly static string MarketplaceExample = @"browser ""chrome"" // this also works in firefox
-visit ""https://www.facebook.com/marketplace/""
-wait-for-seconds 1.5
-start-javascript
-var button = document.querySelector(""div[aria-label='Close']"");
-if (button){
-    button.click();
-}
-else{
-    alert('Not Found');
-}
-end-javascript
-
-wait-for-seconds 2
-
-fill-text ""/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/span/div/div/div/div/label/input"" ""free stuff""
-
-wait-for-seconds 2
-
-start-javascript
-const enterEvent = new KeyboardEvent('keydown', {
-  key: 'Enter',
-  code: 'Enter',
-  which: 13,
-  keyCode: 13,
-  bubbles: true,
-  cancelable: true
-});
-var textbox = document.querySelector(""input[placeholder='Search Marketplace']"");
-if (textbox){
-    textbox.dispatchEvent(enterEvent);
-}
-else {
-    alert('Unable to submit click event');
-}
-end-javascript
-
-wait-for-seconds 15
-take-screenshot ""marketplace-search.png""";
-
-        public readonly static string SteamExample = @"browser ""chrome""
-visit ""https://store.steampowered.com/""
-wait-for-seconds 1.5
-
-fill-text ""#store_nav_search_term"" ""Shooters""
-wait-for-seconds 1
-start-javascript		
-document.getElementById(""searchform"").submit(); 
-end-javascript
-
-wait-for-seconds 10
-save-as-html ""shooters.html""";
-
-        public readonly static string YoutubeSearchExample = @"visit ""https://www.youtube.com/""
-wait-for-seconds 1.5
-fill-text "".ytSearchboxComponentInput"" ""This is a test, it works!""
-wait-for-seconds 1.5
-click "".ytSearchboxComponentSearchButton""
-wait-for-seconds 5
-take-screenshot ""youtube-feed.png""";
-
-        public readonly static List<KeyValuePair<string, string>> AllExamples = [
-
-            new KeyValuePair<string, string>("ebay.bamc", EBayExample),
-            new KeyValuePair<string, string>("codedpad.bamc", CodedpadExample),
-            new KeyValuePair<string, string>("google-gemini.bamc", GoogleGeminiExample),
-            new KeyValuePair<string, string>("google-maps.bamc", GoogleMapsExample),
-            new KeyValuePair<string, string>("fill-text-by-id.bamc", GoogleFillExample),
-            new KeyValuePair<string, string>("js-embed.bamc", JSEmbedExample),
-            new KeyValuePair<string, string>("marketplace.bamc", MarketplaceExample),
-            new KeyValuePair<string, string>("steam.bamc", SteamExample),
-            new KeyValuePair<string, string>("youtube-search.bamc", SteamExample),
-
+        public readonly static List<string> ExampleFileNames = [
+            "codedpad.bamc",
+            "ebay.bamc",
+            "google-gemini.bamc",
+            "google-maps.bamc",
+            "google-search.bamc",
+            "js-embed.bamc",
+            "marketplace.bamc",
+            "steam.bamc",
+            "youtube-search.bamc",
         ];
 
-        public static void WriteScriptExamples()
+        public static async Task WriteScriptExamples()
         {
-            foreach (KeyValuePair<string, string> example in UserScriptExamples.AllExamples) {
+            foreach (var exampleFileName in ExampleFileNames) 
+            {
+
+                string filePath = Path.Combine(Parser.userScriptsDirectory, exampleFileName);
                 try
                 {
-                    string filename = example.Key;
-                    string contents = example.Value;
-                    if (string.IsNullOrEmpty(filename) || string.IsNullOrEmpty(contents)) { continue; }
-                    string filepath = Path.Combine(Parser.userScriptsDirectory, filename);
-                    if (File.Exists(filepath)) { continue; } // This is an unnecessary check but i felt the need to include it
-                    File.WriteAllText(filepath, contents); // Writes the actual contents
+                    
+                    if (File.Exists(filePath)) { 
+                        continue; 
+                    }
+
+                    string resourcePattern = string.Format("BrowserAutomationMaster.userScripts.{0}", exampleFileName);
+
+                    // Retrieves and writes the contents of the embedded resource to disk.
+                    await EmbeddedResourceManager.WriteEmbeddedResourceToDisk(exampleFileName, resourcePattern, filePath);
                 }
-                catch {
-                    Warning.Write($"Unable to write example file: {example.Key}");  continue; 
+
+                catch (Exception ex) 
+                {
+                    Warning.Write(
+                        string.Join(NLC, [ 
+                            $"Unable to write example file: {filePath}",
+                            "Error Log:",
+                            ex.Message
+                        ])
+                    );
                 }
             }
         }

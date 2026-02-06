@@ -236,18 +236,18 @@ namespace BrowserAutomationMaster.Managers
         [GeneratedRegex("^((11\\.0)|(11\\.[1-9]\\d*)|([12]\\d*))(\\.\\d+)*$")]
         public static partial Regex PrecompiledMacOSVersionRegex();
 
-        // Used in AppManager.OS.Linux
+        // Used in AppManager.OS.LinuxFunctions
         [GeneratedRegex(@"(?:Description:\s)([^\n]*)")]
         public static partial Regex PrecompiledLSBRRegex();
         
         [GeneratedRegex(@"OS:\s(.*)")] 
         public static partial Regex PrecompiledNFRegex();
 
-        [GeneratedRegex("PRETTY_NAME=\"(.*)\"")]
-        public static partial Regex PrecompiledOSR1Regex();
-
         [GeneratedRegex("NAME=\"(.*)\"")]
-        public static partial Regex PrecompiledOSR2Regex();
+        public static partial Regex PrecompiledOSRNameRegex();
+
+        [GeneratedRegex("PRETTY_NAME=\"(.*)\"")]
+        public static partial Regex PrecompiledOSRPrettyNameRegex();
 
         [GeneratedRegex(@"^(?:model name|Model)(?:	{1,2}):\s(?:Raspberry Pi\s)(?<model>.*)")]
         public static partial Regex PrecompiledRPIRegex();
@@ -259,5 +259,15 @@ namespace BrowserAutomationMaster.Managers
         // Alloc-free calls do not support capture groups due the cost associated with heap allocation of capture groups.
         // @"(?:<main class=""LDZgRb"" jslog=""171177; metadata:)(.*)(?:;""\sjsdata=""PM4Exd;_;\$1"">)";
         
+
+        // Used in Publisher.Packager
+        [GeneratedRegex("Created DEB package '(.*)' from folder")]
+        public static partial Regex DebianPackageRegex();
+
+        [GeneratedRegex("Creating RPM package (.*)\\s")]
+        public static partial Regex FedoraPackageRegex();
+
+        [GeneratedRegex(@"->\s+(?<path>.*publish/)", RegexOptions.IgnoreCase)]
+        public static partial Regex StandaloneBinaryRegex();
     }
 }

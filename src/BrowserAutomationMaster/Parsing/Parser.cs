@@ -1,10 +1,6 @@
 ﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using System.Text;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.CommandManager;
@@ -53,7 +49,7 @@ namespace BrowserAutomationMaster.Parsing
             """;
         
 
-        public static bool CreateUserScriptsDirectory() // Write more detailed error handling.
+        public static async Task<bool> CreateUserScriptsDirectory() // Write more detailed error handling.
         {
             
             if (string.IsNullOrEmpty(userScriptsDirectory)) 
@@ -61,58 +57,28 @@ namespace BrowserAutomationMaster.Parsing
                 return false; 
             }
 
-            
-
-            if (Directory.Exists(userScriptsDirectory)) 
+            try 
             {
-                UserScriptExamples.WriteScriptExamples();
-                return true; 
-            }
-            
-            else
-            {
-                try
-                {
+                if (!Directory.Exists(userScriptsDirectory)) {
                     Directory.CreateDirectory(userScriptsDirectory);
-                    UserScriptExamples.WriteScriptExamples();
-                    return true;
                 }
-                catch (ArgumentNullException ane)
-                {
-                    Spectre.Console.AnsiConsole.Write(ane.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(ane.Message);
-                    return false;
-                }
-                catch (UnauthorizedAccessException uae)
-                {
-                    Spectre.Console.AnsiConsole.Write(uae.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(uae.Message);
-                    return false;
-                }
-                catch (PathTooLongException ptle)
-                {
-                    Spectre.Console.AnsiConsole.Write(ptle.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(ptle.Message);
-                    return false;
-                }
-                catch (DirectoryNotFoundException dnfe)
-                {
-                    Spectre.Console.AnsiConsole.Write(dnfe.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(dnfe.Message);
-                    return false;
-                }
-                catch (IOException ie)
-                {
-                    Spectre.Console.AnsiConsole.Write(ie.GetType().Name);
-                    Spectre.Console.AnsiConsole.Write(ie.Message);
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    Spectre.Console.AnsiConsole.Write($"An unexpected error occurred while creating userScript directory:\n{ex.GetType().Name}");
-                    Spectre.Console.AnsiConsole.Write(ex.Message);
-                    return false;
-                }
+                
+                await UserScriptExamples.WriteScriptExamples();
+                return true;
+            }
+
+            catch (Exception ex)
+            {
+                // Spectre.Console.AnsiConsole is chosen over Errors.WriteAndReturnFalse due to:
+                // The potential for Platforms not to be set properly prior to this execution.
+                Spectre.Console.AnsiConsole.Write(
+                    string.Join(NLC, [
+                        "An unexpected error occurred while creating userScript directory:",
+                        ex.GetType().Name,
+                        ex.Message
+                    ])
+                );
+                return false;
             }
         }
         
@@ -231,16 +197,15 @@ namespace BrowserAutomationMaster.Parsing
         public static void HandleBAMCFileValidation(string[] BAMCFiles)
         {
             validFiles = [.. ValidateBAMCFiles(BAMCFiles)];
-            if (validFiles.Count == 0)
-            {
+            if (validFiles.Count == 0) {
                 WriteAndExit(noFilesFoundMessage, 1);
             }
-            if (validFilesMapping.Count != validFiles.Count)
-            {
+
+            if (validFilesMapping.Count != validFiles.Count) {
                 CreateValidFilesMapping(validFiles);
             }
-            if (validFilesMapping.Count == 0)
-            {
+
+            if (validFilesMapping.Count == 0) {
                 WriteAndExit(noFilesFoundMessage, 1);
             }
 
@@ -254,8 +219,9 @@ namespace BrowserAutomationMaster.Parsing
                 Help.ShowCommandDetails(command.Trim());
 
                 string choice = Input.AskForInput(
-                    "\nWould you like to continue learning more about BAM Manager (BAMM)? [y/n]:"
+                    $"{NLC}Would you like to continue learning more about BAM Manager (BAMM)? [y/n]:"
                 );
+
                 if (!choice.Equals("y")) {
                     Environment.Exit(1);
                 }
@@ -423,8 +389,7 @@ namespace BrowserAutomationMaster.Parsing
 
             foreach (string protocol in validProtocols)
             {
-                if (linkString.StartsWith(protocol))
-                {
+                if (linkString.StartsWith(protocol)) {
                     hasValidProtocol = true;
                     break;
                 }
@@ -434,13 +399,18 @@ namespace BrowserAutomationMaster.Parsing
 
         public static bool IsValidProxyFormat(string proxyString)
         {
-            if (string.IsNullOrWhiteSpace(proxyString)) { return false; }
+            if (string.IsNullOrWhiteSpace(proxyString)) { 
+                return false; 
+            }
             return PrecompiledProxyRegex().IsMatch(proxyString);
         }
 
         public static bool IsValidUserAgentFormat(string userAgentString)
         {
-            if (string.IsNullOrEmpty(userAgentString)) { return false; }
+            if (string.IsNullOrEmpty(userAgentString)) { 
+                return false; 
+            }
+
             return PrecompiledUserAgentRegex().IsMatch(userAgentString);
         }
 
@@ -471,7 +441,7 @@ namespace BrowserAutomationMaster.Parsing
                 {
                     var line = lines[i];
 
-                    if (!jsBlockFinished)
+                    if (!jsBlockFinished) 
                     {
                         BuildJSBlock(fileName, line, lines, i, ref currentJSBlockContent, ref lineCurrentJSBlockStarts, ref jsBlockFinished, ref jsError);
                         continue;
@@ -479,7 +449,7 @@ namespace BrowserAutomationMaster.Parsing
 
                     string[] lineArgs = line.Split(" ");
 
-                    if (lineArgs.Length == 0)
+                    if (lineArgs.Length == 0) 
                     {
                         return false;
                     }
@@ -490,7 +460,7 @@ namespace BrowserAutomationMaster.Parsing
                     #region Start of Browser Feature Check
 
                     // If a browser command is present in any line but the first line that contains characters.
-                    if (firstArg.Equals("browser") && i != 0 && browserBlockFinished)
+                    if (firstArg.Equals("browser") && i != 0 && browserBlockFinished) 
                     {
                         return WriteErrorAndReturnBool(
                             message: $"BAM Manager (BAMM) ran into a BAMC validation error:\n" +
@@ -501,7 +471,7 @@ namespace BrowserAutomationMaster.Parsing
                         );
                     }
 
-                    if (firstArg.Equals("browser") && !browserBlockFinished && !BrowserRegex.IsMatch(line))
+                    if (firstArg.Equals("browser") && !browserBlockFinished && !BrowserRegex.IsMatch(line)) 
                     {
                         // The error message here appears to be the same as the first one, 
                         // but the failure reason is different.
@@ -514,7 +484,7 @@ namespace BrowserAutomationMaster.Parsing
                         );
                     }
 
-                    if (firstArg.Equals("browser") && BrowserRegex.IsMatch(line))
+                    if (firstArg.Equals("browser") && BrowserRegex.IsMatch(line)) 
                     {
                         browserBlockFinished = true;
                         continue;
@@ -526,7 +496,7 @@ namespace BrowserAutomationMaster.Parsing
                     #region Start of Invalid Feature Check
 
                     // If a feature name is provided after defining non feature actions
-                    else if (firstArg.Equals("feature") && featureBlockFinished)
+                    else if (firstArg.Equals("feature") && featureBlockFinished) 
                     {
                         return WriteErrorAndReturnBool(
                             message:
@@ -539,13 +509,12 @@ namespace BrowserAutomationMaster.Parsing
                     }
 
                     // If a duplicate feature name is provided -> feature "duplicate-name"
-                    else if (firstArg.Equals("feature") && usedFeatures.Contains(line))
-                    {
+                    else if (firstArg.Equals("feature") && usedFeatures.Contains(line)) {
                         ExitOnDuplicateCommand(fileName, line, i);
                     }
 
                     // If an invalid feature name is provided -> feature "invalid-name"
-                    else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg)))
+                    else if (firstArg.Equals("feature") && !featureArgs.Any(arg => line.Contains(arg))) 
                     {
                         return WriteErrorAndReturnBool(
                             message:

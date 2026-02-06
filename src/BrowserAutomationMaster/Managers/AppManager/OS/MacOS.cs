@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
+using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -82,7 +80,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
         public static string GetMacOSVersion()
         {
-            var result = Linux.RunCommand("/bin/bash", "-c \"sw_vers -productVersion\"");
+            (var result, _) = RunCommand("/bin/bash", "-c \"sw_vers -productVersion\"");
             var match = PrecompiledMacOSVersionRegex().Match(result);
 
             if (!match.Success)
@@ -97,7 +95,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         public static void HandleMultipleInstances(string procName)
         {
             // Since osx and linux are both unix like systems, they share relational similarities regarding certain command execution.
-            string output = Linux.RunCommand("pgrep", procName);
+            (string output, _) = RunCommand("pgrep", procName);
             string[] instancePIDs = output.Split('\n');
             int numberOfInstances = instancePIDs.Length;
             if (numberOfInstances != 1)

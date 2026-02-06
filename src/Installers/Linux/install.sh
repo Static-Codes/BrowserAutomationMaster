@@ -135,19 +135,8 @@ fi
 BASE_DOWNLOAD_LINK="https://github.com/Static-Codes/BrowserAutomationMaster/releases/download/$VERSION_TAG"
 ###### End of Platform independent installation logic ######
 
-###### Start of OSX specific installation logic ######
-if [ $IS_OSX = "true" ] && [ $IS_X64 = "true" ]; then
-    FILENAME="bamm"
-    FULL_DOWNLOAD_LINK="$BASE_DOWNLOAD_LINK/$FILENAME"
 
-elif [ $IS_OSX ] && [ $IS_ARMV8 ]; then
-    FILENAME="bamm-silicon"
-    FULL_DOWNLOAD_LINK="$BASE_DOWNLOAD_LINK/$FILENAME"
-fi
-###### End of OSX specific installation logic ######
-
-
-###### Start of Linux specific installation logic ######
+###### Start of installation logic ######
 
 if [ $IS_DEBIAN = "true" ]; then
     if [ $IS_X64 = "true" ]; then
@@ -180,30 +169,9 @@ elif [ $IS_FEDORA ]; then
 elif [ -n "$DISTRO_NAME" ]; then
     show_error_and_exit "Linux distribution $DISTRO_NAME is not currently supported."
 fi
-###### End of Linux specific installation logic ######
 
-if test $IS_OSX = "false"; then
-    rm -rf "$TEMP_INSTALL_PATH" || show_error_and_exit "Unable to remove the installer from $TEMP_INSTALL_PATH/$FILENAME, please manually remove this file."
-    show_info "Successfully installed latest release of BAMM ($VERSION_TAG)"
-    show_info "Installation location: /usr/bin/local/bamm"
-else
-    show_info "Successfully downloaded latest release of BAMM ($VERSION_TAG)"
-    show_info "Download location: $TEMP_INSTALL_PATH/$FILENAME"
-    show_info "Before running BAMM for the first time please follow the steps below to set an exception in Gatekeeper:\n"
+rm -rf "$TEMP_INSTALL_PATH" || show_error_and_exit "Unable to remove the installer from $TEMP_INSTALL_PATH/$FILENAME, please manually remove this file."
+show_info "Successfully installed latest release of BAMM ($VERSION_TAG)"
+show_info "Installation location: /usr/local/bin/bamm"
 
-    echo "1. Open Terminal"
-    echo "2. cd $TEMP_INSTALL_PATH"
-    echo "3. sudo chmod +x $FILENAME"
-    echo "4. ./$FILENAME"
-    echo "   (This command will fail and immediately display a 'Developer cannot be verified' warning dialog.)"
-    echo "5. Open 'System Settings'"
-    echo "6. Click 'Privacy & Security' in the sidebar."
-    echo "7. Scroll down to the 'Security' section and find the message:"
-    echo "   '\"bamm\" was blocked from use because it is not from an identified developer.' Click the \"Open Anyway\" button next to it."
-    echo "8. Go back to Terminal and run the command again: ./$FILENAME"
-    echo "9. A dialog window will pop up with a final warning. Click \"Open\" to launch the application.\n"
-
-    show_info "Once you've ran the above commands, you can run BAMM anytime with the following commands:"
-    echo "cd $TEMP_INSTALL_PATH"
-    echo "./$FILENAME"
-fi
+###### End of installation logic ######

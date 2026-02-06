@@ -82,13 +82,18 @@ namespace BrowserAutomationMaster.Compilation
 
                 SetBAMConfig(filePath);
 
-                CreateProjectDirectory(); // Also sets this.projectDirectory
+                // Sets this.projectDirectory
+                CreateProjectDirectory();
 
                 SetScriptName(filePath);
 
-                GetDesiredUrls(bamConfig!.Lines); // Null forgiveness here because SetBAMConfig ensure's the config is not null.
+                // Null forgiveness here because SetBAMConfig ensure's the config is not null.
+                GetDesiredUrls(bamConfig!.Lines);
 
-                await AddBrowserImportsAndRequirements(bamConfig);
+                // Sets UserAgentManager.userAgentsData
+                UserAgentManager.SetUserAgents();
+
+                AddBrowserImportsAndRequirements(bamConfig);
 
                 await HandleCompilation(filePath, args, bamConfig);
 
@@ -114,9 +119,9 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
 
-        private static async Task AddBrowserImportsAndRequirements(BAMConfig config)
+        private static void AddBrowserImportsAndRequirements(BAMConfig config)
         {
-            await HandleBrowserCmd(config);
+            HandleBrowserCmd(config);
 
             string noUrlsFound =
                 "BAM Manager (BAMM) was unable to find any 'visit' commands in the provided file.\n\n" +
@@ -136,10 +141,10 @@ namespace BrowserAutomationMaster.Compilation
             }
 
             // This function will exit if a null value is reached so no worries about a null check here
-            string sVersion = PackageManager.Get("selenium", pythonVersion);
-            string swVersion = PackageManager.Get("selenium-wire", pythonVersion);
-            string wmVersion = PackageManager.Get("webdriver_manager", pythonVersion);
-            var bsVersion = PackageManager.Get("browserstack-sdk", pythonVersion);
+            string sVersion = PyPiPackageManager.Get("selenium", pythonVersion);
+            string swVersion = PyPiPackageManager.Get("selenium-wire", pythonVersion);
+            string wmVersion = PyPiPackageManager.Get("webdriver_manager", pythonVersion);
+            var bsVersion = PyPiPackageManager.Get("browserstack-sdk", pythonVersion);
 
             var sdkPackage = usingBrowserstack ? $"browserstack-sdk=={bsVersion}" : string.Empty;
             var sdkLocalPackage = usingBrowserstack ? $"browserstack-local >= 1.2.3" : string.Empty;
@@ -244,9 +249,9 @@ namespace BrowserAutomationMaster.Compilation
 
             // Remove the import from this text once the function above is fixed.
             var watermarkText =
-                "stdout.write('''Made using BAM Manager (BAMM!)\n" +
-                $"{BASE_REPO_LINK}\n''')\n" +
-                $"sleep(3)\n\n";
+                $"stdout.write('''Made using BAM Manager (BAMM!){NLC}" +
+                $"{BASE_REPO_LINK}{NLC}'''){NLC}" +
+                $"sleep(3){NLC}{NLC}";
 
             script.Body.AddLine(watermarkText, 0);
         }
@@ -258,11 +263,12 @@ namespace BrowserAutomationMaster.Compilation
             // Checks if configLines contains each arg, if so the required function is be added.
             // add-header is added here since its in actionArg, but its not accessed in this function.
             foreach (string actionArg in Parser.actionArgs)
+            {
                 functionsPresent.Add(
                     actionArg,
                     config.Lines.Any(line => line.StartsWith(actionArg))
                 );
-
+            }
 
             int index = 1; // Accounts for the functions below in the script.Body.
             script.Body.AddLine(MakeRequestFunction(requestUserAgent), 0);
@@ -320,7 +326,9 @@ namespace BrowserAutomationMaster.Compilation
             
             var memoryInfo = GetMemoryInfo();
 
-            if (memoryInfo == null) return;
+            if (memoryInfo == null) {
+                return;
+            }
             
             var availableMemory = memoryInfo.Value.FreeMemory;
 
@@ -340,8 +348,7 @@ namespace BrowserAutomationMaster.Compilation
             catch
             {
                 WriteAndExit(
-                    message:
-                        "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
+                    "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
                     status: 1
                 );
             }
@@ -349,26 +356,36 @@ namespace BrowserAutomationMaster.Compilation
             projectDirectory = Path.Combine(desiredSaveDirectory, projectName);
             try
             {
-                if (!Path.Exists(desiredSaveDirectory))
-                {
+                if (!Path.Exists(desiredSaveDirectory)) {
                     Directory.CreateDirectory(desiredSaveDirectory);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            { 
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
+                        "Error Log:",
+                        ex.Message
+                    ]),
+                    status: 1
+                );
+            }
 
             try
             {
-                if (!Path.Exists(projectDirectory))
-                {
+                if (!Path.Exists(projectDirectory)) {
                     Directory.CreateDirectory(projectDirectory);
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 WriteAndExit(
-                    message:
-                        "BAMM Manager (BAMM) was unable to create the desired project directory, " +
-                        "please try again.",
+                    message: string.Join(NLC, [
+                        "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
+                        "Error Log:",
+                        ex.Message
+                    ]),
                     status: 1
                 );
             }
@@ -390,9 +407,13 @@ namespace BrowserAutomationMaster.Compilation
             }
         }
         
-        public static BAMConfig? GetBAMConfig() { return bamConfig; }
+        public static BAMConfig? GetBAMConfig() { 
+            return bamConfig; 
+        }
 
-        public static bool GetBrowserStackStatus() { return usingBrowserstack; }
+        public static bool GetBrowserStackStatus() { 
+            return usingBrowserstack; 
+        }
 
         private static void GetDesiredUrls(string[] lines)
         {
@@ -418,13 +439,11 @@ namespace BrowserAutomationMaster.Compilation
             {
                 customName = Input.AskForInput("Please enter a name for this project: ");
 
-                if (string.IsNullOrEmpty(customName))
-                {
+                if (string.IsNullOrEmpty(customName)) {
                     continue;
                 }
 
-                if (ValidDirectoryRegex.IsMatch(customName))
-                {
+                if (ValidDirectoryRegex.IsMatch(customName)) {
                     return customName;
                 }
 
@@ -446,21 +465,25 @@ namespace BrowserAutomationMaster.Compilation
                 return;
             }
 
-            if (!ClipboardHelper.TrySetText(projectDirectory)) {
+            if (!ClipboardHelper.TrySetText(projectDirectory)) 
+            {
                 Write(
-                    $"Unable to copy project directory to clipboard, please manually copy this path:\n{projectDirectory}"
+                    string.Join(NLC, [
+                        "Unable to copy project directory to clipboard, please manually copy this path:",
+                        projectDirectory
+                    ])
                 );
             }
 
             WriteSuccessMessage("Successfully copied project directory to clipboard.");
         }
         
-        private static async Task HandleBrowserCmd(BAMConfig config)
+        private static void HandleBrowserCmd(BAMConfig config)
         {
             // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of the nullable operator
             if (config.browserPresent)
             {
-                var potentialUA = await UserAgentManager.GetUserAgent(config.selectedBrowser);
+                var potentialUA = UserAgentManager.GetUserAgent(config.selectedBrowser);
                 if (potentialUA == null)
                 {
                     WriteErrorAndReturnNull("Unable to select custom user agent, please try again");
@@ -1116,7 +1139,20 @@ namespace BrowserAutomationMaster.Compilation
             if (!majorFound || !minorFound) { 
                 return false; 
             }
+            
+            // Since Python 3.15 is in beta, this is an attempt to support it.
+            // If this causes fatal crashes, and unexpected behavior, this will be rolled back.
+            if (major == 3 && minor >= 15) {
+                return WriteErrorAndReturnBool(
+                    message: string.Join(string.Empty, [
+                        "Python 3.15+ is currently not tested with BAMM, ", 
+                        "please be aware you might encounter bugs and other unexpected behavior."
+                    ]),
+                    returnBool: true
+                );
+            }
 
+            // This checks Python versions between 3.9 and 3.14, while the above handles those on beta releases.
             bool isValidVersion =
                 major == 3 &&
                 minor >= 9 &&
@@ -1148,8 +1184,7 @@ namespace BrowserAutomationMaster.Compilation
         {
             try
             {
-                if (IsLocalFile(link))
-                {
+                if (IsLocalFile(link)) {
                     return true;
                 }
 
@@ -1204,8 +1239,7 @@ namespace BrowserAutomationMaster.Compilation
                 // The server is responding that the content IS or WAS at this location, however the content is not accessible.
                 // A warning is provided, and the issue is assumed to be lack of adequate headers.
 
-                if (InvalidResponseEnums.Contains(response.StatusCode))
-                {
+                if (InvalidResponseEnums.Contains(response.StatusCode)) {
                     return true;
                 }
 
@@ -1222,6 +1256,7 @@ namespace BrowserAutomationMaster.Compilation
 
                 bool isExpectedErrType = ex.GetType() == typeof(PingException);
                 bool errPresent = isExpectedErrType && exceptionMessage.StartsWith("No such host is known");
+
                 if (errPresent)
                 {
                     Warning.Write(
@@ -1230,9 +1265,10 @@ namespace BrowserAutomationMaster.Compilation
                             $"Exception:{NLC}{NLC}{ex.InnerException}"
                     );
                 }
+                
                 string response = Input.AskForInput("Would you like to continue compilation? [y/n]: ");
-                if (Input.ConditionRejected(response))
-                {
+                
+                if (Input.ConditionRejected(response)){
                     return false;
                 }
             }

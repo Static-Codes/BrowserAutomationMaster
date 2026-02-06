@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System.Net;
 using System.Text.Json;
-using System.Threading.Tasks;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
@@ -15,9 +9,10 @@ using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {
-    public partial class PackageManager
+    public partial class PyPiPackageManager
     {
         
+        public readonly CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));
         readonly private static string packagePath = GetPackagesPath();
         readonly private static string baseURL = "https://pypi.org/project";
         private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];
@@ -55,12 +50,10 @@ namespace BrowserAutomationMaster.Managers
                 WriteAndExit(exMessage, 1);
             }
         }
-
-
         private static async Task SetPackageData()
         {
             var baseMessage =
-                $"Unable to get package data from:\n{packagePath}" +
+                $"Unable to get package data from:{NLC}{packagePath}{NLC}" +
                 $"If this error persists, please make a bug report at {ISSUES_LINK}\n" +
                 "Error Log:\n";
             
@@ -87,7 +80,14 @@ namespace BrowserAutomationMaster.Managers
                 );
                 return null;
             }
-            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings) || packageVersionMappings == null)
+
+            bool[] invalidStates = [
+                !packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings), 
+                packageVersionMappings == null
+            ];
+
+            // Checking if any of the invalidStates are true.
+            if (invalidStates.Any(state => state))
             {
                 WriteAndExit(
                     message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
@@ -95,7 +95,9 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
-            List<string> supportedPackageVersions = [.. packageVersionMappings
+            // Null forgiveness is used here because: 
+            // The null check done in invalidStates is not seen by the compile due to the manner in which it was handled.
+            List<string> supportedPackageVersions = [.. packageVersionMappings!
                 .Where(pair => pair.Value != null && pair.Value.Contains(pythonVersion))
                 .Select(pair => pair.Key)];
 
@@ -151,8 +153,11 @@ namespace BrowserAutomationMaster.Managers
 
             try
             {
-                if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { return false; }
-                RequestManager requestManager = RequestManager.Create(uriResult);
+                if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) || uriResult == null) { 
+                    return false; 
+                }
+
+                RequestManager requestManager = Create(uriResult);
                 HttpResponseMessage? response = await requestManager.GetAsync(followRedirects: true);
                 
                 if (response == null) {
@@ -203,8 +208,23 @@ namespace BrowserAutomationMaster.Managers
         {
             EnsureDirectoryExists(AppDataDirectory);
 
-            if (!File.Exists(packagePath)) {
-                await DownloadPackageJSON();
+            if (!File.Exists(packagePath)) 
+            {
+                var resourceName = "packages.json";
+                var resourcePattern = "BrowserAutomationMaster.AppData.packages.json";
+
+                // Declaration includes "using" for manual memory management to the Garbage Collector.
+                using Stream stream = EmbeddedResourceManager.GetEmbeddedResource(resourceName, resourcePattern);
+
+                if (stream.Length > int.MaxValue) {
+                    await DownloadPackageJSON();
+                } else {
+                    await EmbeddedResourceManager.WriteEmbeddedResourceToDisk(
+                        stream, 
+                        resourceName, 
+                        outputPath: packagePath
+                    );
+                }
             }
 
             await SetPackageData();
