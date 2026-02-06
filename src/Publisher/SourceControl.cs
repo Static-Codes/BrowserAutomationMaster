@@ -73,7 +73,7 @@ namespace Publisher
 
                 if (sourceBytes == null) 
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message: "The contents of the latest release could not be resolved, please try again.", 
                         status: 1
                     );

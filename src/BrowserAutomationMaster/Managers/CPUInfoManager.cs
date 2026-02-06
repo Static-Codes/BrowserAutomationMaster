@@ -367,18 +367,15 @@ namespace BrowserAutomationMaster.Managers
 
             (var socketCount, var coreCount) = GetCPUTopologyLinux();
 
-            if (socketCount == -1)
-            {
+            if (socketCount == -1) {
                 WriteAndExit(socketNotFoundMsg, 1);
             }
 
-            if (socketCount > 1)
-            {
+            if (socketCount > 1) {
                 WriteAndExit(socketErrorMsg, 1);
             }
 
-            if (coreCount == 0)
-            {
+            if (coreCount == 0) {
                 WriteAndExit(coresNotFoundMsg, 1);
             }
 

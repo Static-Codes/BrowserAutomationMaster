@@ -31,10 +31,12 @@ namespace BrowserAutomationMaster.Managers
                     if (jsonString == null)
                     {
                         WriteAndExit(
-                            message:
-                                $"BAM Manager (BAMM) was failed to user agent data, please try again." +
-                                $"If this error persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                                $"Error Log:\njsonString == null or empty",
+                            message: string.Join(NLC, [
+                                $"BAM Manager (BAMM) was failed to user agent data, please try again.",
+                                $"If this error persists, please make a bug report at: {ISSUES_LINK}",
+                                $"Error Log:",
+                                "jsonString is null or empty",
+                            ]),
                             status: 1
                         );
                     }
@@ -132,11 +134,15 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception ex)
             {
-                var message =
-                    $"Unable to load useragents.json{NLC}" +
-                    $"This file should be placed in:{NLC}{GetUserAgentsPath()}" +
-                    $"This file can be downloaded from:{NLC}{USERAGENTS_LINK}{NLC}{NLC}" +
-                    $"Error Log:{NLC}{NLC}{ex.Message}";
+                var message = string.Join(NLC, [
+                    "Unable to load useragents.json",
+                    "This file should be placed in:",
+                    GetUserAgentsPath(),
+                    $"This file can be downloaded from: {USERAGENTS_LINK}",
+                    NLC,
+                    "Error Log:",
+                    ex.Message
+                ]);
 
                 WriteAndExit(message, 1);
                 return null;
@@ -161,10 +167,16 @@ namespace BrowserAutomationMaster.Managers
 
         private static bool WriteJSON()
         {
-            var message =
-                    "Unable to read contents from useragents.json\n" +
-                    $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                    "Error Log:\nJSON contents == null.";
+            var message = string.Join(NLC, [
+                "Unable to read contents from useragents.json",
+                "If this issue persists, please make a bug report at:",
+                ISSUES_LINK,
+                "Error Log:",
+                $"This file can be downloaded from: {USERAGENTS_LINK}",
+                NLC,
+                "Error Log:",
+                "JSON contents is null."
+            ]);
 
             var contents = RetrieveJSON();
             
@@ -176,12 +188,16 @@ namespace BrowserAutomationMaster.Managers
                 File.WriteAllText(userAgentPath, contents);
             }
             
-            catch (Exception ex) {
-                message =
-                   "Unable to write useragents.json\n" +
-                   $"This file should be placed in:\n{GetUserAgentsPath()}" +
-                   $"This file can be downloaded from:\n{USERAGENTS_LINK}\n\n" +
-                   $"Error Log:\n\n{ex.Message}";
+            catch (Exception ex) 
+            {
+                message = string.Join(NLC, [
+                    "Unable to write useragents.json",
+                    "This file should be placed in:",
+                    GetUserAgentsPath(),
+                    $"This file can be downloaded from: {USERAGENTS_LINK}",
+                    NLC,
+                    ex.Message,
+                ]);
                 WriteAndExit(message, 1);
             }
             return true;
