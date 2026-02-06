@@ -19,6 +19,16 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             $"Please make a bug report at: {ISSUES_LINK}"
         ]);
 
+        private static string[] GetSupportedDistroNames() {
+            return [..distroObjects.Select(a => a.Name)];
+        }
+
+        public static Distro GetDistroByName(string name) 
+        {
+            var distro = distroObjects.Where(distro => distro.Name.Equals(name)).FirstOrDefault();
+            return distro ?? Distros.Unknown;
+        }
+
         public static Distro DetermineDistro() 
         {
             var fileName = "/etc/os-release";
@@ -34,7 +44,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
 
                 // Optimization: Find the line starting with ID=, split by '=', and trim quotes in one pass
                 var idLine = File.ReadLines(fileName)
-                    .FirstOrDefault(line => line.StartsWith("ID=", StringComparison.OrdinalIgnoreCase));
+                    .FirstOrDefault(line => line.StartsWith("ID=", OIC));
 
                 if (string.IsNullOrEmpty(idLine)) 
                 {
@@ -52,7 +62,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 // Sanitizing captured value (For example: ID="ubuntu" -> ubuntu)
                 var sanitizedID = idLine.Split('=')[1].Trim('"').Trim('\'');
 
-                return distroObjects.FirstOrDefault(distro => distro.ID == sanitizedID) ?? Distros.Unknown;
+                var distroObj = distroObjects.FirstOrDefault(distro => distro.ID == sanitizedID);
+
+                if (distroObj != null) {
+                    return distroObj;
+                } 
+                    
+                return GetUserDistroChoice();
 
             }
 
@@ -97,6 +113,36 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             }
 
             Platforms.CurrentDistribution = (Distro)memberObject;
+        }
+
+        public static Distro GetUserDistroChoice() 
+        {
+            var distroNames = GetSupportedDistroNames();
+                    
+            // Instead of adding another Distro object to Distros
+            // creating a temporary instance of Distros.Unknown
+            // then replacing .Name with "Not Listed" is more efficient.
+            var unsupportedDistroObj = Distros.Unknown;
+            unsupportedDistroObj.Name = "Not Listed";
+
+            var userDistroChoice = Input.WriteListFromOptions(
+                distroNames, 
+                "distro", 
+                pageSize: distroNames.Length
+            );
+
+            if (userDistroChoice.Equals("Not Listed")) {
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "Currently, BAMM only supports the listed distros.",
+                        $"If your distro is not currently listed, please make a bug report at {ISSUES_LINK}",
+                        "Your OS will be considered in a future update."
+                    ]),
+                    status: 1
+                );   
+            }
+
+            return GetDistroByName(userDistroChoice);
         }
 
         private static Distro? TryAltCmds() 
