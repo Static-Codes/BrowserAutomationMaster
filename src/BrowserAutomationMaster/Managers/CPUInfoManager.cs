@@ -1,10 +1,7 @@
 ﻿using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Runtime.Intrinsics.X86;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -148,17 +145,27 @@ namespace BrowserAutomationMaster.Managers
                 }
 
             }
-            catch (Exception e) {
-                Warning.Write($"Unable to determine CPU name.{NLC}{NLC}Error Log:{NLC}{e.Message}");
+            catch (Exception e) 
+            {
+                Warning.Write(
+                    string.Join(NLC, [
+                        $"Unable to determine CPU name.", 
+                        NLC,
+                        "Error Log:",
+                        e.Message
+                    ])
+                );
             }
 
             return "Unknown";
         }
 
         // Used for syntax purposes 
-        public static bool IsMissingInstructions() {
-            if (!ContainsNeededInstructions()) 
+        public static bool IsMissingInstructions() 
+        {
+            if (!ContainsNeededInstructions()) {
                 return true;
+            }
 
             return false;
         }
@@ -349,18 +356,21 @@ namespace BrowserAutomationMaster.Managers
         private static int GetPhysicalCoreCountLinux()
         {
             var socketNotFoundMsg = string.Join(NLC, [
-                $"Unable to determine the amount of physical CPU cores on your system.{NLC}",
-                $"Error Log:{NLC}socketCount returned -1, indicating a failure to query /proc/cpuinfo",
+                $"Unable to determine the amount of physical CPU cores on your system.",
+                "Error Log:",
+                "socketCount returned -1, indicating a failure to query /proc/cpuinfo",
                 $"If this issue persists please make a bug report at {ISSUES_LINK}"  
             ]);
 
-            var socketErrorMsg =
-                $"BAMM does not support multi socket systems, " +
-                "please disable one of these sockets in your bios or use a different machine.{NLC}";
+            var socketErrorMsg = string.Join(NLC, [
+                $"BAMM does not support multi socket systems.",
+                "Please disable one of these sockets in your bios or use a different machine."
+            ]);
 
             var coresNotFoundMsg = string.Join(NLC, [
-                $"Unable to determine the amount of physical CPU cores on your system.{NLC}",
-                $"Error Log:{NLC}coreCount returned 0, indicating a failure to query /proc/cpuinfo",
+                $"Unable to determine the amount of physical CPU cores on your system.",
+                "Error Log:",
+                "coreCount returned 0, indicating a failure to query /proc/cpuinfo",
                 $"Unless you have created a way to run a pc without a CPU, please make a bug report at {ISSUES_LINK}"  
             ]);
 
@@ -385,10 +395,12 @@ namespace BrowserAutomationMaster.Managers
 
         public static object HandleSingleLineProcessOutput(string actionString, List<string> STDOut, Type returnType)
         {
-            string failureMessage =
-            $"BAM Manager (BAMM) was unable to {actionString}, " +
-            $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-            "Error log:\n";
+            string failureMessage = string.Join(NLC, [
+                $"BAM Manager (BAMM) was unable to {actionString}.",
+                $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                NLC,
+                $"Error Log:{NLC}",
+            ]);
 
             switch (STDOut.Count)
             {
@@ -410,7 +422,13 @@ namespace BrowserAutomationMaster.Managers
                     break;
 
                 default:
-                    failureMessage += $"Command returned invalid output.\n\nOutput:\n{string.Join("\n", STDOut)}";
+                    failureMessage += string.Join(NLC, [
+                        "Command returned an invalid.",
+                        NLC,
+                        "Output:",
+                        string.Join(NLC, STDOut)
+                    ]);
+
                     WriteAndExit(failureMessage, 1);
                     break;
             }

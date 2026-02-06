@@ -62,7 +62,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             - Python 3.12.X
             - Python 3.13.X
             - Python 3.14.X
-            - Python 3.15.X (UNTESTED BUT HYPOTHETICALLY SUPPORTED)
 
         Examples:
             - Python 3.9
