@@ -14,6 +14,8 @@ using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.ProgramFunctions;
 using static System.Text.Encoding;
 
 namespace BrowserAutomationMaster.Managers
@@ -48,49 +50,19 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
-        public static async Task<bool> DownloadGUI()
-        {
-            var msg = "Unable to download the GUI, any attempt to use the `--gui` flag will throw an error.";
-            try
-            {
-                var response = await RequestManager.NetworkClient.Instance.GetAsync(GUI_ZIP_LINK);
-                
-                if (!response.IsSuccessStatusCode) {
-                    return WriteErrorAndReturnBool(msg, false);
-                }
-
-                var content = await response.Content.ReadAsByteArrayAsync();
-
-                if (content == null) {
-                    return WriteErrorAndReturnBool(msg, false);
-                }
-                
-                await File.WriteAllBytesAsync(GUI_ZIP_PATH, content);
-
-                return File.Exists(GUI_ZIP_PATH);
-            }
-
-            catch (Exception ex)
-            {
-                var error = string.Join("", [msg, "Error Log:\n\n", ex.Message]);
-                return WriteErrorAndReturnBool(error, false);
-            }
-        }
-
-        public static bool ExtractGUI()
+        public static void ExtractGUI()
         {
             try
             {
                 ZipFile.ExtractToDirectory(GUI_ZIP_PATH, AppDataDirectory);
                 File.Delete(GUI_ZIP_PATH);
-                return true;
+                WriteSuccessMessage("Successfully extracted GUI, please wait while the HTTP Server starts..");
             }
             catch (Exception ex)
             {
                 Warning.Write("An unhandled exception has occured while attempting to extract BAMM's GUI.");
                 WriteAndExit(ex.Message, 1);
             }
-            return false;
         }
 
         public static (string name, string args) GetProcessNameAndArgs(bool scan = false)
@@ -345,6 +317,9 @@ namespace BrowserAutomationMaster.Managers
                 if (memoryInfo.Value.FreeMemory < MINIMUM_GUI_MEMORY_MB / 2){
                     throw new InsufficientMemoryException("Your system currently has less than 1GB of free RAM as such the GUI could not be loaded.");
                 }
+                
+                // Downloads the GUI files if they are not already present.
+                await HandleGUIDownload();
 
                 listener.Prefixes.Add(url);
                 listener.Start();
