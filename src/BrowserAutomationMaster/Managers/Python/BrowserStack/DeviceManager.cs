@@ -111,22 +111,14 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             try
             {
-                // Starting with a Stream
-                // Convert to a json string
-                // Deserialize the JSON string into a DeviceTypes Object
-            
                 var resourceName = "browserstack.json";
                 var resourcePattern = "BrowserAutomationMaster.AppData.browserstack.json";
                 using Stream stream = EmbeddedResourceManager.GetEmbeddedResource(resourceName, resourcePattern);
 
 
                 using StreamReader reader = new(stream);
-                // byte[] byteArray = reader.ReadBytes((int)stream.Length);
 
                 var devicesJSON = reader.ReadToEnd();
-                
-
-                // var devicesJSON = await RequestManager.NetworkClient.Instance.GetStringAsync(BROWSER_STACK_LINK);
 
                 if (devicesJSON == null) {
                     return WriteErrorAndReturnBool(msg, false);
