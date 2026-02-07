@@ -229,7 +229,6 @@ namespace Publisher
         
         private async Task<(bool, string?)> BuildDebianPackage(string workingDir) 
         {
-
             await PrebuildActions();
 
             var buildCommand = string.Join(' ', [
@@ -341,10 +340,12 @@ namespace Publisher
         {
             return desiredBuildProcess switch
             {
+                "Alt Linux Package (.rpm)" => (false, "Add code to HandlePackaging"),
+                "Arch Package (.pkg.tar.xz)" => await BuildArchPackage(workingDir, appVersion),
                 "Debian Package (.deb)" => await BuildDebianPackage(workingDir),
                 "Fedora Package (.rpm)" => await BuildFedoraPackage(workingDir),
-                "Arch Package (.pkg.tar.xz)" => await BuildArchPackage(workingDir, appVersion),
                 "Gentoo Package (.tbz2)" => await BuildGentooPackage(workingDir),
+                "PCLinuxOS Package (.rpm)" => (false, "Add code to HandlePackaging"),
                 "Standalone Binary" => await BuildStandaloneBinary(workingDir),
                 "Windows Installer" => await BuildWindowsInstaller(workingDir),
                 _ => (
@@ -402,10 +403,12 @@ namespace Publisher
             selectedOS = string.Empty;
 
             switch (desiredBuildProcess) {
+                case "Alt Linux Package (.rpm)":
+                case "Arch Package (.pkg.tar.xz)":
                 case "Debian Package (.deb)":
                 case "Fedora Package (.rpm)":
-                case "Arch Package (.pkg.tar.xz)":
                 case "Gentoo Package (.tbz2)":
+                case "PCLinuxOS Package (.rpm)":
                     selectedOS = "Linux";
                     break;
                 
