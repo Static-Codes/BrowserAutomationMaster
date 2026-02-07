@@ -13,6 +13,7 @@ using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.EmbeddedResourceManager;
 using static BrowserAutomationMaster.Managers.LocalServerManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.ProcessManager;
@@ -194,8 +195,11 @@ namespace BrowserAutomationMaster
 
             // Downloads a local copy of the GUI (If one is not already present) from:
             // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip
-            else if (pArgs[0].Equals("--gui") && !Directory.Exists(GetGUIDirectoryPath()))
-            {
+            else if (
+                pArgs[0].Equals("--gui") && 
+                !Directory.Exists(GetGUIDirectoryPath()) || 
+                !File.Exists(GetGUIDaemonPath())
+            ) {
                 await HandleGUIDownload();
             }
 
@@ -445,89 +449,71 @@ namespace BrowserAutomationMaster
             }
         }
 
-        private static async Task<bool> HandleDaemonDownload()
-        {
-            var msg = "Unable to download the GUI Daemon, any attempt to use the 'Restart GUI' button will throw an error.";
-            try
-            {
-                var content = await RequestManager.NetworkClient.Instance.GetStringAsync(GUI_DAEMON_LINK);
 
-                if (content == null)
-                {
-                    return WriteErrorAndReturnBool(msg, false);
-                }
-
-                var path = GetGUIDaemonPath();
-                File.WriteAllText(path, content);
-                return File.Exists(path);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return WriteErrorAndReturnBool(msg, false);
-            }
-        }
-
-        private static async Task<bool> HandleGUIDownload()
+        public static async Task<bool> HandleGUIDownload()
         {
             try
             {
-                bool daemonDownloaded = false; // Prevents the requirement for nesting
+                var daemonPath = GetGUIDaemonPath();
+                var guiDir = GetGUIDirectoryPath();
 
-                if (File.Exists(GetGUIDaemonPath())) // If the Daemon is already downloaded, continue
-                {
-                    daemonDownloaded = true;
+                bool daemonOnDisk = File.Exists(daemonPath);
+                bool guiDirOnDisk = Directory.Exists(guiDir);
+
+                // If the Daemon and GUI are already downloaded, continue
+                if (daemonOnDisk && guiDirOnDisk) {
+                    return true;
                 }
 
-                else // Downloads a local copy of the GUI from ConstantManager.GUI_DAEMON_LINK
-                {
-                    daemonDownloaded = await HandleDaemonDownload();
+                // Retrieves gui.zip and UIDaemon.py from the embedded project resources
+                // WriteEmbeddedResourceToDisk will exit if the operation fails
+                if (!daemonOnDisk) {
+                    await WriteEmbeddedResourceToDisk(
+                        resourceName: "UIDaemon.py",
+                        resourcePattern: "BrowserAutomationMaster.AppData.UIDaemon.py",
+                        outputPath: daemonPath
+                    );
                 }
 
-                if (!daemonDownloaded) // If the daemonDownload flag isnt true, execution ends.
+                if (!guiDirOnDisk) 
                 {
-                    return false;
+                    await WriteEmbeddedResourceToDisk(
+                        resourceName: "gui.zip",
+                        resourcePattern: "BrowserAutomationMaster.AppData.gui.zip",
+                        outputPath: GetGUIZipPath()
+                    );
+
+                    await Task.Delay(300);
+
+                    WriteSuccessMessage(
+                        string.Join(NLC, [
+                            "Successfully downloaded gui.zip from BAMM's gui branch.",
+                            "Please wait while it's extracted..."
+                        ])
+                    );
+
+                    await Task.Delay(300);
+
+                    // Extracts the GUI or writes an error and exits.
+                    ExtractGUI();
                 }
 
-                if (!File.Exists(GetGUIDaemonPath())) // If the daemon wasn't downloaded, execution ends.
-                {
-                    return false;
-                }
-
-                WriteSuccessMessage("Successfully downloaded the GUI Daemon, downloading GUI now..");
-                await Task.Delay(300);
-
-                if (!await DownloadGUI())
-                {
-                    return false;
-                }
-
-                WriteSuccessMessage("Successfully downloaded gui.zip from project repository, please wait while it's extracted.");
-                await Task.Delay(300);
-
-                if (!ExtractGUI())
-                {
-                    return false;
-                }
-
-                WriteSuccessMessage("Successfully extracted GUI, please wait while the HTTP Server starts..");
             }
+
             catch (Exception ex)
             {
                 WriteAndExit
                 (
-                    message:
-                        string.Join(
-                            string.Empty, [
-                                "Unable to download the required GUI files, ",
-                                "if this issue persists, ",
-                                $"please make a bug report at {ISSUES_LINK}\n\n",
-                                $"Error Log:\n{ex.Message}"
-                            ]
-                        ),
+                    string.Join(NLC, [
+                        "Unable to download the required GUI files.",
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                        "Error Log:",
+                        ex.Message
+                    ]),
                     status: 1
                 );
             }
+
             return true;
         }
 
