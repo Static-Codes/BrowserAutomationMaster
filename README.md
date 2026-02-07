@@ -50,7 +50,41 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
 ### Supported Operating Systems 💻
 
-- Linux **(ARM32, ARM64, x64)**
+- Linux
+  <details>
+
+    # x86_64
+    - Alt Linux (Latest)
+    - Arch Linux (Latest)
+    - Debian 12+
+    - elementary OS 8+
+    - Fedora 42+
+    - FreeBSD 13.5+
+    - Linux Mint 21.X
+    - Linux Mint 22.X
+    - Ubuntu 22.04 LTS
+    - Ubuntu 24.04 LTS
+    - Ubuntu 25.10 LTS
+    - Zorin OS 16.X
+    - Zorin OS 17.X
+    - Zorin OS 18.X
+    
+    # ARM64 (AARCH64)
+    - Debian 12.X
+    - Debian 13.X
+    - elementary OS 8.X
+    - Fedora 42+
+    - FreeBSD 13.5+
+    - Ubuntu 22.04 LTS
+    - Ubuntu 24.04 LTS
+    - Ubuntu 25.10 LTS
+        
+    # ARM32 (ARMel and ARMhf)
+    - Debian 12.X
+    - Debian 13.X
+      
+  </details>
+
 - MacOS 11.0+ **(ARM64, x64)**
 - Windows 10/11 **(ARM64, x64)**
 
