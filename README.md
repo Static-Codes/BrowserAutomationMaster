@@ -62,6 +62,7 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
     - FreeBSD 13.5+
     - Linux Mint 21.X
     - Linux Mint 22.X
+    - PCLinuxOS
     - Ubuntu 22.04 LTS
     - Ubuntu 24.04 LTS
     - Ubuntu 25.10 LTS
