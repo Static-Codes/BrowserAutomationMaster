@@ -1,12 +1,8 @@
 ﻿using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Messaging;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
@@ -27,11 +23,14 @@ namespace BrowserAutomationMaster.Managers
             var curProc = Process.GetCurrentProcess();
             if (curProc == null)
             {
-                WriteAndExit(
-                    "Unable to determine the number of open instances of BAMM.\n" +
-                    "This is a bug, please make a bug report at {ISSUES_LINK}\n" +
-                    "Error log:\n\n" +
-                    "ProcessManager.GetInstances() returned null on curProc.",
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        "Unable to determine the number of open instances of BAMM.",
+                        $"This is a bug, please make a bug report at {ISSUES_LINK}",
+                        "Error Log:",
+                        "ProcessManager.GetInstances() returned null on curProc."
+                    ]),
                     status: 1
                 );
             }
@@ -45,20 +44,28 @@ namespace BrowserAutomationMaster.Managers
                         Win.HandleMultipleInstances(instances);  // Execution ends if this line is hit.
                     }
 
-                    WriteMessage(
-                        "Only one instance of BAMM can be running at once, please close the current session and open bamm again.",
-                        isError: true
+                    WriteAndExit
+                    (
+                        string.Join(NLC,
+                        [
+                            "Only one instance of BAMM can be running at once.", 
+                            "Please close the current session and open bamm again."
+                        ]),
+                        status: 1
                     );
-                    Environment.Exit(1);
                 }
             }
+
             catch (Exception ex)
             {
-                WriteAndExit(
-                    message:
-                        "BAM Manager (BAMM) was unable to check for multiple instances, " +
-                        $"please make a bug report at {ISSUES_LINK}\n" +
-                        $"Error log:\n\n{ex.Message}",
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        "BAM Manager (BAMM) was unable to check for multiple instances.",
+                        $"Please make a bug report at {ISSUES_LINK}",
+                        $"Error Log:",
+                        ex.Message
+                    ]),
                     status: 1
                 );
             }
@@ -153,12 +160,14 @@ namespace BrowserAutomationMaster.Managers
 
             if (!Processes.ContainsKey(process))
             {
-                WriteAndExit(
-                    message:
-                        "The process associated with the command: " +
-                        $"{process.StartInfo.FileName} {process.StartInfo.Arguments} was not properly spawned.\n\n" +
-                        $"Error Log:\n" +
-                        "ProcessFactory.Processes does not contain the requested process.",
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        "The process associated with the command:",
+                        $"\"{process.StartInfo.FileName} {process.StartInfo.Arguments}\" was not properly spawned.",
+                        "Error Log:",
+                        "ProcessFactory.Processes does not contain the requested process."
+                    ]),
                     status: 1
                 );
             }
@@ -237,11 +246,11 @@ namespace BrowserAutomationMaster.Managers
 
                         // "declare -x ..." is returned when the which command is executed.
                         if (writeSTDInOut && !whiteOutput && !args.Data.StartsWith("declare -x")) {
-                            WriteSuccessMessage(args.Data + '\n');
+                            WriteSuccessMessage(args.Data + NLC);
                         }
 
                         else if (writeSTDInOut && whiteOutput) {
-                            Console.WriteLine(args.Data + '\n');
+                            Console.WriteLine(args.Data + NLC);
                         }
                         
                     };
@@ -256,7 +265,7 @@ namespace BrowserAutomationMaster.Managers
                         errorLines.Add(args.Data);
 
                         if (writeSTDInOut) {
-                            Write(args.Data + '\n');
+                            Write(args.Data + NLC);
                         }
                     };
                 }
@@ -281,8 +290,12 @@ namespace BrowserAutomationMaster.Managers
                     }
                     catch (InvalidOperationException ex)
                     {
-                        Warning.Write($"A non fatal error has occured while starting the requested process:\n{ex.Message}");
-                        //Console.WriteLine(ex.Message);
+                        Warning.Write(
+                            string.Join(NLC, [
+                                $"A non fatal error has occured while starting the requested process:",
+                                ex.Message
+                            ])
+                        );
                     }
                 }
 
@@ -298,8 +311,16 @@ namespace BrowserAutomationMaster.Managers
 
                 ActiveProcesses.Remove(newProc); // Remove new process from ActiveProcesses upon exit.
 
-                if (!Processes.TryGetValue(newProc, out var _)) {
-                    WriteAndExit($"Unable to find the process associated with the command:\n{psi.FileName} {psi.Arguments}", 1);
+                if (!Processes.TryGetValue(newProc, out var _)) 
+                {
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            "Unable to find the process associated with the command:",
+                            $"\"{psi.FileName} {psi.Arguments}\""
+                        ]), 
+                        status: 1
+                    );
                 }
                 
                 // Get the ProcessResponse associated with the newly spawned Process
@@ -315,17 +336,31 @@ namespace BrowserAutomationMaster.Managers
                 // If child process was not successful a stacktrace is generated.
                 if (newProc.ExitCode != 0 && raiseEvents && writeSTDInOut)
                 {
-                    var fullStackTrace = string.Join("\n", errorLines);
-                    // string[] last5Lines = errorLines.Count >= 5 ? [.. errorLines.TakeLast(5)] : [.. errorLines.TakeLast(errorLines.Count)];
+                    var fullStackTrace = string.Join(NLC, errorLines);
 
-                    var userFriendlyMessage = $"BAM Manager (BAMM) was unable to {processAction}.\n\n" +
-                                              $"If this persists, please make a bug report at {ISSUES_LINK}";
+                    var userFriendlyMessage = string.Join(NLC, [
+                        $"BAM Manager (BAMM) was unable to {processAction}.",
+                        NLC,
+                        $"If this persists, please make a bug report at {ISSUES_LINK}"
+                    ]);
 
-                    var detailedLog = "Error log:\n" +
-                                      $"Command: {psi.FileName} {psi.Arguments} failed with exit code {newProc.ExitCode}\n\n" +
-                                      $"Stack Trace:\n{fullStackTrace}\n\n";
+                    var detailedLog = string.Join(NLC, [
+                        "Error Log:",
+                        $"\"{psi.FileName} {psi.Arguments}\" failed with exit code {newProc.ExitCode}.",
+                        NLC,
+                        "Stack Trace:",
+                        fullStackTrace,
+                        NLC
+                    ]);
 
-                    WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
+                    WriteAndExit
+                    (
+                        string.Join(NLC, [
+                            userFriendlyMessage,
+                            detailedLog
+                        ]),
+                        status: 1
+                    );
                 }
             }
 
