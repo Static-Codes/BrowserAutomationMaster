@@ -135,11 +135,7 @@ namespace BrowserAutomationMaster.Managers
             catch (Exception ex)
             {
                 var message = string.Join(NLC, [
-                    "Unable to load useragents.json",
-                    "This file should be placed in:",
-                    GetUserAgentsPath(),
-                    $"This file can be downloaded from: {USERAGENTS_LINK}",
-                    NLC,
+                    "Unable to load embedded resource: useragents.json",
                     "Error Log:",
                     ex.Message
                 ]);
@@ -167,38 +163,39 @@ namespace BrowserAutomationMaster.Managers
 
         private static bool WriteJSON()
         {
-            var message = string.Join(NLC, [
-                "Unable to read contents from useragents.json",
-                "If this issue persists, please make a bug report at:",
-                ISSUES_LINK,
-                "Error Log:",
-                $"This file can be downloaded from: {USERAGENTS_LINK}",
-                NLC,
-                "Error Log:",
-                "JSON contents is null."
-            ]);
-
             var contents = RetrieveJSON();
             
-            if (contents == null) {
-                WriteAndExit(message, 1);
+            if (contents == null) 
+            {
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        "Unable to read contents from useragents.json",
+                        $"If this issue persists, please make a bug report at: {ISSUES_LINK}",
+                        "Error Log:",
+                        "JSON contents is null."
+                    ]), 
+                    status: 1
+                );
             }
 
-            try {
+            try 
+            {
                 File.WriteAllText(userAgentPath, contents);
             }
             
             catch (Exception ex) 
             {
-                message = string.Join(NLC, [
-                    "Unable to write useragents.json",
-                    "This file should be placed in:",
-                    GetUserAgentsPath(),
-                    $"This file can be downloaded from: {USERAGENTS_LINK}",
-                    NLC,
-                    ex.Message,
-                ]);
-                WriteAndExit(message, 1);
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        "Unable to read contents from useragents.json",
+                        $"If this issue persists, please make a bug report at: {ISSUES_LINK}",
+                        "Error Log:",
+                        ex.Message,
+                    ]), 
+                    status: 1
+                );
             }
             return true;
         }
