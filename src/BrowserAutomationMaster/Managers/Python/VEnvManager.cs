@@ -56,8 +56,14 @@ namespace BrowserAutomationMaster.Managers.Python
         public static VEnvManager CheckBSConfigAtRuntime(string scriptFilePath)
         {
             var config = LoadConfig();
-            if (config == null) {
-                WriteAndExit($"Unable to load BrowserStack Config from:{NLC}{GetBrowserStackConfigPath()}", 1);
+            
+            if (config == null) 
+            {
+                WriteAndExit
+                (
+                    message: $"Unable to load BrowserStack Config from: {GetBrowserStackConfigPath()}",
+                    status: 1
+                );
             }
 
             return new VEnvManager("browserstack-sdk python", scriptFilePath);
@@ -115,6 +121,58 @@ namespace BrowserAutomationMaster.Managers.Python
                     status: 1
                 );
             }
+        }
+
+        private static string GetNameOfBrowserInUse(FileStream scriptFileStream) 
+        {
+            // Helper to check if a byte array exists at a specific index
+            static bool IsMatch(byte[] array, int index, byte[] pattern)
+            {
+                if (index + pattern.Length > array.Length) return false;
+                for (int i = 0; i < pattern.Length; i++)
+                {
+                    if (array[index + i] != pattern[i]) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            var defaultValue = "firefox";
+
+            // Once this line is found, the execution stops.
+            // If no browser is found within the searched area, a default of firefox is returned.
+            byte[] stopCheck = "stdout.write('''Made using BAM Manager (BAMM!)"u8.ToArray();
+
+            // If the stream contains the byte representation of either of these checks
+            byte[] firefoxCheck = "from webdriver_manager.firefox import GeckoDriverManager"u8.ToArray();
+            byte[] chromeCheck = "from webdriver_manager.chrome import ChromeDriverManager"u8.ToArray();
+
+            scriptFileStream.Position = 0;
+
+            using (var ms = new MemoryStream())
+            {
+                scriptFileStream.CopyTo(ms);
+                byte[] fileBytes = ms.ToArray();
+
+                for (int i = 0; i < fileBytes.Length; i++)
+                {
+                    if (IsMatch(fileBytes, i, stopCheck)) {
+                        break;
+                    }
+
+                    // Check for Browser matches
+                    if (IsMatch(fileBytes, i, firefoxCheck)) {
+                        return "firefox";
+                    }
+
+                    if (IsMatch(fileBytes, i, chromeCheck)) {
+                        return "chrome";
+                    }
+                }
+            }
+
+            return defaultValue;
         }
 
         private string GetVEnvStartArgs(string pythonPath)
@@ -235,25 +293,26 @@ namespace BrowserAutomationMaster.Managers.Python
 
             // Special case where OSX needs to be difficult for developers in the pursuit of ease of access for its users.
             // Runs from /bin/bash instead of the VEnv's path.
-            var pythonPath = GetProjectVEnvPythonPath(ParentDirectory);
+            var executablePath = GetProjectVEnvPythonPath(ParentDirectory);
             var scriptFileName = Path.GetFileName(ScriptFilePath) ?? string.Empty;
 
             if (string.IsNullOrEmpty(scriptFileName)) {
                 scriptFileName = ScriptFilePath;
             }
 
-            if (!File.Exists(pythonPath)) {
+            if (!File.Exists(executablePath)) {
                 WriteAndExit(
                     message:
                         $"BAM Manager (BAMM) was unable to run '{scriptFileName}', " +
                         $"if this issue persists.please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\nUnable to find the python executable in virtual environment:\n{GetProjectVEnvPath(ParentDirectory)}",
+                        $"Error log:" +
+                        "Unable to find the python executable in virtual environment:\n{GetProjectVEnvPath(ParentDirectory)}",
                     status: 1
                 );
             }
 
             //var args = IsMacOS ? GetVEnvStartArgs(pythonPath).Replace("Application Support/", "Application\\ Support/") : GetVEnvStartArgs(pythonPath);
-            var args = GetVEnvStartArgs(pythonPath);
+            var args = GetVEnvStartArgs(executablePath);
 
             var psi = new ProcessStartInfo()
             {
@@ -265,13 +324,23 @@ namespace BrowserAutomationMaster.Managers.Python
                 WorkingDirectory = ParentDirectory,
             };
 
-            pythonPath = Platforms.IsUnixLike ? "/bin/bash" : pythonPath;
+            executablePath = Platforms.IsUnixLike ? "/bin/bash" : executablePath;
 
-            SetProcessFileName(ref psi, useCMD: false, fileName: pythonPath);
+            SetProcessFileName(ref psi, useCMD: false, fileName: executablePath);
 
-            using Process proc = await ProcessFactory.SpawnProcess(psi, "start the virtual environment for runtime");
+            var scriptFileStream = new FileStream(ScriptFilePath, FileMode.Open, FileAccess.Read);
 
-            (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(proc);
+            var browserName = GetNameOfBrowserInUse(scriptFileStream); 
+ 
+
+            using Process process = await ProcessFactory.SpawnProcess(
+                psi, 
+                "start the virtual environment for runtime",
+                preventMemoryLeaks: true,
+                browserName: browserName
+            );
+
+            (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(process);
 
             if (ExitCode != 0)
             {

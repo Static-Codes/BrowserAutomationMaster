@@ -66,11 +66,14 @@ namespace BrowserAutomationMaster.Managers
 
         public static void PreventMemoryLeaks(string? selectedBrowser)
         {
-            var errMessage =
-                    "An error occured while attempting to close left over instance of the webdriver used by BAM Manager (BAMM).\n" +
-                    $"If this error persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                    "Error Log:\n" +
-                    "driverName has a size of 0 in PreventMemoryLeaks()";
+            var errMessage = string.Join(NLC, [
+                "An error occured while attempting to terminate an orphan process used by BAM Manager (BAMM).",
+                $"If this error persists, please make a bug report at {ISSUES_LINK}",
+                NLC,
+                "Error Log:",
+                NLC,
+                "driverName has a size of 0 in PreventMemoryLeaks()"
+            ]);
 
             if (selectedBrowser == null) {
                 WriteAndExit(errMessage, 1);
@@ -188,14 +191,34 @@ namespace BrowserAutomationMaster.Managers
         /// <param name="processAction">A string describing what the process will do. </param>
         /// <param name="raiseEvents">If the process should redirect I/O, defaults to true. </param>
         /// <param name="writeSTDInOut">If the process should write I/O, defaults to true.</param>
+        /// <param name="whiteOutput">The output for this process should be printed with white text.</param>
+        /// <param name="justSpawn">The process object should be created but execution should not start.</param>
+        /// <param name="runSync">The process should be run synchronously as opposed to the default of asynchronous.</param>
+        /// <param name="preventMemoryLeaks">If an error is thrown, webdriver cleanup operations should be performed.</param>
+        /// <param name="browserName">The browser in use, if preventMemoryLeaks is set to true, this needs to be specified.</param>
         /// <param name="timeout">The timeout in seconds after which the process will automatically exit, defaults to 200.</param>
         /// <returns>The newly spawned process (assuming an error doesn't cause the application to exit</returns>
-        public static async Task<Process> SpawnProcess(ProcessStartInfo psi, string processAction,
-            bool raiseEvents = true, bool readSTDInOut = true, bool writeSTDInOut = true, bool whiteOutput = false, bool justSpawn = false, bool runSync = false, int timeout = 200)
+        public static async Task<Process> SpawnProcess(
+            ProcessStartInfo psi, 
+            string processAction,
+            bool raiseEvents = true, 
+            bool readSTDInOut = true, 
+            bool writeSTDInOut = true, 
+            bool whiteOutput = false, 
+            bool justSpawn = false, 
+            bool runSync = false,
+            bool preventMemoryLeaks = false,
+            string? browserName = null, 
+            int timeout = 200
+        )
         {
             var outputLines = new List<string>();
             var errorLines = new List<string>();
             var newProc = new Process() { StartInfo = psi };
+
+            if (justSpawn) {
+                return newProc;
+            }
 
             try
             {
@@ -243,9 +266,7 @@ namespace BrowserAutomationMaster.Managers
 
                 Processes.Add(newProc, newProcResponse);
 
-                if (justSpawn) {
-                    return newProc;
-                }
+                
 
                 newProc.Start();
                 ActiveProcesses.Add(newProc, newProcResponse); // Add new process to ActiveProcess upon invoke of Start().
@@ -310,13 +331,23 @@ namespace BrowserAutomationMaster.Managers
 
             catch (Exception ex)
             {
-               WriteAndExit(
-                   message:
-                       "BAM Manager (BAMM) was unable to spawn the requested process.\n" +
-                       $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                       "Error Log:\n" +
-                       $"Unable to execute command:\n{psi.FileName} {psi.Arguments}\n\n{ex.Message}",
-                   status: 1
+                if (preventMemoryLeaks && browserName != null) {
+                    ProcessManager.PreventMemoryLeaks(browserName);
+                } 
+
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "BAM Manager (BAMM) was unable to spawn the requested process.",
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                        NLC,
+                        "Error Log:",
+                        "Unable to execute command:",
+                        $"{psi.FileName} {psi.Arguments}",
+                        NLC,
+                        NLC,
+                        ex.Message
+                    ]),
+                    status: 1
                );
 
             }
