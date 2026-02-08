@@ -112,13 +112,15 @@ namespace BrowserAutomationMaster.Managers
                 }
                 catch (Exception e)
                 {
-                    var message =
-                        "Unable to kill:\n" +
-                        $"Name: {process.ProcessName}\n" +
-                        $"ID: {process.Id}\n" +
-                        $"Error Log:\n{e.Message}\n\n";
-
-                    Write(message);
+                    Write(
+                        string.Join(NLC, [
+                            "Unable to kill:",
+                            $"Name: {process.ProcessName}",
+                            $"ID: {process.Id}",
+                            $"Error Log:",
+                            e.Message
+                        ])
+                    );
                 }
             }
         }
