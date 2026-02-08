@@ -4734,6 +4734,21 @@
           "display_name": "Edge 142.0"
         },
         {
+          "browser": "edge",
+          "browser_version": "143.0",
+          "display_name": "Edge 143.0"
+        },
+        {
+          "browser": "edge",
+          "browser_version": "144.0",
+          "display_name": "Edge 144.0"
+        },
+        {
+          "browser": "edge",
+          "browser_version": "145.0 beta",
+          "display_name": "Edge 145.0 beta"
+        },
+        {
           "browser": "firefox",
           "browser_version": "32.0",
           "display_name": "Firefox 32.0"
@@ -6159,6 +6174,21 @@
           "browser": "edge",
           "browser_version": "142.0",
           "display_name": "Edge 142.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "143.0",
+          "display_name": "Edge 143.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "144.0",
+          "display_name": "Edge 144.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "145.0 beta",
+          "display_name": "Edge 145.0 beta"
         },
         {
           "browser": "firefox",
@@ -17225,6 +17255,21 @@
           "display_name": "Edge 142.0"
         },
         {
+          "browser": "edge",
+          "browser_version": "143.0",
+          "display_name": "Edge 143.0"
+        },
+        {
+          "browser": "edge",
+          "browser_version": "144.0",
+          "display_name": "Edge 144.0"
+        },
+        {
+          "browser": "edge",
+          "browser_version": "145.0 beta",
+          "display_name": "Edge 145.0 beta"
+        },
+        {
           "browser": "safari",
           "browser_version": "15.6",
           "display_name": "Safari 15.6"
@@ -18632,6 +18677,21 @@
           "display_name": "Edge 142.0"
         },
         {
+          "browser": "edge",
+          "browser_version": "143.0",
+          "display_name": "Edge 143.0"
+        },
+        {
+          "browser": "edge",
+          "browser_version": "144.0",
+          "display_name": "Edge 144.0"
+        },
+        {
+          "browser": "edge",
+          "browser_version": "145.0 beta",
+          "display_name": "Edge 145.0 beta"
+        },
+        {
           "browser": "safari",
           "browser_version": "16.5",
           "display_name": "Safari 16.5"
@@ -19743,6 +19803,21 @@
           "browser_version": "142.0",
           "display_name": "Edge 142.0"
         },
+{
+          "browser": "edge",
+          "browser_version": "143.0",
+          "display_name": "Edge 143.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "144.0",
+          "display_name": "Edge 144.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "145.0 beta",
+          "display_name": "Edge 145.0 beta"
+        },
         {
           "browser": "safari",
           "browser_version": "17.3",
@@ -20760,6 +20835,21 @@
           "browser_version": "142.0",
           "display_name": "Edge 142.0"
         },
+{
+          "browser": "edge",
+          "browser_version": "143.0",
+          "display_name": "Edge 143.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "144.0",
+          "display_name": "Edge 144.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "145.0 beta",
+          "display_name": "Edge 145.0 beta"
+        },
         {
           "browser": "safari",
           "browser_version": "18.4",
@@ -21771,6 +21861,21 @@
           "browser": "edge",
           "browser_version": "142.0",
           "display_name": "Edge 142.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "143.0",
+          "display_name": "Edge 143.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "144.0",
+          "display_name": "Edge 144.0"
+        },
+{
+          "browser": "edge",
+          "browser_version": "145.0 beta",
+          "display_name": "Edge 145.0 beta"
         },
         {
           "browser": "safari",
