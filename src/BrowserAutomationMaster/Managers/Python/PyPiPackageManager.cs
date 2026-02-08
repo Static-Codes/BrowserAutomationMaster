@@ -2,12 +2,13 @@
 using System.Text.Json;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.EmbeddedResourceManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.RequestManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Python
 {
     public partial class PyPiPackageManager
     {
@@ -30,24 +31,27 @@ namespace BrowserAutomationMaster.Managers
             var baseMessage =
                 "Unable to download the required data to install the necessary Python Packages, please try again.\n" +
                 $"If this issue persists, please make a bug report at {ISSUES_LINK}\n" + 
-                "Error Log:\n";
-
-            var nullMessage = baseMessage + "response was null.";
+                "Error Log:";
 
             try
             {
-                var response = await NetworkClient.Instance.GetStringAsync(PACKAGES_LINK);
-                if (response == null) {
-                    WriteAndExit(nullMessage, 1);
-                }
+                await WriteEmbeddedResourceToDisk(
+                    resourceName: "packages.json",
+                    resourcePattern: "BrowserAutomationMaster.AppData.packages.json",
+                    outputPath: packagePath
+                );
 
-                File.WriteAllText(packagePath, response);
-                WriteSuccessMessage("Successfully downloaded required Python package data!\n");
+                WriteSuccessMessage("Successfully downloaded required Python package data!");
             }
             catch (Exception ex)
             {
-                var exMessage = $"{baseMessage}{ex.Message}\n";
-                WriteAndExit(exMessage, 1);
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        baseMessage,
+                        ex.Message
+                    ]), 
+                    status: 1
+                );
             }
         }
         private static async Task SetPackageData()
