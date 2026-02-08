@@ -58,10 +58,10 @@ namespace BrowserAutomationMaster.Compilation
 
         private static readonly HttpStatusCode[] InvalidResponseEnums = 
         [
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.Locked,
-            HttpStatusCode.MovedPermanently,
-            HttpStatusCode.Unauthorized
+            HttpStatusCode.Forbidden,        // 403
+            HttpStatusCode.Locked,           // 423
+            HttpStatusCode.MovedPermanently, // 301
+            HttpStatusCode.Unauthorized      // 401
         ];
 
 
@@ -1195,26 +1195,31 @@ namespace BrowserAutomationMaster.Compilation
                     out Uri? uriResult
                 );
 
-                if (!isValidUri)
+                if (!isValidUri) 
                 {
-                    WriteAndExit(
-                        message:
-                            $"BAM Manager (BAMM) was unable to resolve: '{link}'{NLC}{NLC}" +
-                            $"Error log:{NLC}Unable to create Uri object from provided link, returned a false boolean.",
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"BAM Manager (BAMM) was unable to resolve: '{link}'",
+                            "Error log:",
+                            "Unable to create Uri object from provided link, the operation returned false."
+                        ]),
                         status: 1
                     );
-                    return false;
                 }
                 
-                if (uriResult == null)
+                if (uriResult == null) 
                 {
-                    WriteAndExit(
-                        message:
-                            $"BAM Manager (BAMM) was unable to resolve: '{link}'{Enumerable.Repeat(NLC, 2)}" +
-                            $"Error log:{NLC}Unable to create Uri object from provided link, returned a null result.",
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"BAM Manager (BAMM) was unable to resolve: '{link}'",
+                            NLC,
+                            "Error log:",
+                            "Unable to create Uri object from provided link, returned a null result."
+                        ]),
                         status: 1
                     );
-                    return false;
                 }
 
                 RequestManager requestManager = new(uriResult, timeout: 10);
@@ -1223,15 +1228,14 @@ namespace BrowserAutomationMaster.Compilation
                 Uri uriToRequest = requestManager.Uri;
                 TimeSpan requestTimeout = requestManager.Timeout;
 
-                using var cts = new CancellationTokenSource(requestTimeout); // cts.Token passed to GetASync
+                using var cts = new CancellationTokenSource(requestTimeout); // cts.Token passed to GetAsync
 
                 // HttpCompletionOption.ResponseHeadersRead requires only the response headers to be read, no content is loaded.
-                Task<HttpResponseMessage> responseTask =
-                    client.GetAsync(
-                        uriToRequest,
-                        HttpCompletionOption.ResponseHeadersRead,
-                        cts.Token
-                    );
+                var responseTask = client.GetAsync(
+                    uriToRequest, 
+                    HttpCompletionOption.ResponseHeadersRead, 
+                    cts.Token
+                );
 
                 responseTask.Wait();
                 HttpResponseMessage response = responseTask.Result;
