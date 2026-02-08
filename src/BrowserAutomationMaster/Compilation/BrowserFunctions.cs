@@ -493,8 +493,8 @@ namespace BrowserAutomationMaster.Compilation
     request_url = None
     final_url = None
 " +
-@"    try:
-        stdout.write(f'Navigating to: {url}{eNLC}')
+$@"    try:
+        stdout.write(f'Navigating to: {{url}}{eNLC}')
 
 " +
 @$"        {AddUserAgentFunction(pythonSafeUserAgent)}"+
