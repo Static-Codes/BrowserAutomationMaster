@@ -77,9 +77,10 @@ namespace BrowserAutomationMaster
 
             CheckForMultipleInstances();
 
-            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
-            {
+            if (Platforms.IsWindows) {
+                #pragma warning disable CA1416 // Handled by SetPlatforms()
                 Win.VerifyRootDrive(args);
+                #pragma warning restore
             }
 
             // The user will select the version of python they want to use
