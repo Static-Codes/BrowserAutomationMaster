@@ -4730,11 +4730,6 @@
         },
         {
           "browser": "edge",
-          "browser_version": "142.0 beta",
-          "display_name": "Edge 142.0 beta"
-        },
-        {
-          "browser": "edge",
           "browser_version": "142.0",
           "display_name": "Edge 142.0"
         },
@@ -6159,11 +6154,6 @@
           "browser": "edge",
           "browser_version": "141.0",
           "display_name": "Edge 141.0"
-        },
-        {
-          "browser": "edge",
-          "browser_version": "142.0 beta",
-          "display_name": "Edge 142.0 beta"
         },
         {
           "browser": "edge",
@@ -17231,11 +17221,6 @@
         },
         {
           "browser": "edge",
-          "browser_version": "142.0 beta",
-          "display_name": "Edge 142.0 beta"
-        },
-        {
-          "browser": "edge",
           "browser_version": "142.0",
           "display_name": "Edge 142.0"
         },
@@ -18643,11 +18628,6 @@
         },
         {
           "browser": "edge",
-          "browser_version": "142.0 beta",
-          "display_name": "Edge 142.0 beta"
-        },
-        {
-          "browser": "edge",
           "browser_version": "142.0",
           "display_name": "Edge 142.0"
         },
@@ -19760,11 +19740,6 @@
         },
         {
           "browser": "edge",
-          "browser_version": "142.0 beta",
-          "display_name": "Edge 142.0 beta"
-        },
-        {
-          "browser": "edge",
           "browser_version": "142.0",
           "display_name": "Edge 142.0"
         },
@@ -20782,11 +20757,6 @@
         },
         {
           "browser": "edge",
-          "browser_version": "142.0 beta",
-          "display_name": "Edge 142.0 beta"
-        },
-        {
-          "browser": "edge",
           "browser_version": "142.0",
           "display_name": "Edge 142.0"
         },
@@ -21796,11 +21766,6 @@
           "browser": "edge",
           "browser_version": "141.0",
           "display_name": "Edge 141.0"
-        },
-        {
-          "browser": "edge",
-          "browser_version": "142.0 beta",
-          "display_name": "Edge 142.0 beta"
         },
         {
           "browser": "edge",
