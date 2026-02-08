@@ -55,7 +55,6 @@ namespace BrowserAutomationMaster.Managers
         [
             Arm,   // ARMv7 (32 bit)
             Arm64, // ARMv8 (64 bit)
-            X86, // x86 (32 bit)
             X64, // x86-64 (64 bit)
         ];
 
