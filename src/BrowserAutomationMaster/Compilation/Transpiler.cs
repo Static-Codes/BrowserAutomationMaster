@@ -106,7 +106,7 @@ namespace BrowserAutomationMaster.Compilation
                 WriteSuccessMessage($"Location -> {path}\n");
 
                 HandleAutoCopy();
-                //HandleAutoRun here
+                await HandleRunOnCompile();
             }
             catch (Exception ex)
             {
@@ -1072,6 +1072,9 @@ namespace BrowserAutomationMaster.Compilation
                 );
             }
 
+            Warning.Write("RunOnCompile is set to true, starting runtime..");
+            Thread.Sleep(400);
+            
             var runtimeManager = new RuntimeManager(path);
             await runtimeManager.RunScript(usingBrowserstack);
             return true;
@@ -1119,9 +1122,7 @@ namespace BrowserAutomationMaster.Compilation
             // If either flag is true at the end, a quote was left unclosed
             return inSingleQuote || inDoubleQuote;
         }
-        
-        
-        
+                
         private static bool IsValidPyVersion(string pyVersion)
         {
             if (string.IsNullOrWhiteSpace(pyVersion)) { 
