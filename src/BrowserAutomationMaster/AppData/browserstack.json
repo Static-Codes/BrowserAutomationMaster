@@ -4385,8 +4385,18 @@
         },
         {
           "browser": "chrome",
-          "browser_version": "143.0 beta",
-          "display_name": "Chrome 143.0 beta"
+          "browser_version": "143.0",
+          "display_name": "Chrome 143.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "144.0",
+          "display_name": "Chrome 144.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "145.0 beta",
+          "display_name": "Chrome 145.0 beta"
         },
         {
           "browser": "ie",
@@ -5832,8 +5842,18 @@
         },
         {
           "browser": "chrome",
-          "browser_version": "143.0 beta",
-          "display_name": "Chrome 143.0 beta"
+          "browser_version": "143.0",
+          "display_name": "Chrome 143.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "144.0",
+          "display_name": "Chrome 144.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "145.0 beta",
+          "display_name": "Chrome 145.0 beta"
         },
         {
           "browser": "edge",
