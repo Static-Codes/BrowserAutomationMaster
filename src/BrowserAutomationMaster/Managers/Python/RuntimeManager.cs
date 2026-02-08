@@ -243,9 +243,26 @@ namespace BrowserAutomationMaster.Managers.Python
         
         public static bool IsSupportedWindowsVersion()
         {
-            return 
-                OperatingSystem.IsWindows() && 
-                OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240);
+            var isWindows = OperatingSystem.IsWindows();
+
+            if (!isWindows) {
+                return false;
+            }
+
+            if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240)) 
+            {
+                WriteErrorAndReturnBool
+                (
+                    string.Join(NLC, [
+                        "BAMM for Windows currently supports all versions of Windows 10 and Windows 11.",
+                        "If you are trying to run BAMM from a "
+                    ]),
+                    returnBool: false
+                );
+            }
+
+            return true;
+                
         }
         
         public static bool IsSupportedOSXVersion() { return OperatingSystem.IsMacOSVersionAtLeast(11); }
