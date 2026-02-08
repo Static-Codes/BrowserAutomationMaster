@@ -79,7 +79,7 @@ namespace BrowserAutomationMaster
 
             if (Platforms.IsWindows) {
                 #pragma warning disable CA1416 // Handled by SetPlatforms()
-                Win.VerifyRootDrive(args);
+                Win.VerifyRootDrive();
                 #pragma warning restore
             }
 
@@ -94,8 +94,9 @@ namespace BrowserAutomationMaster
         /// <returns>True if BAMM is to be terminated | False if execution is to continue.</returns>
         public static async Task<bool> HandleCLIArguments(string[] pArgs)
         {
-            if (pArgs.Length == 0) 
+            if (pArgs.Length == 0) {
                 return false; // No args, proceed to main menu loop.
+            }
 
             // Defining the lowercase representation of pArgs[0] to save memory (Not that its required, but its a good practice)
             var lArg0 = pArgs[0].ToLower();
@@ -113,7 +114,6 @@ namespace BrowserAutomationMaster
             }
 
             // Note: no-hwc is handled in HandleHardwareCheck()
-
             // Handles double-clicking a BAMC file (On Windows)
             if (pArgs.Length == 1 && lArg0.EndsWith(".bamc") && File.Exists(pArgs[0]))
             {
@@ -161,8 +161,7 @@ namespace BrowserAutomationMaster
                 return true;
             }
 
-            if (pArgs.Any(arg => arg.Equals("--force-error")))
-            {
+            if (pArgs.Any(arg => arg.Equals("--force-error"))) {
                 WriteAndExit("", 0);
             }
 
@@ -172,12 +171,15 @@ namespace BrowserAutomationMaster
                 WriteSuccessMessage(distro.ToString());
             }
             
-            if (pArgs.Any(arg => arg.Equals("--gui") && !Directory.Exists(userScriptsDirectory))){
-                WriteAndExit(
+            if (pArgs.Any(arg => arg.Equals("--gui") && !Directory.Exists(userScriptsDirectory)))
+            {
+                WriteAndExit
+                (
                     string.Join(NLC, [
                         "Unable to start BAMM's GUI.",
                         "Please start BAMM without any arguments for your first run, unless instructed otherwise.",
-                        $"Once you see the Main Menu, select \"GUI\".{NLC}",
+                        $"Once you see the Main Menu, select \"GUI\".",
+                        NLC,
                         "Please note, you are seeing this because either:",
                         "- 1. You are running BAMM for the first time.",
                         "- 2. The userScripts directory has not been created, or has been corrupted.",

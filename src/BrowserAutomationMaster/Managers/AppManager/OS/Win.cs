@@ -33,9 +33,17 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 apps.AddRange(QueryRegistryForApps(RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"));
                 apps.AddRange(QueryRegistryForApps(RegistryHive.CurrentUser, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"));
             }
-            catch { 
-                WriteAndExit(
-                    message: "BAM Manager was unable to query Windows Registry, please try again; if this issue persists, it's likely a bug.",
+            catch (Exception ex) 
+            { 
+                WriteAndExit
+                (
+                    message: 
+                        string.Join(NLC, [
+                            "BAM Manager was unable to query Windows Registry, please try again.", 
+                            "If this issue persists, it's likely a bug.",
+                            "Error Log:",
+                            ex.Message
+                        ]),
                     status: 1
                 );
             }
@@ -56,15 +64,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 {
                     using RegistryKey? subkey = key.OpenSubKey(subkeyName);
                     
-                    if (subkey == null) 
-                    { 
+                    if (subkey == null) { 
                         continue; 
                     }
                     
                     string? name = subkey?.GetValue("DisplayName") as string;
 
-                    if (string.IsNullOrWhiteSpace(name)) 
-                    {
+                    if (string.IsNullOrWhiteSpace(name)) {
                         continue; 
                     }
 
@@ -86,11 +92,10 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             return list;
         }
 
-        public static void VerifyRootDrive(string[] args)
+        public static void VerifyRootDrive()
         {
             try
             {
-                if (args.Contains("--ignore-drive-root")) { return; }
                 string? rootDrive = Path.GetPathRoot(AppContext.BaseDirectory);
 
                 if (rootDrive == null || !rootDrive.StartsWith("C:"))
