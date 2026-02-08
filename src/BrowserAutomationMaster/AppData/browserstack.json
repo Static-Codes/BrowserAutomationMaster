@@ -3853,6 +3853,8 @@
         }
       ]
     },
+
+    
     {
       "os": "Windows",
       "os_version": "10",
@@ -5335,6 +5337,8 @@
         }
       ]
     },
+
+
     {
       "os": "Windows",
       "os_version": "11",
@@ -6792,6 +6796,7 @@
         }
       ]
     },
+
     {
       "os": "OS X",
       "os_version": "Snow Leopard",
@@ -7179,6 +7184,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Lion",
@@ -7566,6 +7573,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Mountain Lion",
@@ -7983,6 +7992,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Mavericks",
@@ -8645,6 +8656,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Yosemite",
@@ -9402,6 +9415,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "El Capitan",
@@ -10234,6 +10249,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Sierra",
@@ -11271,6 +11288,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "High Sierra",
@@ -12438,6 +12457,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Mojave",
@@ -13605,6 +13626,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Catalina",
@@ -14992,6 +15015,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Big Sur",
@@ -16479,6 +16504,8 @@
         }
       ]
     },
+
+    
     {
       "os": "OS X",
       "os_version": "Monterey",
@@ -17001,8 +17028,18 @@
         },
         {
           "browser": "chrome",
-          "browser_version": "143.0 beta",
-          "display_name": "Chrome 143.0 beta"
+          "browser_version": "143.0",
+          "display_name": "Chrome 143.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "144.0",
+          "display_name": "Chrome 144.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "145.0 beta",
+          "display_name": "Chrome 145.0 beta"
         },
         {
           "browser": "edge",
@@ -18026,6 +18063,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Ventura",
@@ -18438,8 +18477,18 @@
         },
         {
           "browser": "chrome",
-          "browser_version": "143.0 beta",
-          "display_name": "Chrome 143.0 beta"
+          "browser_version": "143.0",
+          "display_name": "Chrome 143.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "144.0",
+          "display_name": "Chrome 144.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "145.0 beta",
+          "display_name": "Chrome 145.0 beta"
         },
         {
           "browser": "edge",
@@ -19168,6 +19217,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Sonoma",
@@ -19580,8 +19631,18 @@
         },
         {
           "browser": "chrome",
-          "browser_version": "143.0 beta",
-          "display_name": "Chrome 143.0 beta"
+          "browser_version": "143.0",
+          "display_name": "Chrome 143.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "144.0",
+          "display_name": "Chrome 144.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "145.0 beta",
+          "display_name": "Chrome 145.0 beta"
         },
         {
           "browser": "edge",
@@ -20310,6 +20371,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Sequoia",
@@ -20652,8 +20715,18 @@
         },
         {
           "browser": "chrome",
-          "browser_version": "143.0 beta",
-          "display_name": "Chrome 143.0 beta"
+          "browser_version": "143.0",
+          "display_name": "Chrome 143.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "144.0",
+          "display_name": "Chrome 144.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "145.0 beta",
+          "display_name": "Chrome 145.0 beta"
         },
         {
           "browser": "edge",
@@ -21352,6 +21425,8 @@
         }
       ]
     },
+
+
     {
       "os": "OS X",
       "os_version": "Tahoe",
@@ -21694,8 +21769,18 @@
         },
         {
           "browser": "chrome",
-          "browser_version": "143.0 beta",
-          "display_name": "Chrome 143.0 beta"
+          "browser_version": "143.0",
+          "display_name": "Chrome 143.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "144.0",
+          "display_name": "Chrome 144.0"
+        },
+        {
+          "browser": "chrome",
+          "browser_version": "145.0 beta",
+          "display_name": "Chrome 145.0 beta"
         },
         {
           "browser": "edge",
