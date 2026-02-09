@@ -90,9 +90,6 @@ namespace BrowserAutomationMaster.Compilation
                 // Null forgiveness here because SetBAMConfig ensure's the config is not null.
                 GetDesiredUrls(bamConfig!.Lines);
 
-                // Sets UserAgentManager.userAgentsData
-                UserAgentManager.SetUserAgents();
-
                 AddBrowserImportsAndRequirements(bamConfig);
 
                 await HandleCompilation(filePath, args, bamConfig);
@@ -486,13 +483,19 @@ namespace BrowserAutomationMaster.Compilation
             // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of the nullable operator
             if (config.browserPresent)
             {
-                var potentialUA = UserAgentManager.GetUserAgent(config.selectedBrowser);
+                var potentialUA = UserAgentManager.GetUserAgent(config.selectedBrowser, config.useMobileUserAgent);
                 if (potentialUA == null)
                 {
-                    WriteErrorAndReturnNull("Unable to select custom user agent, please try again");
+                    WriteErrorAndReturnNull(
+                        string.Join(NLC, [
+                            "Unable to select custom user agent, please try again",
+                            "Error Log:",
+                            "potentialUA in HandleBrowserCmd is null."
+                        ])
+                    );
                 }
 
-                requestUserAgent = potentialUA!; // null check is done above.
+                requestUserAgent = potentialUA!.userAgentString; // null check is done above.
             }
         }
         
