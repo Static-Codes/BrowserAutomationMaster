@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<AssemblyName>bamm</AssemblyName>
@@ -98,6 +98,10 @@
 		<PropertyGroup>
       		<IsSupportedWin10>$([MSBuild]::VersionGreaterThanOrEquals($(WindowsBuildVersion), 10240))</IsSupportedWin10>
     	</PropertyGroup>
+	</Target>
+
+	<Target Name="RemoveGUIAfterEmbed" AfterTargets="Build">
+      	<Delete Files="$(_FullResourcePath)" Condition="Exists('$(_FullResourcePath)')" />
 	</Target>
 
 
