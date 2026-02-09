@@ -21,8 +21,15 @@ namespace BrowserAutomationMaster.Parsing
             "take-screenshot", "wait-for-seconds", "visit"
         ];
 
-        public readonly static string[] proxyFeatureArgs = ["use-http-proxy", "use-https-proxy", "use-socks4-proxy", "use-socks5-proxy"];
-        readonly static string[] otherFeatureArgs = ["add-extension", "browser", "disable-pycache", "disable-ssl", "run-headless"];
+        public readonly static string[] proxyFeatureArgs = [
+            "use-http-proxy", "use-https-proxy", 
+            "use-socks4-proxy", "use-socks5-proxy"
+        ];
+        
+        public readonly static string[] otherFeatureArgs = [
+            "add-extension", "browser", "disable-pycache", 
+            "disable-ssl", "run-headless", "use-mobile-user-agent"
+        ];
         
         //readonly static string[] browserArgs = ["brave", "chrome", "firefox", "safari", ];
         public readonly static string[] browserArgs = ["chrome", "firefox", "safari", ];
