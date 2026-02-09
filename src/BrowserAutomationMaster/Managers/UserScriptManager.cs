@@ -79,12 +79,6 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
             
-            // Action handleCLI() => async () => {
-            //     await HandleCLIArgs(method, filePath, scriptPath);
-            // };
-
-            // async void asyncWrap() { await HandleCLIArgs(method, filePath, scriptPath); }
-            // Task.Run(handleCLI);
             HandleCLIArgs(method, filePath, scriptPath).GetAwaiter().GetResult();
             Console.WriteLine("Test Complete");
         }
@@ -93,9 +87,10 @@ namespace BrowserAutomationMaster.Managers
         {
             bool overwrite = false;
 
-            if (File.Exists(scriptPath)) {
+            if (File.Exists(scriptPath)) 
+            {
                 string response = Input.AskForInput(
-                    $"\nThe file '{fileName}' already exists in the userScript directory. Overwrite? [y/n]:\n"
+                    $"{NLC}The file '{fileName}' already exists in the userScript directory. Overwrite? [y/n]:{NLC}"
                 );
 
                 if (!response.Equals("y")) {
@@ -105,44 +100,72 @@ namespace BrowserAutomationMaster.Managers
                 overwrite = true;
             }
 
-            try {
+            try 
+            {
                 if (sourceFilePath != scriptPath)
                 {
-                    File.Copy(
-                        sourceFilePath,
-                        destFileName: scriptPath,
-                        overwrite
-                    );
+                    File.Copy(sourceFilePath, scriptPath, overwrite);
                     WriteSuccessMessage(
-                        $"\nSuccessfully {(overwrite ? "overwritten" : "added")} '{fileName}' to the userScript directory.\n"
+                        $"\nSuccessfully {(overwrite ? "overwritten" : "added")} '{fileName}' to the userScript directory.{NLC}"
                     );
                     return;
                 }
-                WriteAndExit($"\nBAM Manager (BAMM) was unable to overwrite {fileName}\nError log:\n\nThe Source Path is the same as the Destination Path.", status: 1);
-            }
-            catch (UnauthorizedAccessException ex) {
-                WriteAndExit(
-                    message: $"\nBAM Manager (BAMM) was unable to continue, permission denied.\n" +
-                    $"Source: {sourceFilePath}\nDestination: {scriptPath}\nError: {ex.Message}",
+
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        NLC, 
+                        $"BAM Manager (BAMM) was unable to overwrite {fileName}.",
+                        NLC,
+                        "Error Log:",
+                        "The Source Path is the same as the Destination Path." 
+                    ]),
                     status: 1
                 );
             }
-            catch (IOException ex) {
-                WriteAndExit(
-                    message: 
-                        $"\nBAM Manager (BAMM) was unable to continue due to an I/O error.\n" +
-                        $"Source: {sourceFilePath}\n" +
-                        $"Destination: {scriptPath}\n" +
+
+            catch (UnauthorizedAccessException ex) 
+            {
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        NLC, 
+                        $"BAM Manager (BAMM) was unable to continue, permission denied.",
+                        NLC,
+                        $"Source: {sourceFilePath}",
+                        $"Destination: {scriptPath}",
                         $"Error: {ex.Message}",
+                    ]),
                     status: 1
                 );
             }
-            catch (Exception ex) {
-                WriteAndExit(
-                    message: 
-                        $"\nBAM Manager (BAMM) was unable to " +
-                        $"{(overwrite ? "overwrite" : "add")} " +
-                        $"'{fileName}'.\nError: {ex.Message}",
+            
+            catch (IOException ex) 
+            {
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        NLC,
+                        "BAM Manager (BAMM) was unable to continue due to an I/O error.",
+                        NLC,
+                        $"Source: {sourceFilePath}",
+                        $"Destination: {scriptPath}",
+                        $"Error: {ex.Message}"
+                    ]),
+                    status: 1
+                );
+            }
+            
+            catch (Exception ex) 
+            {
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        NLC,
+                        $"BAM Manager (BAMM) was unable to {(overwrite ? "overwrite" : "add")} {fileName}.",
+                        "Error Log:",
+                        ex.Message
+                    ]),
                     status: 1
                 );
             }
@@ -150,7 +173,6 @@ namespace BrowserAutomationMaster.Managers
         
         private async Task HandleCLIArgs(string method, string filePath, string fileName)
         {
-            Console.WriteLine(method);
             switch (method.ToLower().Trim())
             {
                 case "add":
@@ -170,7 +192,7 @@ namespace BrowserAutomationMaster.Managers
 
                 case "run":
                     RuntimeManager runtimeManager = new(scriptFilePath: scriptPath);
-                    await runtimeManager.RunScript();
+                    await runtimeManager.RunScript(Transpiler.GetBrowserStackStatus());
                     break;
 
                 default:

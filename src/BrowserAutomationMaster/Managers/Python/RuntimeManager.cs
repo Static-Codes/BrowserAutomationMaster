@@ -319,12 +319,10 @@ namespace BrowserAutomationMaster.Managers.Python
             
         }
 
-        // Readd error handling
         public async Task<bool> RunScript(bool usingBrowserstack = false)
         {
             try
             {
-                // For the current commit this is intentionally unwrapped from the try catch block to invoke an Exception and have its StackTrace automatically output for debugging purposes.
                 ValidateScript();
                 var vEnvManager = usingBrowserstack switch
                 {

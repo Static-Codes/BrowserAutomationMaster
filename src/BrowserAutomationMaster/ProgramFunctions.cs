@@ -17,7 +17,6 @@ using static BrowserAutomationMaster.Managers.EmbeddedResourceManager;
 using static BrowserAutomationMaster.Managers.LocalServerManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.ProcessManager;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -55,11 +54,6 @@ namespace BrowserAutomationMaster
 
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
-
-            // Populates DeviceManager.Devices
-            if (!PopulateDevices()) {
-                Environment.Exit(0);
-            }
 
             CheckForMultipleInstances();
 
@@ -140,6 +134,7 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("--bs", CCIC))
             {
                 SetBrowserStackStatus(status: true);
+                WriteSuccessMessage("Argument `--bs` found, runtime execution will be done through BrowserStack.");
                 return false;
             }
 
@@ -185,8 +180,7 @@ namespace BrowserAutomationMaster
                 SetBrowserStackStatus(true);
             }
 
-            // Downloads a local copy of the GUI (If one is not already present) from:
-            // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip
+            // Writes the GUI to disk if not already present.
             else if (
                 pArgs[0].Equals("--gui") && 
                 !Directory.Exists(GetGUIDirectoryPath()) || 
@@ -727,8 +721,8 @@ namespace BrowserAutomationMaster
         public static async Task Run(KeyValuePair<MenuOption, string> MenuResult)
         {
             RuntimeManager runtimeManager = new(MenuResult.Value);
-            // CheckBrowserStackStatus(); 
-            await runtimeManager.RunScript();
+            // CheckBrowserStackStatus();
+            await runtimeManager.RunScript(GetBrowserStackStatus());
         }
     }
 }

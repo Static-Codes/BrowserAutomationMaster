@@ -201,6 +201,53 @@ namespace BrowserAutomationMaster.Managers.Python
             return string.Empty; // Will not be executed.
         }
 
+        // Currently only used in RunScriptWithBrowserStack()
+        public async Task InstallIndividualPackage(string pipPath, string packageString) 
+        {
+            var psi = new ProcessStartInfo()
+            {
+                FileName = pipPath,
+                Arguments = $"install {packageString}",
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = VEnvPath,
+            };
+
+            using Process proc = await ProcessFactory.SpawnProcess(psi, $"install the python package: {packageString}");
+
+            (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(proc);
+             
+            if (ExitCode != 0)
+            {
+                var fullStackTrace = string.Join("\n", STDErr);
+                var userFriendlyMessage = string.Join(NLC, [
+                    $"BAM Manager (BAMM) was unable to install the python package: {packageString}.",
+                    $"If this continues, please make a bug report at {ISSUES_LINK}"
+                ]);
+
+                var detailedLog = string.Join(NLC, [
+                    "Error log:",
+                    $"Command: {psi.FileName} {psi.Arguments} failed with exit code {ExitCode}",
+                    "Stack Trace:",
+                    fullStackTrace,
+                ]);
+                
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        userFriendlyMessage,
+                        NLC,
+                        detailedLog
+                    ]),
+                    status: 1
+                );
+            }
+
+
+        }
+
         public async Task InstallProjectPackages()
         {
             var usingBrowserStack = GetBrowserStackStatus();
@@ -360,7 +407,8 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public async Task RunScriptWithBrowserStack()
         {
-            if (string.IsNullOrEmpty(ParentDirectory)) {
+            if (string.IsNullOrEmpty(ParentDirectory)) 
+            {
                 WriteAndExit
                 (
                     message:
@@ -413,6 +461,19 @@ namespace BrowserAutomationMaster.Managers.Python
                 Platforms.IsUnixLike ? "bin" : "Scripts",
                 Platforms.IsUnixLike ? "browserstack-sdk" : "browserstack-sdk.exe"
             );
+
+            // If a BAMC file was compiled with usingBrowserstack = false
+            // Then is later ran with usingBrowserstack = true
+            // The BrowserStack SDK will not exist in compiled/<project>/venv/bin/
+            if (!File.Exists(browserStackExecutable)) 
+            {
+                var pipPath = GetProjectVEnvPipPath(ParentDirectory);
+
+                var bsVersion = PyPiPackageManager.Get("browserstack-sdk", GetGlobalPythonVersion());
+
+                await InstallIndividualPackage(pipPath, $"browserstack-sdk=={bsVersion}");
+                await InstallIndividualPackage(pipPath, $"browserstack-local");
+            }
 
             var browserStackArgs = $"python \"{ScriptFilePath}\"";
 

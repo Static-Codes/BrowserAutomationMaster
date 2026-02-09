@@ -32,7 +32,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 $"BrowserStackLocal: {BrowserStackLocal}",
                 $"BuildName: {BuildName}",
                 $"ProjectName: {ProjectName}",
-                // $"BuildIdentifier: {BuildIdentifier}\n" +
+                $"BuildIdentifier: {BuildIdentifier}",
                 $"Debug: {Debug}",
                 $"ConsoleLogs: {ConsoleLogs}",
                 $"Framework: {Framework}"
@@ -68,7 +68,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             "2. Sign up using an email you can receive a verification with.\n" +
             "3. Click the verification link inside the email you receive.\n" +
             "4. Go to: https://www.browserstack.com/accounts/profile/\n" +
-            "5. Click 'My profile'" +
+            "5. Click 'My profile'\n" +
             "6. Copy and Paste both your username and access key when prompted. (This only has to be done once)";
 
 
@@ -89,13 +89,12 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             var versions = GetBrowserVersionsSupported(browserName, osName);
 
-            var description = $"version of {rawOSName} that supports {browserName}";
-            
-            if (versions == null)
+            if (versions == null || versions.Length == 0)
             {
+                var description = $"version of {rawOSName} that supports {browserName}";
                 WriteAndExit($"Unable to find a {description}, please try a different combination.", 1);
             }
-            
+
             // Will be used for defining DeviceName and DeviceOrientation if mobile
             // If not mobile, browserVersion must be specified.
             var isMobile = osName switch
@@ -106,19 +105,18 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
             var browserVersion = "";
             
-            // BrowserStack doesn't allow you to specify the browserVersion on android.
-            if (osName != "android")
+             // Desktop: Automatically pick appropriate version (Safari) or Latest
+            if (!isMobile)
             {
-                browserVersion = GetDesiredBrowerVersion(browserName, osName, osVersion);
+                
+                 browserVersion = GetDesiredBrowerVersion(browserName, osName, osVersion);
             }
-            
-            string[] devices;
             string? device = null;
             string? deviceOrientation = null;
 
             if (isMobile)
             {
-                devices = osName switch
+                var devices = osName switch
                 {
                     "android" => GetAndroidDeviceNames(osVersion, browserName),
                     "ios" => GetiOSDeviceNames(osVersion, browserName),
@@ -136,8 +134,6 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                 deviceOrientation = Input.WriteListFromOptions(reprs, noun: "orientation");
             }
 
-
-            // Currently only one platform is supported at a time but plans are to implement multiple if desired.
             var platform = new BrowserStackPlatform[]
             {
                 new()
@@ -166,7 +162,6 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             };
         }
 
-
         public static BrowserStackConfig? LoadConfig()
         {
             if (!File.Exists(browserStackConfig))
@@ -177,12 +172,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             try
             {
                 var fileText = File.ReadAllText(browserStackConfig);
-
-                var deserializer =
-                    new DeserializerBuilder()
+                var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
-
                 return deserializer.Deserialize<BrowserStackConfig>(fileText);
             }
             catch
@@ -191,16 +183,9 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             }
         }
 
-        /// <summary>
-        /// Prompts the user to 
-        /// </summary>
-        /// <returns></returns>
         public static bool PromptConfigOverride()
         {
-            if (!File.Exists(browserStackConfig))
-            {
-                return false;
-            }
+            if (!File.Exists(browserStackConfig)) return false;
 
             var builder = new StringBuilder();
             Warning.Write("The BrowserStack Config file already exists.\n");
@@ -211,7 +196,6 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     builder.AppendLine(line);
                 }
             }
-
             catch (Exception ex)
             {
                 Write($"Unable to read BrowserStack Config.\n\nError Log:\n{ex.Message}");
@@ -222,20 +206,11 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
             Warning.Write(builder.ToString());
 
             var response = Input.AskForInput("Would you like to overwrite the config above? [y/n]: ");
-
-            if (Input.ConditionRejected(response))
-            {
-                return false;
-            }
+            if (Input.ConditionRejected(response)) return false;
 
             return true;
         }
 
-
-        /// <summary>
-        /// Writes (or overwrites) the BrowserStack Config (browserstack.yml)
-        /// </summary>
-        /// <param name="fileNotFound">Whether or not to display a message indicating the file was not found.</param>
         public static void WriteConfig(bool fileNotFound)
         {
             try
@@ -245,15 +220,14 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     Write("Unable to locate the BrowserStack Config.");
                     string response = Input.AskForInput("Do you already have an account on https://browserstack.com [y/n]: ");
 
-                    if (Input.ConditionRejected(response)) {
+                    if (Input.ConditionRejected(response))
+                    {
                         WriteAndExit(tutorialMessage, 1);
                     }
-
                     Warning.Write("Creating browserstack.yml now.\n\n");
                 }
 
                 var config = BuildConfig();
-
                 var serializer = new SerializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
@@ -266,9 +240,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
                 EnsureDirectoryExists(browserStackDirectory);
                 File.WriteAllText(browserStackConfig, yaml);
-
             }
-
             catch (Exception e)
             {
                 WriteAndExit
@@ -282,9 +254,6 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
                     status: 1
                 );
             }
-
         }
-
-
     }
 }
