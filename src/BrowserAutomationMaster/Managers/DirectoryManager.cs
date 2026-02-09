@@ -412,8 +412,6 @@ namespace BrowserAutomationMaster.Managers
             return sourceBuildsDir;
         }
         
-        public static string GetUserAgentsPath() { return Path.Combine(AppDataDirectory, "useragents.json"); }
-
         // ~/.config/BrowserAutomationMaster
         private static string GetAppDataLinux(string appName)
         {
