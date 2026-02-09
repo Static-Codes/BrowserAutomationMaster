@@ -135,8 +135,7 @@ namespace BrowserAutomationMaster.Compilation
 
 
             // ARMv7 (ARMel + ARMhf) Specific Packages (Precompiled Wheels for each Architecture)
-            if (Platforms.IsARMel || Platforms.IsARMhf)
-            {
+            if (Platforms.IsARMel || Platforms.IsARMhf) {
                 script.AddRequirementPackages(GetRequirementStrings());
             }
 
@@ -453,6 +452,10 @@ namespace BrowserAutomationMaster.Compilation
 
             // This is the string passed as a parameter, it cannot be null at this point.
             return customName!; 
+        }
+
+        public static string GetGlobalPythonVersion() {
+            return pythonVersion;
         }
 
         private static void HandleAutoCopy()
