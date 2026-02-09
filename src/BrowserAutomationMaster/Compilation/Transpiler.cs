@@ -98,9 +98,12 @@ namespace BrowserAutomationMaster.Compilation
 
                 WriteRequirementsFile();
 
-                string path = Path.Combine(desiredSaveDirectory, projectName, pythonScriptFileName);
-                WriteSuccessMessage($"Compiled -> {bamConfig.Name}");
-                WriteSuccessMessage($"Location -> {path}\n");
+                string projectPath = Path.Combine(desiredSaveDirectory, projectName);
+
+                string scriptPath = Path.Combine(projectPath, pythonScriptFileName);
+                WriteSuccessMessage($"Compiled: {bamConfig.Name}");
+                WriteSuccessMessage($"Project Directory: {projectPath}\n");
+                WriteSuccessMessage($"Script Path: {scriptPath}");
 
                 HandleAutoCopy();
                 await HandleRunOnCompile();

@@ -14,7 +14,7 @@ namespace BrowserAutomationMaster.Managers
             // Only reassigning UserAgentChoices if a new browserName or mobileStatus is passed.
             if (lastBrowserName != browserName || lastMobileStatus != isMobile) 
             {
-                Warning.Write($"{NLC}Updating User Agents, please wait..");
+                Warning.Write($"{NLC}Updating user agents, please wait..");
                 Thread.Sleep(100);
 
                 UserAgentChoices = (browserName, isMobile) switch {
@@ -28,11 +28,11 @@ namespace BrowserAutomationMaster.Managers
                 Success.WriteSuccessMessage
                 (
                     string.Join("", [
-                        "Operation successful, the current session will choose between ",
+                        "Operation successful, the current session will choose at random between ",
                         UserAgentChoices.Length,
                         "/",
                         UserAgents.FullList.Count, 
-                        " random choices for User Agents."
+                        " supported user agents."
                     ])
                 );
 
