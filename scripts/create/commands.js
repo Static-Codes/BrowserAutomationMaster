@@ -4,7 +4,7 @@ const commandCollection = [
   {
     commandName: "Browser",
     commandArgs: {
-      browser: ['"chrome"', '"firefox"'], // Values are strings, so they are quoted
+      browser: ['"chrome"', '"firefox"', '"safari"'], // Values are strings, so they are quoted
     },
     commandDescription:
       "Specifies the browser type. This **MUST** be the first valid line of the file. Use quoted values.",
@@ -298,6 +298,15 @@ const commandCollection = [
       "Feature: Uses the entered HTTPS proxy. Format: USER:PASS@IP:PORT. The string **must be quoted**.",
     disabledOnLoad: true,
     placeholder: '"USER:PASS@IP:PORT"',
+  },
+
+  {
+    commandName: "Feature: use-mobile-user-agent",
+    commandArgs: null,
+    commandDescription:
+      'Feature: Instructs the compiler to return a mobile user agent. This only works when browser is set to "safari"',
+    disabledOnLoad: true,
+    placeholder: "",
   },
 
   {
