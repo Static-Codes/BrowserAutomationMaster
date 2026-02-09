@@ -22,7 +22,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         ];
         public static string[] AndroidVersions =
         [
-            //"16 (Baklava)", // Not currently supported as of 08/17/2025
+            "16 (Baklava)",
             "15 (Vanilla Ice Cream)",
             "14 (Upside Down Cake)",
             "13 (Tiramisu)",
