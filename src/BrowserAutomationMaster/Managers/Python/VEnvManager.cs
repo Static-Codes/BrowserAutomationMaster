@@ -22,6 +22,36 @@ namespace BrowserAutomationMaster.Managers.Python
         string VEnvPath { get; set; } = string.Empty;
         private string? ParentDirectory = null;
 
+        public string GetBrowserStackSDKPath() 
+        {
+            ParentDirectory ??= Path.GetDirectoryName(ScriptFilePath);
+
+            // UnixLike: bin/browserstack-sdk
+            // Windows: Scripts/browserstack-sdk.exe
+            return Path.Combine(
+                // Null forgiveness is used here due to the coalesce operation above. 
+                GetProjectVEnvPath(ParentDirectory!), 
+                Platforms.IsUnixLike ? "bin" : "Scripts",
+                Platforms.IsUnixLike ? "browserstack-sdk" : "browserstack-sdk.exe"
+            );
+        }
+
+        public async Task EnsureBrowserStackSDKIsInstalled(string browserStackSDKPath) 
+        {  
+            ParentDirectory ??= Path.GetDirectoryName(ScriptFilePath);
+
+            if (!File.Exists(browserStackSDKPath)) 
+            {
+                // Null forgiveness is used here due to the coalesce operation above. 
+                var pipPath = GetProjectVEnvPipPath(ParentDirectory!);
+
+                var bsVersion = PyPiPackageManager.Get("browserstack-sdk", GetGlobalPythonVersion());
+
+                await InstallIndividualPackage(pipPath, $"browserstack-sdk=={bsVersion}");
+                await InstallIndividualPackage(pipPath, $"browserstack-local");
+            }
+        }
+
         /// <summary>
         /// Checks if the Virtual Environment used for individual project packages exists.
         /// </summary>
@@ -424,13 +454,16 @@ namespace BrowserAutomationMaster.Managers.Python
 
             StackConfig = LoadConfig();
 
-            if (StackConfig == null) {
+            if (StackConfig == null) 
+            {
                 WriteAndExit
                 (
-                    message:
-                        "Unable to run the requested test, please try again.\n" +
-                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        "Error log:\nStackConfig == null in VEnvManager.RunScript()",
+                    message: string.Join(NLC, [
+                        "Unable to run the requested test, please try again.",
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                        "Error log:",
+                        "StackConfig == null in VEnvManager.RunScript()"
+                    ]),
                     status: 1
                 );
             }
@@ -439,11 +472,11 @@ namespace BrowserAutomationMaster.Managers.Python
             await Task.Delay(1000);
             
             WriteSuccessMessage("Config Info:");
-            Console.WriteLine($"{StackConfig}\n");
-            await Task.Delay(1000);
+            Console.WriteLine("{0}{1}", StackConfig, NLC);
+            await Task.Delay(750);
 
             var userChoice = Input.AskForInput("Would you like to use this config for the current test? [y/n]: ");
-            await Task.Delay(1000);
+            await Task.Delay(750);
 
             if (Input.ConditionRejected(userChoice)) {
                 StackConfig = BuildConfig();
@@ -454,26 +487,12 @@ namespace BrowserAutomationMaster.Managers.Python
             // This is either a copy of browserStackConfig's contents or the newly built config above.
             File.WriteAllText(projectConfigPath, StackConfig.ToString());
 
-            // UnixLike: bin/browserstack-sdk
-            // Windows: Scripts/browserstack-sdk.exe
-            var browserStackExecutable = Path.Combine(
-                GetProjectVEnvPath(ParentDirectory),
-                Platforms.IsUnixLike ? "bin" : "Scripts",
-                Platforms.IsUnixLike ? "browserstack-sdk" : "browserstack-sdk.exe"
-            );
+            var browserStackSDKPath = GetBrowserStackSDKPath();
 
             // If a BAMC file was compiled with usingBrowserstack = false
             // Then is later ran with usingBrowserstack = true
             // The BrowserStack SDK will not exist in compiled/<project>/venv/bin/
-            if (!File.Exists(browserStackExecutable)) 
-            {
-                var pipPath = GetProjectVEnvPipPath(ParentDirectory);
-
-                var bsVersion = PyPiPackageManager.Get("browserstack-sdk", GetGlobalPythonVersion());
-
-                await InstallIndividualPackage(pipPath, $"browserstack-sdk=={bsVersion}");
-                await InstallIndividualPackage(pipPath, $"browserstack-local");
-            }
+            await EnsureBrowserStackSDKIsInstalled(browserStackSDKPath);
 
             var browserStackArgs = $"python \"{ScriptFilePath}\"";
 
@@ -490,22 +509,38 @@ namespace BrowserAutomationMaster.Managers.Python
 
             psi.Environment.Add("GIT_PYTHON_REFRESH", "quiet");
 
-            SetProcessFileName(ref psi, useCMD: false, fileName: browserStackExecutable); 
+            SetProcessFileName(ref psi, useCMD: false, fileName: browserStackSDKPath);
 
-            using Process proc = await ProcessFactory.SpawnProcess(psi, "start browserstack script execution");
+            using var process = await ProcessFactory.SpawnProcess(psi, "start browserstack script execution");
 
-            (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(proc);
+            (var ExitCode, List<string> STDOut, List<string> STDErr) = await ProcessFactory.GetProcessResponse(process);
              
             if (ExitCode != 0)
             {
                 var fullStackTrace = string.Join("\n", STDErr);
-                var userFriendlyMessage = $"BAM Manager (BAMM) was unable to run the BrowserStack script.\n\n" +
-                                          $"If this continues, please make a bug report at {ISSUES_LINK}";
 
-                var detailedLog = "Error log:\n" +
-                                  $"Command: {psi.FileName} {psi.Arguments} failed with exit code {ExitCode}\n\n" +
-                                  $"Stack Trace:\n{fullStackTrace}\n\n";
-                WriteAndExit($"{userFriendlyMessage}\n\n{detailedLog}", 1);
+                var userFriendlyMessage = string.Join(NLC, [
+                    $"BAM Manager (BAMM) was unable to run the BrowserStack script.",
+                    NLC,
+                    $"If this continues, please make a bug report at {ISSUES_LINK}"
+                ]);
+
+                var detailedLog = string.Join(NLC, [
+                    "Error log:",
+                    $"Command: {psi.FileName} {psi.Arguments} failed with exit code {ExitCode}",
+                    "Stack Trace:",
+                    fullStackTrace
+                ]);
+
+                WriteAndExit
+                (
+                    message: string.Join(NLC, [
+                        userFriendlyMessage,
+                        NLC,
+                        detailedLog
+                    ]),
+                    status: 1
+                );
             }
 
             var baseProjectLink = $"https://automate.browserstack.com/projects";
@@ -559,3 +594,4 @@ namespace BrowserAutomationMaster.Managers.Python
         }
     }
 }
+
