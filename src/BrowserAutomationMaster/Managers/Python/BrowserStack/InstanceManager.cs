@@ -1,6 +1,4 @@
 ﻿using BrowserAutomationMaster.Messaging;
-using System;
-using System.IO;
 using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
