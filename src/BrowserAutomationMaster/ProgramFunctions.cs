@@ -17,7 +17,6 @@ using static BrowserAutomationMaster.Managers.EmbeddedResourceManager;
 using static BrowserAutomationMaster.Managers.LocalServerManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.ProcessManager;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.BrowserVersionManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
@@ -61,27 +60,17 @@ namespace BrowserAutomationMaster
             if (!PopulateDevices()) {
                 Environment.Exit(0);
             }
-            
-            // Populates BrowserVersionManager.browserVersions
-            SetBrowserVersions(await GetLatestVersionInfo());
-            var versions = GetBrowserVersion();
-
-            // Null check on BrowserVersionManager.browserVersions
-            if (versions == null)
-            {
-                Warning.Write(
-                    "Unable to get most browser versions, please ensure you have an active internet connection.\n" +
-                    $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n"
-                );
-            }
 
             CheckForMultipleInstances();
 
+
+            #pragma warning disable CA1416 // Handled by SetPlatforms()
+
             if (Platforms.IsWindows) {
-                #pragma warning disable CA1416 // Handled by SetPlatforms()
                 Win.VerifyRootDrive();
-                #pragma warning restore
             }
+
+            #pragma warning restore
 
             // The user will select the version of python they want to use
             HandlePythonVersionSelection(GetInstallations());
