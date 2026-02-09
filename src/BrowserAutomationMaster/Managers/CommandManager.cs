@@ -630,6 +630,19 @@ namespace BrowserAutomationMaster.Managers
 
             {
                 new Command(
+                    name: "use-mobile-user-agent",
+                    description: 
+                        "Instructs the compiler to return a mobile user agent.\n" +
+                        "This only works when browser is set to \"safari\".",
+                    examples: [
+                        "feature \"use-mobile-user-agent\""
+                    ],
+                    type: CommandType.Feature
+                )
+            },
+
+            {
+                new Command(
                     name: "use-socks4-proxy",
                     description:
                         "Uses the entered SOCKS4 proxy for the session.\n" +
