@@ -565,32 +565,23 @@ namespace BrowserAutomationMaster.Managers.Python
         public static void SetProcessFileName(ref ProcessStartInfo psi, bool useCMD = true, string? fileName = null)
         {
             if (!useCMD && string.IsNullOrEmpty(fileName)) {
-                WriteAndExit("A filename param must be specified for SetProcessFileName when useShell = false", 1);
+                WriteAndExit("A fileName param must be specified for SetProcessFileName when useShell = false", 1);
             }
 
-            // Set for Windows regardless of global status
-            if (Platforms.IsWindows && useCMD) {
-                psi.FileName = "cmd.exe";
-                // Proactively preventing any encoding issues caused by crossplatform development
-                psi.StandardOutputEncoding = Encoding.UTF8;
-                psi.StandardErrorEncoding = Encoding.UTF8;
-            }
+            psi.FileName = (Platforms.IsWindows, Platforms.IsUnixLike, useCMD) switch 
+            {
+                (true, false, true) => "cmd.exe",
+                (false, true, true) => psi.FileName = "/bin/bash",
+                (true, false, false) => fileName,
+                (false, true, false) => fileName,
+                _ => throw new ArgumentException("Invalid data passed to switch statement in SetProcessFileName")
+            };
+
+            // Proactively preventing any encoding issues caused by crossplatform development
+            psi.StandardOutputEncoding = Encoding.UTF8;
+            psi.StandardErrorEncoding = Encoding.UTF8;
 
 
-            else if (Platforms.IsWindows && !useCMD) {
-                psi.FileName = fileName;
-                psi.StandardOutputEncoding = Encoding.UTF8;
-                psi.StandardErrorEncoding = Encoding.UTF8;
-            }
-
-            else if (Platforms.IsUnixLike && !useCMD) {
-                psi.FileName = fileName;
-            }
-
-
-            else if (Platforms.IsUnixLike) {
-                psi.FileName = "/bin/bash";
-            }
         }
     }
 }
