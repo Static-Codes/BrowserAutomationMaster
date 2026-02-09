@@ -24,20 +24,30 @@ namespace BrowserAutomationMaster.Compilation
         public bool featurePresent = false;
         public bool otherPresent = false;
 
-        // If the user decides to use extensions.
+        // Adds any extensions specified using the `add-extension` feature command.
         public ExtensionManager[] Extensions = [];
 
-        // Disables the writing of .pyc files.
+        // Disables the writing of .pyc files, if `disable-pycache` is specified.
         public bool disablePycache = false;
 
-        // Disables SSL certificate authorization session wide, if specified.
+        // Disables SSL certificate authorization session wide, if `disable-ssl` is specified.
         public bool disableSSL = false;
 
-        // Runs the browser in headless mode, if specified.
+        // Runs the browser in headless mode, if `--run-headless` is specified.
         public bool runHeadless = false;
 
-        public string selectedBrowser = "firefox"; // Defaults to firefox, will be changed if needbe. Accepted Values: "chrome" or "firefox"
+        // Instructs the Transpiler to use a mobile user agent, if `use-mobile-user-agent` is specified.
+        public bool useMobileUserAgent = false;
 
+        // Defaults to firefox, will be changed if needbe. 
+        // Accepted Values: 
+        // "chrome"
+        // "firefox"
+        // "safari"
+        // Note:
+        // Specifying safari as the browser, does not instruct Selenium to use Safari for the session.
+        // Instead Firefox is used with a Safari user agent.
+        public string selectedBrowser = "firefox"; 
 
         public void CheckConfigLines()
         {
@@ -73,6 +83,7 @@ namespace BrowserAutomationMaster.Compilation
             disablePycache = featurePresent && featureLines.Any(line => line.Contains("\"disable-pycache\""));
             disableSSL = featurePresent && featureLines.Any(line => line.Contains("\"disable-ssl\""));
             runHeadless = featurePresent && featureLines.Any(line => line.StartsWith("\"run-headless\""));
+            useMobileUserAgent = featurePresent && featureLines.Any(line => line.StartsWith("\"use-mobile-user-agent\""));
 
             var extensionPaths = GetExtensionPaths(featureLines);
         
