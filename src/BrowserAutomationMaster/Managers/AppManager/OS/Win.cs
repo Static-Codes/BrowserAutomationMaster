@@ -117,8 +117,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         }
 
         #region Python Version Functions for Windows Users
-
-        
         public static string GetInterpreterPath()
         {
             List<string> discoveredPython3Paths = [];
@@ -199,6 +197,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
             return SelectPythonPath([.. discoveredPython3Paths]);
         }
+        
         private static string SelectPythonPath(string[] python3Paths)
         {
             if (python3Paths.Length == 0)
@@ -288,10 +287,13 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
             catch (Exception e)
             {
                 WriteAndExit(
-                    message: 
-                        $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
-                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\nAppManager.OS.Win.GetIntepreterVersion returned the following exception:\n{e.Message}", 
+                    message: string.Join(NLC, [
+                        $"BAM Manager (BAMM) was unable to determine the system environment variable for Python 3.X.",
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                        "Error Log:",
+                        "AppManager.OS.Win.GetIntepreterVersion returned the following exception:",
+                        e.Message,
+                    ]),
                     status: 1
                 );
                 return string.Empty;
@@ -305,6 +307,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         // Unsafe accessor required for casting null to SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX
         public unsafe static int GetPhysicalCoreCount()
         {
+            int physicalCoreCount = 1;
             try
             {
                 uint bufferSize = 0;
@@ -312,6 +315,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 // This is expected to fail, it requires a 2 pass system
                 // firstResult: returns the bufferSize of the given CPU topology
                 // secondResult: uses the bufferSize as a ref object and iterates over the structs, counts RelationProcessCore(s)number
+
+
+                // firstResult: returns the bufferSize of the given CPU topology
                 bool firstResult = PInvoke.GetLogicalProcessorInformationEx(
                     LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore,
                     (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)null,
@@ -320,13 +326,18 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
 
 
                 // 122 is the err code for ERROR_INSUFFICIENT_BUFFER (it wont import for some reason)
-                if (!firstResult && Marshal.GetLastWin32Error() != 122) {
-                    WriteAndExit(
-                        message:
-                            $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                            $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\nError log:\n\n" +
-                            $"AppManager.OS.Windows.GetPhysicalCoreCount() Failed to get logical processor information buffer size," +
-                            $" the last Win32 Error was:\n{Marshal.GetLastWin32Error()}",
+                if (!firstResult && Marshal.GetLastWin32Error() != 122) 
+                {
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system.",
+                            $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                            "Error Log:",
+                            $"AppManager.OS.Windows.GetPhysicalCoreCount() Failed to get logical processor information buffer size.",
+                            "Win32 Error:",
+                            Marshal.GetLastWin32Error()
+                        ]),
                         status: 1
                     );
                 }
@@ -334,16 +345,20 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 // If the buffer is empty, a fatal error has occured.
                 if (bufferSize == 0) {
                     WriteAndExit(
-                        message:
-                            $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system, " +
-                            $"if this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                            $"Error log:\nAppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0.",
+                        message: string.Join(NLC, [
+                            "BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system.",
+                            $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                            "Error Log:",
+                            "AppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0."
+                        ]),
                         status: 1
                     );
                 }
 
-                var buffer = Marshal.AllocHGlobal((int)bufferSize); // Allocates N bytes from bufferSize
+                // Allocates N bytes from bufferSize
+                var buffer = Marshal.AllocHGlobal((int)bufferSize); 
 
+                // secondResult: uses the bufferSize as a ref object and iterates over the structs, counts RelationProcessCore(s)number
                 bool secondResult = PInvoke.GetLogicalProcessorInformationEx(
                     LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore,
                     (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)buffer,
@@ -354,7 +369,6 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     throw new Exception($"Failed to get logical processor information. Win32 Error: {Marshal.GetLastWin32Error()}");
                 }
 
-                int physicalCoreCount = 0;
                 uint bytesParsed = 0;
 
                 nint currentPtr = buffer;
@@ -382,19 +396,24 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                     currentPtr += (nint)currentInfoExHeader.Size; // I SPENT 10 minutes before I realized wasn't being incremented.
                     bytesParsed += currentInfoExHeader.Size;
                 }
-
-                return physicalCoreCount;
             }
-            catch (Exception ex) {
+
+            catch (Exception ex) 
+            {
                 string errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                
                 WriteAndExit(
-                    message:
-                        "BAM Manager (BAMM) was unable to determine the number of physical CPU cores present, if this issue persists, " +
-                        $"please make a bug report at {ISSUES_LINK}\n\nError log:\n{errorMessage}.",
+                    message: string.Join(NLC, [
+                        "BAM Manager (BAMM) was unable to determine the number of physical CPU cores present.",
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                        "Error Log:",
+                        errorMessage
+                    ]),
                     status: 1
                 );
-                return 0; // Wont be reached.
             }
+
+            return physicalCoreCount;
         }
 
         #endregion
