@@ -53,6 +53,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         PackageType PackageType,
         InstallationType InstallationType,
         string ShellPath = "/bin/bash",
+        string PythonVar = "python3",
         string ReleaseFilePath = "/etc/os-release",
         string ReleaseIdentifier = "=",
         string? BackupReleaseCmd = null,
@@ -75,6 +76,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         public PackageType PackageType { get; private set; } = PackageType;
         public InstallationType InstallationType { get; private set; } = InstallationType;
         public string ShellPath { get; private set; } = ShellPath;
+        public string PythonVar { get; private set; } = PythonVar;
         public string ReleaseFilePath { get; private set; } = ReleaseFilePath;
         public string ReleaseIdentifier { get; private set; } = ReleaseIdentifier;
         public string? BackupReleaseCmd { get; private set; } = BackupReleaseCmd;
@@ -321,6 +323,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             ],
             PackageType: PackageType.RPM,
             InstallationType: InstallationType.Package,
+            PythonVar: "python",
             Description: "A standalone linux distro utilizing apt-get but instead of .deb it uses .rpm Packages"
         );
 
