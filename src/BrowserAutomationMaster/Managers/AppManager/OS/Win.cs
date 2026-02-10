@@ -121,11 +121,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
         
         public static string GetInterpreterPath()
         {
+            List<string> discoveredPython3Paths = [];
+            List<string> discoveredPython2Paths = [];
+
             try
             {
-                List<string> discoveredPython3Paths = [];
-                List<string> discoveredPython2Paths = [];
-
                 (int pyExitCode, string pyOutput, string pyError) = RunCommand("py", "--list-paths"); // Runs py(.exe) --list-paths
 
                 if (pyExitCode == 0 && !string.IsNullOrWhiteSpace(pyOutput))
@@ -148,8 +148,9 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         }
                         
 
-                        else if (versionOutput.StartsWith("Python 2.", OIC)) 
+                        else if (versionOutput.StartsWith("Python 2.", OIC)) {
                             discoveredPython2Paths.Add(potentialPath); 
+                        }
                     }
                 }
 
@@ -160,9 +161,11 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                 // Warn about potential instability when both python 2.X and 3.X are present.
                 if (discoveredPython2Paths.Count > 0) {
                     Warning.Write(
-                        message:
-                            "While BAM Manager (BAMM) can run with both Python 2.X and 3.X installed, " +
-                            "it may cause instability.\nIf possible please uninstall python 2.X, or use a virtual machine."
+                        message: string.Join(NLC, [
+                            "While BAM Manager (BAMM) can run with both Python 2.X and 3.X installed.",
+                            "Any attempt to do so may cause instability.",
+                            "If possible, please uninstall Python 2.X, or use a virtual machine."
+                        ])
                     );
                 }
 
@@ -176,21 +179,25 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS
                         status: 1
                     );
                 }
-
-                return SelectPythonPath([.. discoveredPython3Paths]);
             }
-            catch (Exception e)
+
+            catch (Exception ex)
             {
-                WriteAndExit(
+                WriteAndExit
+                (
                     message: 
-                        $"BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.\n" +
-                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\nNo valid Python 3 interpreter found in system PATH after checking with 'py.exe'." +
-                        $"\nException returned: {e.Message}", 
+                        string.Join(NLC, [
+                            "BAM Manager (BAMM) was unable to determine the system environment variable for python 3.X.",
+                            $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                            "Error Log:",
+                            "No valid Python 3 interpreter found in system PATH after checking with 'py.exe'.",
+                            $"Exception returned: {ex.Message}"
+                        ]),
                     status: 1
                 );
-                return string.Empty;
             }
+
+            return SelectPythonPath([.. discoveredPython3Paths]);
         }
         private static string SelectPythonPath(string[] python3Paths)
         {
