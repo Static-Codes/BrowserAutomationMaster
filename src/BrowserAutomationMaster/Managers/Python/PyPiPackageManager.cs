@@ -10,6 +10,13 @@ using static BrowserAutomationMaster.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
+    public partial class PyPiPackage(string PackageName, string PackageVersion, string[] SupportedPython) 
+    {
+        public string PackageName = PackageName;
+        public string PackageVersion = PackageVersion;
+        public string[] SupportedPythons = SupportedPython;
+    }
+    
     public partial class PyPiPackageManager
     {
         
