@@ -1,8 +1,4 @@
 ﻿using System.Net;
-using System.Text.Json;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
-using static BrowserAutomationMaster.Managers.EmbeddedResourceManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.RequestManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -16,72 +12,59 @@ namespace BrowserAutomationMaster.Managers.Python
         public string PackageVersion = PackageVersion;
         public string[] SupportedPythons = SupportedPython;
     }
+
+    public static class PyPiPackageExtensions 
+    {
+        public static PyPiPackage? GetPackage(this PyPiPackage[] packages, string packageName) 
+        {
+            return packages
+            .Where(package => package.PackageName.Equals(packageName))
+            .FirstOrDefault();
+        }
+    }
     
     public partial class PyPiPackageManager
     {
+        private readonly static string baseURL = "https://pypi.org/project";
+        private readonly static string[] SupportedPythonVersions = [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ];
+        private static PyPiPackage[] packageData = 
+        [
+            new PyPiPackage(
+                PackageName: "browserstack-sdk", 
+                PackageVersion: "1.31.0", 
+                SupportedPython: SupportedPythonVersions
+            ),
+
+            new PyPiPackage(
+                PackageName: "selenium", 
+                PackageVersion: "4.32.0", 
+                SupportedPython: SupportedPythonVersions
+            ),
+
+            new PyPiPackage(
+                PackageName: "selenium-wire",
+                PackageVersion: "5.1.0",
+                SupportedPython: SupportedPythonVersions
+            ),
+
+            new PyPiPackage(
+                PackageName: "webdriver_manager",
+                PackageVersion: "4.0.2",
+                SupportedPython: SupportedPythonVersions
+
+            ),
+        ];
+
+
+
         
-        public readonly CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));
-        readonly private static string packagePath = GetPackagesPath();
-        readonly private static string baseURL = "https://pypi.org/project";
-        private static Dictionary<string, Dictionary<string, List<string>>> packageData = [];
-        
 
-        public static string Get(string packageName, string pythonVersion)
+        public static string GetVersion(string packageName, string pythonVersion)
         {
-            // C# requires notice that the value is for certain not nullable, thus the !
-            string packageVersion = GetSupportedPackageVersion(packageName!, pythonVersion) ?? "Not Found";
-            return packageVersion; // "Not Found" should never be returned its purely to appease the compiler.
+            return GetSupportedPackageVersion(packageName, pythonVersion);
         }
 
-        private static async Task DownloadPackageJSON()
-        {
-            var baseMessage =
-                "Unable to download the required data to install the necessary Python Packages, please try again.\n" +
-                $"If this issue persists, please make a bug report at {ISSUES_LINK}\n" + 
-                "Error Log:";
-
-            try
-            {
-                await WriteEmbeddedResourceToDisk(
-                    resourceName: "packages.json",
-                    resourcePattern: "BrowserAutomationMaster.AppData.packages.json",
-                    outputPath: packagePath
-                );
-
-                WriteSuccessMessage("Successfully downloaded required Python package data!");
-            }
-            catch (Exception ex)
-            {
-                WriteAndExit(
-                    message: string.Join(NLC, [
-                        baseMessage,
-                        ex.Message
-                    ]), 
-                    status: 1
-                );
-            }
-        }
-        private static async Task SetPackageData()
-        {
-            var baseMessage =
-                $"Unable to get package data from:{NLC}{packagePath}{NLC}" +
-                $"If this error persists, please make a bug report at {ISSUES_LINK}\n" +
-                "Error Log:\n";
-            
-            try
-            {
-                var packageJson = await File.ReadAllTextAsync(packagePath);
-                packageData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(packageJson) ?? [];
-            }
-
-            catch (Exception ex)
-            {
-                var errMessage = $"{baseMessage}{ex.Message}";
-                WriteAndExit(errMessage, 1);
-            }
-
-        }
-        public static string? GetSupportedPackageVersion(string packageName, string pythonVersion)
+        private static string GetSupportedPackageVersion(string packageName, string pythonVersion)
         {
             if (!PrecompiledPackageRegex().IsMatch(packageName))
             {
@@ -89,61 +72,26 @@ namespace BrowserAutomationMaster.Managers.Python
                     message: $"Invalid package name '{packageName}', this package name was not matched using PrecompiledPackageRegex()",
                     status: 1
                 );
-                return null;
             }
 
-            bool[] invalidStates = [
-                !packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? packageVersionMappings), 
-                packageVersionMappings == null
-            ];
+            var package = packageData.GetPackage(packageName);
 
-            // Checking if any of the invalidStates are true.
-            if (invalidStates.Any(state => state))
+            if (package == null) 
             {
                 WriteAndExit(
-                    message: $"No version of '{packageName}' is supported by Python {pythonVersion}, please check for typos and try again.",
+                    message: $"Invalid package name '{packageName}', this package name was not matched using PrecompiledPackageRegex()",
                     status: 1
                 );
             }
 
-            // Null forgiveness is used here because: 
-            // The null check done in invalidStates is not seen by the compile due to the manner in which it was handled.
-            List<string> supportedPackageVersions = [.. packageVersionMappings!
-                .Where(pair => pair.Value != null && pair.Value.Contains(pythonVersion))
-                .Select(pair => pair.Key)];
-
-            if (supportedPackageVersions.Count == 0)
-            {
-                WriteAndExit(
-                    message: $"No versions of package '{packageName}' found that support Python {pythonVersion}.",
-                    status: 1
-                );
-                return null;
-            }
-            return supportedPackageVersions.First();
+            return package.PackageVersion;
         }
 
-        public static List<string> GetSupportedPyVersions(string packageName, string packageVersion)
+        public static string[] GetSupportedPyVersions(string packageName, string packageVersion)
         {
-
-            if (!packageData.TryGetValue(packageName, out Dictionary<string, List<string>>? selectedPackageData))
-            {
-                WriteAndExit(
-                    message: "Invalid packageName provided, please check your spelling and try again.",
-                    status: 1
-                );
-            }
-
-            if (!selectedPackageData.TryGetValue(packageVersion, out List<string>? supportedPyVersions) || supportedPyVersions.Count == 0)
-            {
-                WriteAndExit(
-                    message: $"Unable to find python versions for package {packageName}=={packageVersion}, please check for typos and try again.",
-                    status: 1
-                );
-            }
-            return supportedPyVersions;
+            return SupportedPythonVersions;
         }
-
+        
         public static async Task<bool> IsDeprecated(string packageName, string packageVersion)
         {
 
@@ -213,32 +161,6 @@ namespace BrowserAutomationMaster.Managers.Python
             Write(unvalidatedMessage);
             return false;
 
-        }
-
-        public static async Task Initalize()
-        {
-            EnsureDirectoryExists(AppDataDirectory);
-
-            if (!File.Exists(packagePath)) 
-            {
-                var resourceName = "packages.json";
-                var resourcePattern = "BrowserAutomationMaster.AppData.packages.json";
-
-                // Declaration includes "using" for manual memory management to the Garbage Collector.
-                using Stream stream = EmbeddedResourceManager.GetEmbeddedResource(resourceName, resourcePattern);
-
-                if (stream.Length > int.MaxValue) {
-                    await DownloadPackageJSON();
-                } else {
-                    await EmbeddedResourceManager.WriteEmbeddedResourceToDisk(
-                        stream, 
-                        resourceName, 
-                        outputPath: packagePath
-                    );
-                }
-            }
-
-            await SetPackageData();
         }
 
     }

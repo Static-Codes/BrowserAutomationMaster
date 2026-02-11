@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<AssemblyName>bamm</AssemblyName>
@@ -149,8 +149,6 @@
 
 		<!-- App Icon -->
 		<EmbeddedResource Include="bamm.ico" />
-
-		<EmbeddedResource Include="AppData/packages.json"/>
 
 		<EmbeddedResource Include="AppData/UIDaemon.py"/>
 

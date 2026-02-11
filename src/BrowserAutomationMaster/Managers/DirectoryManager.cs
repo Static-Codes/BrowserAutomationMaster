@@ -332,16 +332,7 @@ namespace BrowserAutomationMaster.Managers
         { 
             return Path.Combine(AppDataDirectory, "gui.zip"); 
         }
-
-        public static string GetLinuxPackageFile() { 
-            return Path.Combine(AppDataDirectory, "PKGS_INSTALLED"); 
-        }
-
-        public static string GetPackagesPath() 
-        { 
-            return Path.Combine(AppDataDirectory, "packages.json"); 
-        }
-
+        
         public static string GetProjectRequirementsPath(string ParentDirectory)
         {
             return Path.Combine(ParentDirectory, "requirements.txt");
