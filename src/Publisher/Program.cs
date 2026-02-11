@@ -62,10 +62,12 @@ if (archiveFileType != "Skip Compilation and Start Packaging")
 
     workingDir = Path.Join(codebaseSourceDir, "src/BrowserAutomationMaster");
     packagingOptions = [
+        "Alt Linux Package (.rpm)",
+        "Arch Package (.pkg.tar.xz)",
         "Debian Package (.deb)",
         "Fedora Package (.rpm)",
-        "Arch Package (.pkg.tar.xz)",
         "Gentoo Package (.tbz2)",
+        "PCLinuxOS Package (.rpm)",
         "Standalone Binary",
         "Windows Installer"
     ];
@@ -78,8 +80,10 @@ else
     archiveFilePath = Input.AskForInput("Enter the path to the standalone binary: ");
     workingDir = Path.GetDirectoryName(archiveFilePath);
     packagingOptions = [
+        "Alt Linux Package (.rpm)",
         "Arch Package (.pkg.tar.xz)",
         "Gentoo Package (.tbz2)",
+        "PCLinuxOS Package (.rpm)",
         "Windows Installer"
     ];
 
