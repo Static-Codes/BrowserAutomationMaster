@@ -1,12 +1,11 @@
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
-using BrowserAutomationMaster.Helpers;
+
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using BrowserAutomationMaster.Messaging;
+using Publisher.Build.Processes;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -14,7 +13,9 @@ using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.UnixFilePermissionManager;
+using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+using static Publisher.Build.BuildInfo;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
 
@@ -126,32 +127,23 @@ namespace Publisher
                 await binaryStream.CopyToAsync(finalBinaryStream);
                 await finalBinaryStream.FlushAsync();
 
-                // Also a warning for all compilations on Raspi Devices.
-                if (!Platforms.IsLinux) {
-                    WriteAndExit("Currently arch package compilation is only supported on Unix based systems. (Linux and macOS)", 1);
-                };
+                var requiresPermissions = !HasExecutablePermissions(finalBinaryPath);
 
-                
-                // If the binary doesn't has executable permissions, they are granted here.
-                if (!HasExecutablePermissions(finalBinaryPath)) 
+                // If the binary has executable permissions, this operation is skipped.
+                // If Linux's glibc or Apple's libc fail to give the binary executable permissions
+                // Another attempt is made using .NET's builtin UnixFileMode
+                if (requiresPermissions && !SetExecutablePermissions(finalBinaryPath))
                 {
-                    // If Linux's glibc or Apple's libc fail to give the binary executable permissions
-                    // Another attempt is made using .NET's builtin UnixFileMode
-                    if (!SetExecutablePermissions(finalBinaryPath))
-                    {
-                        // Equivalent to 0755 (-rwxr-xr-x)
-                        var unixFileMode = (
-                            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
-                            UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute
-                        );
+                    // Equivalent to 0755 (-rwxr-xr-x)
+                    var unixFileMode = (
+                        UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                        UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute
+                    );
 
-                        // This may throw an exception if the application was downloaded as root.
-                        File.SetUnixFileMode(finalBinaryPath, unixFileMode);
-                    }
+                    // This may throw an exception if the application was downloaded as root.
+                    File.SetUnixFileMode(finalBinaryPath, unixFileMode);
                 }
-                
-                
-            }
+            }    
 
             catch (Exception ex) 
             {
@@ -173,11 +165,14 @@ namespace Publisher
                 await binaryStream.DisposeAsync();
             }
 
-            
+            // Fun Fact:
+            // sudo apt install pacman
+            // Does infact NOT install the package manager "pacman", it installs a pacman game.
+            // I was doing a test for Arch Packaging on Debian, the game popped up leaving me very confused.
             string[] packages = 
                 Platforms.CurrentDistribution.BaseDistro.Equals(DistroBase.ArchLinux) ? 
-                ["pacman", "makepkg"] : 
-                ["pacman-package-manager", "makepkg", "libarchive-tools"];
+                ["pacman", "makepkg"] : // Arch
+                ["pacman-package-manager", "makepkg", "libarchive-tools"]; // Debian
             
             var missingPackages = await FindMissingPackages(packages);
 
@@ -221,12 +216,14 @@ namespace Publisher
             var filePath = Path.Combine(archBuildDir, fileName);
 
             return (true, filePath);
-
-            // Currently unused but kept for reference.
-            // Warning.Write("Compressing the bamm package, please wait...");
-            // return CreateArchGZIPArchive(pkgDir, archBuildDir, appVersion);
         }
         
+        private async Task<(bool, string?)> BuildAltLinuxOSPackage(string workingDir) {
+            Write("BuildAltLinuxOSPackage is not implemented, dont forget to fix this before the next release!");
+            await Task.Delay(1);
+            return (true, null);    
+        }
+
         private async Task<(bool, string?)> BuildDebianPackage(string workingDir) 
         {
             await PrebuildActions();
@@ -260,6 +257,160 @@ namespace Publisher
             return (true, null);   
         }
 
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Platforms.IsUnixLike handles checks.")]
+        private async Task<(bool, string?)> BuildPCLinuxOSPackage(string workingDir) 
+        {
+            bool[] invalidStates = [
+                Platforms.CurrentDistribution!.Name != "PCLinuxOS",
+                !Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian)
+            ];
+
+            // If both cases are true, execution haults, and an exception is thrown.
+            if (invalidStates.All(state => state)) 
+            {
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "Packaging for PCLinuxOS is only available on PCLinuxOS and Debian Based distros, please pick another option."
+                    ]),
+                    status: 1 
+                );
+            }
+            
+            await PrebuildActions();
+
+            // Building the binary
+            (var compilationStatus, var compiledBinaryPath) = await BuildStandaloneBinary(workingDir);
+
+            // Ensuring compilation was success prior to continuing.
+            if (!compilationStatus || compiledBinaryPath == null) {
+                WriteAndExit("Binary compilation failed, please try again.", 1);
+            }
+
+
+            Console.WriteLine("Adding executable permissions to the newly compiled binary");
+            EnsureBinaryIsExecutable(compiledBinaryPath);
+            Success.WriteSuccessMessage("Operation successful.");
+
+
+            Console.WriteLine("Creating the required directories for the build process.");
+            (var rpmRootDir, var specFileName, var archiveName) = PCLinuxOSBuild.CreateRequiredDirectories();
+
+            var specsDir = Path.Join(rpmRootDir, "SPECS");        // ~/rpmbuild/SPECS/
+            var sourcesDir = Path.Combine(rpmRootDir, "SOURCES"); // ~/rpmbuild/SOURCES/
+            var rpmDir = Path.Combine(rpmRootDir, "RPMS");        // ~/rpmbuild/RPMS/
+            var compilationDir = Path.Combine(rpmDir, "x86_64");  // ~/rpmbuild/RPMS/x86_64
+
+            var specFilePath = Path.Combine(specsDir, specFileName);            
+            Success.WriteSuccessMessage("Operation successful.");
+
+
+            Console.WriteLine("Creating the top level directory of the package inside ~/rpmbuild/SOURCES");
+            var TLD = Path.Combine(sourcesDir, $"{AppName}-{BaseVersion}");
+            EnsureDirectoryExists(TLD);
+            Success.WriteSuccessMessage("Operation successful.");
+            
+
+            Console.WriteLine("Copying the compiled binary from the dotnet publish directory to newly created top level directory.");
+            var sourceBinaryPath = Path.Combine(TLD, AppName);
+
+            try {   
+                File.Copy(compiledBinaryPath, sourceBinaryPath);
+                Success.WriteSuccessMessage("Operation successful.");
+            }
+            catch (Exception ex) 
+            {
+                WriteAndExit(
+                    string.Join(NLC, [
+                        "Unable to copy the compiled binary to rpmbuild's sources directory, please try again.",
+                        "Error Log:",
+                        ex.Message
+                    ]), 
+                    status: 1
+                );
+            }
+
+
+            Console.WriteLine("Compressing the top level directory into a tarball archive (.tar.gz) as per PCLinuxOS packaging guidelines.");
+            (var success, var archivePath) = ArchiveManager.CreateTarballArchive(TLD, sourcesDir, archiveName);
+            Success.WriteSuccessMessage("Operation successful.");
+
+
+            var pcLinuxOSBuild = new PCLinuxOSBuild() { archivePath = archivePath };
+
+
+            Console.WriteLine("Creating the build .spec file required by PCLinuxOS.");
+            (var buildSpecStatus, var binaryStream) = await pcLinuxOSBuild.WriteBuildSpecFile(specFilePath);
+
+            if (!buildSpecStatus || binaryStream == null) {
+                WriteAndExit($"Failed to write {specFileName} to disk.", 1);
+            }
+            Success.WriteSuccessMessage("Operation successful.");
+
+
+            string[] packages = 
+                Platforms.CurrentDistribution.BaseDistro.Equals(DistroBase.ArchLinux) ? 
+                [ "rpm-build", "rpm-tools", "pkgutils" ] :  // PCLinuxOS
+                [ "rpm" ]; // Debian
+            
+
+            Console.WriteLine("Checking system packages, to ensure all packages required for the build process are installed.");
+            var missingPackages = await FindMissingPackages(packages);
+
+            if (missingPackages.Count != 0) 
+            {
+                Console.WriteLine($"Located {missingPackages.Count} missing package(s) required for the build process.");
+                bool needsAptCacheRefresh = 
+                    Platforms.CurrentDistribution.BaseDistro.Equals(DistroBase.Debian) &&
+                    missingPackages.Contains("libarchive-tools");
+
+                if (needsAptCacheRefresh) {
+                    RefreshDebianAptCache();
+                }
+
+                // Potential Conflict: 
+                // apt-get install requires root (sudo). rpmbuild (in ~/rpmbuild) must run as a non root user.
+                // Monitor closely
+
+                InstallMissingPackages([.. missingPackages]);
+                Success.WriteSuccessMessage("Installed all missing packages required for this build process, continuing..");
+            } 
+            else {
+              Success.WriteSuccessMessage("No additional packages are required for this build process, continuing..");  
+            }
+
+            // On some Debian systems, rpmbuild defaults to /usr/src/rpm instead of ~/rpmbuild unless ~/.rpmmacros is configured.
+            var psi = new ProcessStartInfo() {
+                FileName = "rpmbuild",
+                Arguments = $"--define '_topdir {rpmRootDir}' -bb {specFileName}",
+                RedirectStandardInput = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                WorkingDirectory = specsDir
+            };
+
+            using var process = await ProcessFactory.SpawnProcess(psi, "package bamm as an PCLinuxOS package");
+            (var ExitCode, var STDOut, var STDErr) = await ProcessFactory.GetProcessResponse(process);
+
+            if (ExitCode != 0) {
+                Write($"Failed to package bamm due to a non zero status code: {ExitCode}");
+                return (false, "Not Built.");
+            }
+
+            if (!Directory.Exists(compilationDir)) {
+                Write($"Failed to locate package directory: {compilationDir}");
+                return (false, "Not Built.");
+            }
+
+            var releaseTag = $"0.{VersionIdentifier}.1pclos{DateTime.Now.Year}";
+            var fileName = $"{AppName}-{BaseVersion}-{releaseTag}.x86_64.rpm";
+            var filePath = Path.Combine(compilationDir, fileName);
+
+            return (true, filePath);
+        }
+        
+
         private async Task<(bool, string?)> BuildStandaloneBinary(string workingDir)
         {
             await PrebuildActions();
@@ -279,6 +430,28 @@ namespace Publisher
             // DO .ISS logic here
             return (true, null);
         }
+        
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Platform is already validated at this point.")]
+        public static void EnsureBinaryIsExecutable(string compiledBinaryPath)
+        {
+            var requiresPermissions = !HasExecutablePermissions(compiledBinaryPath);
+
+            // If the binary has executable permissions, this operation is skipped.
+            // If Linux's glibc or Apple's libc fail to give the binary executable permissions
+            // Another attempt is made using .NET's builtin UnixFileMode
+            if (requiresPermissions && !SetExecutablePermissions(compiledBinaryPath))
+            {
+                // Equivalent to 0755 (-rwxr-xr-x)
+                var unixFileMode = (
+                    UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                    UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute
+                );
+
+                // This may throw an exception if the application was downloaded as root.
+                File.SetUnixFileMode(compiledBinaryPath, unixFileMode);
+            }
+        }
+        
         private static ProcessStartInfo GetPSI(string buildCommand, string workingDir)
         {
             return new ProcessStartInfo() {
@@ -340,12 +513,12 @@ namespace Publisher
         {
             return desiredBuildProcess switch
             {
-                "Alt Linux Package (.rpm)" => (false, "Add code to HandlePackaging"),
+                "Alt Linux Package (.rpm)" => await BuildAltLinuxOSPackage(workingDir),
                 "Arch Package (.pkg.tar.xz)" => await BuildArchPackage(workingDir, appVersion),
                 "Debian Package (.deb)" => await BuildDebianPackage(workingDir),
                 "Fedora Package (.rpm)" => await BuildFedoraPackage(workingDir),
                 "Gentoo Package (.tbz2)" => await BuildGentooPackage(workingDir),
-                "PCLinuxOS Package (.rpm)" => (false, "Add code to HandlePackaging"),
+                "PCLinuxOS Package (.rpm)" => await BuildPCLinuxOSPackage(workingDir),
                 "Standalone Binary" => await BuildStandaloneBinary(workingDir),
                 "Windows Installer" => await BuildWindowsInstaller(workingDir),
                 _ => (
@@ -430,6 +603,7 @@ namespace Publisher
             }
         }
 
+        
         private static async Task<(bool, string?)> StartBuild(string buildCommand, string workingDir)
         {
             var psi = GetPSI(buildCommand, workingDir);
@@ -475,11 +649,11 @@ namespace Publisher
 
                 // Handling case of standalone binary not including the binary name in the path.
                 var finalPath = name switch {
-                    "Standalone Binary" => Path.Combine(path, "bamm"),
+                    "Standalone Binary" => Path.Combine(path, AppName),
                     _ => path
                 };
 
-                return (true, finalPath);
+                return (File.Exists(finalPath), finalPath);
             }
 
             return (false, null);
@@ -490,160 +664,5 @@ namespace Publisher
     }
 
 
-    public class ArchBuild
-    {
-        public required string binaryPath;
-        private readonly static byte[] pkgName = "pkgname='bamm'"u8.ToArray();
-        private readonly static byte[] pkgRel = "pkgrel=1"u8.ToArray();
-        private readonly static byte[] pkgDesc = "pkgdesc='BAM Manager (BAMM) is a Dynamic Scripting Language (DSL) that compiles into Python 3.9+ code.'"u8.ToArray();
-        // private readonly static byte[] arch = "arch=(any)"u8.ToArray();
-        private readonly static byte[] arch = "arch=('x86_64' 'aarch64' 'armv6h')"u8.ToArray();
-        private readonly static byte[] license = "license=('MIT')"u8.ToArray();
-        private readonly static byte[] source = "source=('src/bamm')"u8.ToArray();
-        private readonly static byte[] depends = "depends=('python>3.8' 'which' 'icu' 'openssl' 'zlib' 'krb5' 'xclip')"u8.ToArray();
-        private readonly static byte[] makeDepends = "makedepends=('dotnet-sdk') # Dotnet 10 is required for compilation"u8.ToArray();
-        private async Task<(string, FileStream)> Sha512SumsAndStream() 
-        {
-            var stream = new FileStream(binaryPath, FileMode.Open);
-
-            byte[] result = new byte[stream.Length];
-            
-            CancellationToken cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(30)
-            ).Token;
-
-            try 
-            {
-                using SHA512 sha512 = SHA512.Create();
-                result = await sha512.ComputeHashAsync(stream, cts); 
-            }
-
-            catch (Exception ex)
-            {
-                WriteAndExit(
-                    message: string.Join(NLC, [
-                        "Unable to calculate SHA512 sum of the provided binary.",
-                        "Error Log:",
-                        ex.Message
-                    ]),
-                    status: 1
-                );
-            }
-
-
-            return (Convert.ToHexString(result).ToLowerInvariant(), stream);
-        }
-
-        private readonly static byte[] package = """
-            package() {
-                mkdir -p "${pkgdir}/usr/bin"
-                cp "${srcdir}/bamm" "${pkgdir}/usr/bin/bamm"
-                install -Dm755 "${srcdir}/bamm" "${pkgdir}/usr/bin/bamm"
-            }
-            """u8.ToArray();
-
-        /// <summary>
-        /// <param name="outputPath">outputPath: The path to the PKGBUILD file to be written to the system's disk.</param>
-        /// <br />
-        /// <returns>Returns a tuple: 
-        /// <br />
-        /// Item1: A boolean representing the status of the operation
-        /// <br />
-        /// Item2: The Stream object with the contents of the binaryPath passed to ArchBuild
-        /// </returns>
-        /// </summary>
-        public async Task<(bool, FileStream?)> WritePKGBUILDFile(string outputPath, string appVersion) 
-        {
-            var success = false;
-            FileStream? binaryStream = null;
-            FileStream? tempStream = null;
-            
-            try 
-            {
-                // Assigning a value to the already defined binaryStream
-                (var sha512Hash, binaryStream) = await Sha512SumsAndStream();
-
-                var sha512sums = Encoding.UTF8.GetBytes($"sha512sums=({sha512Hash})");
-
-                var pkgVer = Encoding.UTF8.GetBytes($"pkgver='{appVersion}'");
-
-                var NLCBytes = Encoding.UTF8.GetBytes(NLC);
-                
-                var staticFields = ReflectionHelper.GetStaticFieldsOfType<byte[]>(
-                    outerType: typeof(ArchBuild), 
-                    publicOnly: false
-                );
-                
-                // Refined calculation logic due to the previous being inconsistent.
-                int totalLength = staticFields.Sum(f => f.Length + NLCBytes.Length) 
-                  + sha512sums.Length
-                  + NLCBytes.Length
-                  + pkgVer.Length;
-
-                var fileContents = new byte[totalLength];
-                int bytesWritten = 0;
-
-                // Using a Span<byte> is more efficient than directly accessing the byte array.
-                Span<byte> buffer = fileContents;
-
-                foreach (var staticField in staticFields) 
-                {
-                    // Copies the field's content
-                    staticField.CopyTo(buffer[bytesWritten..]);
-                    bytesWritten += staticField.Length;
-
-                    // Adds a new line char.
-                    NLCBytes.CopyTo(buffer[bytesWritten..]);
-                    bytesWritten += NLCBytes.Length;
-                }
-
-                // Writes the sha512sums string
-                sha512sums.CopyTo(buffer[bytesWritten..]);
-                bytesWritten += sha512sums.Length;
-
-                // Adds a new line char.
-                NLCBytes.CopyTo(buffer[bytesWritten..]);
-                bytesWritten += NLCBytes.Length;
-
-                // Writes the pkgVer string
-                pkgVer.CopyTo(buffer[bytesWritten..]);
-                bytesWritten += pkgVer.Length;
-
-                tempStream = new(
-                    outputPath, 
-                    FileMode.Create, 
-                    FileAccess.ReadWrite, 
-                    FileShare.Read, 
-                    4096, 
-                    true
-                );
-
-                await tempStream.WriteAsync(fileContents);
-                success = true;
-            }
-
-            catch (Exception ex) 
-            {
-                WriteAndExit(
-                    message: string.Join(NLC, [
-                        "Unable to write PKGBUILD file to disk.",
-                        "Error Log:",
-                        ex.Message ]
-                    ),
-                    status: 1
-                );
-            }
-
-            finally 
-            {
-                if (tempStream != null) {
-                    // Since the stream is no longer needed it can be disposed of safely.
-                    await tempStream.DisposeAsync();
-                }
-            }
-
-            return (success, binaryStream);
-        }
-
-    }
+    
 }
