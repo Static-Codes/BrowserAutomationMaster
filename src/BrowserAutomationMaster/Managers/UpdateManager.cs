@@ -17,6 +17,11 @@ namespace BrowserAutomationMaster.Managers
     public class UpdateManager()
     {
         public const string CurrentVersion = "v1.0.0A8";
+
+        // These two are used in Publisher.Build
+        public const string BaseVersion = "1.0.0";
+        public const string VersionIdentifier = "alpha8";
+
         // Assuming current is latest until further checks are done.
         public static string LatestVersion { get; set; } = CurrentVersion; 
         public static async Task CheckForUpdate()
