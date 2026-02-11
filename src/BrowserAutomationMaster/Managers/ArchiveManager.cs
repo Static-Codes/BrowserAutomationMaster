@@ -31,17 +31,16 @@ namespace BrowserAutomationMaster.Managers
             }
 
             return archiveType.Equals(".tar.gz") 
-                ? UnarchiveGZIP(codebaseSourceDir) 
+                ? UnarchiveTarball(codebaseSourceDir) 
                 : UnarchiveZip(codebaseSourceDir);
         }
 
-        public static (bool, string) CreateArchGZIPArchive(string sourceDir, string outputDir, string appVersion) 
+        public static (bool, string) CreateTarballArchive(string sourceDir, string outputDir, string archiveName) 
         {
             var filePath = string.Empty;
             try 
             {
-                var fileName = $"bamm-{appVersion}.pkg.tar.gz";
-                filePath = Path.Combine(outputDir, fileName);
+                filePath = Path.Combine(outputDir, archiveName);
 
                 Warning.Write($"Creating {filePath}, please wait..");
                 using FileStream fileStream = new(filePath, FileMode.OpenOrCreate, FileAccess.Write);
@@ -54,7 +53,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteAndExit
                 (
                     string.Join(NLC, [
-                        "An unknown exception occured while decompressing the BAMM Codebase .tar.gz archive.",
+                        "An unknown exception occured while compressing .tar.gz archive.",
                         "Error Log:",
                         ex.Message
                     ]),
@@ -63,12 +62,11 @@ namespace BrowserAutomationMaster.Managers
             }
             return (Directory.Exists(sourceDir), filePath);
         }
-
-        private bool UnarchiveGZIP(string codebaseSourceDir) 
+        private bool UnarchiveTarball(string codebaseSourceDir) 
         {
             try 
             {
-                Warning.Write("Decompressing the BAMM Codebase .tar.gz archive., please wait..");
+                Warning.Write("Decompressing .tar.gz archive, please wait..");
                 using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read);
                 using GZipStream gzipStream = new(fileStream, CompressionMode.Decompress, leaveOpen: true);
                 var exportDirectory = DirectoryManager.GetSourceDirectory();
@@ -81,7 +79,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteAndExit
                 (
                     string.Join(NLC, [
-                        "An unknown exception occured while decompressing the BAMM Codebase .tar.gz archive.",
+                        "An unknown exception occured while decompressing .tar.gz archive.",
                         "Error Log:",
                         ex.Message
                     ]),
@@ -97,7 +95,7 @@ namespace BrowserAutomationMaster.Managers
         {
             try 
             {
-                Warning.Write("Decompressing the BAMM Codebase .zip archive., please wait..");
+                Warning.Write("Decompressing .zip archive., please wait..");
                 using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read);
 
                 var exportDirectory = DirectoryManager.GetSourceDirectory();
@@ -110,7 +108,7 @@ namespace BrowserAutomationMaster.Managers
                 Errors.WriteAndExit
                 (
                     string.Join(NLC, [
-                        "An unknown exception occured while decompressing the BAMM Codebase .zip archive.",
+                        "An unknown exception occured while decompressing .zip archive.",
                         "Error Log:",
                         ex.Message
                     ]),
