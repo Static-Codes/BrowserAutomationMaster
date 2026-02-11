@@ -311,8 +311,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             PackageManager: "apt-get",
             InstallCommand: "install -y",
             UninstallCommand: "remove --purge -y",
-            QueryCommand: "dpkg-query",
-            QueryArguments: "-W",
+            QueryCommand: "rpm",
+            QueryArguments: "-q",
             RequiredPackages: [
                 "xclip",
             ],
