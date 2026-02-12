@@ -16,9 +16,9 @@ namespace Publisher.Build.Processes
             Requires:       python3
             Requires:       which
             Requires:       lib64icu-devel
-            Requires:       lib64openssl1.1
+            Requires:       lib64openssl1.1.0
             Requires:       lib64zlib1
-            Requires:       lib64krb5_3
+            Requires:       lib64krb53
             Requires:       xclip
             """;
         }
