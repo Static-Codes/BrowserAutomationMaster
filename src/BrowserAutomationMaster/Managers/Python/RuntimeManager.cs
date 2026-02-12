@@ -269,7 +269,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public static async Task SetMemoryInfo()
         {
-            memoryInfo = await MemoryInfoManager.RunCheck();
+            memoryInfo = await MemoryInfoManager.GetMemoryInfoAsync();
 
             if (!memoryInfo.HasValue)
             {
