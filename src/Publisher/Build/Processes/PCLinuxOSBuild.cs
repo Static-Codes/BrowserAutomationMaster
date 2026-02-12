@@ -41,6 +41,7 @@ namespace Publisher.Build.Processes
                 License:        {AppLicenseType}
                 Group:          Applications/Editors
                 ExclusiveArch:  x86_64
+                Source0:        bamm-{BaseVersion}/bamm
 
                 # Disable automatic dependency generation to prevent cross-distro contamination
                 AutoReqProv:    no
@@ -51,9 +52,9 @@ namespace Publisher.Build.Processes
                 {AppExtendedDescription}
                 
                 %prep
-
                 {GetSetupBlock()}
 
+                %install
                 {GetInstallationBlock()}
                 """
             );
@@ -69,7 +70,8 @@ namespace Publisher.Build.Processes
         private static string GetInstallationBlock() 
         {
             return """
-            %install
+            # Switch to the build directory, as the progress from prep is lost.
+            cd %{name}-%{version}
             
             # Creating the target directories for the virtual buildroot
             mkdir -p %{buildroot}/usr/bin
@@ -91,8 +93,10 @@ namespace Publisher.Build.Processes
 
         private static string GetSetupBlock() {
             return string.Join(NLC, [
-                "# -n creates the base directory inside the tarball", 
-                "%setup -q -n %{name}-%{version}"
+                "mkdir -p %{_builddir}/%{name}-%{version}",
+                "# This resolves to: /home/nerdy/rpmbuild/SOURCES/bamm-1.0.0/bamm",
+                "cp %{_sourcedir}/%{name}-%{version}/%{name} %{_builddir}/%{name}-%{version}/%{name}",
+                "cd %{_builddir}/%{name}-%{version}"
             ]);
         }
 
