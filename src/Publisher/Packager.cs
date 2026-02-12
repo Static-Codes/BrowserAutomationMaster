@@ -307,10 +307,16 @@ namespace Publisher
             Console.WriteLine("Copying the compiled binary from the dotnet publish directory to newly created top level directory.");
             var sourceBinaryPath = Path.Combine(TLD, AppName);
 
-            try {   
+            try 
+            {   
+                if (File.Exists(sourceBinaryPath)) {
+                    File.Delete(sourceBinaryPath);
+                }
+
                 File.Copy(compiledBinaryPath, sourceBinaryPath);
                 Success.WriteSuccessMessage("Operation successful.");
             }
+            
             catch (Exception ex) 
             {
                 WriteAndExit(
