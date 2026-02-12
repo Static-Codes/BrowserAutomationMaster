@@ -14,7 +14,7 @@ namespace Publisher
             ".zip"
         ];
 
-        public static string? LatestTag => DetermineLatestReleaseTag().Result;
+        public static string? LatestTag => DetermineLatestReleaseTag("Static-Codes", "BrowserAutomationMaster").Result;
         
         public readonly static Source LatestRelease = new(
             Downloads: [.. FileTypes.Select(fileType => new Download(fileType))]
@@ -23,12 +23,12 @@ namespace Publisher
         public static string SetArchiveFileType() => Input.WriteListFromOptions(FileTypes, "file type for the source");
 
 
-        public static async Task<string?> DetermineLatestReleaseTag() 
+        public static async Task<string?> DetermineLatestReleaseTag(string userName, string projectName) 
         {
-            var client = new Octokit.GitHubClient(new Octokit.ProductHeaderValue(
-                "BrowserAutomationMaster"
+            var client = new Octokit.GitHubClient(
+                new Octokit.ProductHeaderValue(projectName
             ));
-            var releases = await client.Repository.Release.GetAll("Static-Codes", "BrowserAutomationMaster");
+            var releases = await client.Repository.Release.GetAll(userName, projectName);
             var latest = releases.ElementAt(0);
 
             return latest?.TagName ?? null; 
