@@ -1,5 +1,4 @@
 using BrowserAutomationMaster.Helpers;
-using System.Security.Cryptography;
 using System.Text;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -18,37 +17,12 @@ namespace Publisher.Build.Processes
         private readonly static byte[] source = "source=('src/bamm')"u8.ToArray();
         private readonly static byte[] depends = "depends=('python>3.8' 'which' 'icu' 'openssl' 'zlib' 'krb5' 'xclip')"u8.ToArray();
         private readonly static byte[] makeDepends = "makedepends=('dotnet-sdk') # Dotnet 10 is required for compilation"u8.ToArray();
-        private async Task<(string, FileStream)> Sha512SumsAndStream() 
+        
+        private async Task<(string, FileStream)> GetSha512SumsAndStream() 
         {
-            var stream = new FileStream(binaryPath, FileMode.Open);
-
-            byte[] result = new byte[stream.Length];
-            
-            CancellationToken cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(30)
-            ).Token;
-
-            try 
-            {
-                using SHA512 sha512 = SHA512.Create();
-                result = await sha512.ComputeHashAsync(stream, cts); 
-            }
-
-            catch (Exception ex)
-            {
-                WriteAndExit(
-                    message: string.Join(NLC, [
-                        "Unable to calculate SHA512 sum of the provided binary.",
-                        "Error Log:",
-                        ex.Message
-                    ]),
-                    status: 1
-                );
-            }
-
-
-            return (Convert.ToHexString(result).ToLowerInvariant(), stream);
+            return await CalculateSHA512HashOfFile(binaryPath);
         }
+        
         private readonly static byte[] packageFunction = Encoding.UTF8.GetBytes(
             string.Join(NLC, [
                 "package() {",
@@ -78,7 +52,7 @@ namespace Publisher.Build.Processes
             try 
             {
                 // Assigning a value to the already defined binaryStream
-                (var sha512Hash, binaryStream) = await Sha512SumsAndStream();
+                (var sha512Hash, binaryStream) = await GetSha512SumsAndStream();
 
                 var sha512sums = Encoding.UTF8.GetBytes($"sha512sums=({sha512Hash})");
 
