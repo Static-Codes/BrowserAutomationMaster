@@ -27,7 +27,7 @@ namespace BrowserAutomationMaster.Managers
 
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
-        public static async Task<MemoryInfo?> RunCheck()
+        public static async Task<MemoryInfo?> GetMemoryInfoAsync()
         {
             return true switch
             {
