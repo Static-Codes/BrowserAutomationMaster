@@ -37,19 +37,15 @@ namespace Publisher
                     false => $"the {GetWhichCommand()} returned a non zero status code: {ExitCode}"
                 };
 
-                WriteAndExit(
-                    message: string.Join(NLC, [
-                        "Unable to locate a dotnet SDK binary in your system path.",
-                        "Please ensure the dotnet SDK is installed, and is added to your system path.",
-                        "Error Log:",
-                        errorLog
-                    ]),
-                    status: 1
-                );
+                Console.WriteLine("Unable to locate a .NET SDK binary in your system path.");
+                var result = Input.AskForInput("Would you like to install it now? [y/n]: ");
+
+                if (Input.ConditionRejected(result)) {
+                    WriteAndExit("Build operation cancelled, please ensure the .NET SDK is installed.", 1);
+                }
             }
             
-            if (STDOut.Count == 1 && STDOut[0].Contains("dotnet")) 
-            {
+            if (STDOut.Count == 1 && STDOut[0].Contains("dotnet")) {
                 return true;
             }
 
