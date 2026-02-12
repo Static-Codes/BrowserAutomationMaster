@@ -316,7 +316,7 @@ namespace Publisher
                 File.Copy(compiledBinaryPath, sourceBinaryPath);
                 Success.WriteSuccessMessage("Operation successful.");
             }
-            
+
             catch (Exception ex) 
             {
                 WriteAndExit(
@@ -381,7 +381,7 @@ namespace Publisher
             // On some Debian systems, rpmbuild defaults to /usr/src/rpm instead of ~/rpmbuild unless ~/.rpmmacros is configured.
             var psi = new ProcessStartInfo() {
                 FileName = "rpmbuild",
-                Arguments = $"--define '_topdir {rpmRootDir}' -bb {specFileName}",
+                Arguments = $"--define \"_topdir {rpmRootDir}\" -bb {specFileName}",
                 RedirectStandardInput = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
