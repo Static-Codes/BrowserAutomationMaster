@@ -36,13 +36,7 @@ namespace Publisher
         {
             if (!await DotnetIsInstalled()) 
             {
-                WriteAndExit(
-                    message: string.Join(NLC, [
-                        "Unable to locate a dotnet SDK binary in your system path.",
-                        "Please ensure the dotnet SDK is installed, and is added to your system path.",
-                    ]),
-                    status: 1
-                );
+                await DownloadLatestDotnetSDK();
             }
 
             if (!platformOption.IsValidOption()) 

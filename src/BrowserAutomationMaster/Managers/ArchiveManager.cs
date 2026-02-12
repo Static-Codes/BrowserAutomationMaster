@@ -62,7 +62,7 @@ namespace BrowserAutomationMaster.Managers
             }
             return (Directory.Exists(sourceDir), filePath);
         }
-        private bool UnarchiveTarball(string codebaseSourceDir) 
+        private bool UnarchiveTarball(string sourceDir) 
         {
             try 
             {
@@ -86,8 +86,52 @@ namespace BrowserAutomationMaster.Managers
                     status: 1
                 );
             }
-            return Directory.Exists(codebaseSourceDir);
+            return Directory.Exists(sourceDir);
         }
+
+        public static bool UnarchiveTarball(FileStream fileStream, string exportDir, bool deleteArchive = true, bool keepOpen = false) 
+        {
+            try 
+            {
+                fileStream.Position = 0;
+                Warning.Write("Decompressing tarball archive, please wait..");
+                using GZipStream gzipStream = new(fileStream, CompressionMode.Decompress, leaveOpen: true);
+                TarFile.ExtractToDirectory(gzipStream, exportDir, overwriteFiles: false);
+                Success.WriteSuccessMessage($"Decompressed to directory: {exportDir}");
+
+                string filePath = fileStream.Name;
+
+                if (deleteArchive) 
+                {
+                    fileStream.Close(); 
+                    fileStream.Dispose();
+                    
+                    Console.WriteLine("Deleting the installation archive as it is no longer needed.");
+                    File.Delete(filePath);
+                }
+
+                else if (!keepOpen) // deleteArchive takes priority over keepOpen, due to the nature of deletion operations.
+                {
+                    fileStream.Close(); 
+                    fileStream.Dispose();
+                }
+            }
+            
+            catch (Exception ex) 
+            {
+                Errors.WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "An unknown exception occured while decompressing .tar.gz archive.",
+                        "Error Log:",
+                        ex.Message
+                    ]),
+                    status: 1
+                );
+            }
+            return Directory.Exists(exportDir);
+        }
+
 
         
 

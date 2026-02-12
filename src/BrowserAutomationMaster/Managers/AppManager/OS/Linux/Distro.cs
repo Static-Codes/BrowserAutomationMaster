@@ -59,7 +59,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         string? BackupReleaseCmd = null,
         string? BackupReleaseCmdArgs = null,
         string? Description = null,
-        string? InstallationKeyword = null
+        string? InstallationKeyword = null,
+        string[]? DotnetPackages = null
     ) 
     {
         public string Name { get; set; } = Name;
@@ -75,6 +76,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
         public string[] OptionalPackages { get; private set; } = OptionalPackages;
         public PackageType PackageType { get; private set; } = PackageType;
         public InstallationType InstallationType { get; private set; } = InstallationType;
+
+        public string[]? DotnetPackages = DotnetPackages;
         public string ShellPath { get; private set; } = ShellPath;
         public string PythonVar { get; private set; } = PythonVar;
         public string ReleaseFilePath { get; private set; } = ReleaseFilePath;
