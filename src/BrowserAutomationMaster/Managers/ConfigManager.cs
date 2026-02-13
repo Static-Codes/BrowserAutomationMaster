@@ -162,14 +162,17 @@ namespace BrowserAutomationMaster.Managers
 
             return configContents.ToString();
         }
+
         private static bool ConfigDirectoryExists()
         {
             return !string.IsNullOrEmpty(ConfigDirectory) && Directory.Exists(ConfigDirectory);
         }
+
         private static bool ConfigFileExists()
         {
             return !string.IsNullOrEmpty(ConfigFilePath) && File.Exists(ConfigFilePath);
         }
+
         private static object? DoCast(string value, Type targetType)
         {
             if (targetType == typeof(bool))
@@ -305,6 +308,7 @@ namespace BrowserAutomationMaster.Managers
             }
             return propsAndFuncs;
         }
+
         public static Config LoadConfig()
         {
             EnsureConfigExists();
@@ -348,13 +352,15 @@ namespace BrowserAutomationMaster.Managers
             }
             return GlobalConfig;
         }
+
         private static void LogOverrideError(string originalLine, string[] splitLines)
         {
             string message = $"{NLC}Invalid override format. Expected '@Override PropertyName = value' " +
                             $"where PropertyName is one of the supported color properties and value is a valid color format.{NLC}{NLC}" +
                             "For more information please check {}";
 
-            Write(
+            Write
+            (
                 GenerateErrorMessage(
                     fileName: "config.ini",
                     originalLine,
@@ -363,10 +369,13 @@ namespace BrowserAutomationMaster.Managers
                 )
             );
         }
+
         private static void ProcessConfigProperty(string trimmedLine, string originalLine, string[] splitLines)
         {
             string[] parts = trimmedLine.Split('=', 2);
-            if (parts.Length != 2) return;
+            if (parts.Length != 2) { 
+                return;
+            }
 
             var propName = ConfigParser.ConvertSnakeToPascal(parts[0].Trim());
             var propValue = parts[1].Trim();
@@ -413,6 +422,7 @@ namespace BrowserAutomationMaster.Managers
                     status: 1);
             }
         }
+
         private static void ProcessOverrideLine(string trimmedLine, string originalLine, string[] splitLines)
         {
             var result = ParseOverrideLine(trimmedLine);
@@ -429,6 +439,7 @@ namespace BrowserAutomationMaster.Managers
                 property.SetValue(GlobalConfig.ThemeType, ToColor(value.Value));
             }
         }
+
         public static bool OverrideLineHasComment(string line)
         {
             bool hasComment = false;
@@ -482,6 +493,7 @@ namespace BrowserAutomationMaster.Managers
 
             return null;
         }
+
         private static void ValidateConfigContents(string configContents)
         {
             var splitLines = configContents.Split('\n');
