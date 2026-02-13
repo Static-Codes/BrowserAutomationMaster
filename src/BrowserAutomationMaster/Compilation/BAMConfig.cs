@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using BrowserAutomationMaster.Managers;
+﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.ConstantManager;
@@ -121,15 +118,13 @@ namespace BrowserAutomationMaster.Compilation
 
         public bool OtherPresentFound()
         {
-            if (Lines.Length == 0)
-            {
+            if (Lines.Length == 0) {
                 return false;
             }
 
             foreach (string line in Lines)
             {
-                if (string.IsNullOrWhiteSpace(line))
-                {
+                if (string.IsNullOrWhiteSpace(line)) {
                     continue;
                 }
 
@@ -139,8 +134,7 @@ namespace BrowserAutomationMaster.Compilation
                 int spaceCharIndex = trimmedLine.IndexOf(' ');
                 firstArg =  spaceCharIndex == -1 ? trimmedLine : trimmedLine[..spaceCharIndex];
 
-                if (Parser.actionArgs.Contains(firstArg))
-                {
+                if (Parser.actionArgs.Contains(firstArg)) {
                     return true;
                 }
             }
@@ -151,8 +145,17 @@ namespace BrowserAutomationMaster.Compilation
         {
             var paths = 
                 featureLines
-                .Where(line => line.Contains("\"add-extension\"") && line.AsSpan().Count(' ') == 2)
+                .Where(
+                    line => 
+                    line.Contains("\"add-extension\"") && 
+                    line.AsSpan().Count(' ') == 2
+                )
                 .Select(line => line.Split(' ')[2].Replace("\"", ""));
+
+            if (paths == null) { 
+                return [];
+            }
+            
             return [.. paths];
         }
 
