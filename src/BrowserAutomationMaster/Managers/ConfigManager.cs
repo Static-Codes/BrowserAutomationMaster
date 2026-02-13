@@ -19,23 +19,16 @@ namespace BrowserAutomationMaster.Managers
         public bool UseBrowserstack { get; set; }
     }
 
+    public static class StringExtensions {
+        public static string ToTitle(this string value) => string.Concat(char.ToUpper(value[0]), value[1..]);
+        public static string ToTitle(this string[] values) => string.Concat(
+            values.Select(val => val.ToTitle())
+        );    
+    }
+
     public partial class ConfigParser
     {
-        
-
-        public static string ConvertSnakeToPascal(string snake_case)
-        {
-            return string.Join(
-                string.Empty,
-                snake_case
-                    .Split('_')
-                    .Select(s => char.ToUpper(s[0]) + s[1..])
-            );
-        }
-        public static bool IsValidLine(string line, Regex regexName)
-        {
-            return regexName.IsMatch(line);
-        }
+        public static string ConvertSnakeToPascal(string snake_case) => snake_case.Split('_').ToTitle();
         public static string RemoveCommentIfPresent(string line)
         {
             if (line.Contains(" ; "))
@@ -583,29 +576,36 @@ namespace BrowserAutomationMaster.Managers
                     //Console.WriteLine(propValue);
                     //Console.WriteLine();
 
-                    if (!rawSections[currentSection].Any(pair => pair.Key.Equals(propName))) // Handles all sections but overrides
-                    {
-                        
-                        if (typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null) // Handles overrides 
-                        {
-                            WriteAndExit(
-                                GenerateErrorMessage(
-                                    fileName: "config.ini",
-                                    originalLine,
-                                    lineNumber: i + 1,
-                                    issueText: $"Unknown property `{propName}` in section `{currentSection}`."
-                                ),
-                                status: 1
-                            );
-                        }
-                    }
+                    var invalidPropName = !rawSections[currentSection].Any(pair => pair.Key.Equals(propName));
+                    var invalidThemeType = typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null;
 
-                    if (propsAndFuncs.TryGetValue(propName, out Regex? func))
+                    // Invalid propertyNames
+                    if (invalidPropName && invalidThemeType) 
                     {
-                        // The nested if statement is ideal but it allows for the application to fallthrough safely in the case no validation rule is provided
-                        if (!ConfigParser.IsValidLine(trimmedLine, func))
-                        {
-                            WriteAndExit(
+                        WriteAndExit
+                        (
+                            GenerateErrorMessage(
+                                fileName: "config.ini",
+                                originalLine,
+                                lineNumber: i + 1,
+                                issueText: $"Unknown property `{propName}` in section `{currentSection}`."
+                            ),
+                            status: 1
+                        );
+                    }
+                    
+                    // Secondary check
+                    var validPropName = propsAndFuncs.TryGetValue(propName, out Regex? func);
+                    var validPropValue = func != null && func.IsMatch(trimmedLine);
+                    
+                    switch (validPropName, validPropValue) 
+                    {
+                        case (true, true):
+                            continue;
+
+                        case (true, false):
+                            WriteAndExit
+                            (
                                 GenerateErrorMessage(
                                     fileName: "config.ini",
                                     originalLine,
@@ -614,10 +614,11 @@ namespace BrowserAutomationMaster.Managers
                                 ),
                                 status: 1
                             );
-                        }
+                            break; // This isn't executed, rosyln is unaware that WriteAndExit [DoesNotReturn].
                     }
 
-                    else if (currentSection == "[overrides]") {
+                    // Skipping validation on override sections.
+                    if (currentSection == "[overrides]") {
                         continue;
                     }
 
