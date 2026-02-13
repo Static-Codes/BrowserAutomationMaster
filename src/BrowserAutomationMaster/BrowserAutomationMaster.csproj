@@ -154,7 +154,7 @@
 
 		<!-- Precompiled Wheels -->
 		<EmbeddedResource Include="Resources/wheels/*/*.whl" />
-		<EmbeddedResource Include="userScripts/*.bamc" />
+		<EmbeddedResource Include="Resources/userScripts/*.bamc" />
 	</ItemGroup>
 
 	
