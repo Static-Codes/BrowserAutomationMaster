@@ -530,112 +530,108 @@ namespace BrowserAutomationMaster.Managers
 
                     currentSection = sectionName;
                     encounteredSections.Add(sectionName);
+                    continue;
                 }
-                else
+                
+                if (currentSection == null)
                 {
-                    if (currentSection == null)
-                    {
-                        WriteAndExit(
-                            GenerateErrorMessage(
-                                fileName: "config.ini",
-                                originalLine,
-                                lineNumber: i + 1,
-                                issueText: "Content found before any section header. All configuration must be within a section."
-                            ),
-                            status: 1
-                        );
-                    }
+                    WriteAndExit(
+                        GenerateErrorMessage(
+                            fileName: "config.ini",
+                            originalLine,
+                            lineNumber: i + 1,
+                            issueText: "Content found before any section header. All configuration must be within a section."
+                        ),
+                        status: 1
+                    );
+                }
 
-                    var parts = GetPartsOfLine(trimmedLine, originalLine);
+                var parts = GetPartsOfLine(trimmedLine, originalLine);
 
-                    if (parts == null) {
-                        continue; // Returning null means the line was skipped this is intended.
-                    }
+                if (parts == null) {
+                    continue; // Returning null means the line was skipped this is intended.
+                }
 
 
-                    if (parts.Length != 2) {
-                        WriteAndExit(
-                            GenerateErrorMessage(
-                                fileName: "config.ini",
-                                originalLine,
-                                lineNumber: i + 1,
-                                issueText: "Invalid property format, expected 'name = value'."
+                if (parts.Length != 2) 
+                {
+                    WriteAndExit(
+                        GenerateErrorMessage(
+                            fileName: "config.ini",
+                            originalLine,
+                            lineNumber: i + 1,
+                            issueText: "Invalid property format, expected 'name = value'."
+                        ),
+                        status: 1
+                    );
+                }
 
-                            ),
-                            status: 1
-                        );
-                    }
 
+                string propName = parts[0].Trim();
+                string propValue = parts[1].Trim();
 
-                    string propName = parts[0].Trim();
-                    string propValue = parts[1].Trim();
+                // Debug only
+                //Console.WriteLine(currentSection);
+                //Console.WriteLine(propName);
+                //Console.WriteLine(propValue);
+                //Console.WriteLine();
 
-                    // Debug only
-                    //Console.WriteLine(currentSection);
-                    //Console.WriteLine(propName);
-                    //Console.WriteLine(propValue);
-                    //Console.WriteLine();
+                var invalidPropName = !rawSections[currentSection].Any(pair => pair.Key.Equals(propName));
+                var invalidThemeType = typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null;
 
-                    var invalidPropName = !rawSections[currentSection].Any(pair => pair.Key.Equals(propName));
-                    var invalidThemeType = typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null;
+                // Invalid propertyNames
+                if (invalidPropName && invalidThemeType) 
+                {
+                    WriteAndExit
+                    (
+                        GenerateErrorMessage(
+                            fileName: "config.ini",
+                            originalLine,
+                            lineNumber: i + 1,
+                            issueText: $"Unknown property `{propName}` in section `{currentSection}`."
+                        ),
+                        status: 1
+                    );
+                }
+                    
+                // Secondary check
+                var validPropName = propsAndFuncs.TryGetValue(propName, out Regex? func);
+                var validPropValue = func != null && func.IsMatch(trimmedLine);
+                    
+                switch (validPropName, validPropValue) 
+                {
+                    case (true, true):
+                        continue;
 
-                    // Invalid propertyNames
-                    if (invalidPropName && invalidThemeType) 
-                    {
+                    case (true, false):
                         WriteAndExit
                         (
                             GenerateErrorMessage(
                                 fileName: "config.ini",
                                 originalLine,
                                 lineNumber: i + 1,
-                                issueText: $"Unknown property `{propName}` in section `{currentSection}`."
+                                issueText: $"Invalid value '{propValue}' for property `{propName}`."
                             ),
                             status: 1
                         );
-                    }
-                    
-                    // Secondary check
-                    var validPropName = propsAndFuncs.TryGetValue(propName, out Regex? func);
-                    var validPropValue = func != null && func.IsMatch(trimmedLine);
-                    
-                    switch (validPropName, validPropValue) 
-                    {
-                        case (true, true):
-                            continue;
-
-                        case (true, false):
-                            WriteAndExit
-                            (
-                                GenerateErrorMessage(
-                                    fileName: "config.ini",
-                                    originalLine,
-                                    lineNumber: i + 1,
-                                    issueText: $"Invalid value '{propValue}' for property `{propName}`."
-                                ),
-                                status: 1
-                            );
-                            break; // This isn't executed, rosyln is unaware that WriteAndExit [DoesNotReturn].
-                    }
-
-                    // Skipping validation on override sections.
-                    if (currentSection == "[overrides]") {
-                        continue;
-                    }
-
-                    else
-                    {
-                        WriteAndExit(
-                            GenerateErrorMessage(
-                                fileName: "config.ini",
-                                originalLine,
-                                lineNumber: i + 1,
-                                issueText: $"No validation rule found for property `{propName}` in section `{currentSection}`."
-                            ),
-                            status: 1
-                        );
-                    }
+                        break; // This isn't executed, rosyln is unaware that WriteAndExit [DoesNotReturn].
                 }
+
+                // Skipping validation on override sections.
+                if (currentSection == "[overrides]") {
+                    continue;
+                }
+
+                WriteAndExit(
+                    GenerateErrorMessage(
+                        fileName: "config.ini",
+                        originalLine,
+                        lineNumber: i + 1,
+                        issueText: $"No validation rule found for property `{propName}` in section `{currentSection}`."
+                    ),
+                    status: 1
+                );
             }
-        }
+        }    
     }
 }
