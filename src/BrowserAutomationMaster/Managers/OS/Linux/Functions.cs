@@ -1,11 +1,12 @@
 using BrowserAutomationMaster.Helpers;
+using BrowserAutomationMaster.Managers.AppManager;
 using BrowserAutomationMaster.Messaging;
 using Spectre.Console;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;
+using static BrowserAutomationMaster.Managers.OS.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -16,7 +17,7 @@ using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 using static System.Runtime.InteropServices.Architecture;
 
-namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
+namespace BrowserAutomationMaster.Managers.OS.Linux
 {
     public static partial class Functions
     {
@@ -163,8 +164,8 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
             var psi = new ProcessStartInfo()
             {
                 // Currently has a bug where --print-architecture writes to std out, this needs to be adjusted likely with >/dev/null 2>&1
-                FileName = HasDPKG ? "dpkg" : (HasRPM ? "rpm" : "bin/bash"),
-                Arguments = HasDPKG ? "--print-architecture" : (HasRPM ? "--queryformat \"%{ARCH}\\n\" -qf /bin/ls" : "lscpu"),
+                FileName = HasDPKG ? "dpkg" : HasRPM ? "rpm" : "bin/bash",
+                Arguments = HasDPKG ? "--print-architecture" : HasRPM ? "--queryformat \"%{ARCH}\\n\" -qf /bin/ls" : "lscpu",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };

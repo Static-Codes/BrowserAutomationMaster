@@ -1,6 +1,6 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using System.IO.Compression;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;

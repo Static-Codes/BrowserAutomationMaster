@@ -1,8 +1,8 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+﻿using BrowserAutomationMaster.Managers.OS.Linux;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using System.Runtime.InteropServices;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static System.Runtime.InteropServices.Architecture;

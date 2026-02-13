@@ -2,14 +2,13 @@
 using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
@@ -23,6 +22,7 @@ using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.Parser;
+using BrowserAutomationMaster.Managers.OS.Linux;
 
 
 namespace BrowserAutomationMaster

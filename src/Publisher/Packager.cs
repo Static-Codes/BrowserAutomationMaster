@@ -1,13 +1,11 @@
-
 using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
 using BrowserAutomationMaster.Messaging;
 using Publisher.Build.Processes;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.DistroManager;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Linux.DistroManager;
+using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Managers.DirectoryManager;
 using static BrowserAutomationMaster.Managers.PlatformManager;
@@ -18,6 +16,7 @@ using static BrowserAutomationMaster.Messaging.Errors;
 using static Publisher.Build.BuildInfo;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
+using BrowserAutomationMaster.Managers.OS.Linux;
 
 namespace Publisher 
 {

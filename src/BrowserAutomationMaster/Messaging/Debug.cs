@@ -1,7 +1,7 @@
 ﻿using BrowserAutomationMaster.Parsing;
-using BrowserAutomationMaster.Managers.AppManager.OS;
 using BrowserAutomationMaster.Managers;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using BrowserAutomationMaster.Managers.OS;
+using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 

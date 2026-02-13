@@ -1,4 +1,4 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+﻿using BrowserAutomationMaster.Managers.OS.Linux;
 
 namespace BrowserAutomationMaster.Helpers
 {

@@ -1,7 +1,8 @@
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers.AppManager.OS;
+using BrowserAutomationMaster.Managers.OS;
 using System.Diagnostics.CodeAnalysis;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 

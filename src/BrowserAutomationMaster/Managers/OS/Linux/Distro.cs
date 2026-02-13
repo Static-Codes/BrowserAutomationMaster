@@ -2,9 +2,8 @@ using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static System.Runtime.InteropServices.Architecture;
 
-namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux 
+namespace BrowserAutomationMaster.Managers.OS.Linux
 {
-
     public enum PackageType 
     {
         DEB,
@@ -96,7 +95,7 @@ namespace BrowserAutomationMaster.Managers.AppManager.OS.Linux
                 $"Distribution Base: {BaseDistro}",
                 $"Package Manager: {PackageManager}",
                 $"Install Command: {PackageManager} {InstallCommand}",
-                $"Package Type: {PackageTypeExtensions.GetPackageFileType(PackageType)}",
+                $"Package Type: {PackageType.GetPackageFileType()}",
                 $"Shell Path: {ShellPath}",
                 $"Release File: {ReleaseFilePath}",
             ]);

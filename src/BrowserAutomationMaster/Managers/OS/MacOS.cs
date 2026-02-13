@@ -1,9 +1,10 @@
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
+using BrowserAutomationMaster.Managers.AppManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Managers.AppManager.OS
+namespace BrowserAutomationMaster.Managers.OS
 {
     public static class MacOS
     {
