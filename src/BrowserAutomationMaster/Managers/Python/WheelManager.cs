@@ -43,7 +43,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 }
 
                 // Dynamically creating the path to each embedded resource.
-                var ResourcePattern = string.Format("BrowserAutomationMaster.AppData.wheels.{0}.{1}", PlatformType, FileName);
+                var ResourcePattern = string.Format("BrowserAutomationMaster.Resources.wheels.{0}.{1}", PlatformType, FileName);
                 
                 // Retrieving the contents of the resource.
                 var responseStream = EmbeddedResourceManager.GetEmbeddedResource(FileName, ResourcePattern);

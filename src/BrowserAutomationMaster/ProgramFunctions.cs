@@ -453,7 +453,7 @@ namespace BrowserAutomationMaster
                 if (!daemonOnDisk) {
                     await WriteEmbeddedResourceToDisk(
                         resourceName: "UIDaemon.py",
-                        resourcePattern: "BrowserAutomationMaster.AppData.UIDaemon.py",
+                        resourcePattern: "BrowserAutomationMaster.Resources.UIDaemon.py",
                         outputPath: daemonPath
                     );
                 }
@@ -462,7 +462,7 @@ namespace BrowserAutomationMaster
                 {
                     await WriteEmbeddedResourceToDisk(
                         resourceName: "gui.zip",
-                        resourcePattern: "BrowserAutomationMaster.AppData.gui.zip",
+                        resourcePattern: "BrowserAutomationMaster.Resources.gui.zip",
                         outputPath: GetGUIZipPath()
                     );
 

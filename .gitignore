@@ -6,4 +6,4 @@ obj/
 *launch.json
 *tasks.json
 /src/Published Builds
-src/BrowserAutomationMaster/AppData/gui.zip
+src/BrowserAutomationMaster/Resources/gui.zip

@@ -138,7 +138,7 @@
 	<!-- GUI.zip Download and Embed Logic -->
 	<PropertyGroup>
 		<ResourceURL>https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip</ResourceURL>
-    	<DownloadDir>AppData</DownloadDir>
+    	<DownloadDir>Resources</DownloadDir>
     	<DownloadedFileName>gui.zip</DownloadedFileName>
 		<!-- MSBuild on Windows handles forward slashes as intended, but, Unix treats backslashes as literals rather than seperators -->
     	<_FullResourcePath>$(DownloadDir)/$(DownloadedFileName)</_FullResourcePath>
@@ -148,12 +148,12 @@
 	<ItemGroup>
 
 		<!-- App Icon -->
-		<EmbeddedResource Include="bamm.ico" />
+		<EmbeddedResource Include="Resources/bamm.ico" />
 
-		<EmbeddedResource Include="AppData/UIDaemon.py"/>
+		<EmbeddedResource Include="Resources/UIDaemon.py"/>
 
 		<!-- Precompiled Wheels -->
-		<EmbeddedResource Include="AppData/wheels/*/*.whl" />
+		<EmbeddedResource Include="Resources/wheels/*/*.whl" />
 		<EmbeddedResource Include="userScripts/*.bamc" />
 	</ItemGroup>
 
