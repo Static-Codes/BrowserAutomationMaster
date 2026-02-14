@@ -14,7 +14,7 @@ using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.EndpointFunctions;
 using static BrowserAutomationMaster.Managers.EndpointHelpers;
 using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
-using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;

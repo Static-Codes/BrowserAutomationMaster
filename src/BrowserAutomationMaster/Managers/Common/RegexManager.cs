@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Common
 {
 
     public static partial class RegexManager

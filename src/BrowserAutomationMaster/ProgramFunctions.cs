@@ -16,7 +16,7 @@ using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.EmbeddedResourceManager;
 using static BrowserAutomationMaster.Managers.LocalServerManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
-using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Menu;

@@ -17,7 +17,7 @@ using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
 using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
-using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 

@@ -1,4 +1,4 @@
-﻿using BrowserAutomationMaster.Managers;
+﻿using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.AppManager;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;

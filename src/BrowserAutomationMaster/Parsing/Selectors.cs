@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
-using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Parsing

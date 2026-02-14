@@ -6,7 +6,7 @@ using System.Text;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.CommandManager;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
-using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.LineValidation;

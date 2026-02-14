@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.OS.Unix.UnixFilePermissions;
