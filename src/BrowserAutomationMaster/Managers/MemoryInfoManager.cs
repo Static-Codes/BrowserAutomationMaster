@@ -1,13 +1,14 @@
-﻿using System.Diagnostics;
+﻿using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Messaging;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Windows.Win32.System.SystemInformation;
 using Windows.Win32;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
-using BrowserAutomationMaster.Messaging;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -22,9 +23,6 @@ namespace BrowserAutomationMaster.Managers
 
     public class MemoryInfoManager
     {
-
-
-
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static async Task<MemoryInfo?> GetMemoryInfoAsync()

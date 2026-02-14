@@ -3,11 +3,11 @@ using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
-using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static System.Runtime.InteropServices.Architecture;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Common
 {
     public class InternalPlatforms()
     {

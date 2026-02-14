@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Common
 {
     public class ConstantManager
     {

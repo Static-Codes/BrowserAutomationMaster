@@ -1,11 +1,12 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
+﻿using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Managers.OS;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Intrinsics.X86;
 using static BrowserAutomationMaster.Managers.ConfigManager;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.RequiredCPUInstruction;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;

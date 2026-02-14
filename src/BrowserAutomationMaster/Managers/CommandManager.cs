@@ -1,6 +1,6 @@
 ﻿using Spectre.Console;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 
 namespace BrowserAutomationMaster.Managers
 {

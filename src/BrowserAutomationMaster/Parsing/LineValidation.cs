@@ -1,6 +1,6 @@
 ﻿using static BrowserAutomationMaster.Parsing.LineValidationHelpers;
 using static BrowserAutomationMaster.Parsing.Parser;
-using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Parsing

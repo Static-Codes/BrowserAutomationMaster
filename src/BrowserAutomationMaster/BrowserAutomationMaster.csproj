@@ -31,7 +31,7 @@
 
 		<!-- Windows & OSX License -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<ApplicationIcon>bamm.ico</ApplicationIcon>
+		<ApplicationIcon>Resources/bamm.ico</ApplicationIcon>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	
 	</PropertyGroup>

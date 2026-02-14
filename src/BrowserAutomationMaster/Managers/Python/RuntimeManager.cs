@@ -1,4 +1,5 @@
-﻿using BrowserAutomationMaster.Managers.AppManager.OS;
+﻿using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Managers.OS;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System;
@@ -7,10 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using static BrowserAutomationMaster.Managers.AppManager.OS.MacOS;
 using static BrowserAutomationMaster.Managers.ConfigManager;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
+using static BrowserAutomationMaster.Managers.OS.MacOS;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 

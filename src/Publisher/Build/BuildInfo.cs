@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 

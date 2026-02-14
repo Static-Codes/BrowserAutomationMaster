@@ -1,6 +1,7 @@
-﻿using System.Net;
+﻿using BrowserAutomationMaster.Managers.Common;
+using System.Net;
+using static BrowserAutomationMaster.Managers.Common.RequestManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
-using static BrowserAutomationMaster.Managers.RequestManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 

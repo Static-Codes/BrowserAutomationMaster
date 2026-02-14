@@ -6,10 +6,10 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Common
 {
     public class RequestManager(Uri uri, int timeout = 10)
     {

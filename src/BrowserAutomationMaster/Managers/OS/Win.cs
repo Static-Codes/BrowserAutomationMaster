@@ -12,11 +12,11 @@ using System.Text.RegularExpressions;
 using Windows.Win32;
 using Windows.Win32.System.SystemInformation;
 using static BrowserAutomationMaster.Managers.AnsiManager;
-using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Managers.AppManager.OS
+namespace BrowserAutomationMaster.Managers.OS
 {
     // This is the first win10 build, all versions before are not supported
     // https://en.wikipedia.org/wiki/Windows_10_version_history

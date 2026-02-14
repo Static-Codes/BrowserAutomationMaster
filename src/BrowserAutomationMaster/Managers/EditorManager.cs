@@ -1,10 +1,11 @@
 using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Input;
 using BrowserAutomationMaster.Managers.AppManager;
+using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Text;

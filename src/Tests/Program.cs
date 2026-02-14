@@ -1,6 +1,6 @@
 ﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
-using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static Tests.Runner;
 

@@ -1,4 +1,6 @@
-﻿using BrowserAutomationMaster.Messaging;
+﻿
+using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Diagnostics;
 using System.IO.Compression;
@@ -6,11 +8,11 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.EndpointFunctions;
 using static BrowserAutomationMaster.Managers.EndpointHelpers;
-using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;

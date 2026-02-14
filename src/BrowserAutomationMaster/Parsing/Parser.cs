@@ -1,10 +1,11 @@
 ﻿using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.CommandManager;
-using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;

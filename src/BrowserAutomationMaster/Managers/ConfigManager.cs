@@ -1,8 +1,9 @@
-﻿using System.Reflection;
+﻿using BrowserAutomationMaster.Managers.Common;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.AnsiManager;
-using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers

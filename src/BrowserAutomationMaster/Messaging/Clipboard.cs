@@ -6,7 +6,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using Windows.Win32;
 using Windows.Win32.Foundation;
-using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 
 namespace BrowserAutomationMaster.Messaging
 {

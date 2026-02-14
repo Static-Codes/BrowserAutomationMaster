@@ -3,10 +3,10 @@ using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
-using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Managers.RequestManager.NetworkClient;
+using static BrowserAutomationMaster.Managers.Common.RequestManager.NetworkClient;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static Publisher.Build.BuildInfo;
 

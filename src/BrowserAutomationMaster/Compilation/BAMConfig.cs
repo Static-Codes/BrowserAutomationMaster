@@ -1,7 +1,7 @@
 ﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using static BrowserAutomationMaster.Managers.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 

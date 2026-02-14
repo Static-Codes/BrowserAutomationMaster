@@ -1,11 +1,12 @@
-﻿using BrowserAutomationMaster.Messaging;
+﻿using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Messaging;
 using System.ComponentModel;
 using System.Diagnostics;
 using static BrowserAutomationMaster.Managers.OS.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.AnsiManager;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
-using static BrowserAutomationMaster.Managers.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 using BrowserAutomationMaster.Managers.OS.Linux;
