@@ -1,5 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
+using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static Tests.Runner;

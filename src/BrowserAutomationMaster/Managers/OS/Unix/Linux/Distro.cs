@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static System.Runtime.InteropServices.Architecture;
 
-namespace BrowserAutomationMaster.Managers.OS.Linux
+namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
 {
     public enum PackageType 
     {

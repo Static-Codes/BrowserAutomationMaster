@@ -1,12 +1,12 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Managers.OS.Linux;
+using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using static BrowserAutomationMaster.Managers.OS.Linux.DistroManager;
-using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static System.Runtime.InteropServices.Architecture;

@@ -15,14 +15,14 @@ using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.EmbeddedResourceManager;
 using static BrowserAutomationMaster.Managers.LocalServerManager;
-using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.RegexManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.Parser;
-using BrowserAutomationMaster.Managers.OS.Linux;
+using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 
 
 namespace BrowserAutomationMaster

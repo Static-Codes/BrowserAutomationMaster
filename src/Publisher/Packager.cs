@@ -4,19 +4,20 @@ using Publisher.Build.Processes;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using static BrowserAutomationMaster.Managers.OS.Linux.DistroManager;
-using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
-using static BrowserAutomationMaster.Managers.UnixFilePermissionManager;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Unix.UnixFilePermissions;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static Publisher.Build.BuildInfo;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
-using BrowserAutomationMaster.Managers.OS.Linux;
+using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 
 namespace Publisher 
 {

@@ -2,12 +2,12 @@ using System.Diagnostics;
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Managers.OS.Linux
+namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
 {
     public class DistroManager() 
     {

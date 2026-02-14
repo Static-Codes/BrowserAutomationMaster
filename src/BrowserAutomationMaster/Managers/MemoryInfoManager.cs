@@ -1,4 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Managers.OS.Unix;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -104,11 +105,11 @@ namespace BrowserAutomationMaster.Managers
                 }
 
                 // Checking if the free-for-macOS binary has executable permissions
-                var binaryHasPermissions = UnixFilePermissionManager.HasExecutablePermissions(freeBinaryPath);
+                var binaryHasPermissions = UnixFilePermissions.HasExecutablePermissions(freeBinaryPath);
                 
                 // If binaryHasPermissions is true, this changes nothing. 
                 // However, if binaryHasPermissions is false, this attempts to give the binary exutable permissions using chmod.
-                binaryHasPermissions = binaryHasPermissions || UnixFilePermissionManager.SetExecutablePermissions(freeBinaryPath);
+                binaryHasPermissions = binaryHasPermissions || UnixFilePermissions.SetExecutablePermissions(freeBinaryPath);
                 
 
                 if (!binaryHasPermissions) 

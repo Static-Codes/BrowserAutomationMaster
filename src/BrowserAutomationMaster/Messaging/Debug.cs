@@ -1,10 +1,10 @@
 ﻿using BrowserAutomationMaster.Parsing;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Managers.OS;
-using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
+using BrowserAutomationMaster.Managers.OS.Unix;
 
 namespace BrowserAutomationMaster.Messaging
 {

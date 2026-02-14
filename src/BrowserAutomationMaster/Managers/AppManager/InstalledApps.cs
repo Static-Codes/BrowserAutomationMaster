@@ -1,10 +1,10 @@
 using BrowserAutomationMaster.Helpers;
 using BrowserAutomationMaster.Managers.OS;
+using BrowserAutomationMaster.Managers.OS.Unix;
 using System.Diagnostics.CodeAnalysis;
-using static BrowserAutomationMaster.Managers.OS.Linux.Functions;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
-
 namespace BrowserAutomationMaster.Managers.AppManager
 {
     public static class InstalledApps

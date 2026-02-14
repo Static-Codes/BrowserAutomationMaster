@@ -1,11 +1,11 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
-namespace BrowserAutomationMaster.Managers 
+namespace BrowserAutomationMaster.Managers.OS.Unix 
 {
 
     [UnsupportedOSPlatform("windows")]
-    public partial class UnixFilePermissionManager() 
+    public partial class UnixFilePermissions() 
     {
         // Apple's libc supports both Utf8 and Utf16 but Linux's Glibc only supports Utf8
         // Utf8 is chosen for cross compatability. 
