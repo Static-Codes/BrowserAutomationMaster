@@ -32,6 +32,7 @@ namespace BrowserAutomationMaster.Managers
         private readonly static HttpListener listener = new();
         
         public static bool IsRunning() => isRunning;
+        public static void StopExecution() => isRunning = false;
 
         public static void AddOptionResponseHeaders(HttpListenerResponse response)
         {
@@ -662,6 +663,13 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
+        public static async Task Terminate(HttpListenerResponse response) 
+        {
+            await LocalServerManager.WriteResponse(response, UTF8.GetBytes("{ \"terminated\": true }"));
+            await Task.Delay(50);
+            LocalServerManager.StopExecution();
+        }
+
         // This is fully functional but was removed for time sake.
         [Obsolete("Removed support, since this project needs to have a final alpha release soon.")]
         public static async Task Upload(HttpListenerRequest request, HttpListenerResponse response)
@@ -900,9 +908,9 @@ namespace BrowserAutomationMaster.Managers
         public static string EscapeMultiLineBlock(string block)
         {
             return block
-                // 1. Escapes backslashes first, otherwise subsequent escapes will double them
+                // Escapes backslashes first, otherwise subsequent escapes will double them
                 .Replace("\\", "\\\\") 
-                // 2. Escapes double quotes within the code
+                // Escapes double quotes within the code
                 .Replace("\"", "\\\"")
                 .Replace("\n", "\\n")
                 .Replace("\r", "\\r");
