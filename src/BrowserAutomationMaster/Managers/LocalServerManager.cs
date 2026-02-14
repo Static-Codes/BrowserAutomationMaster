@@ -10,11 +10,12 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.EndpointFunctions;
 using static BrowserAutomationMaster.Managers.EndpointHelpers;
-using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
 using static BrowserAutomationMaster.Managers.RegexManager;
+using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.ProgramFunctions;
@@ -24,13 +25,13 @@ namespace BrowserAutomationMaster.Managers
 {
     public class LocalServerManager
     {
-        private readonly static HttpListener listener = new();
         const string DEFAULT_PORT = "8008";
         private readonly static int MINIMUM_GUI_MEMORY_MB = 2048;
         private readonly static string GUI_ZIP_PATH = GetGUIZipPath();
-
         private static bool isRunning = true;
-        public static bool IsRunning() { return isRunning; }
+        private readonly static HttpListener listener = new();
+        
+        public static bool IsRunning() => isRunning;
 
         public static void AddOptionResponseHeaders(HttpListenerResponse response)
         {
@@ -88,8 +89,7 @@ namespace BrowserAutomationMaster.Managers
         /// <exception cref="PlatformNotSupportedException"></exception>
         public static IEnumerable<Group>? GetValues(GroupCollection? groups)
         {
-            if (groups == null || groups.Count == 0)
-            {
+            if (groups == null || groups.Count == 0) {
                 return [];
             }
 
@@ -177,10 +177,7 @@ namespace BrowserAutomationMaster.Managers
                         break;
                     
                     case "/version":
-                        await WriteResponse(response, UTF8.GetBytes(string.Join("", [
-                            $"{{\"version\": \"{UpdateManager.CurrentVersion}\", ", 
-                            $"\"is_latest\": {(UpdateManager.CurrentVersion == UpdateManager.LatestVersion).ToString().ToLower()}}}"
-                        ])));
+                        await Version(response);
                         break;
 
                     default:
@@ -252,8 +249,7 @@ namespace BrowserAutomationMaster.Managers
                     var groups = matches[i].Groups;
                     var values = GetValues(groups);
 
-                    if (values == null)
-                    {
+                    if (values == null) {
                         continue;
                     }
 
@@ -844,6 +840,35 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
+        public static async Task Version(HttpListenerResponse response) 
+        {
+            byte[] responseBytes;
+            try
+            {
+                var responseJson = new Dictionary<string, string>() {
+                    { "version", CurrentVersion },
+                    { "is_latest", $"{CurrentVersion == LatestVersion}".ToLower()}
+                };
+
+                responseBytes = JsonSerializer.SerializeToUtf8Bytes(responseJson);
+            }
+
+            catch (Exception ex)
+            {
+                Write($"Internal server error occurred: {ex.Message}");
+
+                responseBytes = UTF8.GetBytes(
+                    string.Concat([
+                        $"{{ \"version\": \"{CurrentVersion}\", ",
+                        $"\"is_latest\": {(CurrentVersion == LatestVersion).ToString().ToLower()} }}"
+                    ])
+                );
+            }
+
+            await LocalServerManager.WriteResponse(response, responseBytes);
+
+            
+        }
 
     }
 
