@@ -1,5 +1,5 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Messaging.Debug;
 
@@ -15,6 +15,17 @@ namespace BrowserAutomationMaster.Messaging
                 $"Line Number: {lineNumber}\n" +
                 $"Line: {line}\n" +
                 $"Error Log: {issueText}";
+        }
+
+        public static string GetValidationErrorMessage(string fileName, string line, int lineNumber, string firstArg, string selectorString) {
+            return string.Join(NLC, [
+                $"BAM Manager (BAMM) ran into a BAMC validation error:",
+                NLC,
+                $"File: \"{fileName}\"",
+                $"Invalid syntax on line {lineNumber}",
+                $"Line: {line}",
+                $"Valid Syntax: {firstArg} {selectorString}"
+            ]);
         }
 
         [DoesNotReturn]

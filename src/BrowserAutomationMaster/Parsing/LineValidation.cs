@@ -9,30 +9,28 @@ namespace BrowserAutomationMaster.Parsing
 
     public static class LineValidationHelpers 
     {
+        public static bool IsArgQuoted(string arg) 
+        {
+            return 
+                arg.StartsWith('"') && 
+                arg.EndsWith('"') ||
+                arg.StartsWith('\'') && 
+                arg.EndsWith('\'');
+        }
 
         // Helper to check for integer validity (ignoring quotes)
         public static bool IsInt(string s) => int.TryParse(s.Trim('"', '\'', ' '), out _);
 
         public static bool ValidateOneArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null) 
         {   
-            var eMessage = $"BAM Manager (BAMM) ran into a BAMC validation error:{NLC}{NLC}" +
-                           $"File: \"{fileName}\"{NLC}Invalid syntax on line {lineNumber}{NLC}" +
-                           $"Line: {line}{NLC}" +
-                           $"Valid Syntax: {firstArg} {selectorString}{NLC}";
-
+            var eMessage = GetValidationErrorMessage(fileName, line, lineNumber, firstArg, selectorString);
             bool extraChecksRequired = optionalChecks != null;
             
             if (lineArgs.Length != 2) {
                 return WriteErrorAndReturnBool(eMessage, returnBool: false);
             };
 
-            var trimmedArg1 = lineArgs[1].Trim();
-
-            var firstArgQuoted = 
-                trimmedArg1.StartsWith('"') && 
-                trimmedArg1.EndsWith('"') ||
-                trimmedArg1.StartsWith('\'') && 
-                trimmedArg1.EndsWith('\'');
+            var firstArgQuoted = IsArgQuoted(lineArgs[1].Trim());
 
             if (!firstArgQuoted) {
                 return WriteErrorAndReturnBool(eMessage, returnBool: false);
@@ -55,30 +53,14 @@ namespace BrowserAutomationMaster.Parsing
 
         public static bool ValidateTwoArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null) 
         {
-            var eMessage = $"BAM Manager (BAMM) ran into a BAMC validation error:{NLC}{NLC}" +
-                         $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}{NLC}" +
-                         $"Line: {line}\n" +
-                         $"Valid Syntax: {firstArg} {selectorString}\n";
-
+            var eMessage = GetValidationErrorMessage(fileName, line, lineNumber, firstArg, selectorString);
 
             if (lineArgs.Length != 3) {
                 return WriteErrorAndReturnBool(eMessage, returnBool: false);
             }
 
-            var trimmedArg1 = lineArgs[1].Trim();
-            var trimmedArg2 = lineArgs[2].Trim();
-            
-            var firstArgQuoted = 
-                trimmedArg1.StartsWith('"') && 
-                trimmedArg1.EndsWith('"') ||
-                trimmedArg1.StartsWith('\'') && 
-                trimmedArg1.EndsWith('\'');
-
-            var secondArgQuoted = 
-                trimmedArg2.StartsWith('"') && 
-                trimmedArg2.EndsWith('"') ||
-                trimmedArg2.StartsWith('\'') && 
-                trimmedArg2.EndsWith('\'');
+            var firstArgQuoted = IsArgQuoted(lineArgs[1].Trim());
+            var secondArgQuoted = IsArgQuoted(lineArgs[2].Trim());
 
             if (!firstArgQuoted || !secondArgQuoted) {
                 return WriteErrorAndReturnBool(eMessage, returnBool: false);
@@ -115,7 +97,7 @@ namespace BrowserAutomationMaster.Parsing
         public static bool AddHeader(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
         {
             selectorString = "\"header-name\" \"header-value\"";
-            return LineValidationHelpers.ValidateTwoArgCommand(
+            return ValidateTwoArgCommand(
                 fileName, line, lineNumber, firstArg, lineArgs, ref selectorString
             );
         }
@@ -126,48 +108,38 @@ namespace BrowserAutomationMaster.Parsing
 
             if (!IsValidHeaderFormat(line))
             {
+                var firstArg = "add-headers";
+
                 return WriteErrorAndReturnBool(
-                    message:
-                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                        $"File: \"{fileName}\"\n" +
-                        $"Invalid header format on line {lineNumber}\n" +
-                        $"Line: {line}\n" +
-                        $"Valid Syntax: add-headers {selectorString}\n",
+                    message: GetValidationErrorMessage(fileName, line, lineNumber, firstArg, selectorString),
                     returnBool: false
-                 );
+                );
             }
             return true;
         }
 
-        public static bool BasicCommands(string fileName, string line, int lineNumber, string arg1, string[] lineArgs, ref string selectorString)
+        public static bool BasicCommands(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
         {
-            if (arg1.Contains("save-as-html"))
-            {
+            if (firstArg.Contains("save-as-html")) {
                 selectorString = "filename.html";
             }
 
-            else if (arg1.Equals("take-screenshot"))
-            {
+            else if (firstArg.Equals("take-screenshot")) {
                 selectorString = "filename.png";
             }
 
-            else if (arg1.Equals("select-option"))
-            {
+            else if (firstArg.Equals("select-option")) {
                 selectorString = "option-selector";
             }
             
-            else if (arg1.Equals("visit")) 
-            {
+            else if (firstArg.Equals("visit")) {
                 selectorString = "url";
             }
 
             else if (lineArgs.Length != 2 || !lineArgs[1].Trim().StartsWith('"') || !lineArgs[1].Trim().EndsWith('"'))
             {
                 return WriteErrorAndReturnBool(
-                    message:
-                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                        $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}\n" +
-                        $"Line: {line}\nValid Syntax: {arg1} \"{selectorString}\"\n",
+                    message: GetValidationErrorMessage(fileName, line, lineNumber, firstArg, selectorString),
                     returnBool: false
                 );
             }
@@ -175,13 +147,11 @@ namespace BrowserAutomationMaster.Parsing
             else if (lineArgs[0].Equals("visit") && !IsValidLinkFormat(lineArgs[1].Replace('"', ' ').Trim()))
             {
                 return WriteErrorAndReturnBool(
-                    message:
-                        $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                        $"File: \"{fileName}\"\nInvalid url format on line {lineNumber}\n" +
-                        $"Line: {line}\n",
+                    message: GetValidationErrorMessage(fileName, line, lineNumber, firstArg, selectorString),
                     returnBool: false
                 );
             }
+
             return true;
         }
 
@@ -208,16 +178,18 @@ namespace BrowserAutomationMaster.Parsing
                     $"Line {index - 2} -> {lines[index - 2]}\n" +
                     $"Line {index - 1} -> {lines[index - 1]}\n" +
                     $"Line {index} -> {line} <-- This is the line that's causing the issue.\n";
+                
+                var eMessage = string.Join(NLC, [
+                    $"BAM Manager (BAMM) ran into a BAMC validation error on line {index} of '{fileName}'.",
+                    NLC,
+                    "Error Log:",
+                    surroundingLines,
+                    "Compiler Error:",
+                    $"Block: {jsError}",
+                    "Please correct this and recompile."
+                ]);
 
-                WriteErrorAndReturnBool(
-                    message:
-                        $"BAM Manager (BAMM) ran into a BAMC validation error on line {index} of '{fileName}'.\n\n" +
-                        $"Error log:\n{surroundingLines}\n" +
-                        $"Compiler error:\n" +
-                        $"In the current block, on {jsError}\n\n" +
-                        $"Please correct this and recompile.",
-                    returnBool: false
-                );
+                WriteAndExit(eMessage, 1);
             }
 
             else if (line.StartsWith("start-javascript"))

@@ -1,5 +1,4 @@
-﻿using System;
-using BrowserAutomationMaster.Managers;
+﻿using BrowserAutomationMaster.Managers;
 using Spectre.Console;
 using static BrowserAutomationMaster.Managers.CommandManager;
 using static BrowserAutomationMaster.Messaging.Errors;
