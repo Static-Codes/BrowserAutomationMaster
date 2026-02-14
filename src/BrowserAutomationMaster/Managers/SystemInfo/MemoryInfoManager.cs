@@ -11,7 +11,7 @@ using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.SystemInfo
 {
     public struct MemoryInfo
     {
@@ -57,10 +57,10 @@ namespace BrowserAutomationMaster.Managers
                 return null;
             }
 
-            double total = (double)(memStatus.ullTotalPhys / (1024 * 1024));
-            double free = (double)(memStatus.ullAvailPhys / (1024 * 1024));
+            double total = memStatus.ullTotalPhys / (1024 * 1024);
+            double free = memStatus.ullAvailPhys / (1024 * 1024);
             double used = total - free;
-            double usedPercent = Math.Round((used / total) * 100.0, 2); // 100.0 is required to go from a double to a decimal to prevent the error below
+            double usedPercent = Math.Round(used / total * 100.0, 2); // 100.0 is required to go from a double to a decimal to prevent the error below
             double freePercent = Math.Round(100.0 - usedPercent, 2);  // The call is ambiguous between the following methods or properties: 'System.Math.Round(double, int)' and 'System.Math.Round(decimal, int)
 
             return new MemoryInfo()

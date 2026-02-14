@@ -7,11 +7,11 @@ using System.Runtime.Intrinsics.X86;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.RequiredCPUInstruction;
+using static BrowserAutomationMaster.Managers.SystemInfo.RequiredCPUInstruction;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.SystemInfo
 {
     public enum RequiredCPUInstruction
     {

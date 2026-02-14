@@ -23,6 +23,7 @@ using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.Parser;
 using BrowserAutomationMaster.Managers.OS.Unix.Linux;
+using BrowserAutomationMaster.Managers.SystemInfo;
 
 
 namespace BrowserAutomationMaster

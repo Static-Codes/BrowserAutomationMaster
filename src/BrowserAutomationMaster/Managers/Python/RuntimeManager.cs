@@ -1,5 +1,6 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.OS;
+using BrowserAutomationMaster.Managers.SystemInfo;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Diagnostics.CodeAnalysis;
