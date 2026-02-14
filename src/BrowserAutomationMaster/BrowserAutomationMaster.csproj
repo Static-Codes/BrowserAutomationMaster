@@ -87,7 +87,7 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'osx-x64'">
-		<EmbeddedResource Include="Helpers/macOS/free" />
+		<EmbeddedResource Include="Resources/macOS/free" />
 	</ItemGroup>
 	<!-- End of macOS Specific Logic -->
 
