@@ -248,11 +248,11 @@ namespace BrowserAutomationMaster.Managers.Python
 
             if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240)) 
             {
-                WriteErrorAndReturnBool
+                return WriteErrorAndReturnBool
                 (
                     string.Join(NLC, [
                         "BAMM for Windows currently supports all versions of Windows 10 and Windows 11.",
-                        "If you are trying to run BAMM from a "
+                        "If you are using a version older than Windows 10, please upgrade; all previous versions have reached End of Life."
                     ]),
                     returnBool: false
                 );
@@ -270,10 +270,13 @@ namespace BrowserAutomationMaster.Managers.Python
 
             if (!memoryInfo.HasValue)
             {
-                WriteAndExit(
-                    $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.\n\n" +
-                    $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
-                    $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary.",
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.",
+                        $"If this continues, please make a bug report at {ISSUES_LINK}\n\n" +
+                        $"Error log:\nMemoryInfoManager.HasEnoughMemory() returned an invalid dictionary."
+                    ]),
                     status: 1
                 );
             }
@@ -282,6 +285,7 @@ namespace BrowserAutomationMaster.Managers.Python
         private void ValidateScript()
         {
             SanitizedScriptPath = scriptFilePath.EndsWith(".py") ? scriptFilePath : string.Empty;
+
             if (string.IsNullOrEmpty(SanitizedScriptPath))
             {
                 WriteAndExit(
@@ -293,24 +297,24 @@ namespace BrowserAutomationMaster.Managers.Python
                 ); 
             }
 
-            PythonValidationResult result = ScriptValidationManager.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
+            var result = ScriptValidationManager.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
 
-            if (result.IsValid)
-            {
+            if (result.IsValid) {
                 return;
             }
 
-            if (Platforms.IsMacOS)
-            {
+            if (Platforms.IsMacOS) {
                 HandleVEnvExceptions(result.Errors);  // Will exit if an exception is found.
             }
 
-            WriteAndExit
+            WriteAndExit 
             (
-                message:
-                    $"BAM Manager (BAMM) was unable run the specified file as it contains syntax \n" +
-                    $"If you believe this is a bug, please make a bug report at {ISSUES_LINK}\n\n" +
-                    $"Error log:\n{result.Errors}'",
+                string.Join(NLC, [
+                    "BAM Manager (BAMM) was unable run the specified file as it contains atleast one syntax error.",
+                    $"If you believe this is a bug, please make a report at {ISSUES_LINK}",
+                    "Error Log:",
+                    result.Errors,
+                ]),
                 status: 1
             );
             
@@ -328,7 +332,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 };
                 await virtualEnvironment.RunScriptInVEnv(usingBrowserStack: usingBrowserstack);
             }
-            
+
             catch (Exception ex)
             {
                 WriteAndExit

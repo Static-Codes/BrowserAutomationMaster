@@ -79,8 +79,8 @@ namespace BrowserAutomationMaster.Managers.Common
                     message:
                         string.Join(NLC, [
                             "You're attempting to run BAM Manager (BAMM) on an unsupported CPU Architecture.",
-                            $"Current Architecture:{Platforms.CurrentArchitecture}{NLC}",
-                            "Supported Architecture:",
+                            $"Current Architecture: {Platforms.CurrentArchitecture}{NLC}",
+                            "Supported Architectures:",
                             $"{string.Join(NLC, ValidArchitectures)}"
                         ]),
                     status: 1
@@ -94,13 +94,11 @@ namespace BrowserAutomationMaster.Managers.Common
                         "BAM Manager (BAMM) supports ARM64 architecture, ",
                         "but performance for browser automation can vary widely depending on your specific ARM processor. ",
                         "Some lower-power ARM systems may experience degraded performance."
-                        ]
-                    )
+                    ])
                 );
             }
 
-            if (RuntimeManager.IsSupportedWindowsVersion())
-            {
+            if (RuntimeManager.IsSupportedWindowsVersion()) {
                 Platforms.IsWindows = true;
             }
 
@@ -115,13 +113,10 @@ namespace BrowserAutomationMaster.Managers.Common
                 Platforms.IsLinux = true;
                 Platforms.IsUnixLike = true;
                 Platforms.CurrentDistribution = DistroManager.DetermineDistro();
-                // This will be added in a later update.
-                // Platforms.CurrentDistribution = DistroManager.GetDistro.FromBase("elementary OS", DistroBase.Debian);
             }
 
             // Acts a fallthrough so the exception below is not thrown.
-            else if (Platforms.IsRaspi) 
-            {
+            else if (Platforms.IsRaspi) {
                 return;
             }
 
