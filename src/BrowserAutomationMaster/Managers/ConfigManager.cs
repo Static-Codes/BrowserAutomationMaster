@@ -1,4 +1,6 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -110,50 +112,38 @@ namespace BrowserAutomationMaster.Managers
 
                 configContents.AppendLine($"{sectionName}");
 
-                if (sectionName != "[overrides]")
-                {
-                    foreach (var property in properties)
-                    {
+                if (sectionName != "[overrides]") {
+                    foreach (var property in properties) {
                         configContents.AppendLine($"{property.Key} = {property.Value}");
                     }
+                    continue; // This continue statement negates the requirement for an else block below.
                 }
-                else
-                {
-                    configContents.AppendLine("; Only use this if you experience issues with one of the existing themes.");
-                    configContents.AppendLine();
-                    configContents.AppendLine(" ; @Override ForegroundColor = #FFFFFF");
-                    configContents.AppendLine(" ; @Override SuccessColor = #EEEEEE");
-                    configContents.AppendLine(" ; @Override WarningColor = #CCCCCC");
-                    configContents.AppendLine(" ; @Override ErrorColor = #AAAAAA");
-                    configContents.AppendLine(" ; @Override HighlightBackground = #010101");
-                    configContents.AppendLine(" ; @Override HighlightForeground = #020202");
-                    configContents.AppendLine(" ; @Override AccentColor = #040404");
-                    configContents.AppendLine();
-                    configContents.AppendLine(" ; @Override ForegroundColor = #FFFFFF");
-                    configContents.AppendLine(" ; @Override SuccessColor = #EEEEEE");
-                    configContents.AppendLine(" ; @Override WarningColor = #CCCCCC");
-                    configContents.AppendLine(" ; @Override ErrorColor = #AAAAAA");
-                    configContents.AppendLine(" ; @Override HighlightBackground = #010101");
-                    configContents.AppendLine(" ; @Override HighlightForeground = #020202");
-                    configContents.AppendLine(" ; @Override AccentColor = #040404");
-                    configContents.AppendLine();
-                    configContents.AppendLine(" ; @Override ForegroundColor = RGB(10, 10, 0)");
-                    configContents.AppendLine(" ; @Override SuccessColor = RGB(20, 20, 20)");
-                    configContents.AppendLine(" ; @Override WarningColor = RGB(30, 30, 30)");
-                    configContents.AppendLine(" ; @Override ErrorColor = RGB(40, 40, 40)");
-                    configContents.AppendLine(" ; @Override HighlightBackground = RGB(50, 50, 50)");
-                    configContents.AppendLine(" ; @Override HighlightForeground = RGB(60, 60, 60)");
-                    configContents.AppendLine(" ; @Override AccentColor = RGB(70, 70, 70)");
-                    configContents.AppendLine(" ; @Override ForegroundColor = FFFF/FFFF/FFFF");
-                    configContents.AppendLine();
-                    configContents.AppendLine(" ; @Override SuccessColor = 0000/0000/0000");
-                    configContents.AppendLine(" ; @Override WarningColor = 0000/0000/0000");
-                    configContents.AppendLine(" ; @Override ErrorColor = 0000/0000/0000");
-                    configContents.AppendLine(" ; @Override HighlightBackground = 0000/0000/0000");
-                    configContents.AppendLine(" ; @Override HighlightForeground = 0000/0000/0000");
-                    configContents.AppendLine(" ; @Override AccentColor = 0000/0000/0000");
 
-                }
+                configContents.AppendLine("; Only use this if you experience issues with one of the existing themes.");
+                configContents.AppendLine();
+                configContents.AppendLine(" ; @Override ForegroundColor = #FFFFFF");
+                configContents.AppendLine(" ; @Override SuccessColor = #EEEEEE");
+                configContents.AppendLine(" ; @Override WarningColor = #CCCCCC");
+                configContents.AppendLine(" ; @Override ErrorColor = #AAAAAA");
+                configContents.AppendLine(" ; @Override HighlightBackground = #010101");
+                configContents.AppendLine(" ; @Override HighlightForeground = #020202");
+                configContents.AppendLine(" ; @Override AccentColor = #040404");
+                configContents.AppendLine();
+                configContents.AppendLine(" ; @Override ForegroundColor = RGB(10, 10, 0)");
+                configContents.AppendLine(" ; @Override SuccessColor = RGB(20, 20, 20)");
+                configContents.AppendLine(" ; @Override WarningColor = RGB(30, 30, 30)");
+                configContents.AppendLine(" ; @Override ErrorColor = RGB(40, 40, 40)");
+                configContents.AppendLine(" ; @Override HighlightBackground = RGB(50, 50, 50)");
+                configContents.AppendLine(" ; @Override HighlightForeground = RGB(60, 60, 60)");
+                configContents.AppendLine(" ; @Override AccentColor = RGB(70, 70, 70)");
+                configContents.AppendLine(" ; @Override ForegroundColor = FFFF/FFFF/FFFF");
+                configContents.AppendLine();
+                configContents.AppendLine(" ; @Override SuccessColor = 0000/0000/0000");
+                configContents.AppendLine(" ; @Override WarningColor = 0000/0000/0000");
+                configContents.AppendLine(" ; @Override ErrorColor = 0000/0000/0000");
+                configContents.AppendLine(" ; @Override HighlightBackground = 0000/0000/0000");
+                configContents.AppendLine(" ; @Override HighlightForeground = 0000/0000/0000");
+                configContents.AppendLine(" ; @Override AccentColor = 0000/0000/0000");
 
                 // Adds trailing newline to all sections except the final one
                 if (sectionEntry.Key != sortedSections.Last().Key) {
@@ -176,52 +166,54 @@ namespace BrowserAutomationMaster.Managers
 
         private static object? DoCast(string value, Type targetType)
         {
-            if (targetType == typeof(bool))
-            {
+            if (targetType == typeof(bool)) {
                 return bool.Parse(value);
             }
-            else if (targetType == typeof(int))
-            {
+
+            else if (targetType == typeof(int)) {
                 return int.Parse(value);
             }
-            else if (targetType == typeof(string))
-            {
+
+            else if (targetType == typeof(string)) {
                 return value;
             }
-            else if (targetType == typeof(Theme))
-            {
-                var themeName = char.ToUpper(value[0]) + value[1..] + "Theme";
-                var bindingAttr = BindingFlags.Public | BindingFlags.Static;
 
+            else if (targetType == typeof(Theme)) {
+                var themeName = value.ToTitle() + "Theme";
+                var bindingAttr = BindingFlags.Public | BindingFlags.Static;
+                
                 var exc = new ArgumentException($"Theme '{value}' not found in ThemeManager (expected field '{themeName}').");
-                FieldInfo? field = typeof(ThemeManager).GetField(themeName, bindingAttr) ?? throw exc;
+                var field = typeof(ThemeManager).GetField(themeName, bindingAttr) ?? throw exc;
                 return field.GetValue(null);
             }
-            else if (targetType.IsEnum)
-            {
+
+            else if (targetType.IsEnum) {
                 return Enum.Parse(targetType, value, ignoreCase: true);
             }
-            else
-            {
-                throw new InvalidCastException(
-                    $"Cannot convert value '{value}' to type '{targetType.Name}', as it's currently not supported.\n" +
-                    "Please add this feature in ConfigManager.DoCast()"
-                );
-            }
+
+            throw new InvalidCastException(
+                $"Cannot convert value '{value}' to type '{targetType.Name}', as it's currently not supported.{NLC}" +
+                "Please add this feature in ConfigManager.DoCast()");
         }
+
         private static void EnsureConfigExists()
         {
             if (!ConfigDirectoryExists())
             {
-                try
-                {
+                try {
                     Directory.CreateDirectory(ConfigDirectory);
                 }
+
                 catch (Exception ex)
                 {
                     WriteAndExit(
-                        "Failed to create config directory.\n'" +
-                        $"{ConfigDirectory}'\nError: {ex.Message}",
+                        string.Join(NLC, [
+                            "Failed to create config file at:",
+                            ConfigFilePath,
+                            $"Please make a bug report at {ISSUES_LINK}",
+                            "Error Log:",
+                            ex.Message,
+                        ]),
                         status: 1
                     );
                 }
@@ -236,12 +228,17 @@ namespace BrowserAutomationMaster.Managers
                     File.WriteAllText(ConfigFilePath, configContents);
                     return;
                 }
+
                 catch (Exception ex)
                 {
                     WriteAndExit(
-                        "Failed to create config file.\n'" +
-                        $"{ConfigFilePath}'\nError: {ex.Message}\n" +
-                        $"Please make a bug report at {ISSUES_LINK}",
+                        string.Join(NLC, [
+                            "Failed to create config file at:",
+                            ConfigFilePath,
+                            $"Please make a bug report at {ISSUES_LINK}",
+                            "Error Log:",
+                            ex.Message,
+                        ]),
                         status: 1
                     );
                 }
@@ -264,19 +261,23 @@ namespace BrowserAutomationMaster.Managers
 
         private static string[]? GetPartsOfLine(string trimmedLine, string originalLine)
         {
-            // Learned about spans and now I feel the need to refactor all string usage to ReadonlySpan<char>
-            // Will be added to a future release
             if (OverrideLineHasComment(originalLine)) {
                 return null; // Returning null means the line was skipped this is intended.
             }
 
             ReadOnlySpan<char> span = trimmedLine.AsSpan();
-            string[] parts;
+
+            var overrideTag = "@Override ";
+            var tagLength = overrideTag.Length;
 
             // Skips "@Override " as its only needed to identify the command type.
-            if (span.StartsWith("@Override ")) {
-                parts = [.. trimmedLine[10..].Split('=').Select(part => part.Trim())];
-                return parts;
+            if (span.StartsWith(overrideTag)) 
+            {
+                return
+                    trimmedLine[tagLength..] // Removes the overrideTag
+                    .Split('=') // Splits the line into PropertyName, PropertyValue.
+                    .Select(part => part.Trim())
+                    .ToArray();
             }
 
             int index = trimmedLine.IndexOf('=');
@@ -445,7 +446,12 @@ namespace BrowserAutomationMaster.Managers
         {
             bool hasComment = false;
             char commentChar = ';';
-            if (line == null) { return true; } // If a line == null returning true will have it skipped.
+
+            // If a line is null, it is treated as a comment, and skipped.
+            if (line == null) { 
+                return true; 
+            }
+            
             foreach (char c in line)
             {
                 if (char.IsWhiteSpace(c)) {
@@ -457,6 +463,7 @@ namespace BrowserAutomationMaster.Managers
                     break;
                 }
             }
+
             return hasComment;
         } 
         private static ConfigOverrideResult? ParseOverrideLine(string line)
@@ -646,5 +653,10 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
         }    
+
+        private static void ValidateConfigContents(FileStream configContents)
+        {
+
+        }
     }
 }

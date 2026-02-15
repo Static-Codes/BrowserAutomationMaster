@@ -124,6 +124,7 @@
 		<Delete Files="$(_FullResourcePath)" Condition="Exists('$(_FullResourcePath)')" />
 
 		<!-- Downloading the file located at the specified url, to the provided output path. -->
+		<!-- Handle exit code 6, which means no network connection is present. -->
 		<Exec 
         	Command="curl -fLs '$(ResourceURL)' -o '$(_FullResourcePath)'" 
         	StandardOutputImportance="low"
@@ -173,6 +174,4 @@
 		<PackageReference Include="TextCopy" Version="6.2.1" />
 		<PackageReference Include="YamlDotNet" Version="16.3.0" />
 	</ItemGroup>
-
-
 </Project>
