@@ -55,7 +55,7 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         }
 
         // ========================================================================
-        // Hardcoded Data (Derived from browserstack.json)
+        // Hardcoded Data (Originally in browserstack.json)
         // ========================================================================
 
         public static readonly List<BrowserDefinition> AvailableBrowsers =

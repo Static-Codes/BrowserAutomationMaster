@@ -141,10 +141,10 @@ namespace BrowserAutomationMaster.Compilation
             }
 
             // This function will exit if a null value is reached so no worries about a null check here
-            string sVersion = PyPiPackageManager.GetVersion("selenium", pythonVersion);
-            string swVersion = PyPiPackageManager.GetVersion("selenium-wire", pythonVersion);
-            string wmVersion = PyPiPackageManager.GetVersion("webdriver_manager", pythonVersion);
-            var bsVersion = PyPiPackageManager.GetVersion("browserstack-sdk", pythonVersion);
+            string sVersion = PyPi.GetVersion("selenium", pythonVersion);
+            string swVersion = PyPi.GetVersion("selenium-wire", pythonVersion);
+            string wmVersion = PyPi.GetVersion("webdriver_manager", pythonVersion);
+            var bsVersion = PyPi.GetVersion("browserstack-sdk", pythonVersion);
 
             var sdkPackage = usingBrowserstack ? $"browserstack-sdk=={bsVersion}" : string.Empty;
             var sdkLocalPackage = usingBrowserstack ? $"browserstack-local >= 1.2.3" : string.Empty;

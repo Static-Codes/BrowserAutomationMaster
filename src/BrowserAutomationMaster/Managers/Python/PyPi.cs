@@ -24,11 +24,11 @@ namespace BrowserAutomationMaster.Managers.Python
         }
     }
     
-    public partial class PyPiPackageManager
+    public partial class PyPi
     {
         private readonly static string baseURL = "https://pypi.org/project";
         private readonly static string[] SupportedPythonVersions = [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ];
-        private static PyPiPackage[] packageData = 
+        private static readonly PyPiPackage[] packageData = 
         [
             new PyPiPackage(
                 PackageName: "browserstack-sdk", 
