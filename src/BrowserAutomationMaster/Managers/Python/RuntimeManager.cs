@@ -321,13 +321,14 @@ namespace BrowserAutomationMaster.Managers.Python
             try
             {
                 ValidateScript();
-                var vEnvManager = usingBrowserstack switch
+                var virtualEnvironment = usingBrowserstack switch
                 {
-                    true => VEnvManager.CheckBSConfigAtRuntime(scriptFilePath),
-                    false => new VEnvManager(InterpreterPath, scriptFilePath),
+                    true => VirtualEnvironment.CheckBSConfigAtRuntime(scriptFilePath),
+                    false => new VirtualEnvironment(InterpreterPath, scriptFilePath),
                 };
-                await vEnvManager.RunScriptInVEnv(usingBrowserStack: usingBrowserstack);
+                await virtualEnvironment.RunScriptInVEnv(usingBrowserStack: usingBrowserstack);
             }
+            
             catch (Exception ex)
             {
                 WriteAndExit

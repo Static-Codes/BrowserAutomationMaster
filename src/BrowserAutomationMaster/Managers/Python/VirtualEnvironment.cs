@@ -18,7 +18,7 @@ namespace BrowserAutomationMaster.Managers.Python
     /// </summary>
     /// <param name="InterpreterPath">Path to the Python Interpreter Executable.</param>
     /// <param name="ScriptFilePath">Path to the Script being ran in the Virtual Environment.</param>
-    internal class VEnvManager(string InterpreterPath, string ScriptFilePath)
+    internal class VirtualEnvironment(string InterpreterPath, string ScriptFilePath)
     {
         string VEnvPath { get; set; } = string.Empty;
         private string? ParentDirectory = null;
@@ -28,7 +28,7 @@ namespace BrowserAutomationMaster.Managers.Python
             ParentDirectory ??= Path.GetDirectoryName(ScriptFilePath);
 
             // UnixLike: bin/browserstack-sdk
-            // Windows: Scripts/browserstack-sdk.exe
+            // Windows: Scripts\browserstack-sdk.exe
             return Path.Combine(
                 // Null forgiveness is used here due to the coalesce operation above. 
                 GetProjectVEnvPath(ParentDirectory!), 
@@ -81,10 +81,10 @@ namespace BrowserAutomationMaster.Managers.Python
             }
         }
         /// <summary>
-        /// Returns a VEnvManager to run the specified script using BrowserStack
+        /// Returns a VirtualEnvironment object to run the specified script using BrowserStack
         /// </summary>
         /// <param name="scriptFilePath">The desired script to be ran.</param>
-        public static VEnvManager CheckBSConfigAtRuntime(string scriptFilePath)
+        public static VirtualEnvironment CheckBSConfigAtRuntime(string scriptFilePath)
         {
             var config = LoadConfig();
             
@@ -97,7 +97,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 );
             }
 
-            return new VEnvManager("browserstack-sdk python", scriptFilePath);
+            return new VirtualEnvironment("browserstack-sdk python", scriptFilePath);
         }
 
         /// <summary>
@@ -445,7 +445,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     message:
                         "Unable to run the requested test, please try again.\n" +
                        $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n" +
-                        "Error log:\nParentDirectory == null in VEnvManager.RunScript()",
+                        "Error log:\nParentDirectory == null in VirtualEnvironment.RunScript()",
                     status: 1
                 );
             }
@@ -463,7 +463,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         "Unable to run the requested test, please try again.",
                         $"If this issue persists, please make a bug report at {ISSUES_LINK}",
                         "Error log:",
-                        "StackConfig == null in VEnvManager.RunScript()"
+                        "StackConfig == null in VirtualEnvironment.RunScript()"
                     ]),
                     status: 1
                 );

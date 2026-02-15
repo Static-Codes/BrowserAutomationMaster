@@ -36,7 +36,7 @@ namespace BrowserAutomationMaster.Compilation
 
         private static string pythonScriptFileName = "";  // Modified by SetScriptName();
 
-        private static string pythonVersion = "3.9"; // Used in VEnvManager.InstallGlobalPackages
+        private static string pythonVersion = "3.9"; // Used in VirtualEnvironment.InstallGlobalPackages
 
         // Default value if inhouse function fails.
         private static string requestUserAgent = DEFAULT_USER_AGENT;
