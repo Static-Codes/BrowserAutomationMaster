@@ -1,4 +1,4 @@
-namespace BrowserAutomationMaster.Managers.OS
+namespace BrowserAutomationMaster.Managers.OS.Generic
 {
     public class AppInfo
     {

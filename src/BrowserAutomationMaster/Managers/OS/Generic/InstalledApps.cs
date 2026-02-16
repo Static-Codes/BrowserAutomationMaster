@@ -5,7 +5,7 @@ using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Managers.OS
+namespace BrowserAutomationMaster.Managers.OS.Generic
 {
     public static class InstalledApps
     {

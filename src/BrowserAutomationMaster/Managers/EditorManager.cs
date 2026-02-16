@@ -5,10 +5,10 @@ using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Input;
 using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Managers.OS.Generic;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Text;
-using BrowserAutomationMaster.Managers.OS;
 
 
 namespace BrowserAutomationMaster.Managers

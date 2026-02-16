@@ -1,4 +1,5 @@
 using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.OS.Generic;
 using Microsoft.Win32;
 using Spectre.Console;
 using System.Diagnostics;

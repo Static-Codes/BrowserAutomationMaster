@@ -2,8 +2,10 @@
 using BrowserAutomationMaster.Compilation;
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.OS;
+using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
+using BrowserAutomationMaster.Managers.SystemInfo;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.AnsiManager;
@@ -15,15 +17,13 @@ using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.EmbeddedResourceManager;
 using static BrowserAutomationMaster.Managers.LocalServerManager;
-using static BrowserAutomationMaster.Managers.OS.InstalledApps;
+using static BrowserAutomationMaster.Managers.OS.Generic.InstalledApps;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Menu;
 using static BrowserAutomationMaster.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.Parser;
-using BrowserAutomationMaster.Managers.OS.Unix.Linux;
-using BrowserAutomationMaster.Managers.SystemInfo;
 
 
 namespace BrowserAutomationMaster

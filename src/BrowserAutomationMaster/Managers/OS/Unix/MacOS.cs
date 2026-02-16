@@ -1,5 +1,6 @@
-using static BrowserAutomationMaster.Managers.Common.RegexManager;
+using BrowserAutomationMaster.Managers.OS.Generic;
 using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Messaging.Errors;
 
