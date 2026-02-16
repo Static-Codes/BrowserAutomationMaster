@@ -239,23 +239,12 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static int GetCoreCount()
         {
-            if (Platforms.IsWindows)
-            {
-                return Win.GetPhysicalCoreCount();
-            }
-
-            if (Platforms.IsLinux)
-            {
-                return GetPhysicalCoreCountLinux();
-            }
-
-            if (Platforms.IsMacOS)
-            {
-                return GetPhysicalCoreCountMacOS();
-            }
-
-            ThrowUnsupportedPlatformException();
-            return 0; // This wont be executed, roslyn has no idea an exception has been thrown, so this is required.
+            return (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
+                (true, _, _) => Win.GetPhysicalCoreCount(),
+                (_, true, _) => GetPhysicalCoreCountMacOS(),
+                (_, _, true) => GetPhysicalCoreCountLinux(),
+                _ => GetPhysicalCoreException()
+            };
         }
 
         private static (int, int) GetCPUTopologyLinux()
@@ -392,6 +381,13 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
 
             return coreCount;
 
+        }
+
+        private static int GetPhysicalCoreException() 
+        {
+            ThrowUnsupportedPlatformException();
+            // This wont be executed but due to the nature of rosyln, this is required, but will never be executed.
+            return 1;
         }
 
         public static object HandleSingleLineProcessOutput(string actionString, List<string> STDOut, Type returnType)
