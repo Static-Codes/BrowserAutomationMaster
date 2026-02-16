@@ -16,7 +16,6 @@ using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 using static System.Runtime.InteropServices.Architecture;
-using BrowserAutomationMaster.Managers.AppManager;
 
 namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
 {

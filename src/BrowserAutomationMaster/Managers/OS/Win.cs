@@ -1,4 +1,3 @@
-using BrowserAutomationMaster.Managers.AppManager;
 using BrowserAutomationMaster.Messaging;
 using Microsoft.Win32;
 using Spectre.Console;

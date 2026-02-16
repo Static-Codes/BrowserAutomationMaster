@@ -2,7 +2,6 @@ using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Messaging.Errors;
-using BrowserAutomationMaster.Managers.AppManager;
 
 namespace BrowserAutomationMaster.Managers.OS.Unix
 {
