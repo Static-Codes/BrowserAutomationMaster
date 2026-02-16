@@ -274,14 +274,16 @@ namespace BrowserAutomationMaster.Managers
             if (span.StartsWith(overrideTag)) 
             {
                 return
-                    trimmedLine[tagLength..] // Removes the overrideTag
-                    .Split('=') // Splits the line into PropertyName, PropertyValue.
-                    .Select(part => part.Trim())
-                    .ToArray();
+                    [.. 
+                        trimmedLine[tagLength..] // Removes the overrideTag
+                        .Split('=') // Splits the line into PropertyName, PropertyValue.
+                        .Select(part => part.Trim())
+                    ];
             }
 
             int index = trimmedLine.IndexOf('=');
             
+            // Returns the parts of the lines if the index is greater than one, or the whole line if not
             return index > 0 ? [trimmedLine[..index], trimmedLine[(index + 1)..]] : [trimmedLine];
         }
 
@@ -357,9 +359,13 @@ namespace BrowserAutomationMaster.Managers
 
         private static void LogOverrideError(string originalLine, string[] splitLines)
         {
-            string message = $"{NLC}Invalid override format. Expected '@Override PropertyName = value' " +
-                            $"where PropertyName is one of the supported color properties and value is a valid color format.{NLC}{NLC}" +
-                            "For more information please check {}";
+            string message = string.Join(NLC, [
+                "", // Leading NLC char inserted here
+                "Invalid override format.",
+                "Expected: '@Override PropertyName = value'",
+                $"Where PropertyName is one of the supported color properties and value is a valid color format." +
+                $"For more information please visit {DOCUMENTATION_LINK}"
+            ]);
 
             Write
             (
