@@ -1,5 +1,6 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using System.IO.Compression;
+using System.Security;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
@@ -105,7 +106,7 @@ namespace BrowserAutomationMaster.Managers.Common
                     status: 1
                 );
             }
-            catch (System.Security.SecurityException e)
+            catch (SecurityException e)
             {
                 WriteAndExit(
                     message:
@@ -171,7 +172,7 @@ namespace BrowserAutomationMaster.Managers.Common
                     status: 1
                 );
             }
-            catch (System.Security.SecurityException)
+            catch (SecurityException)
             {
                 WriteAndExit(
                     message:
@@ -208,29 +209,18 @@ namespace BrowserAutomationMaster.Managers.Common
             }
             catch (Exception)
             {
-                Write(
-                    message: $"BAM Manager (BAMM) was unable to create the userScripts directory:\n{path}"
+                Write
+                (
+                    message: string.Join(NLC, [
+                        "BAM Manager (BAMM) was unable to create the userScripts directory:",
+                        path
+                    ])
                 );
             }
         }
 
         public static string GetAppDataDirectory()
         {
-            
-            // Warning.Write(string.Join(NLC, [
-            //         "---------------- PLATFORM CLASS DEBUG INFO ----------------",
-            //         $"IsARMel: {Platforms.IsARMel}",
-            //         $"IsARMhf: {Platforms.IsARMhf}",
-            //         $"IsChromeOS: {Platforms.IsChromeOS}",
-            //         $"IsLinux: {Platforms.IsLinux}",
-            //         $"IsMacOS: {Platforms.IsMacOS}",
-            //         $"IsRaspi: {Platforms.IsRaspi}",
-            //         $"Raspi Model: {Platforms.GetRaspiModelName()}",
-            //         $"IsUnixLike: {Platforms.IsUnixLike}",
-            //         $"IsWindows: {Platforms.IsWindows}",
-            //         NLC, 
-            //         NLC,
-            //     ]));
 
             string appName = "BrowserAutomationMaster";
 
