@@ -15,7 +15,7 @@ using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
-using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
+using static BrowserAutomationMaster.Managers.Python.Runtime;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -1085,7 +1085,7 @@ namespace BrowserAutomationMaster.Compilation
             Warning.Write("RunOnCompile is set to true, starting runtime..");
             Thread.Sleep(400);
             
-            var runtimeManager = new RuntimeManager(path);
+            var runtimeManager = new Runtime(path);
             await runtimeManager.RunScript(usingBrowserstack);
             return true;
         }

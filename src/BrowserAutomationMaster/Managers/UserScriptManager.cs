@@ -191,7 +191,7 @@ namespace BrowserAutomationMaster.Managers
                     break;
 
                 case "run":
-                    RuntimeManager runtimeManager = new(scriptFilePath: scriptPath);
+                    Runtime runtimeManager = new(scriptFilePath: scriptPath);
                     await runtimeManager.RunScript(Transpiler.GetBrowserStackStatus());
                     break;
 

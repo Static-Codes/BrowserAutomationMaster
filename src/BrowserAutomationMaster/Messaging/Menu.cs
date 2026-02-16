@@ -207,7 +207,7 @@ namespace BrowserAutomationMaster.Messaging
         
         public static KeyValuePair<MenuOption, string> Run() 
         {
-            var selectedFile = RuntimeManager.HandleUserScriptChoice();
+            var selectedFile = Runtime.HandleUserScriptChoice();
             return KeyValuePair.Create(
                 key: MenuOption.Run, 
                 value: selectedFile

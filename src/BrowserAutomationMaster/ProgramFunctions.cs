@@ -518,7 +518,7 @@ namespace BrowserAutomationMaster
             }
 
             if (doHardwareCheck) {
-                await RuntimeManager.DoRuntimeCheck();
+                await Runtime.DoRuntimeCheck();
                 return;
             }
 
@@ -528,10 +528,10 @@ namespace BrowserAutomationMaster
             else 
             {
                 CPUInfoManager cpuInfoManager = new();
-                RuntimeManager.SetCoreCount(cpuInfoManager.Cores);
+                Runtime.SetCoreCount(cpuInfoManager.Cores);
             }
 
-            await RuntimeManager.SetMemoryInfo();
+            await Runtime.SetMemoryInfo();
             
         }
 
@@ -578,7 +578,7 @@ namespace BrowserAutomationMaster
 
             if (pArgs.Length == 2 && File.Exists(pArgs[1]))
             {
-                var runtimeManager = new RuntimeManager(pArgs[1]);
+                var runtimeManager = new Runtime(pArgs[1]);
                 await runtimeManager.RunScript();
             }
 
@@ -718,7 +718,7 @@ namespace BrowserAutomationMaster
 
         public static async Task Run(KeyValuePair<MenuOption, string> MenuResult)
         {
-            RuntimeManager runtimeManager = new(MenuResult.Value);
+            Runtime runtimeManager = new(MenuResult.Value);
             // CheckBrowserStackStatus();
             await runtimeManager.RunScript(GetBrowserStackStatus());
         }

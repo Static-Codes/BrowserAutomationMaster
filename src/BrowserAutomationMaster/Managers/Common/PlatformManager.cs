@@ -98,11 +98,11 @@ namespace BrowserAutomationMaster.Managers.Common
                 );
             }
 
-            if (RuntimeManager.IsSupportedWindowsVersion()) {
+            if (Runtime.IsSupportedWindowsVersion()) {
                 Platforms.IsWindows = true;
             }
 
-            else if (RuntimeManager.IsSupportedOSXVersion())
+            else if (Runtime.IsSupportedOSXVersion())
             {
                 Platforms.IsMacOS = true;
                 Platforms.IsUnixLike = true;

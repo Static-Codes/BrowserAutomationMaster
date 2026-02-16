@@ -14,7 +14,7 @@ using static BrowserAutomationMaster.Messaging.Success;
 namespace BrowserAutomationMaster.Managers.Python
 {
     // This class is responsible for executing the compiled python scripts.
-    public class RuntimeManager(string scriptFilePath)
+    public class Runtime(string scriptFilePath)
     {
         private string SanitizedScriptPath { get; set; } = string.Empty;
         

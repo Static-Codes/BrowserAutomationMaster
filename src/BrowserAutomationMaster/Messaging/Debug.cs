@@ -4,7 +4,7 @@ using BrowserAutomationMaster.Managers.OS.Unix;
 using BrowserAutomationMaster.Managers.SystemInfo;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
-using static BrowserAutomationMaster.Managers.Python.RuntimeManager;
+using static BrowserAutomationMaster.Managers.Python.Runtime;
 
 namespace BrowserAutomationMaster.Messaging
 {
