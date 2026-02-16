@@ -23,7 +23,7 @@ using static System.Text.Encoding;
 
 namespace BrowserAutomationMaster.Managers
 {
-    public class LocalServerManager
+    public class GUIServer
     {
         const string DEFAULT_PORT = "8008";
         private readonly static int MINIMUM_GUI_MEMORY_MB = 2048;
@@ -542,7 +542,7 @@ namespace BrowserAutomationMaster.Managers
                 }
                 file.Close();
                 var successMessage = UTF8.GetBytes($"{{ \"success\": true, \"message\": \"Exported {fileName} successfully to {scriptPath}!\"}}");
-                await LocalServerManager.WriteResponse(response, successMessage);
+                await GUIServer.WriteResponse(response, successMessage);
             }
             catch (Exception ex)
             {
@@ -665,9 +665,9 @@ namespace BrowserAutomationMaster.Managers
 
         public static async Task Terminate(HttpListenerResponse response) 
         {
-            await LocalServerManager.WriteResponse(response, UTF8.GetBytes("{ \"terminated\": true }"));
+            await GUIServer.WriteResponse(response, UTF8.GetBytes("{ \"terminated\": true }"));
             await Task.Delay(50);
-            LocalServerManager.StopExecution();
+            GUIServer.StopExecution();
         }
 
         // This is fully functional but was removed for time sake.
@@ -834,7 +834,7 @@ namespace BrowserAutomationMaster.Managers
                     message = UTF8.GetBytes($"{{\"success\": false, \"error\": \"Please check BAMM's output for more information.\"}}");
                 }
 
-                await LocalServerManager.WriteResponse(response, message);
+                await GUIServer.WriteResponse(response, message);
                 response.Close();
                 responseHandled = true;
             }
@@ -873,7 +873,7 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
-            await LocalServerManager.WriteResponse(response, responseBytes);
+            await GUIServer.WriteResponse(response, responseBytes);
 
             
         }
@@ -920,7 +920,7 @@ namespace BrowserAutomationMaster.Managers
         {
             var invalidResp = JsonSerializer.Serialize(Error(error));
             var respBytes = UTF8.GetBytes(invalidResp);
-            await LocalServerManager.WriteResponse(response, respBytes);
+            await GUIServer.WriteResponse(response, respBytes);
         }
 
         public static async Task HandleValidResponse(HttpListenerResponse response, Dictionary<string, string> items)
@@ -929,7 +929,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 var validRespObj = JsonSerializer.Serialize(Success(items));
                 var validRespBytes = UTF8.GetBytes(validRespObj);
-                await LocalServerManager.WriteResponse(response, validRespBytes);
+                await GUIServer.WriteResponse(response, validRespBytes);
             }
             catch (Exception ex)
             {

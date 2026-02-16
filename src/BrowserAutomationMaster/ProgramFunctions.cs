@@ -16,7 +16,7 @@ using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.EmbeddedResourceManager;
-using static BrowserAutomationMaster.Managers.LocalServerManager;
+using static BrowserAutomationMaster.Managers.GUIServer;
 using static BrowserAutomationMaster.Managers.OS.Generic.InstalledApps;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.UpdateManager;
