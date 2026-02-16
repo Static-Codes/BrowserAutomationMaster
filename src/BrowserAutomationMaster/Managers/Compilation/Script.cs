@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+﻿using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Compilation
+namespace BrowserAutomationMaster.Managers.Compilation
 {
     public class Script
     {

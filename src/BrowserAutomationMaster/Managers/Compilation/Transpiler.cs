@@ -9,7 +9,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using static BrowserAutomationMaster.Compilation.BrowserFunctions;
+using static BrowserAutomationMaster.Managers.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
@@ -21,7 +21,7 @@ using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
-namespace BrowserAutomationMaster.Compilation
+namespace BrowserAutomationMaster.Managers.Compilation
 {
 
     public partial class Transpiler()

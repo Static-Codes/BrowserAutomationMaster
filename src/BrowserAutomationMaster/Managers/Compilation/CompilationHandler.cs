@@ -2,13 +2,13 @@
 using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using static BrowserAutomationMaster.Compilation.BrowserFunctions;
-using static BrowserAutomationMaster.Compilation.Transpiler;
+using static BrowserAutomationMaster.Managers.Compilation.BrowserFunctions;
+using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
-namespace BrowserAutomationMaster.Compilation
+namespace BrowserAutomationMaster.Managers.Compilation
 {
     public static class CompilationHandler
     {

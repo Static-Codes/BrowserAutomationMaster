@@ -1,4 +1,4 @@
-﻿using BrowserAutomationMaster.Compilation;
+﻿using BrowserAutomationMaster.Managers.Compilation;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;

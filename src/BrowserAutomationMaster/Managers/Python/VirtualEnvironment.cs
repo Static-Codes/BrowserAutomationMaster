@@ -2,10 +2,10 @@
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Text;
-using static BrowserAutomationMaster.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
+using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.InstanceManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;

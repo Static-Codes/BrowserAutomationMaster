@@ -1,11 +1,10 @@
-﻿using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Messaging;
+﻿using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Compilation
+namespace BrowserAutomationMaster.Managers.Compilation
 {
     public partial class BAMConfig(string filePath)
     {

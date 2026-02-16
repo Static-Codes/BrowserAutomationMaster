@@ -2,7 +2,7 @@
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Compilation
+namespace BrowserAutomationMaster.Managers.Compilation
 {
     internal class BrowserFunctions
     {
