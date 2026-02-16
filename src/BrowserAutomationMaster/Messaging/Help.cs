@@ -1,6 +1,7 @@
-﻿using BrowserAutomationMaster.Managers;
+﻿using BrowserAutomationMaster.Managers.Common;
 using Spectre.Console;
-using static BrowserAutomationMaster.Managers.CommandManager;
+using static BrowserAutomationMaster.Managers.Common.Commands;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
@@ -32,10 +33,12 @@ namespace BrowserAutomationMaster.Messaging
                 var exArray = GetExamples(command);
                 var examples = exArray.Length != 0 ? string.Join("\n", exArray) : "Not Found";
                 WriteSuccessMessage(
-                    $"\nCommand: {command}\n" +
-                    $"\nType: {CommandManager.GetType(command)}" + 
-                    $"\n\nDescription:\n{GetDescription(command)}" +
-                    $"\n\nExamples:\n{Markup.Escape(examples)}\n"
+                    string.Join(NLC, [
+                        $"\nCommand: {command}\n" +
+                        $"\nType: {Commands.GetType(command)}" + 
+                        $"\n\nDescription:\n{GetDescription(command)}" +
+                        $"\n\nExamples:\n{Markup.Escape(examples)}\n"
+                    ])
                 );
             }
         }

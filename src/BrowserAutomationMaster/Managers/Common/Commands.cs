@@ -2,7 +2,7 @@
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Common
 {
     public class Command(string name, string description, string[] examples, CommandType type)
     {
@@ -11,6 +11,7 @@ namespace BrowserAutomationMaster.Managers
         public string[] Examples { get; private init; } = examples;
         public CommandType Type { get; private init; } = type;
     }
+
     public enum CommandType
     {
         Action = 0,
@@ -19,7 +20,7 @@ namespace BrowserAutomationMaster.Managers
         Feature = 3,
     }
 
-    public static class CommandManager
+    public static class Commands
     {
         public static readonly List<Command> CommandList = new()
         {
