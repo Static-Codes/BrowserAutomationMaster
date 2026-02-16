@@ -6,7 +6,7 @@ using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using BrowserAutomationMaster.Managers.OS.Generic;
 
-namespace BrowserAutomationMaster.Helpers
+namespace BrowserAutomationMaster.Managers.Helpers
 {
     public enum ApplicationNames
     {

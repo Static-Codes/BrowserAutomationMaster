@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Reflection;
 
-namespace BrowserAutomationMaster.Helpers
+namespace BrowserAutomationMaster.Managers.Helpers
 {
     public static class ReflectionHelper
     {

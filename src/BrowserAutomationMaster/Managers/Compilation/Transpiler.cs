@@ -1,6 +1,5 @@
-﻿using BrowserAutomationMaster.Helpers;
-using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Managers.Common;
+﻿using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;

@@ -1,13 +1,13 @@
 ﻿using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 
-namespace BrowserAutomationMaster.Helpers
+namespace BrowserAutomationMaster.Managers.Helpers
 {
     public class EnumHelper
     {
 
         public static bool IsValidMember(Type type, string member)
         {
-            if (type == null) return false;
+            if (type == null) { return false; }
             try { return Enum.Parse(type, member) != null; }
             catch { return false; }
         }
@@ -25,21 +25,14 @@ namespace BrowserAutomationMaster.Helpers
 
         public static object? GetEnumMemberFromStringRepr(Type type, string StringRepr) 
         {
-            if (type == null) { 
-                return null;
-            }
-
             // Handles case where Distros members are Distro object
             var returnType = type.Name.Equals("Distros") ? typeof(Distro) : type;
 
-            try { 
-                return Enum.Parse(returnType, StringRepr) != null; 
-            }
-            
-            catch { 
-                return null; 
-            }
+            var status = Enum.TryParse(returnType, StringRepr, out object? parsedEnum);
+
+            return parsedEnum ?? null;
         }
+
         public static string GetEnumNameAsString(Enum e, Dictionary<string, string> replacements) 
         {
             var enumStrRepr = e.ToString();

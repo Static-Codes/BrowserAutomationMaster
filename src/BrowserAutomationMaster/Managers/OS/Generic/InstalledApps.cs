@@ -1,4 +1,4 @@
-using BrowserAutomationMaster.Helpers;
+using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Managers.OS.Unix;
 using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;

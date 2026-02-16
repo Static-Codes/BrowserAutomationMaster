@@ -2,6 +2,7 @@
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
+using static BrowserAutomationMaster.Managers.ExtensionManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.Compilation
@@ -83,7 +84,7 @@ namespace BrowserAutomationMaster.Managers.Compilation
 
             var extensionPaths = GetExtensionPaths(featureLines);
         
-            Extensions = Managers.Helpers.CreateExtensionArrayFromPaths(extensionPaths, selectedBrowser);
+            Extensions = CreateExtensionArrayFromPaths(extensionPaths, selectedBrowser);
 
             otherPresent = OtherPresentFound();
 
