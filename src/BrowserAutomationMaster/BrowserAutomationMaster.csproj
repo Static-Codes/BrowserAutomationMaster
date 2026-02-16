@@ -91,20 +91,6 @@
 	</ItemGroup>
 	<!-- End of macOS Specific Logic -->
 
-	<!-- Windows Version Check -->
-	<!-- Due to BAMM support all versions of Windows 10 and 11 this check is required-->
-	<!-- This check is  prior to April 2018 (build 10240) will fail as they do not support curl natively -->
-	<Target Name="ValidateWindowsVersion" BeforeTargets="Build" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-		<PropertyGroup>
-      		<IsSupportedWin10>$([MSBuild]::VersionGreaterThanOrEquals($(WindowsBuildVersion), 10240))</IsSupportedWin10>
-    	</PropertyGroup>
-	</Target>
-
-	<Target Name="RemoveGUIAfterEmbed" AfterTargets="Build">
-      	<Delete Files="$(_FullResourcePath)" Condition="Exists('$(_FullResourcePath)')" />
-	</Target>
-
-
 	<!-- Download and Embed Logic-->
 	<Target Name="RetrieveAndEmbedResources" BeforeTargets="PrepareForBuild">
 
@@ -126,8 +112,21 @@
 		<!-- Downloading the file located at the specified url, to the provided output path. -->
 		<!-- Handle exit code 6, which means no network connection is present. -->
 		<Exec 
-        	Command="curl -fLs '$(ResourceURL)' -o '$(_FullResourcePath)'" 
-        	StandardOutputImportance="low"
+			Command="curl -fLs &quot;$(ResourceURL)&quot; -o &quot;$(_FullResourcePath)&quot;" 
+			StandardOutputImportance="low"
+			IgnoreExitCode="true">
+			
+			<Output TaskParameter="ExitCode" PropertyName="CurlExitCode"/>
+		</Exec>
+		
+		<Error 
+			Condition="'$(CurlExitCode)' == '6'" 
+			Text="Please ensure you have an active network connection; curl could not resolve the host for $(ResourceURL)."
+		/>
+
+		<Error 
+			Condition="'$(CurlExitCode)' != '0' AND '$(CurlExitCode)' != '6'" 
+			Text="Resource download failed with exit code: $(CurlExitCode)."
 		/>
 
 		<ItemGroup>
@@ -135,6 +134,18 @@
 		</ItemGroup>
 	</Target>
 
+	<!-- Windows Version Check -->
+	<!-- Due to BAMM support all versions of Windows 10 and 11 this check is required-->
+	<!-- This check is  prior to April 2018 (build 10240) will fail as they do not support curl natively -->
+	<Target Name="ValidateWindowsVersion" BeforeTargets="Build" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<PropertyGroup>
+      		<IsSupportedWin10>$([MSBuild]::VersionGreaterThanOrEquals($(WindowsBuildVersion), 10240))</IsSupportedWin10>
+    	</PropertyGroup>
+	</Target>
+
+	<Target Name="RemoveGUIAfterEmbed" AfterTargets="Build">
+      	<Delete Files="$(_FullResourcePath)" Condition="Exists('$(_FullResourcePath)')" />
+	</Target>
 
 	<!-- GUI.zip Download and Embed Logic -->
 	<PropertyGroup>
