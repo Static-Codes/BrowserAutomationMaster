@@ -1,5 +1,6 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.OS.Unix;
+using BrowserAutomationMaster.Managers.SystemInfo.RAM;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -11,18 +12,10 @@ using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Managers.SystemInfo
+namespace BrowserAutomationMaster.Managers.SystemInfo.RAM
 {
-    public struct MemoryInfo
-    {
-        public required double? TotalMemory { get; set; }
-        public required double? UsedMemory { get; set; }
-        public required double? FreeMemory { get; set; }
-        public required double? UsedPercent { get; set; }
-        public required double? FreePercent { get; set; }
-    }
 
-    public class MemoryInfoManager
+    public class MemoryMonitor
     {
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
@@ -42,7 +35,7 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
         private static MemoryInfo? CheckForWindows()
         {
             // Lays out the managed memory from c# in a manner that is identical to the unmanaged memory of c++ 
-            MEMORYSTATUSEX memStatus = new() {
+            var memStatus = new MEMORYSTATUSEX() {
                 dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>()
             };
 
