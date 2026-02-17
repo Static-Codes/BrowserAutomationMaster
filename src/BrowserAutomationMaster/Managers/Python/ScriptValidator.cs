@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics;
+using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
+
 
 namespace BrowserAutomationMaster.Managers.Python
 {
     // A struct is easier to maintain than an inline tuple regarding ScriptValidator.ValidateSyntaxAsync.
-    public readonly struct PythonValidationResult(bool isValid, string output, string errors, int exitCode)
+    public readonly struct ValidationResult(bool isValid, string output, string errors, int exitCode)
     {
         public bool IsValid { get; } = isValid;
         public string Output { get; } = output;
@@ -13,17 +15,20 @@ namespace BrowserAutomationMaster.Managers.Python
     }
 
 
-    // Validates a script using py_compile (Built in, already cross platform, and lightweight since it compiles directly to bytecode)
-    public static class ScriptValidationManager
+    // Validates a script using py_compile 
+    // (Built in, already cross platform, and lightweight since it compiles directly to bytecode)
+    public static class ScriptValidator
     {
-        public static PythonValidationResult ValidateSyntax(string pythonExecutablePath, string scriptPath)
+        public static ValidationResult ValidateSyntax(string pythonExecutablePath, string scriptPath)
         {
             if (string.IsNullOrEmpty(pythonExecutablePath))
             {
-                WriteAndExit(
-                    message:
-                        "BAM Manager (BAMM) was unable to determine the path of the installed python instance, " +
-                        "if this continues, please make an issue on github.", 
+                WriteAndExit
+                (
+                    string.Join(NLC, [
+                        "BAM Manager (BAMM) was unable to determine the path of the installed python instance.",
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}."
+                    ]),
                     status: 1
                 );
             }
@@ -32,29 +37,29 @@ namespace BrowserAutomationMaster.Managers.Python
                 WriteErrorAndReturnBool("BAM Manager (BAMM) was unable to locate the specified file, please try again.", false);
             }
 
-
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = pythonExecutablePath,
-                    Arguments = $"-m py_compile \"{scriptPath}\"",
-                    RedirectStandardOutput = true, // Only STDErr/STDOut are required.
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(scriptPath)) ?? string.Empty
-                }
-            };
-
             try
             {
+                using var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = pythonExecutablePath,
+                        Arguments = $"-m py_compile \"{scriptPath}\"",
+                        RedirectStandardOutput = true, // Only STDErr/STDOut are required.
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(scriptPath)) ?? string.Empty
+                    }
+                };
+
+
                 process.Start();
                 process.WaitForExit();
                 bool isValid = process.ExitCode == 0;
                 
                 if (isValid) {
-                    return new PythonValidationResult(
+                    return new ValidationResult(
                         isValid,
                         process.StandardOutput.ReadToEnd(), 
                         "No errors detected", 
@@ -62,7 +67,7 @@ namespace BrowserAutomationMaster.Managers.Python
                     );
                 }
 
-                return new PythonValidationResult(
+                return new ValidationResult(
                     isValid: false, 
                     "No output detected.",
                     process.StandardError.ReadToEnd(),
@@ -71,7 +76,7 @@ namespace BrowserAutomationMaster.Managers.Python
             }
             catch (Exception ex)
             {
-                return new PythonValidationResult(
+                return new ValidationResult(
                     isValid: false,
                     output: "No output detected",
                     errors: $"Unable to validate selected file:\n{ex.Message}\nExecutable Path: {pythonExecutablePath}",
