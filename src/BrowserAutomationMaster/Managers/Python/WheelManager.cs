@@ -119,17 +119,6 @@ namespace BrowserAutomationMaster.Managers.Python
             Platforms.IsARMhf ? PSUtilARMhf : PSUtilARMv7,
         ];
 
-        public static string[] GetRequirementStrings() 
-        {
-            string[] reqStrings = new string[ArmWheels.Length];
-
-            for (int i = 0; i < ArmWheels.Length; i++) {
-                reqStrings[i] = ArmWheels[i].DownloadLocation;
-            }
-            
-            return reqStrings;
-        }
-
         public static async Task DownloadWheels()
         {
 
@@ -154,6 +143,19 @@ namespace BrowserAutomationMaster.Managers.Python
                 }
             }
         }
+    
+        public static string[] GetRequirementStrings() 
+        {
+            string[] reqStrings = new string[ArmWheels.Length];
+
+            for (int i = 0; i < ArmWheels.Length; i++) {
+                reqStrings[i] = ArmWheels[i].DownloadLocation;
+            }
+            
+            return reqStrings;
+        }
+
+        
     };
 
 }

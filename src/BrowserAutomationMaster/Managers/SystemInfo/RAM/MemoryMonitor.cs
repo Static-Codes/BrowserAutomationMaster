@@ -133,10 +133,12 @@ namespace BrowserAutomationMaster.Managers.SystemInfo.RAM
             catch (Exception e)
             {
                 WriteAndExit(
-                    message: 
-                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again, " +
-                        $"if this issue persists, please make a bug report at {ISSUES_LINK}{NLC}{NLC}" +
-                        $"Error log:{NLC}{NLC}MemoryInfoManager.CheckForOSX exited with stack trace of:{NLC}{NLC}{e}",
+                    message: string.Join(NLC, [
+                        $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.",
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                        $"Error Log:",
+                        e.Message,
+                    ]),
                     status: 1
                 );
                 return null;
