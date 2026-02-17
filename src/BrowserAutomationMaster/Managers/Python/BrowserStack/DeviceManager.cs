@@ -433,32 +433,161 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 
         private static BrowserDefinition GenerateChrome(string version, bool winXP = false, bool win7 = false, bool win8 = false, bool win81 = false, bool win10 = false, bool win11 = false, bool macSnowLeopard = false, bool macLion = false, bool macMountainLion = false, bool macMavericks = false, bool macYosemite = false, bool macElCapitan = false, bool macSierra = false, bool macHighSierra = false, bool macMojave = false, bool macCatalina = false, bool macBigSur = false, bool macMonterey = false, bool macVentura = false, bool macSonoma = false, bool macSequoia = false, bool macTahoe = false)
         {
-            return new BrowserDefinition { Name = "Chrome", Version = version, DisplayName = $"Chrome {version}", Support = new PlatformSupport { WindowsXP = winXP, Windows7 = win7, Windows8 = win8, Windows8_1 = win81, Windows10 = win10, Windows11 = win11, OSX_SnowLeopard = macSnowLeopard, OSX_Lion = macLion, OSX_MountainLion = macMountainLion, OSX_Mavericks = macMavericks, OSX_Yosemite = macYosemite, OSX_ElCapitan = macElCapitan, OSX_Sierra = macSierra, OSX_HighSierra = macHighSierra, OSX_Mojave = macMojave, OSX_Catalina = macCatalina, OSX_BigSur = macBigSur, OSX_Monterey = macMonterey, OSX_Ventura = macVentura, OSX_Sonoma = macSonoma, OSX_Sequoia = macSequoia, OSX_Tahoe = macTahoe } };
+            return new BrowserDefinition { 
+                Name = "Chrome", 
+                Version = version, 
+                DisplayName = $"Chrome {version}", 
+                Support = new PlatformSupport 
+                { 
+                    WindowsXP = winXP, 
+                    Windows7 = win7, 
+                    Windows8 = win8, 
+                    Windows8_1 = win81, 
+                    Windows10 = win10, 
+                    Windows11 = win11, 
+                    OSX_SnowLeopard = macSnowLeopard, 
+                    OSX_Lion = macLion, 
+                    OSX_MountainLion = macMountainLion, 
+                    OSX_Mavericks = macMavericks, 
+                    OSX_Yosemite = macYosemite, 
+                    OSX_ElCapitan = macElCapitan, 
+                    OSX_Sierra = macSierra, 
+                    OSX_HighSierra = macHighSierra, 
+                    OSX_Mojave = macMojave, 
+                    OSX_Catalina = macCatalina, 
+                    OSX_BigSur = macBigSur, 
+                    OSX_Monterey = macMonterey, 
+                    OSX_Ventura = macVentura, 
+                    OSX_Sonoma = macSonoma, 
+                    OSX_Sequoia = macSequoia, 
+                    OSX_Tahoe = macTahoe 
+                } 
+            };
         }
 
         private static BrowserDefinition GenerateFirefox(string version, bool winXP = false, bool win7 = false, bool win8 = false, bool win81 = false, bool win10 = false, bool win11 = false, bool macSnowLeopard = false, bool macLion = false, bool macMountainLion = false, bool macMavericks = false, bool macYosemite = false, bool macElCapitan = false, bool macSierra = false, bool macHighSierra = false, bool macMojave = false, bool macCatalina = false, bool macBigSur = false, bool macMonterey = false, bool macVentura = false, bool macSonoma = false, bool macSequoia = false, bool macTahoe = false)
         {
-            return new BrowserDefinition { Name = "Firefox", Version = version, DisplayName = $"Firefox {version}", Support = new PlatformSupport { WindowsXP = winXP, Windows7 = win7, Windows8 = win8, Windows8_1 = win81, Windows10 = win10, Windows11 = win11, OSX_SnowLeopard = macSnowLeopard, OSX_Lion = macLion, OSX_MountainLion = macMountainLion, OSX_Mavericks = macMavericks, OSX_Yosemite = macYosemite, OSX_ElCapitan = macElCapitan, OSX_Sierra = macSierra, OSX_HighSierra = macHighSierra, OSX_Mojave = macMojave, OSX_Catalina = macCatalina, OSX_BigSur = macBigSur, OSX_Monterey = macMonterey, OSX_Ventura = macVentura, OSX_Sonoma = macSonoma, OSX_Sequoia = macSequoia, OSX_Tahoe = macTahoe } };
+            return new BrowserDefinition { 
+                Name = "Firefox", 
+                Version = version, 
+                DisplayName = $"Firefox {version}", 
+                Support = new PlatformSupport 
+                { 
+                    WindowsXP = winXP, 
+                    Windows7 = win7, 
+                    Windows8 = win8, 
+                    Windows8_1 = win81, 
+                    Windows10 = win10, 
+                    Windows11 = win11, 
+                    OSX_SnowLeopard = macSnowLeopard, 
+                    OSX_Lion = macLion, 
+                    OSX_MountainLion = macMountainLion, 
+                    OSX_Mavericks = macMavericks, 
+                    OSX_Yosemite = macYosemite, 
+                    OSX_ElCapitan = macElCapitan, 
+                    OSX_Sierra = macSierra, 
+                    OSX_HighSierra = macHighSierra, 
+                    OSX_Mojave = macMojave, 
+                    OSX_Catalina = macCatalina, 
+                    OSX_BigSur = macBigSur, 
+                    OSX_Monterey = macMonterey, 
+                    OSX_Ventura = macVentura, 
+                    OSX_Sonoma = macSonoma, 
+                    OSX_Sequoia = macSequoia, 
+                    OSX_Tahoe = macTahoe 
+                } 
+            };
         }
 
         private static BrowserDefinition GenerateEdge(string version, bool win7 = false, bool win8 = false, bool win81 = false, bool win10 = false, bool win11 = false, bool macSierra = false, bool macHighSierra = false, bool macMojave = false, bool macCatalina = false, bool macBigSur = false, bool macMonterey = false, bool macVentura = false, bool macSonoma = false, bool macSequoia = false, bool macTahoe = false)
         {
-            return new BrowserDefinition { Name = "Edge", Version = version, DisplayName = $"Edge {version}", Support = new PlatformSupport { Windows7 = win7, Windows8 = win8, Windows8_1 = win81, Windows10 = win10, Windows11 = win11, OSX_Sierra = macSierra, OSX_HighSierra = macHighSierra, OSX_Mojave = macMojave, OSX_Catalina = macCatalina, OSX_BigSur = macBigSur, OSX_Monterey = macMonterey, OSX_Ventura = macVentura, OSX_Sonoma = macSonoma, OSX_Sequoia = macSequoia, OSX_Tahoe = macTahoe } };
+            return new BrowserDefinition { 
+                Name = "Edge", 
+                Version = version, 
+                DisplayName = $"Edge {version}", 
+                Support = new PlatformSupport 
+                { 
+                    Windows7 = win7, 
+                    Windows8 = win8, 
+                    Windows8_1 = win81, 
+                    Windows10 = win10, 
+                    Windows11 = win11, 
+                    OSX_Sierra = macSierra, 
+                    OSX_HighSierra = macHighSierra, 
+                    OSX_Mojave = macMojave, 
+                    OSX_Catalina = macCatalina, 
+                    OSX_BigSur = macBigSur, 
+                    OSX_Monterey = macMonterey, 
+                    OSX_Ventura = macVentura, 
+                    OSX_Sonoma = macSonoma, 
+                    OSX_Sequoia = macSequoia, 
+                    OSX_Tahoe = macTahoe 
+                } 
+            };
         }
 
         private static BrowserDefinition GenerateSafari(string version, bool winXP = false, bool win7 = false, bool macSnowLeopard = false, bool macLion = false, bool macMountainLion = false, bool macMavericks = false, bool macYosemite = false, bool macElCapitan = false, bool macSierra = false, bool macHighSierra = false, bool macMojave = false, bool macCatalina = false, bool macBigSur = false, bool macMonterey = false, bool macVentura = false, bool macSonoma = false, bool macSequoia = false, bool macTahoe = false)
         {
-            return new BrowserDefinition { Name = "Safari", Version = version, DisplayName = $"Safari {version}", Support = new PlatformSupport { WindowsXP = winXP, Windows7 = win7, OSX_SnowLeopard = macSnowLeopard, OSX_Lion = macLion, OSX_MountainLion = macMountainLion, OSX_Mavericks = macMavericks, OSX_Yosemite = macYosemite, OSX_ElCapitan = macElCapitan, OSX_Sierra = macSierra, OSX_HighSierra = macHighSierra, OSX_Mojave = macMojave, OSX_Catalina = macCatalina, OSX_BigSur = macBigSur, OSX_Monterey = macMonterey, OSX_Ventura = macVentura, OSX_Sonoma = macSonoma, OSX_Sequoia = macSequoia, OSX_Tahoe = macTahoe } };
+            return new BrowserDefinition { 
+                Name = "Safari", 
+                Version = version, 
+                DisplayName = $"Safari {version}", 
+                Support = new PlatformSupport 
+                { 
+                    WindowsXP = winXP, 
+                    Windows7 = win7, 
+                    OSX_SnowLeopard = macSnowLeopard, 
+                    OSX_Lion = macLion, 
+                    OSX_MountainLion = macMountainLion, 
+                    OSX_Mavericks = macMavericks, 
+                    OSX_Yosemite = macYosemite, 
+                    OSX_ElCapitan = macElCapitan, 
+                    OSX_Sierra = macSierra, 
+                    OSX_HighSierra = macHighSierra, 
+                    OSX_Mojave = macMojave, 
+                    OSX_Catalina = macCatalina, 
+                    OSX_BigSur = macBigSur, 
+                    OSX_Monterey = macMonterey, 
+                    OSX_Ventura = macVentura, 
+                    OSX_Sonoma = macSonoma, 
+                    OSX_Sequoia = macSequoia, 
+                    OSX_Tahoe = macTahoe 
+                } 
+            };
         }
 
         private static BrowserDefinition GenerateIE(string version, bool winXP = false, bool win7 = false, bool win8 = false, bool win81 = false, bool win10 = false)
         {
-            return new BrowserDefinition { Name = "IE", Version = version, DisplayName = $"Internet Explorer {version}", Support = new PlatformSupport { WindowsXP = winXP, Windows7 = win7, Windows8 = win8, Windows8_1 = win81, Windows10 = win10 } };
+            return new BrowserDefinition { 
+                Name = "IE", 
+                Version = version, 
+                DisplayName = $"Internet Explorer {version}", 
+                Support = new PlatformSupport { 
+                    WindowsXP = winXP, 
+                    Windows7 = win7, 
+                    Windows8 = win8, 
+                    Windows8_1 = win81, 
+                    Windows10 = win10 
+                } 
+            };
         }
 
         private static BrowserDefinition GenerateOpera(string version, bool winXP = false, bool win7 = false, bool win8 = false, bool win81 = false, bool macSnowLeopard = false, bool macLion = false, bool macMountainLion = false)
         {
-            return new BrowserDefinition { Name = "Opera", Version = version, DisplayName = $"Opera {version}", Support = new PlatformSupport { WindowsXP = winXP, Windows7 = win7, Windows8 = win8, Windows8_1 = win81, OSX_SnowLeopard = macSnowLeopard, OSX_Lion = macLion, OSX_MountainLion = macMountainLion } };
+            return new BrowserDefinition { 
+                Name = "Opera", 
+                Version = version, 
+                DisplayName = $"Opera {version}", 
+                Support = new PlatformSupport { 
+                    WindowsXP = winXP, 
+                    Windows7 = win7, 
+                    Windows8 = win8, 
+                    Windows8_1 = win81, 
+                    OSX_SnowLeopard = macSnowLeopard, 
+                    OSX_Lion = macLion, 
+                    OSX_MountainLion = macMountainLion 
+                } 
+            };
         }
 
         // ========================================================================
