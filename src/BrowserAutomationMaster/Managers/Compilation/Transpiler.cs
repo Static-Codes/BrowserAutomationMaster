@@ -13,7 +13,7 @@ using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.Devices;
 using static BrowserAutomationMaster.Managers.Python.Runtime;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;

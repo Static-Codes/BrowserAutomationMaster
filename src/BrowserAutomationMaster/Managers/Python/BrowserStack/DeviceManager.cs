@@ -3,7 +3,7 @@ using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 
 namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 {
-    internal class DeviceManager
+    internal class Devices
     {
         // ========================================================================
         // Data Structures
