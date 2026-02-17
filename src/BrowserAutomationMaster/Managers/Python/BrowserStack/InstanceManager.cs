@@ -5,8 +5,8 @@ using YamlDotNet.Serialization.NamingConventions;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Helpers.EnumHelper;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.Devices;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.Devices.DeviceHelper;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager.DeviceHelper;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
