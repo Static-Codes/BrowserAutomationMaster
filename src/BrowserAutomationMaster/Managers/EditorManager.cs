@@ -337,7 +337,8 @@ namespace BrowserAutomationMaster.Managers
                         $"// File created using BAMM {CurrentVersion}",
                         "// https://github.com/Static-Codes/BrowserAutomationMaster",
                         "",
-                        "// Your .BAMC contents goes below this line"
+                        "// Your .BAMC contents goes below this line",
+                        ""
                     ]);
 
                     var fileHeaderBytes = Encoding.UTF8.GetBytes(fileHeaderStr);
