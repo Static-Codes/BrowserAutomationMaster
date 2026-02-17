@@ -451,7 +451,7 @@ namespace BrowserAutomationMaster.Managers.Python
             }
 
             var ProjectName = $"{Path.GetDirectoryName(ParentDirectory)}/" ?? "latest/";
-            AnsiManager.WriteBrowserStackHeader(ProjectName, ScriptFilePath);
+            ANSI.WriteBrowserStackHeader(ProjectName, ScriptFilePath);
 
             StackConfig = LoadConfig();
 

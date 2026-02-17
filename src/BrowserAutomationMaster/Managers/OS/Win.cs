@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using Windows.Win32;
-using static BrowserAutomationMaster.Managers.AnsiManager;
+using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;

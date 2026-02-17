@@ -2,9 +2,9 @@
 using System.Text;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Common
 {
-    public static class AnsiManager
+    public static class ANSI
     {
         public static (int r, int g, int b) FromXTerm(string Ansi24bit) // Accepts XXXX/XXXX/XXXX
         {

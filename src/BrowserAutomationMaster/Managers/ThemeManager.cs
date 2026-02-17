@@ -1,6 +1,7 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using System.Drawing;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 
@@ -54,7 +55,7 @@ namespace BrowserAutomationMaster.Managers
                     return LightTheme;
                 }
                 
-                (int r, int g, int b) = AnsiManager.FromXTerm(Ansi24BitColor);
+                (int r, int g, int b) = FromXTerm(Ansi24BitColor);
                 var color = Color.FromArgb(r, g, b);
 
                 return GetThemeFromColor(color);

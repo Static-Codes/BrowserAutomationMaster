@@ -3,7 +3,6 @@ using BrowserAutomationMaster.Messaging;
 using System.ComponentModel;
 using System.Diagnostics;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
-using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
@@ -109,7 +108,7 @@ namespace BrowserAutomationMaster.Managers
                 "   - 1. Locate the 'bamm' executable file (wherever you saved it)\n" +
                 "   - 2. Drag the 'bamm' executable file to the Trash, or click 'Move To Trash'.";
 
-            WriteMessage(message, isWarning: true);
+            Warning.Write(message);
             Environment.Exit(0);
         }
         private static async Task DoLinuxUninstall()
