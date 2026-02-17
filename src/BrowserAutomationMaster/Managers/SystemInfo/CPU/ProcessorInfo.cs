@@ -1,39 +1,24 @@
-﻿using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Managers.OS;
+using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
+using Windows.Win32;
+using Windows.Win32.System.SystemInformation;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.SystemInfo.RequiredCPUInstruction;
+using static BrowserAutomationMaster.Managers.Common.ProcessFactory;
+using static BrowserAutomationMaster.Managers.SystemInfo.CPU.RequiredInstructions;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
-namespace BrowserAutomationMaster.Managers.SystemInfo
+namespace BrowserAutomationMaster.Managers.SystemInfo.CPU
 {
-    public enum RequiredCPUInstruction
+    public class ProcessorInfo()
     {
-        X64,
-        AES,
-        AVX,
-        AVX2,
-        BMI1,
-        BMI2,
-        FMA,
-        LZCNT,
-        PCLMULQDQ,
-        POPCNT,
-        SSE2,
-        SSE3,
-        SSSE3,
-        SSE4
-    }
-
-    public class CPUInfoManager()
-    {
-        public int Cores { get; set; } = CPUCoreManager.GetCoreCount();
+        public int Cores { get; set; } = GetCoreCount();
         
         // Minimum cores supported: 2
         // Minimum cores recommended: 4
@@ -55,11 +40,11 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
         public const string SSE3_EXPLANATION = "Streaming SIMD Extensions 3 is the next iteration of SSE2, it provides additional instructions that are still used today in modern CPUs.";
         public const string SSSE3_EXPLANATION = "Supplemental Streaming SIMD Extensions 3 much like SSE3 is yet another instruction set responsible for integer processing, data manipulation, and general codec operations.";
         public const string SSE4_EXPLANATION = "Streaming SIMD Extensions 4.X include instructions for string processing, dot products, and other operations that speed up many common tasks. Modern JavaScript engines (V8, SpiderMonkey) and rendering engines can leverage these for performance.";
-        readonly private static List<RequiredCPUInstruction> unsupportedInstructions = [];
+        readonly private static List<RequiredInstructions> unsupportedInstructions = [];
 
         private static bool ContainsNeededInstructions()
         {
-            Action Add(RequiredCPUInstruction instruction) => () => 
+            Action Add(RequiredInstructions instruction) => () => 
             {
                 var needsAttention = instruction.Equals(SSE3) || instruction.Equals(SSE4);
 
@@ -73,7 +58,7 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
                 }
             };
 
-            var conditionPairs = new Dictionary<bool, RequiredCPUInstruction>() 
+            var conditionPairs = new Dictionary<bool, RequiredInstructions>() 
             {
                 { X86Base.X64.IsSupported, X64 },
                 { Avx.IsSupported, AVX },
@@ -101,105 +86,12 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
 
             return unsupportedInstructions.Count == 0; // The application will exit if this returns false
         }
-
-        public static string GetCPUName()
-        {
-            string? processName;
-            string? processArgs;
-
-            if (Platforms.IsWindows) {
-                return GetCPUName();
-            }
-
-            else if (Platforms.IsMacOS) {
-                processName = "/bin/bash";
-                processArgs = "-c \"sysctl -n machdep.cpu.brand_string\"";
-            }
-
-            else if (Platforms.IsLinux) {
-                processName = "/bin/bash";
-                processArgs = "-c \"lscpu | grep 'Model name:' | sed -r 's/Model name:\\s{1,}//g'\"";
-            }
-
-            else {
-                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
-            }
-
-            var psi = new ProcessStartInfo()
-            {
-                FileName = processName,
-                Arguments = processArgs,
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true,
-                UseShellExecute = false,
-            };
-
-            try
-            {
-                using var process = ProcessFactory.SpawnProcess(psi, "get cpu name", runSync: true, timeout: 10, writeSTDInOut: false).Result;
-                (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(process).Result;
-
-                if (ExitCode == 0 || STDOut.Count == 1 || STDErr.Count == 0) {
-                    return STDOut[0];
-                }
-
-            }
-            catch (Exception e) 
-            {
-                Warning.Write(
-                    string.Join(NLC, [
-                        $"Unable to determine CPU name.", 
-                        NLC,
-                        "Error Log:",
-                        e.Message
-                    ])
-                );
-            }
-
-            return "Unknown";
-        }
-
-        // Used for syntax purposes 
-        public static bool IsMissingInstructions() 
-        {
-            if (!ContainsNeededInstructions()) {
-                return true;
-            }
-
-            return false;
-        }
-
-        public bool HasEnoughCores()
-        {
-            if (Cores < 2) {
-                return false;
-            }
-
-            if (Cores <= 4 && GlobalConfig.ShowCpuCheck) {
-                Warning.Write(
-                    $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
-                    $"this might impact your performance slightly if your CPU is older.\n"
-                );
-            }
-
-            else if (GlobalConfig.ShowCpuCheck) {
-                WriteSuccessMessage(
-                    $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
-                    $"you should not experience any performance issues directly related to your CPU.\n"
-                );
-            }
-                
-            
-            return true;
-        }
-
+        
         public static void DisplayMissingInstructions()
         {
             var message = "Would you like to learn more about this instruction? [y/n]: ";
             
-            foreach (RequiredCPUInstruction instruction in unsupportedInstructions) 
+            foreach (RequiredInstructions instruction in unsupportedInstructions) 
             {
                 Spectre.Console.AnsiConsole.Write($"{instruction} is unsupported on the current CPU.");
 
@@ -209,8 +101,7 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
             }
         }
 
-        
-        private static string GetExplanationForInstruction(RequiredCPUInstruction instruction)
+        private static string GetExplanationForInstruction(RequiredInstructions instruction)
         {
             return instruction switch
             {
@@ -228,19 +119,16 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
                 SSE3 => SSE3_EXPLANATION,
                 SSSE3 => SSE3_EXPLANATION,
                 SSE4 => SSE4_EXPLANATION,
-                _ => "Invalid instruction provided, this shouldn't be trigger unless there is a bug in CPUInfoManager.GetExplanationForInstruction()",
+                _ => "Invalid instruction provided, this shouldn't be trigger unless there is a bug in ProcessorInfo.GetExplanationForInstruction()",
             };
         }
-    }
 
-    public class CPUCoreManager() 
-    {
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static int GetCoreCount()
         {
             return (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
-                (true, _, _) => Win.GetPhysicalCoreCount(),
+                (true, _, _) => GetPhysicalCoreCountWindows(),
                 (_, true, _) => GetPhysicalCoreCountMacOS(),
                 (_, _, true) => GetPhysicalCoreCountLinux(),
                 _ => GetPhysicalCoreException()
@@ -334,10 +222,10 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
                 CreateNoWindow = true
             };
 
-            using Process process = ProcessFactory.SpawnProcess(psi, actionString, writeSTDInOut: false, runSync: true, timeout: 10).Result;
-            (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(process).Result;
+            using Process process = SpawnProcess(psi, actionString, writeSTDInOut: false, runSync: true, timeout: 10).Result;
+            (int ExitCode, List<string> STDOut, List<string> STDErr) = GetProcessResponse(process).Result;
 
-            var response = ProcessFactory.GetProcessResponse(process).Result;
+            var response = GetProcessResponse(process).Result;
 
             return (int)HandleSingleLineProcessOutput(actionString, STDOut, typeof(int));
 
@@ -383,11 +271,196 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
 
         }
 
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
+        // Unsafe accessor required for casting null to SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX
+        public unsafe static int GetPhysicalCoreCountWindows()
+        {
+            int physicalCoreCount = 1;
+            try
+            {
+                uint bufferSize = 0;
+
+                // This is expected to fail, it requires a 2 pass system
+                // firstResult: returns the bufferSize of the given CPU topology
+                // secondResult: uses the bufferSize as a ref object and iterates over the structs, counts RelationProcessCore(s)number
+
+                // firstResult: returns the bufferSize of the given CPU topology
+                bool firstResult = PInvoke.GetLogicalProcessorInformationEx(
+                    LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore,
+                    (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)null,
+                    ref bufferSize
+                );
+
+
+                // 122 is the err code for ERROR_INSUFFICIENT_BUFFER (it wont import for some reason)
+                if (!firstResult && Marshal.GetLastWin32Error() != 122) 
+                {
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system.",
+                            $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                            "Error Log:",
+                            $"AppManager.OS.Windows.GetPhysicalCoreCount() Failed to get logical processor information buffer size.",
+                            "Win32 Error:",
+                            Marshal.GetLastWin32Error()
+                        ]),
+                        status: 1
+                    );
+                }
+
+                // If the buffer is empty, a fatal error has occured.
+                if (bufferSize == 0) {
+                    WriteAndExit(
+                        message: string.Join(NLC, [
+                            "BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system.",
+                            $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                            "Error Log:",
+                            "AppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0."
+                        ]),
+                        status: 1
+                    );
+                }
+
+                // Allocates N bytes from bufferSize
+                var buffer = Marshal.AllocHGlobal((int)bufferSize); 
+
+                // secondResult: uses the bufferSize as a ref object and iterates over the structs, counts RelationProcessCore(s)number
+                bool secondResult = PInvoke.GetLogicalProcessorInformationEx(
+                    LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore,
+                    (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)buffer,
+                    ref bufferSize
+                );
+
+                if (!secondResult) {
+                    throw new Exception($"Failed to get logical processor information. Win32 Error: {Marshal.GetLastWin32Error()}");
+                }
+
+                uint bytesParsed = 0;
+
+                nint currentPtr = buffer;
+
+                // Debug values
+                // Spectre.Console.AnsiConsole.Write("\n--- Debugging GetLogicalProcessorInformationEx Entries ---");
+                // Spectre.Console.AnsiConsole.Write($"Total buffer size: {bufferSize} bytes");
+                // Spectre.Console.AnsiConsole.Write(bufferSize);
+                while (bytesParsed < bufferSize)
+                {
+                    // Deserializes the raw bytes of the currentPtr to the SYSTEM_PROCESSOR_INFORMATION_EX struct
+                    var currentInfoExHeader = Marshal.PtrToStructure<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>(currentPtr);
+
+                    // Debug values
+                    // Spectre.Console.AnsiConsole.Write($"Bytes parsed: {bytesParsed}");
+                    // Spectre.Console.AnsiConsole.Write($"\n  Entry at offset {currentPtr.ToInt64() - Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0).ToInt64()}:");
+                    // Spectre.Console.AnsiConsole.Write($"    Relationship: {currentInfoExHeader.Relationship}");
+                    // Spectre.Console.AnsiConsole.Write($"    Entry Size: {currentInfoExHeader.Size}");
+
+                    if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore) {
+                        physicalCoreCount++;
+                    }
+
+                    // Move to the next structure in the buffer
+                    currentPtr += (nint)currentInfoExHeader.Size; // I SPENT 10 minutes before I realized wasn't being incremented.
+                    bytesParsed += currentInfoExHeader.Size;
+                }
+            }
+
+            catch (Exception ex) 
+            {
+                string errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "BAM Manager (BAMM) was unable to determine the number of physical CPU cores present.",
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                        "Error Log:",
+                        errorMessage
+                    ]),
+                    status: 1
+                );
+            }
+
+            return physicalCoreCount;
+        }
+
         private static int GetPhysicalCoreException() 
         {
             ThrowUnsupportedPlatformException();
             // This wont be executed but due to the nature of rosyln, this is required, but will never be executed.
             return 1;
+        }
+
+        
+    
+
+        public static string GetCPUName()
+        {
+            string? processName;
+            string? processArgs;
+
+            if (Platforms.IsWindows) {
+                return GetCPUName();
+            }
+
+            else if (Platforms.IsMacOS) {
+                processName = "/bin/bash";
+                processArgs = "-c \"sysctl -n machdep.cpu.brand_string\"";
+            }
+
+            else if (Platforms.IsLinux) {
+                processName = "/bin/bash";
+                processArgs = "-c \"lscpu | grep 'Model name:' | sed -r 's/Model name:\\s{1,}//g'\"";
+            }
+
+            else {
+                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
+            }
+
+            var psi = new ProcessStartInfo()
+            {
+                FileName = processName,
+                Arguments = processArgs,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+            };
+
+            try
+            {
+                using var process = ProcessFactory.SpawnProcess(psi, "get cpu name", runSync: true, timeout: 10, writeSTDInOut: false).Result;
+                (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(process).Result;
+
+                if (ExitCode == 0 || STDOut.Count == 1 || STDErr.Count == 0) {
+                    return STDOut[0];
+                }
+
+            }
+            catch (Exception e) 
+            {
+                Warning.Write(
+                    string.Join(NLC, [
+                        $"Unable to determine CPU name.", 
+                        NLC,
+                        "Error Log:",
+                        e.Message
+                    ])
+                );
+            }
+
+            return "Unknown";
+        }
+
+        // Used for syntax purposes 
+        public static bool IsMissingInstructions() 
+        {
+            if (!ContainsNeededInstructions()) {
+                return true;
+            }
+
+            return false;
         }
 
         public static object HandleSingleLineProcessOutput(string actionString, List<string> STDOut, Type returnType)
@@ -431,5 +504,32 @@ namespace BrowserAutomationMaster.Managers.SystemInfo
             }
             return -1;
         }
+
+        public bool HasEnoughCores()
+        {
+            if (Cores < 2) {
+                return false;
+            }
+
+            if (Cores <= 4 && GlobalConfig.ShowCpuCheck) {
+                Warning.Write(
+                    $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
+                    $"this might impact your performance slightly if your CPU is older.\n"
+                );
+            }
+
+            else if (GlobalConfig.ShowCpuCheck) {
+                WriteSuccessMessage(
+                    $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
+                    $"you should not experience any performance issues directly related to your CPU.\n"
+                );
+            }
+                
+            
+            return true;
+        }
+
+        
     }
+
 }
