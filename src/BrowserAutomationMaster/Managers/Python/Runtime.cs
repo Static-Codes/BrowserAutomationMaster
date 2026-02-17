@@ -298,7 +298,7 @@ namespace BrowserAutomationMaster.Managers.Python
                 ); 
             }
 
-            var result = ScriptValidationManager.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
+            var result = ScriptValidator.ValidateSyntax(InterpreterPath, SanitizedScriptPath);
 
             if (result.IsValid) {
                 return;
