@@ -1,7 +1,7 @@
 ﻿using BrowserAutomationMaster.Parsing;
 using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.OS.Unix;
-using BrowserAutomationMaster.Managers.SystemInfo;
+using BrowserAutomationMaster.Managers.SystemInfo.CPU;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Python.Runtime;
@@ -66,7 +66,7 @@ namespace BrowserAutomationMaster.Messaging
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
-                    CPU Name: {CPUInfoManager.GetCPUName()}
+                    CPU Name: {ProcessorInfo.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
                     CPU Architecture: {Platforms.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
@@ -84,7 +84,7 @@ namespace BrowserAutomationMaster.Messaging
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
-                    CPU Name: {CPUInfoManager.GetCPUName()}
+                    CPU Name: {ProcessorInfo.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
                     CPU Architecture: {Platforms.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
@@ -102,7 +102,7 @@ namespace BrowserAutomationMaster.Messaging
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     ---------------- SYSTEM SPEC INFO ----------------
-                    CPU Name: {CPUInfoManager.GetCPUName()}
+                    CPU Name: {ProcessorInfo.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
                     CPU Architecture: {Platforms.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}

@@ -5,13 +5,13 @@ using BrowserAutomationMaster.Managers.OS;
 using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
-using BrowserAutomationMaster.Managers.SystemInfo;
+using BrowserAutomationMaster.Managers.SystemInfo.CPU;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.AnsiManager;
-using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.Common.ProcessManager;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
+using static BrowserAutomationMaster.Managers.Common.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.ProcessManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.ConfigManager;
@@ -527,8 +527,8 @@ namespace BrowserAutomationMaster
             // dotnet run --nohwc --force-error
             else 
             {
-                CPUInfoManager cpuInfoManager = new();
-                Runtime.SetCoreCount(cpuInfoManager.Cores);
+                ProcessorInfo processorInfo = new();
+                Runtime.SetCoreCount(processorInfo.Cores);
             }
 
             await Runtime.SetMemoryInfo();

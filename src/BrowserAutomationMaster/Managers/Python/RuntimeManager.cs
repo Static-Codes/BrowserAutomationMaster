@@ -1,6 +1,7 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.OS;
-using BrowserAutomationMaster.Managers.SystemInfo;
+using BrowserAutomationMaster.Managers.SystemInfo.CPU;
+using BrowserAutomationMaster.Managers.SystemInfo.RAM;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using System.Diagnostics.CodeAnalysis;
@@ -46,9 +47,9 @@ namespace BrowserAutomationMaster.Managers.Python
         public static async Task DoRuntimeCheck()
         {
             await HasEnoughMemory();
-            CPUInfoManager cpuInfoManager = new();
-            CoreCount = cpuInfoManager.Cores;
-            if (!cpuInfoManager.HasEnoughCores())
+            ProcessorInfo processorInfo = new();
+            CoreCount = processorInfo.Cores;
+            if (!processorInfo.HasEnoughCores())
             {
                 WriteAndExit
                 (
@@ -56,7 +57,7 @@ namespace BrowserAutomationMaster.Managers.Python
                         $"BAM Manager (BAMM) requires atleast a 2 core cpu, " +
                         $"unfortunately your CPU is not powerful enough for modern browser automation, " +
                         $"if you believe this is an error, please submit a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\nBAM Manager (BAMM) detected {cpuInfoManager.Cores} physical CPU cores.",
+                        $"Error log:\nBAM Manager (BAMM) detected {processorInfo.Cores} physical CPU cores.",
                     status: 1
                 );
             }
@@ -266,7 +267,7 @@ namespace BrowserAutomationMaster.Managers.Python
 
         public static async Task SetMemoryInfo()
         {
-            memoryInfo = await MemoryInfoManager.GetMemoryInfoAsync();
+            memoryInfo = await MemoryMonitor.GetMemoryInfoAsync();
 
             if (!memoryInfo.HasValue)
             {
