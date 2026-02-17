@@ -3,11 +3,9 @@ using BrowserAutomationMaster.Managers.OS.Generic;
 using Microsoft.Win32;
 using Spectre.Console;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using Windows.Win32;
-using Windows.Win32.System.SystemInformation;
 using static BrowserAutomationMaster.Managers.AnsiManager;
 using static BrowserAutomationMaster.Managers.Common.ConstantManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
@@ -295,122 +293,6 @@ namespace BrowserAutomationMaster.Managers.OS
                 );
                 return string.Empty;
             }
-        }
-
-        #endregion
-
-        #region P/Invoke GetLogicalProcessorInformationEx -> GetPhysicalCoreCount()
-
-        // Unsafe accessor required for casting null to SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX
-        public unsafe static int GetPhysicalCoreCount()
-        {
-            int physicalCoreCount = 1;
-            try
-            {
-                uint bufferSize = 0;
-
-                // This is expected to fail, it requires a 2 pass system
-                // firstResult: returns the bufferSize of the given CPU topology
-                // secondResult: uses the bufferSize as a ref object and iterates over the structs, counts RelationProcessCore(s)number
-
-
-                // firstResult: returns the bufferSize of the given CPU topology
-                bool firstResult = PInvoke.GetLogicalProcessorInformationEx(
-                    LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore,
-                    (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)null,
-                    ref bufferSize
-                );
-
-
-                // 122 is the err code for ERROR_INSUFFICIENT_BUFFER (it wont import for some reason)
-                if (!firstResult && Marshal.GetLastWin32Error() != 122) 
-                {
-                    WriteAndExit
-                    (
-                        message: string.Join(NLC, [
-                            $"BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system.",
-                            $"If this issue persists, please make a bug report at {ISSUES_LINK}",
-                            "Error Log:",
-                            $"AppManager.OS.Windows.GetPhysicalCoreCount() Failed to get logical processor information buffer size.",
-                            "Win32 Error:",
-                            Marshal.GetLastWin32Error()
-                        ]),
-                        status: 1
-                    );
-                }
-
-                // If the buffer is empty, a fatal error has occured.
-                if (bufferSize == 0) {
-                    WriteAndExit(
-                        message: string.Join(NLC, [
-                            "BAMM Manager (BAMM) was unable to determine the number of physical CPU cores present in your system.",
-                            $"If this issue persists, please make a bug report at {ISSUES_LINK}",
-                            "Error Log:",
-                            "AppManager.OS.Windows.GetPhysicalCoreCount() returned a buffer size of 0."
-                        ]),
-                        status: 1
-                    );
-                }
-
-                // Allocates N bytes from bufferSize
-                var buffer = Marshal.AllocHGlobal((int)bufferSize); 
-
-                // secondResult: uses the bufferSize as a ref object and iterates over the structs, counts RelationProcessCore(s)number
-                bool secondResult = PInvoke.GetLogicalProcessorInformationEx(
-                    LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore,
-                    (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)buffer,
-                    ref bufferSize
-                );
-
-                if (!secondResult) {
-                    throw new Exception($"Failed to get logical processor information. Win32 Error: {Marshal.GetLastWin32Error()}");
-                }
-
-                uint bytesParsed = 0;
-
-                nint currentPtr = buffer;
-
-                // Debug values
-                // Spectre.Console.AnsiConsole.Write("\n--- Debugging GetLogicalProcessorInformationEx Entries ---");
-                // Spectre.Console.AnsiConsole.Write($"Total buffer size: {bufferSize} bytes");
-                // Spectre.Console.AnsiConsole.Write(bufferSize);
-                while (bytesParsed < bufferSize)
-                {
-                    // Deserializes the raw bytes of the currentPtr to the SYSTEM_PROCESSOR_INFORMATION_EX struct
-                    var currentInfoExHeader = Marshal.PtrToStructure<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>(currentPtr);
-
-                    // Debug values
-                    // Spectre.Console.AnsiConsole.Write($"Bytes parsed: {bytesParsed}");
-                    // Spectre.Console.AnsiConsole.Write($"\n  Entry at offset {currentPtr.ToInt64() - Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0).ToInt64()}:");
-                    // Spectre.Console.AnsiConsole.Write($"    Relationship: {currentInfoExHeader.Relationship}");
-                    // Spectre.Console.AnsiConsole.Write($"    Entry Size: {currentInfoExHeader.Size}");
-
-                    if (currentInfoExHeader.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore) {
-                        physicalCoreCount++;
-                    }
-
-                    // Move to the next structure in the buffer
-                    currentPtr += (nint)currentInfoExHeader.Size; // I SPENT 10 minutes before I realized wasn't being incremented.
-                    bytesParsed += currentInfoExHeader.Size;
-                }
-            }
-
-            catch (Exception ex) 
-            {
-                string errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                
-                WriteAndExit(
-                    message: string.Join(NLC, [
-                        "BAM Manager (BAMM) was unable to determine the number of physical CPU cores present.",
-                        $"If this issue persists, please make a bug report at {ISSUES_LINK}",
-                        "Error Log:",
-                        errorMessage
-                    ]),
-                    status: 1
-                );
-            }
-
-            return physicalCoreCount;
         }
 
         #endregion
