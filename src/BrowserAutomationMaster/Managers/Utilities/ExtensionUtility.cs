@@ -14,14 +14,14 @@ using static BrowserAutomationMaster.Managers.Messaging.Input;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
 
 
-namespace BrowserAutomationMaster.Managers 
+namespace BrowserAutomationMaster.Managers.Utilities
 {
     // This class will be used to parse the commands of
     // feature "add-extension" "file://path/to/firefox/extension.xpi"
     // feature "add-extension" "https://url/to/firefox/extension.xpi"
     // feature "add-extension" "file://path/to/chrome/extension.crx"
     // feature "add-extension" "https://url/to/chrome/extension.crx"
-    public class ExtensionManager(string rawExtensionPath, string browserName, string[]? args = null)
+    public class ExtensionUtility(string rawExtensionPath, string browserName, string[]? args = null)
     {
         public string RawExtensionPath { get; init; } = rawExtensionPath;
         public string ExtensionPath { get; init; } = SanitizeExtensionPath(rawExtensionPath);
@@ -74,13 +74,13 @@ namespace BrowserAutomationMaster.Managers
 
         private static bool CheckLocalFileStatus(string rawExtensionPath) => rawExtensionPath.StartsWith("file://");
 
-        public static ExtensionManager[] CreateExtensionArrayFromPaths(string[] paths, string browserName) 
+        public static ExtensionUtility[] CreateExtensionArrayFromPaths(string[] paths, string browserName) 
         {
-            var extensionManagers = new ExtensionManager[paths.Length];
+            var extensionManagers = new ExtensionUtility[paths.Length];
             
             for (int i = 0; i < paths.Length; i++)
             {
-                extensionManagers[i] = new ExtensionManager(paths[i], browserName);
+                extensionManagers[i] = new ExtensionUtility(paths[i], browserName);
             }
 
             return extensionManagers; 

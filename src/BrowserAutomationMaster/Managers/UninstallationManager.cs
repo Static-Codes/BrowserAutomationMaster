@@ -15,100 +15,29 @@ namespace BrowserAutomationMaster.Managers
 {
     public class UninstallationManager()
     {
-        public static async Task Uninstall()
+        private static void DoAppDataDeletion()
         {
-            Write("This will delete BAM Manager (BAMM) from your system.\n");
-
-            var response = AskForInput("Would you like to continue with the uninstallation process? [y/n]: ");
-            var uninstallConfirmed = ConditionAccepted(response);
-            
-            if (!uninstallConfirmed) {
-                Environment.Exit(0);
-            }
-            
-            string dataMessage = "This will delete all program files and associated data.\n" +
-                "Please ensure you've backed up your data before continuing.\n\n" +
-                "THIS CANNOT BE REVERSED!\n\n" +
-                "To backup your data close BAMM and enter the following command:\n" +
-                "bamm backup\n\n";
-
-
-            response = AskForInput("Do you want to remove all application data? [y/n]: ");
-            var removeAppData = ConditionAccepted(response);
-
-            if (removeAppData)
-            {
-                Write(dataMessage);
-                response = AskForInput("Have you backed up your data? [y/n]: ");
-
-                if (ConditionRejected(response)) {
-                    Write("Performing backup, please wait.");
-                    ArchiveAppDataDirectory();
-                }
-
-                DoAppDataDeletion();
-            }
-
-            if (Platforms.IsWindows) {
-                DoWindowsUninstall();
-            }
-            
-            else if (Platforms.IsMacOS) {
-                DoMacUninstall();
-            }
-
-            else if (Platforms.IsLinux) {
-                await DoLinuxUninstall();
-            }
-            
-            else {
-                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
-            }
-        }
-        
-        private static void DoWindowsUninstall()
-        {
-            string failureMessage = string.Join(" ", [
-                "BAM Manager (BAMM) was unable to determine the current directory,",
-                "please uninstall this application by searching",
-                "'Add or remove programs' in your Windows Searchbar."
-            ]);
-
-            string installationDirectory = AppContext.BaseDirectory;
-
-            if (!Path.Exists(installationDirectory)) {
-                WriteAndExit(message: failureMessage, status: 1);
-            }
-            
-            string uninstallerPath = Path.Combine(installationDirectory, "unins000.exe");
             try
             {
-                if (File.Exists(uninstallerPath))
-                {
-                    Process.Start(uninstallerPath);
-                    WriteSuccessMessageAndExit(
-                        message: "Started uninstaller, BAM Manager (BAMM) will now exit...",
-                        exitCode: 0
-                    );
-                }
+                DeleteDirectory(AppDataDirectory);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                WriteAndExit(message: $"{ex.Message}", status: 1);
+                Write
+                (
+                    string.Join(NLC, [
+                        "Unable to delete app data for BAM Manager (BAMM).",
+                        "Please remove this directory manually:",
+                        AppDataDirectory,
+                        $"Please make a bug report at {ISSUES_LINK}",
+                        "", // Creates the double newline before the error log
+                        "Error Log:",
+                        e.Message
+                    ])
+                );
+                
             }
         }
-        private static void DoMacUninstall()
-        {
-            var message = string.Join(NLC, [
-                "To uninstall BAM Manager (BAMM) on macOS:",
-                "   - 1. Locate the 'bamm' executable file (wherever you saved it)",
-                "   - 2. Drag the 'bamm' executable file to the Trash, or click 'Move To Trash'."
-            ]);
-
-            Warning.Write(message);
-            Environment.Exit(0);
-        }
-        
         private static async Task DoLinuxUninstall()
         {
             (string symLinkPath, _) = RunCommand("which", "bamm");
@@ -217,27 +146,102 @@ namespace BrowserAutomationMaster.Managers
 
             WriteSuccessMessageAndExit(acknowledgementMessage, 0);
         }
-        private static void DoAppDataDeletion()
+        private static void DoMacUninstall()
         {
+            var message = string.Join(NLC, [
+                "To uninstall BAM Manager (BAMM) on macOS:",
+                "   - 1. Locate the 'bamm' executable file (wherever you saved it)",
+                "   - 2. Drag the 'bamm' executable file to the Trash, or click 'Move To Trash'."
+            ]);
+
+            Warning.Write(message);
+            Environment.Exit(0);
+        }
+        private static void DoWindowsUninstall()
+        {
+            string failureMessage = string.Join(" ", [
+                "BAM Manager (BAMM) was unable to determine the current directory,",
+                "please uninstall this application by searching",
+                "'Add or remove programs' in your Windows Searchbar."
+            ]);
+
+            string installationDirectory = AppContext.BaseDirectory;
+
+            if (!Path.Exists(installationDirectory)) {
+                WriteAndExit(message: failureMessage, status: 1);
+            }
+            
+            string uninstallerPath = Path.Combine(installationDirectory, "unins000.exe");
             try
             {
-                DeleteDirectory(AppDataDirectory);
+                if (File.Exists(uninstallerPath))
+                {
+                    Process.Start(uninstallerPath);
+                    WriteSuccessMessageAndExit(
+                        message: "Started uninstaller, BAM Manager (BAMM) will now exit...",
+                        exitCode: 0
+                    );
+                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Write
-                (
-                    string.Join(NLC, [
-                        "Unable to delete app data for BAM Manager (BAMM).",
-                        "Please remove this directory manually:",
-                        AppDataDirectory,
-                        $"Please make a bug report at {ISSUES_LINK}",
-                        "", // Creates the double newline before the error log
-                        "Error Log:",
-                        e.Message
-                    ])
-                );
-                
+                WriteAndExit(message: $"{ex.Message}", status: 1);
+            }
+        }
+        public static async Task Uninstall()
+        {
+            Write
+            (
+                string.Concat([
+                    "This will delete BAM Manager (BAMM) from your system.", 
+                    NLC
+                ])
+            );
+
+            var response = AskForInput("Would you like to continue with the uninstallation process? [y/n]: ");
+            var uninstallConfirmed = ConditionAccepted(response);
+            
+            if (!uninstallConfirmed) {
+                Environment.Exit(0);
+            }
+            
+            string dataMessage = "This will delete all program files and associated data.\n" +
+                "Please ensure you've backed up your data before continuing.\n\n" +
+                "THIS CANNOT BE REVERSED!\n\n" +
+                "To backup your data close BAMM and enter the following command:\n" +
+                "bamm backup\n\n";
+
+
+            response = AskForInput("Do you want to remove all application data? [y/n]: ");
+            var removeAppData = ConditionAccepted(response);
+
+            if (removeAppData)
+            {
+                Write(dataMessage);
+                response = AskForInput("Have you backed up your data? [y/n]: ");
+
+                if (ConditionRejected(response)) {
+                    Write("Performing backup, please wait.");
+                    ArchiveAppDataDirectory();
+                }
+
+                DoAppDataDeletion();
+            }
+
+            if (Platforms.IsWindows) {
+                DoWindowsUninstall();
+            }
+            
+            else if (Platforms.IsMacOS) {
+                DoMacUninstall();
+            }
+
+            else if (Platforms.IsLinux) {
+                await DoLinuxUninstall();
+            }
+            
+            else {
+                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
             }
         }
     }

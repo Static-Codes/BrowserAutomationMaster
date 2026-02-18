@@ -29,11 +29,13 @@ namespace BrowserAutomationMaster.Managers
         {
             if (await UpdateAvailable())
             {
-                Warning.Write(
-                    $"BAM Manager (BAMM) has an available update.\n\n" +
-                    $"Current Version: {CurrentVersion}\n" +
-                    $"Latest Version: {LatestVersion}\n\n"
-                );
+                Warning.Write(string.Join(NLC, [
+                    "BAM Manager (BAMM) has an available update.",
+                    "",
+                    $"Current Version: {CurrentVersion}",
+                    $"Latest Version: {LatestVersion}",
+                    ""
+                ]));
 
                 string response = Input.AskForInput("Would you like to download the update now? [y/n]:\n");
 

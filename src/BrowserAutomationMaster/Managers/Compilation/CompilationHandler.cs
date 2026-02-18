@@ -1,6 +1,7 @@
-﻿using System.Net.NetworkInformation;
-using BrowserAutomationMaster.Managers.Messaging;
+﻿using BrowserAutomationMaster.Managers.Messaging;
 using BrowserAutomationMaster.Managers.Parsing;
+using BrowserAutomationMaster.Managers.Utilities;
+using System.Net.NetworkInformation;
 using static BrowserAutomationMaster.Managers.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.Common.Constants;
@@ -474,7 +475,7 @@ namespace BrowserAutomationMaster.Managers.Compilation
         }
         public static async Task<(bool, string)> Visit(List<string> scriptBody, 
             List<string> featureLines, string sanitizedArg2, string selectedBrowser, 
-            bool firstVisitFinished, bool disableSSL, bool runHeadless, ExtensionManager[] Extensions
+            bool firstVisitFinished, bool disableSSL, bool runHeadless, ExtensionUtility[] Extensions
         )
         {
             if (!IsResolvableLink(sanitizedArg2))

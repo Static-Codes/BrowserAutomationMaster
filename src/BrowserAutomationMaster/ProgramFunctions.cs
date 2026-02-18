@@ -6,6 +6,7 @@ using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Managers.SystemInfo.CPU;
+using BrowserAutomationMaster.Managers.Utilities;
 using System.Text.Json;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.Constants;
@@ -680,7 +681,7 @@ namespace BrowserAutomationMaster
             fullFileName = $"{fileName}.bamc";
             var filePath = Path.Combine(userScriptsDirectory, fullFileName);
 
-            await EditorManager.OpenFileInEditor(filePath);
+            await EditorUtility.OpenFileInEditor(filePath);
         }
 
         public static async Task Open(string? fullFileName = null) 
@@ -711,7 +712,7 @@ namespace BrowserAutomationMaster
             // If the file does exist in the userScripts directory
             // 1. OpenFileInEditor() creates the file
             // 2. The user is prompted for their choice of editor to use when opening the selected file.
-            await EditorManager.OpenFileInEditor(filePath);
+            await EditorUtility.OpenFileInEditor(filePath);
             
         }
 

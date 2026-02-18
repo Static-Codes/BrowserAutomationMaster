@@ -1,9 +1,10 @@
 ﻿using BrowserAutomationMaster.Managers.Messaging;
 using BrowserAutomationMaster.Managers.Parsing;
+using BrowserAutomationMaster.Managers.Utilities;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
-using static BrowserAutomationMaster.Managers.ExtensionManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Utilities.ExtensionUtility;
 
 namespace BrowserAutomationMaster.Managers.Compilation
 {
@@ -22,7 +23,7 @@ namespace BrowserAutomationMaster.Managers.Compilation
         public bool otherPresent = false;
 
         // Adds any extensions specified using the `add-extension` feature command.
-        public ExtensionManager[] Extensions = [];
+        public ExtensionUtility[] Extensions = [];
 
         // Disables the writing of .pyc files, if `disable-pycache` is specified.
         public bool disablePycache = false;

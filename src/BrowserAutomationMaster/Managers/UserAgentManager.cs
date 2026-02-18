@@ -14,7 +14,8 @@ namespace BrowserAutomationMaster.Managers
             // Only reassigning UserAgentChoices if a new browserName or mobileStatus is passed.
             if (lastBrowserName != browserName || lastMobileStatus != isMobile) 
             {
-                Warning.Write($"{NLC}Updating user agents, please wait..");
+                Console.WriteLine();
+                Warning.Write($"Updating user agents, please wait..");
                 Thread.Sleep(100);
 
                 UserAgentChoices = (browserName, isMobile) switch {
@@ -22,7 +23,9 @@ namespace BrowserAutomationMaster.Managers
                     ("firefox", false) => UserAgentHelpers.GetFirefoxDesktopUserAgents(),
                     ("safari", false) => UserAgentHelpers.GetSafariDesktopUserAgents(),
                     ("safari", true) => UserAgentHelpers.GetSafariMobileUserAgents(),
-                    _ => throw new ArgumentException($"Invalid data passed to GetUserAgent -> GetUserAgent(browserName: {browserName}, isMobile: {isMobile})")
+                    _ => throw new ArgumentException(
+                        $"Invalid data passed to GetUserAgent -> GetUserAgent(browserName: {browserName}, isMobile: {isMobile})"
+                    )
                 };
 
                 Success.WriteSuccessMessage

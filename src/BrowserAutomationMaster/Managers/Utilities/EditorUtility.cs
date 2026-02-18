@@ -11,10 +11,10 @@ using System.Diagnostics;
 using System.Text;
 
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Utilities
 {
 
-    public class EditorManager()
+    public class EditorUtility()
     {
 
         private static Editor GetEditorChoice() 
