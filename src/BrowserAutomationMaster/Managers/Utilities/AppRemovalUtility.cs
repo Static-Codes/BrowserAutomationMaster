@@ -11,9 +11,9 @@ using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Utilities
 {
-    public class UninstallationManager()
+    public class AppRemovalUtility()
     {
         private static void DoAppDataDeletion()
         {

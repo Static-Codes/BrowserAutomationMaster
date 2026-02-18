@@ -312,7 +312,7 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("uninstall", CCIC))
             {
                 // This will exit regardless of success status so no return is neccessary.
-                await UninstallationManager.Uninstall();
+                await AppRemovalUtility.Uninstall();
             }
 
             // Handles 'validate' command variations
