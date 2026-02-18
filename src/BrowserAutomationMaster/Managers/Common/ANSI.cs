@@ -1,6 +1,6 @@
 ﻿using Spectre.Console;
 using System.Text;
-using static BrowserAutomationMaster.Managers.ConfigManager;
+using static BrowserAutomationMaster.Managers.Settings;
 
 namespace BrowserAutomationMaster.Managers.Common
 {
@@ -48,13 +48,13 @@ namespace BrowserAutomationMaster.Managers.Common
         }
         public static Color GetAccentColor()
         {
-            return ToSpectreColor(GlobalConfig.ThemeType.AccentColor);
+            return ToSpectreColor(GlobalSettings.ThemeType.AccentColor);
         }
         
         public static Color GetForeground(bool isSuccess = false, bool isWarning = false, bool isError = false)
         {
-            // If the GlobalConfig failed to load, GlobalConfig.ThemeType will be null.
-            if (GlobalConfig?.ThemeType == null) 
+            // If the GlobalSettings failed to load, GlobalSettings.ThemeType will be null.
+            if (GlobalSettings?.ThemeType == null) 
             {
                 // Handling cases where the ThemeType isnt set.
                 return (isSuccess, isWarning, isError) switch {
@@ -67,18 +67,18 @@ namespace BrowserAutomationMaster.Managers.Common
 
             return (isSuccess, isWarning, isError) switch
             {
-                (true, false, false) => ToSpectreColor(GlobalConfig.ThemeType.SuccessColor),
-                (false, true, false) => ToSpectreColor(GlobalConfig.ThemeType.WarningColor),
-                (false, false, true) => ToSpectreColor(GlobalConfig.ThemeType.ErrorColor),
-                _ => ToSpectreColor(GlobalConfig.ThemeType.ForegroundColor)
+                (true, false, false) => ToSpectreColor(GlobalSettings.ThemeType.SuccessColor),
+                (false, true, false) => ToSpectreColor(GlobalSettings.ThemeType.WarningColor),
+                (false, false, true) => ToSpectreColor(GlobalSettings.ThemeType.ErrorColor),
+                _ => ToSpectreColor(GlobalSettings.ThemeType.ForegroundColor)
             };
         }
 
         public static (Color HighlightBackground, Color HighlightForeground) GetHighlights()
         {
             return (
-                ToSpectreColor(GlobalConfig.ThemeType.HighlightBackground),
-                ToSpectreColor(GlobalConfig.ThemeType.HighlightForeground)
+                ToSpectreColor(GlobalSettings.ThemeType.HighlightBackground),
+                ToSpectreColor(GlobalSettings.ThemeType.HighlightForeground)
             );
         }
 

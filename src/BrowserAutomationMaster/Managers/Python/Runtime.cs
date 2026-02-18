@@ -5,12 +5,12 @@ using BrowserAutomationMaster.Managers.Parsing;
 using BrowserAutomationMaster.Managers.SystemInfo.CPU;
 using BrowserAutomationMaster.Managers.SystemInfo.RAM;
 using System.Diagnostics.CodeAnalysis;
-using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.Managers.OS.Unix.MacOS;
+using static BrowserAutomationMaster.Managers.Settings;
 
 namespace BrowserAutomationMaster.Managers.Python
 {
@@ -227,7 +227,7 @@ namespace BrowserAutomationMaster.Managers.Python
             else if (memoryInfo.Value.TotalMemory == 4096 && memoryInfo.Value.FreeMemory >= 1024)
             {
                 // I hate nested conditionals, but this allows for a graceful passthrough
-                if (GlobalConfig.ShowMemoryCheck)
+                if (GlobalSettings.ShowMemoryCheck)
                 {
                     WriteSuccessMessage(
                         "BAM Manager (BAMM) determined you running on the minimum RAM requirements, " +

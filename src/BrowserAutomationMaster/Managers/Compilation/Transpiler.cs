@@ -13,12 +13,12 @@ using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
-using static BrowserAutomationMaster.Managers.ConfigManager;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.Devices;
 using static BrowserAutomationMaster.Managers.Python.Runtime;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
-using static BrowserAutomationMaster.Managers.Messaging.Errors;
-using static BrowserAutomationMaster.Managers.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Settings;
 
 namespace BrowserAutomationMaster.Managers.Compilation
 {
@@ -332,7 +332,7 @@ namespace BrowserAutomationMaster.Managers.Compilation
             var availableMemory = memoryInfo.Value.FreeMemory;
 
             if (!usingBrowserstack) {
-                usingBrowserstack = Platforms.IsChromeOS || GlobalConfig.UseBrowserstack || Platforms.IsRaspi && availableMemory < 2048;
+                usingBrowserstack = Platforms.IsChromeOS || GlobalSettings.UseBrowserstack || Platforms.IsRaspi && availableMemory < 2048;
             }
         }
 
@@ -460,7 +460,7 @@ namespace BrowserAutomationMaster.Managers.Compilation
 
         private static void HandleAutoCopy()
         {
-            if (!GlobalConfig.AutoCopyPath) {
+            if (!GlobalSettings.AutoCopyPath) {
                 return;
             }
 
@@ -1060,7 +1060,7 @@ namespace BrowserAutomationMaster.Managers.Compilation
         
         public static async Task<bool> HandleRunOnCompile()
         {
-            if (!GlobalConfig.RunOnCompile) {
+            if (!GlobalSettings.RunOnCompile) {
                 return false;
             }
 

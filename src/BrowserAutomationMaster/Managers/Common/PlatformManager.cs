@@ -70,7 +70,7 @@ namespace BrowserAutomationMaster.Managers.Common
             ARM32Check();
 
             // Checks if a Raspberry Pi is in use.
-            RPICheck();
+            RaspberryPiCheck();
 
 
             if (!ValidArchitectures.Contains(Platforms.CurrentArchitecture))

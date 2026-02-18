@@ -6,13 +6,13 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using Windows.Win32;
 using Windows.Win32.System.SystemInformation;
-using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Common.ProcessFactory;
-using static BrowserAutomationMaster.Managers.SystemInfo.CPU.RequiredInstructions;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Settings;
+using static BrowserAutomationMaster.Managers.SystemInfo.CPU.RequiredInstructions;
 
 namespace BrowserAutomationMaster.Managers.SystemInfo.CPU
 {
@@ -23,9 +23,11 @@ namespace BrowserAutomationMaster.Managers.SystemInfo.CPU
         // Minimum cores supported: 2
         // Minimum cores recommended: 4
         // Ensure all requiredInstructions
-        // Verify presence of recommendedInstructions, if not inform the user of what they are missing, what it does, and whether or not they want to continue.
-        // string[] requiredInstructions = ["x64", "AVX", "SSE2", "SSE3", "SSSE3", "SSE4.1", "SSE4.2"];
-        // string[] recommendedInstructions = ["AES", "AVX2", "BMI1", "BMI2", "FMA3", "LZCNT", "PopCnt", "PCLMULQDQ", "TZCNT"];
+        // Verify presence of recommendedInstructions
+        // If not present, inform the user of:
+        // - What they are missing
+        // - What it does
+        // - Whether or not they want to continue.
 
         public const string X64_EXPLANATION = "X86-64, commonly referred to as x64, is the modern implementation of the x86 CPU architecture, it's the reason our system's aren't limited to 4GB of RAM.";
         public const string AES_EXPLANATION = "Accelerates encryption/decryption, important for HTTPS and secure web communication.";
@@ -511,14 +513,14 @@ namespace BrowserAutomationMaster.Managers.SystemInfo.CPU
                 return false;
             }
 
-            if (Cores <= 4 && GlobalConfig.ShowCpuCheck) {
+            if (Cores <= 4 && GlobalSettings.ShowCpuCheck) {
                 Warning.Write(
                     $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
                     $"this might impact your performance slightly if your CPU is older.\n"
                 );
             }
 
-            else if (GlobalConfig.ShowCpuCheck) {
+            else if (GlobalSettings.ShowCpuCheck) {
                 WriteSuccessMessage(
                     $"BAM Manager (BAMM) has determined your cpu has {Cores} cores, " +
                     $"you should not experience any performance issues directly related to your CPU.\n"

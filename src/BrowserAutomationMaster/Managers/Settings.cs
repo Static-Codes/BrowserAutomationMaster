@@ -9,7 +9,7 @@ using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers
 {
-    public partial class Config
+    public partial class AppSettings
     {
         public required Theme ThemeType { get; set; }
         public bool ShowAppCheck { get; set; }
@@ -21,16 +21,7 @@ namespace BrowserAutomationMaster.Managers
         public bool UseBrowserstack { get; set; }
     }
 
-    // Since System.Globalization.TextInfo.ToTitleCase is more complicated than required
-    public static class StringExtensions 
-    {
-        public static string ToTitle(this string value) => string.Concat(char.ToUpper(value[0]), value[1..]);
-        public static string ToTitle(this string[] values) => string.Concat(
-            values.Select(val => val.ToTitle())
-        );    
-    }
-
-    public partial class ConfigParser
+    public partial class SettingNameParser
     {
         public static string ConvertSnakeToPascal(string snake_case) => snake_case.Split('_').ToTitle();
         public static string RemoveCommentIfPresent(string line)
@@ -44,16 +35,16 @@ namespace BrowserAutomationMaster.Managers
         }
     }
     
-    public readonly struct ConfigOverrideResult
+    public readonly struct SettingOverrideResult
     {
         public string PropertyName { get; init; }
         public string ColorType { get; init; }
         public string ColorValue { get; init; }
     }
 
-    public class ConfigManager()
+    public class Settings()
     {
-        public static Config GlobalConfig { get; set; } = new()
+        public static AppSettings GlobalSettings { get; set; } = new()
         {
             AutoCopyPath = false,
             RunOnCompile = false,
@@ -99,14 +90,13 @@ namespace BrowserAutomationMaster.Managers
             },
         };
         
-        private static string ConfigDirectory { get; set; } = GetBAMConfigDirectory();
-        public static string ConfigFilePath { get; private set; } = Path.Combine(ConfigDirectory, "config.ini");
+        public static string SettingsFilePath { get; private set; } = Path.Combine(AppDataDirectory, "settings.ini");
 
         public static readonly BindingFlags BindingAttr = BindingFlags.Instance | BindingFlags.Public;
         
-        private static string BuildConfigContents()
+        private static string BuildFileContent()
         {
-            var configContents = new StringBuilder();
+            var settingsContents = new StringBuilder();
             var sortedSections = rawSections.OrderBy(s => s.Key);
 
             foreach (var sectionEntry in sortedSections)
@@ -114,58 +104,48 @@ namespace BrowserAutomationMaster.Managers
                 var sectionName = sectionEntry.Key;
                 var properties = sectionEntry.Value;
 
-                configContents.AppendLine($"{sectionName}");
+                settingsContents.AppendLine($"{sectionName}");
 
                 if (sectionName != "[overrides]") {
                     foreach (var property in properties) {
-                        configContents.AppendLine($"{property.Key} = {property.Value}");
+                        settingsContents.AppendLine($"{property.Key} = {property.Value}");
                     }
                     continue; // This continue statement negates the requirement for an else block below.
                 }
 
-                configContents.AppendLine("; Only use this if you experience issues with one of the existing themes.");
-                configContents.AppendLine();
-                configContents.AppendLine(" ; @Override ForegroundColor = #FFFFFF");
-                configContents.AppendLine(" ; @Override SuccessColor = #EEEEEE");
-                configContents.AppendLine(" ; @Override WarningColor = #CCCCCC");
-                configContents.AppendLine(" ; @Override ErrorColor = #AAAAAA");
-                configContents.AppendLine(" ; @Override HighlightBackground = #010101");
-                configContents.AppendLine(" ; @Override HighlightForeground = #020202");
-                configContents.AppendLine(" ; @Override AccentColor = #040404");
-                configContents.AppendLine();
-                configContents.AppendLine(" ; @Override ForegroundColor = RGB(10, 10, 0)");
-                configContents.AppendLine(" ; @Override SuccessColor = RGB(20, 20, 20)");
-                configContents.AppendLine(" ; @Override WarningColor = RGB(30, 30, 30)");
-                configContents.AppendLine(" ; @Override ErrorColor = RGB(40, 40, 40)");
-                configContents.AppendLine(" ; @Override HighlightBackground = RGB(50, 50, 50)");
-                configContents.AppendLine(" ; @Override HighlightForeground = RGB(60, 60, 60)");
-                configContents.AppendLine(" ; @Override AccentColor = RGB(70, 70, 70)");
-                configContents.AppendLine(" ; @Override ForegroundColor = FFFF/FFFF/FFFF");
-                configContents.AppendLine();
-                configContents.AppendLine(" ; @Override SuccessColor = 0000/0000/0000");
-                configContents.AppendLine(" ; @Override WarningColor = 0000/0000/0000");
-                configContents.AppendLine(" ; @Override ErrorColor = 0000/0000/0000");
-                configContents.AppendLine(" ; @Override HighlightBackground = 0000/0000/0000");
-                configContents.AppendLine(" ; @Override HighlightForeground = 0000/0000/0000");
-                configContents.AppendLine(" ; @Override AccentColor = 0000/0000/0000");
+                settingsContents.AppendLine("; Only use this if you experience issues with one of the existing themes.");
+                settingsContents.AppendLine();
+                settingsContents.AppendLine(" ; @Override ForegroundColor = #FFFFFF");
+                settingsContents.AppendLine(" ; @Override SuccessColor = #EEEEEE");
+                settingsContents.AppendLine(" ; @Override WarningColor = #CCCCCC");
+                settingsContents.AppendLine(" ; @Override ErrorColor = #AAAAAA");
+                settingsContents.AppendLine(" ; @Override HighlightBackground = #010101");
+                settingsContents.AppendLine(" ; @Override HighlightForeground = #020202");
+                settingsContents.AppendLine(" ; @Override AccentColor = #040404");
+                settingsContents.AppendLine();
+                settingsContents.AppendLine(" ; @Override ForegroundColor = RGB(10, 10, 0)");
+                settingsContents.AppendLine(" ; @Override SuccessColor = RGB(20, 20, 20)");
+                settingsContents.AppendLine(" ; @Override WarningColor = RGB(30, 30, 30)");
+                settingsContents.AppendLine(" ; @Override ErrorColor = RGB(40, 40, 40)");
+                settingsContents.AppendLine(" ; @Override HighlightBackground = RGB(50, 50, 50)");
+                settingsContents.AppendLine(" ; @Override HighlightForeground = RGB(60, 60, 60)");
+                settingsContents.AppendLine(" ; @Override AccentColor = RGB(70, 70, 70)");
+                settingsContents.AppendLine(" ; @Override ForegroundColor = FFFF/FFFF/FFFF");
+                settingsContents.AppendLine();
+                settingsContents.AppendLine(" ; @Override SuccessColor = 0000/0000/0000");
+                settingsContents.AppendLine(" ; @Override WarningColor = 0000/0000/0000");
+                settingsContents.AppendLine(" ; @Override ErrorColor = 0000/0000/0000");
+                settingsContents.AppendLine(" ; @Override HighlightBackground = 0000/0000/0000");
+                settingsContents.AppendLine(" ; @Override HighlightForeground = 0000/0000/0000");
+                settingsContents.AppendLine(" ; @Override AccentColor = 0000/0000/0000");
 
                 // Adds trailing newline to all sections except the final one
                 if (sectionEntry.Key != sortedSections.Last().Key) {
-                    configContents.AppendLine();
+                    settingsContents.AppendLine();
                 }
             }
 
-            return configContents.ToString();
-        }
-
-        private static bool ConfigDirectoryExists()
-        {
-            return !string.IsNullOrEmpty(ConfigDirectory) && Directory.Exists(ConfigDirectory);
-        }
-
-        private static bool ConfigFileExists()
-        {
-            return !string.IsNullOrEmpty(ConfigFilePath) && File.Exists(ConfigFilePath);
+            return settingsContents.ToString();
         }
 
         private static object? DoCast(string value, Type targetType)
@@ -200,36 +180,15 @@ namespace BrowserAutomationMaster.Managers
                 "Please add this feature in ConfigManager.DoCast()");
         }
 
-        private static void EnsureConfigExists()
+        private static void EnsureSettingsExist()
         {
-            if (!ConfigDirectoryExists())
-            {
-                try {
-                    Directory.CreateDirectory(ConfigDirectory);
-                }
-
-                catch (Exception ex)
-                {
-                    WriteAndExit(
-                        string.Join(NLC, [
-                            "Failed to create config file at:",
-                            ConfigFilePath,
-                            $"Please make a bug report at {ISSUES_LINK}",
-                            "Error Log:",
-                            ex.Message,
-                        ]),
-                        status: 1
-                    );
-                }
-            }
-
-            if (!ConfigFileExists())
+            if (!SettingsFileExists())
             {
                 try
                 {
-                    string configContents = BuildConfigContents();
-                    ValidateConfigContents(configContents);
-                    File.WriteAllText(ConfigFilePath, configContents);
+                    string settingsContents = BuildFileContent();
+                    ValidateConfigContents(settingsContents);
+                    File.WriteAllText(SettingsFilePath, settingsContents);
                     return;
                 }
 
@@ -238,7 +197,7 @@ namespace BrowserAutomationMaster.Managers
                     WriteAndExit(
                         string.Join(NLC, [
                             "Failed to create config file at:",
-                            ConfigFilePath,
+                            SettingsFilePath,
                             $"Please make a bug report at {ISSUES_LINK}",
                             "Error Log:",
                             ex.Message,
@@ -250,16 +209,16 @@ namespace BrowserAutomationMaster.Managers
 
             try
             {
-                string configContents = File.ReadAllText(ConfigFilePath, Encoding.UTF8);
-                ValidateConfigContents(configContents);
+                string settingsContents = File.ReadAllText(SettingsFilePath, Encoding.UTF8);
+                ValidateConfigContents(settingsContents);
             }
             catch (Exception ex)
             {
                 WriteMessage(ex.Message);
                 Write("Failed to validate config.ini, writing default values.");
-                string configContents = BuildConfigContents();
-                ValidateConfigContents(configContents);
-                File.WriteAllText(ConfigFilePath, configContents); // Fixed: was ConfigDirectory, should be ConfigFilePath
+                string settingsContents = BuildFileContent();
+                ValidateConfigContents(settingsContents);
+                File.WriteAllText(SettingsFilePath, settingsContents); // Fixed: was ConfigDirectory, should be SettingsFilePath
             }
         }
 
@@ -317,17 +276,17 @@ namespace BrowserAutomationMaster.Managers
             return propsAndFuncs;
         }
 
-        public static Config LoadConfig()
+        public static AppSettings Load()
         {
-            EnsureConfigExists();
+            EnsureSettingsExist();
 
-            var configContents = File.ReadAllText(ConfigFilePath, Encoding.UTF8);
+            var settingsContents = File.ReadAllText(SettingsFilePath, Encoding.UTF8);
             string? currentSection = null;
-            var splitLines = configContents.Split('\n');
+            var splitLines = settingsContents.Split('\n');
 
             foreach (string originalLine in splitLines)
             {
-                string trimmedLine = ConfigParser.RemoveCommentIfPresent(originalLine.Replace('\r', ' ').Trim());
+                string trimmedLine = SettingNameParser.RemoveCommentIfPresent(originalLine.Replace('\r', ' ').Trim());
                 
                 if (string.IsNullOrWhiteSpace(trimmedLine)) {
                     continue;
@@ -358,7 +317,7 @@ namespace BrowserAutomationMaster.Managers
                     ProcessConfigProperty(trimmedLine, originalLine, splitLines);
                 }
             }
-            return GlobalConfig;
+            return GlobalSettings;
         }
 
         private static void LogOverrideError(string originalLine, string[] splitLines)
@@ -382,6 +341,66 @@ namespace BrowserAutomationMaster.Managers
             );
         }
 
+        public static bool OverrideLineHasComment(string line)
+        {
+            bool hasComment = false;
+            char commentChar = ';';
+
+            // If a line is null, it is treated as a comment, and skipped.
+            if (line == null) { 
+                return true; 
+            }
+            
+            foreach (char c in line)
+            {
+                if (char.IsWhiteSpace(c)) {
+                    continue;
+                }
+
+                if (c.Equals(commentChar)) {
+                    hasComment = true;
+                    break;
+                }
+            }
+
+            return hasComment;
+        } 
+        private static SettingOverrideResult? ParseOverrideLine(string line)
+        {
+            var match = OverrideRegex().Match(line); // Will fail if a line has a comment (This is expected)
+            if (!match.Success) {
+                return null;
+            }
+
+            string propertyName = match.Groups["PropertyName"].Value;
+
+            if (match.Groups["Hex"].Success) {
+                return new SettingOverrideResult() { 
+                    PropertyName = propertyName, 
+                    ColorType = "Hex", 
+                    ColorValue = match.Groups["Hex"].Value 
+                };
+            }
+            
+            else if (match.Groups["RGB"].Success) {
+                return new() { 
+                    PropertyName = propertyName, 
+                    ColorType = "RGB", 
+                    ColorValue = match.Groups["RGB"].Value 
+                };
+            }
+
+            else if (match.Groups["XTerm"].Success) {
+                return new() { 
+                    PropertyName = propertyName, 
+                    ColorType = "XTerm", 
+                    ColorValue = match.Groups["XTerm"].Value 
+                };
+            }
+
+            return null;
+        }
+
         private static void ProcessConfigProperty(string trimmedLine, string originalLine, string[] splitLines)
         {
             string[] parts = trimmedLine.Split('=', 2);
@@ -389,11 +408,11 @@ namespace BrowserAutomationMaster.Managers
                 return;
             }
 
-            var propName = ConfigParser.ConvertSnakeToPascal(parts[0].Trim());
+            var propName = SettingNameParser.ConvertSnakeToPascal(parts[0].Trim());
             var propValue = parts[1].Trim();
 
             var lineNumber = Array.IndexOf(splitLines, originalLine) + 1;
-            var property = typeof(Config).GetProperty(propName, BindingAttr);
+            var property = typeof(AppSettings).GetProperty(propName, BindingAttr);
 
             if (property == null)
             {
@@ -421,7 +440,7 @@ namespace BrowserAutomationMaster.Managers
                             $"Failed to convert value '{propValue}' for property '{propName}'."),
                         status: 1);
                 }
-                property.SetValue(GlobalConfig, castedValue);
+                property.SetValue(GlobalSettings, castedValue);
             }
             catch (Exception ex)
             {
@@ -448,73 +467,18 @@ namespace BrowserAutomationMaster.Managers
             var value = ToSpectreColor(result.Value.ColorType, result.Value.ColorValue);
 
             if (value != null) {
-                property.SetValue(GlobalConfig.ThemeType, ToColor(value.Value));
+                property.SetValue(GlobalSettings.ThemeType, ToColor(value.Value));
             }
         }
 
-        public static bool OverrideLineHasComment(string line)
+        private static bool SettingsFileExists()
         {
-            bool hasComment = false;
-            char commentChar = ';';
-
-            // If a line is null, it is treated as a comment, and skipped.
-            if (line == null) { 
-                return true; 
-            }
-            
-            foreach (char c in line)
-            {
-                if (char.IsWhiteSpace(c)) {
-                    continue;
-                }
-
-                if (c.Equals(commentChar)) {
-                    hasComment = true;
-                    break;
-                }
-            }
-
-            return hasComment;
-        } 
-        private static ConfigOverrideResult? ParseOverrideLine(string line)
-        {
-            var match = OverrideRegex().Match(line); // Will fail if a line has a comment (This is expected)
-            if (!match.Success) {
-                return null;
-            }
-
-            string propertyName = match.Groups["PropertyName"].Value;
-
-            if (match.Groups["Hex"].Success) {
-                return new ConfigOverrideResult() { 
-                    PropertyName = propertyName, 
-                    ColorType = "Hex", 
-                    ColorValue = match.Groups["Hex"].Value 
-                };
-            }
-            
-            else if (match.Groups["RGB"].Success) {
-                return new() { 
-                    PropertyName = propertyName, 
-                    ColorType = "RGB", 
-                    ColorValue = match.Groups["RGB"].Value 
-                };
-            }
-
-            else if (match.Groups["XTerm"].Success) {
-                return new() { 
-                    PropertyName = propertyName, 
-                    ColorType = "XTerm", 
-                    ColorValue = match.Groups["XTerm"].Value 
-                };
-            }
-
-            return null;
+            return !string.IsNullOrEmpty(SettingsFilePath) && File.Exists(SettingsFilePath);
         }
 
-        private static void ValidateConfigContents(string configContents)
+        private static void ValidateConfigContents(string settingsContents)
         {
-            var splitLines = configContents.Split('\n');
+            var splitLines = settingsContents.Split('\n');
             string? currentSection = null;
             var encounteredSections = new HashSet<string>();
             var propsAndFuncs = GetPropsAndFuncs();
@@ -522,7 +486,7 @@ namespace BrowserAutomationMaster.Managers
             for (int i = 0; i < splitLines.Length; i++)
             {
                 string originalLine = splitLines[i];
-                string trimmedLine = ConfigParser.RemoveCommentIfPresent(
+                string trimmedLine = SettingNameParser.RemoveCommentIfPresent(
                     originalLine.Replace('\r', ' ').Trim()
                 );
 
@@ -607,7 +571,7 @@ namespace BrowserAutomationMaster.Managers
                 //Console.WriteLine();
 
                 var invalidPropName = !rawSections[currentSection].Any(pair => pair.Key.Equals(propName));
-                var invalidThemeType = typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalConfig.ThemeType) == null;
+                var invalidThemeType = typeof(Theme).GetProperty(propName, BindingAttr)?.GetValue(GlobalSettings.ThemeType) == null;
 
                 // Invalid propertyNames
                 if (invalidPropName && invalidThemeType) 
@@ -664,9 +628,18 @@ namespace BrowserAutomationMaster.Managers
             }
         }    
 
-        private static void ValidateConfigContents(FileStream configContents)
+        private static void ValidateConfigContents(FileStream settingsContents)
         {
 
         }
+    }
+
+     // Since System.Globalization.TextInfo.ToTitleCase is more complicated than required
+    public static class StringExtensions 
+    {
+        public static string ToTitle(this string value) => string.Concat(char.ToUpper(value[0]), value[1..]);
+        public static string ToTitle(this string[] values) => string.Concat(
+            values.Select(val => val.ToTitle())
+        );    
     }
 }

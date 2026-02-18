@@ -1,24 +1,24 @@
 using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.Helpers;
-using BrowserAutomationMaster.Managers.OS.Generic;
 using BrowserAutomationMaster.Managers.Messaging;
+using BrowserAutomationMaster.Managers.OS.Generic;
 using Spectre.Console;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
-using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
-using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
-using static BrowserAutomationMaster.Managers.Python.WheelManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Managers.Python.WheelManager;
+using static BrowserAutomationMaster.Managers.Settings;
 using static System.Runtime.InteropServices.Architecture;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
 {
@@ -152,7 +152,7 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
                 };
 
 
-                if (GlobalConfig.ShowAppCheck)
+                if (GlobalSettings.ShowAppCheck)
                 {
 
                     AnsiConsole.WriteLine(); // Adding a leading newline for readablity within terminal.
@@ -296,15 +296,15 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
             string? distroName;
 
             if (lsbrPresent) { 
-                distroName = RunLSBR(); 
+                distroName = ParseLSBRelease(); 
             }
 
             else if (neofetchPresent) {
-                distroName = RunNeofetch();
+                distroName = ParseNeofetch();
             }
 
             else {
-                distroName = RunOSR();
+                distroName = ParseOSRelease();
             }
 
             return distroName ?? "Generic Linux";
@@ -489,7 +489,7 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
         }
         
         // Due to the unique nature of how ANSI is handled on Kali Linux
-        public static bool IsKali() 
+        private static bool IsKali() 
         {
             return 
                 Platforms.CurrentDistribution != null && 
@@ -638,7 +638,7 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
             }
         }
         
-        public static void RPICheck()
+        public static void RaspberryPiCheck()
         {
             if (!OperatingSystem.IsLinux()) {
                 return;
@@ -741,7 +741,7 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
         }
 
         // Executing: 'cat /etc/os-release'
-        private static string? RunOSR()
+        private static string? ParseOSRelease()
         {
             var fileName = "/etc/os-release";
             try
@@ -774,7 +774,7 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
         }
         
         // Executing: 'lsb_release -a' 
-        private static string? RunLSBR()
+        private static string? ParseLSBRelease()
         {
             try
             {
@@ -796,7 +796,7 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
         }
 
         // Executing: 'neofetch'
-        private static string? RunNeofetch()
+        private static string? ParseNeofetch()
         {
             try
             {

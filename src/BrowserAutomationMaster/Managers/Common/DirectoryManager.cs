@@ -250,8 +250,6 @@ namespace BrowserAutomationMaster.Managers.Common
 
         public static string GetBrowserStackConfigPath() { return Path.Combine(GetBrowserStackDirectory(), "browserstack.yml"); }
 
-        public static string GetBAMConfigDirectory() { return Path.Combine(AppDataDirectory, "config"); }
-
         public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
 
         private static string GetDefaultBackupPath(string compression = "zip")

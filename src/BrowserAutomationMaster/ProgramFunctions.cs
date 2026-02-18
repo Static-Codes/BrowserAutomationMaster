@@ -14,7 +14,6 @@ using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Common.ProcessManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
-using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.GUI.Server;
 using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
@@ -23,6 +22,7 @@ using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.Managers.OS.Generic.InstalledApps;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Parsing.Parser;
+using static BrowserAutomationMaster.Managers.Settings;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 
 
@@ -47,8 +47,8 @@ namespace BrowserAutomationMaster
             SetPlatform();
 
             // BUG FIXED: DO NOT CHANGE POSITION
-            // If GlobalConfig is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
-            GlobalConfig = LoadConfig();
+            // If GlobalSettings is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
+            GlobalSettings = Load();
 
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
@@ -415,7 +415,6 @@ namespace BrowserAutomationMaster
             {
                 "userscripts" => userScriptsDirectory,
                 "compiled" => GetDesiredSaveDirectory(),
-                "config" => GetBAMConfigDirectory(),
                 _ => string.Empty
             };
 
@@ -513,7 +512,7 @@ namespace BrowserAutomationMaster
 
             bool doHardwareCheck = !bypassCheck1 && !bypassCheck2;
 
-            if (GlobalConfig.ShowUpdateCheck) {
+            if (GlobalSettings.ShowUpdateCheck) {
                 await CheckForUpdate();
             }
 
