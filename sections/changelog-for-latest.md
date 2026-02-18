@@ -54,7 +54,7 @@ This update significantly expands **Linux support**, introducing a robust Distri
     * Fixed `pkgVer` logic in `archBuild` to reflect the proper version source.
     * Fixed a bug causing the inclusion of 2 trailing bytes in `PKGBUILD`.
     * Fixed python detection logic on Arch-based systems.
-* **Crash Fixes:** Fixed a critical bug in `AnsiManager` causing premature crashing on all platforms when `GlobalConfig` is not set.
+* **Crash Fixes:** Fixed a critical bug in `AnsiManager` causing premature crashing on all platforms when `GlobalSettings` is not set.
 * **Logic Errors:**
     * Fixed binary copying logic in `ArchBuild.WritePKGBuildFile`.
     * Fixed bug caused by handling raw binary hash bytes as UTF8 text.
