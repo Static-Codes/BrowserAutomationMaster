@@ -1,6 +1,10 @@
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
+using System.Buffers;
+using System.Buffers.Text;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.RequestManager;
@@ -8,10 +12,6 @@ using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Input;
 using static BrowserAutomationMaster.Messaging.Success;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Buffers.Text;
-using System.Buffers;
 
 
 namespace BrowserAutomationMaster.Managers 
@@ -33,6 +33,11 @@ namespace BrowserAutomationMaster.Managers
 
         private readonly bool exitOnFail = CheckForExitArgStatus(args);
 
+        private static string BuildDownloadUrl(string manifestID, string versionID) 
+        {
+            return $"https://clients2.google.com/service/update2/crx?response=redirect&prodversion={versionID}&acceptformat=crx2,crx3&x=id%3D{manifestID}%26uc";
+        }
+        
         private static bool CheckChromeStatus(string rawExtensionPath, string browserName)
         {
             return 
@@ -179,131 +184,6 @@ namespace BrowserAutomationMaster.Managers
             return null; // This wont be executed, purely to appease Rosyln.
         }
 
-        private static void GetFirstRegexMatch(ReadOnlyMemory<char> romContents, string RegexPattern, out byte[] finalBuffer, out int finalLength)
-        {
-            finalBuffer = [];
-            finalLength = 0;
-
-            var valueMatches = Regex.EnumerateMatches(romContents.Span, RegexPattern);
-
-            foreach (var match in valueMatches) 
-            {
-                var ROM = romContents.Slice(match.Index, match.Length);
-
-                finalBuffer = Encoding.UTF8.GetBytes(ROM.ToArray());
-                finalLength = finalBuffer.Length;
-                return;
-            }
-        }
-
-        private static async Task<string> GetLatestChromeVersion() 
-        {
-            var jsonData = await NetworkClient.GetReadOnlyMemoryBytesFromURL(CHROME_VERSION_URL, timeout: 5);
-                
-            void ReadJsonData(out string version) 
-            {
-                version = string.Empty;
-                var reader = new Utf8JsonReader(jsonData.Span);
-                    
-                try 
-                {
-                    while (reader.Read())
-                    {
-                        if (reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("version"u8)) {
-                            reader.Read();
-
-                            version = Encoding.UTF8.GetString(reader.ValueSpan[..3]) + ".0.0.0";
-                            // version = Encoding.UTF8.GetString(reader.ValueSpan);
-                            break;
-                        }
-                    }
-                }
-                catch (Exception ex) 
-                {
-                    WriteAndExit(
-                        message: string.Join(NLC, [
-                            "An exception occured while retrieving the latest version of Google Chrome, during .CRX file validation.",
-                            "Error Log:",
-                            ex.Message
-                        ]),
-                        status: 1
-                    );
-                }
-            }
-
-            ReadJsonData(out string latestChromeVersion);
-            return latestChromeVersion;
-        }
-
-        private static string GetXPIDownloadURL(ReadOnlySpan<char> chars)
-        {
-            int lastSlashIndex = chars.LastIndexOf('/');
-            if (lastSlashIndex == -1 || chars.Count('/') != 7)
-            {
-                WriteAndExit(
-                    "",
-                    status: 1
-                );
-            }
-            
-            // Not sure where this overscan comes from but it seems to be a static overscan of 35 bytes starting at chars.Length - 35
-            int emptyByteCount = 35;
-
-            ReadOnlySpan<char> urlPrefix = chars[..lastSlashIndex];
-            ReadOnlySpan<char> attachmentPart = "/type:attachment";
-            ReadOnlySpan<char> urlSuffix = chars[lastSlashIndex..^emptyByteCount];
-
-            return string.Concat(urlPrefix, attachmentPart, urlSuffix);
-        }
-
-        private static void LogSuccess(string key, ReadOnlyMemory<byte> value)
-        {
-            int charCount = value.Length * 2;
-
-            // The usage of 'stackalloc char' here is safe because LogSuccess is NOT async
-            Span<char> hexBuffer = stackalloc char[charCount];
-            ReadOnlySpan<byte> sourceBytes = value.Span; 
-
-            for (int i = 0; i < sourceBytes.Length; i++)
-            {
-                // Formats each byte into the buffer
-                var formattedBuffer = hexBuffer[(i * 2)..];
-                sourceBytes[i].TryFormat(formattedBuffer, out _, "X2");
-            }
-
-            WriteSuccessMessage($"Located the hex sequence for {key} (", noNewLines: true);
-
-            // Utilizes a direct span write to avoid heap allocation
-            Console.Out.Write(hexBuffer);
-            WriteSuccessMessage($")", noNewLines: true);
-            Console.WriteLine();
-        }
-
-        private static string SanitizeExtensionPath(string rawExtensionPath) => rawExtensionPath.Replace("file://", "");
-
-        public async Task<bool> ExtensionExists() 
-        {
-            if (IsLocalFile) 
-            {
-                return File.Exists(ExtensionPath);
-            }
-
-            if (IsURL) 
-            {
-                if (await SiteIsPingable(ExtensionPath)) 
-                {
-                    return true;
-                }
-
-                Warning.Write("The provided extension URL provided a non 200 status code, indicating an error.");
-                Console.WriteLine("Please try downloading this resource and passing the path to the local file instead.");
-                return false;
-            }
-
-            Warning.Write("Unable to make contact with the website hosting the extension provided.");
-            return false;
-        }
-
         public async Task<MemoryStream?> GetExtensionContents() 
         {
             if (!IsURL && !IsLocalFile) 
@@ -426,11 +306,23 @@ namespace BrowserAutomationMaster.Managers
             return null;
         }
 
-        private static string BuildDownloadUrl(string manifestID, string versionID) 
+        private static void GetFirstRegexMatch(ReadOnlyMemory<char> romContents, string RegexPattern, out byte[] finalBuffer, out int finalLength)
         {
-            return $"https://clients2.google.com/service/update2/crx?response=redirect&prodversion={versionID}&acceptformat=crx2,crx3&x=id%3D{manifestID}%26uc";
+            finalBuffer = [];
+            finalLength = 0;
+
+            var valueMatches = Regex.EnumerateMatches(romContents.Span, RegexPattern);
+
+            foreach (var match in valueMatches) 
+            {
+                var ROM = romContents.Slice(match.Index, match.Length);
+
+                finalBuffer = Encoding.UTF8.GetBytes(ROM.ToArray());
+                finalLength = finalBuffer.Length;
+                return;
+            }
         }
-            
+
         private async Task<byte[]> GetHostedExtensionContents()
         {
             byte[] contents = [];
@@ -632,6 +524,112 @@ namespace BrowserAutomationMaster.Managers
 
             return contents;
         }
+
+        private static async Task<string> GetLatestChromeVersion() 
+        {
+            var jsonData = await NetworkClient.GetReadOnlyMemoryBytesFromURL(CHROME_VERSION_URL, timeout: 5);
+                
+            void ReadJsonData(out string version) 
+            {
+                version = string.Empty;
+                var reader = new Utf8JsonReader(jsonData.Span);
+                    
+                try 
+                {
+                    while (reader.Read())
+                    {
+                        if (reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("version"u8)) {
+                            reader.Read();
+
+                            version = Encoding.UTF8.GetString(reader.ValueSpan[..3]) + ".0.0.0";
+                            // version = Encoding.UTF8.GetString(reader.ValueSpan);
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex) 
+                {
+                    WriteAndExit(
+                        message: string.Join(NLC, [
+                            "An exception occured while retrieving the latest version of Google Chrome, during .CRX file validation.",
+                            "Error Log:",
+                            ex.Message
+                        ]),
+                        status: 1
+                    );
+                }
+            }
+
+            ReadJsonData(out string latestChromeVersion);
+            return latestChromeVersion;
+        }
+
+        private static string GetXPIDownloadURL(ReadOnlySpan<char> chars)
+        {
+            int lastSlashIndex = chars.LastIndexOf('/');
+            if (lastSlashIndex == -1 || chars.Count('/') != 7)
+            {
+                WriteAndExit(
+                    "",
+                    status: 1
+                );
+            }
+            
+            // Not sure where this overscan comes from but it seems to be a static overscan of 35 bytes starting at chars.Length - 35
+            int emptyByteCount = 35;
+
+            ReadOnlySpan<char> urlPrefix = chars[..lastSlashIndex];
+            ReadOnlySpan<char> attachmentPart = "/type:attachment";
+            ReadOnlySpan<char> urlSuffix = chars[lastSlashIndex..^emptyByteCount];
+
+            return string.Concat(urlPrefix, attachmentPart, urlSuffix);
+        }
+
+        public async Task<bool> ExtensionExists() 
+        {
+            if (IsLocalFile) {
+                return File.Exists(ExtensionPath);
+            }
+
+            if (IsURL) 
+            {
+                if (await SiteIsPingable(ExtensionPath)) {
+                    return true;
+                }
+
+                Warning.Write("The provided extension URL provided a non 200 status code, indicating an error.");
+                Console.WriteLine("Please try downloading this resource and passing the path to the local file instead.");
+                return false;
+            }
+
+            Warning.Write("Unable to make contact with the website hosting the extension provided.");
+            return false;
+        }
+
+        private static void LogSuccess(string key, ReadOnlyMemory<byte> value)
+        {
+            int charCount = value.Length * 2;
+
+            // The usage of 'stackalloc char' here is safe because LogSuccess is NOT async
+            Span<char> hexBuffer = stackalloc char[charCount];
+            ReadOnlySpan<byte> sourceBytes = value.Span; 
+
+            for (int i = 0; i < sourceBytes.Length; i++)
+            {
+                // Formats each byte into the buffer
+                var formattedBuffer = hexBuffer[(i * 2)..];
+                sourceBytes[i].TryFormat(formattedBuffer, out _, "X2");
+            }
+
+            WriteSuccessMessage($"Located the hex sequence for {key} (", noNewLines: true);
+
+            // Utilizes a direct span write to avoid heap allocation
+            Console.Out.Write(hexBuffer);
+            WriteSuccessMessage($")", noNewLines: true);
+            Console.WriteLine();
+        }
+
+        private static string SanitizeExtensionPath(string rawExtensionPath) => rawExtensionPath.Replace("file://", "");
 
         /// <summary>
         /// <param name="contents"> The ReadOnlyMemory<byte> containing the contents from this.ExtensionPath, created in GetExtensionContents</param>
