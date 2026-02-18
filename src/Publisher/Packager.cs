@@ -1,4 +1,4 @@
-using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Messaging;
 using Publisher.Build.Processes;
 using System.Diagnostics;
@@ -331,7 +331,7 @@ namespace Publisher
 
 
             Console.WriteLine("Compressing the top level directory into a tarball archive (.tar.gz) as per PCLinuxOS packaging guidelines.");
-            (var success, var archivePath) = ArchiveManager.CreateTarballArchive(TLD, sourcesDir, archiveName);
+            (var success, var archivePath) = ArchiveHelper.CreateTarballArchive(TLD, sourcesDir, archiveName);
             Success.WriteSuccessMessage("Operation successful.");
 
 

@@ -1,5 +1,5 @@
+using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Messaging;
-using BrowserAutomationMaster.Managers;
 using Publisher;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
@@ -39,7 +39,7 @@ if (archiveFileType != "Skip Compilation and Start Packaging")
     }
 
 
-    var archiveManager = new ArchiveManager(archiveFileType, archiveFilePath);
+    var archiveManager = new ArchiveHelper(archiveFileType, archiveFilePath);
 
     // Removes the starting "v" in "v1.0.0A(X)"
     var tagWithoutVersionMarker = LatestTag != null ? LatestTag[1..] : "Source";

@@ -1,4 +1,4 @@
-using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
@@ -293,7 +293,7 @@ namespace Publisher
                     Success.WriteSuccessMessage("The downloaded archive has passed hash validation.");
 
                     Console.WriteLine("Extracting archive to: ~/.dotnet/");
-                    return ArchiveManager.UnarchiveTarball(outputStream, dotnetDir);
+                    return ArchiveHelper.UnarchiveTarball(outputStream, dotnetDir);
                 }
 
                 Write($"Received: {calculatedHash}"); // Displaying red to indicate an issue is present.

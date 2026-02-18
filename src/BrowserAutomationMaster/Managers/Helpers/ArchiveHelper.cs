@@ -3,9 +3,8 @@ using System.IO.Compression;
 using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Managers.UpdateManager;
 
-namespace BrowserAutomationMaster.Managers 
+namespace BrowserAutomationMaster.Managers.Helpers
 {
     public enum ArchiveType 
     {
@@ -13,28 +12,10 @@ namespace BrowserAutomationMaster.Managers
         ZIP
     }
 
-    public class ArchiveManager(string archiveType, string filePath) 
+    public class ArchiveHelper(string archiveType, string filePath) 
     {
         public string archiveType = archiveType;
         public string filePath = filePath;
-        
-        /// <summary>
-        /// Extracts the file provided to the ArchiveManager object, unless "--no-extraction" is passed as an argument.
-        /// <param name="args"> The arguments passed to the application </param>
-        /// </summary>
-        public bool UnarchiveFile(string[] args, string codebaseSourceDir) 
-        {
-            bool noExtractionRequested = args.Contains("--no-extraction");
-            bool alreadyExtracted = Directory.Exists(codebaseSourceDir);
-
-            if (noExtractionRequested || alreadyExtracted) {
-                return true; 
-            }
-
-            return archiveType.Equals(".tar.gz") 
-                ? UnarchiveTarball(codebaseSourceDir) 
-                : UnarchiveZip(codebaseSourceDir);
-        }
 
         public static (bool, string) CreateTarballArchive(string sourceDir, string outputDir, string archiveName) 
         {
@@ -63,6 +44,26 @@ namespace BrowserAutomationMaster.Managers
             }
             return (Directory.Exists(sourceDir), filePath);
         }
+        
+        
+        /// <summary>
+        /// Extracts the file provided to the ArchiveManager object, unless "--no-extraction" is passed as an argument.
+        /// <param name="args"> The arguments passed to the application </param>
+        /// </summary>
+        public bool UnarchiveFile(string[] args, string codebaseSourceDir) 
+        {
+            bool noExtractionRequested = args.Contains("--no-extraction");
+            bool alreadyExtracted = Directory.Exists(codebaseSourceDir);
+
+            if (noExtractionRequested || alreadyExtracted) {
+                return true; 
+            }
+
+            return archiveType.Equals(".tar.gz") 
+                ? UnarchiveTarball(codebaseSourceDir) 
+                : UnarchiveZip(codebaseSourceDir);
+        }
+
         private bool UnarchiveTarball(string sourceDir) 
         {
             try 
@@ -132,9 +133,6 @@ namespace BrowserAutomationMaster.Managers
             }
             return Directory.Exists(exportDir);
         }
-
-
-        
 
         private bool UnarchiveZip(string codebaseSourceDir) 
         {
