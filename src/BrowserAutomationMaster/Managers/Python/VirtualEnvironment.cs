@@ -6,7 +6,7 @@ using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.InstanceManager;
+using static BrowserAutomationMaster.Managers.Python.BrowserStack.Instance;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
 

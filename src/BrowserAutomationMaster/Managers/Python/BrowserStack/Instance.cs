@@ -56,21 +56,21 @@ namespace BrowserAutomationMaster.Managers.Python.BrowserStack
         Portrait
     }
 
-    public class InstanceManager
+    public class Instance
     {
         public readonly static string browserStackDirectory = GetBrowserStackDirectory();
         public readonly static string browserStackConfig = Path.Combine(browserStackDirectory, "browserstack.yml");
-
         public static BrowserStackConfig? StackConfig { get; set; }
-        private readonly static string tutorialMessage =
-            "Please follow the following steps to use BrowserStack:\n\n" +
-            "1. Visit https://www.browserstack.com/users/sign_up\n" +
-            "2. Sign up using an email you can receive a verification with.\n" +
-            "3. Click the verification link inside the email you receive.\n" +
-            "4. Go to: https://www.browserstack.com/accounts/profile/\n" +
-            "5. Click 'My profile'\n" +
-            "6. Copy and Paste both your username and access key when prompted. (This only has to be done once)";
-
+        private readonly static string tutorialMessage = string.Join(NLC, [
+            "Please follow the following steps to use BrowserStack:",
+            NLC,
+            "1. Visit https://www.browserstack.com/users/sign_up",
+            "2. Sign up using an email you can receive a verification with.",
+            "3. Click the verification link inside the email you receive.",
+            "4. Go to: https://www.browserstack.com/accounts/profile/",
+            "5. Click 'My profile'",
+            "6. Copy and Paste both your username and access key when prompted. (This only has to be done once)"
+        ]);
 
         public static BrowserStackConfig BuildConfig()
         {
