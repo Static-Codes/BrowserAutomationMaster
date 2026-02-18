@@ -1,5 +1,5 @@
 ﻿using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 
 namespace BrowserAutomationMaster.Managers.Python.BrowserStack
 {

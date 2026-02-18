@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BrowserAutomationMaster.Managers.Common
+﻿namespace BrowserAutomationMaster.Managers.Common
 {
-    public class ConstantManager
+    public class Constants
     {
         public static readonly string NLC = Environment.NewLine; // This isn't a constant but for simplicity it will be placed here.
         public static readonly string eNLC = NLC.Replace("\r", "\\r").Replace("\n", "\\n");

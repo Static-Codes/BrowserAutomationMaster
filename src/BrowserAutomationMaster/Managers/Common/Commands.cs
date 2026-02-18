@@ -1,5 +1,5 @@
 ﻿using Spectre.Console;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 
 namespace BrowserAutomationMaster.Managers.Common

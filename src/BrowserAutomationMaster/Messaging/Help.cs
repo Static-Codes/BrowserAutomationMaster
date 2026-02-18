@@ -1,7 +1,7 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
 using Spectre.Console;
 using static BrowserAutomationMaster.Managers.Common.Commands;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 

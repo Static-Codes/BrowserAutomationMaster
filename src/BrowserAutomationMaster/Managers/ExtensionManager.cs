@@ -1,7 +1,7 @@
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using System.Text;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.RequestManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;

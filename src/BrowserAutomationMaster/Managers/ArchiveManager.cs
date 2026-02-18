@@ -2,7 +2,7 @@ using System.Formats.Tar;
 using System.IO.Compression;
 using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 
 namespace BrowserAutomationMaster.Managers 

@@ -2,7 +2,7 @@
 using System.Drawing;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 
 namespace BrowserAutomationMaster.Managers

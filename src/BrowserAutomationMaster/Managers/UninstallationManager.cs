@@ -3,7 +3,7 @@ using BrowserAutomationMaster.Messaging;
 using System.ComponentModel;
 using System.Diagnostics;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -221,7 +221,7 @@ namespace BrowserAutomationMaster.Managers
                         "Unable to delete app data for BAM Manager (BAMM).\n" +
                         "Please remove this directory manually:\n" +
                         $"{AppDataDirectory}\n" +
-                        $"Please make a bug report at {ConstantManager.ISSUES_LINK}\n\n" +
+                        $"Please make a bug report at {Constants.ISSUES_LINK}\n\n" +
                         $"Error Log:\n{e.Message}";
                     Write(message);
                 }

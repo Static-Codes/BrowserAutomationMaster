@@ -4,7 +4,7 @@ using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 

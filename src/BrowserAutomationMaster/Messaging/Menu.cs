@@ -1,6 +1,6 @@
 ﻿using static BrowserAutomationMaster.Parsing.Parser;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Menu;
 using BrowserAutomationMaster.Managers;

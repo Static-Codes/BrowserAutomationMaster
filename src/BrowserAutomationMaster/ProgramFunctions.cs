@@ -8,7 +8,7 @@ using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Managers.SystemInfo.CPU;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Common.ProcessManager;

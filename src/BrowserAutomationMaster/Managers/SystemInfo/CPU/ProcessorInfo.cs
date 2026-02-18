@@ -7,7 +7,7 @@ using System.Runtime.Intrinsics.X86;
 using Windows.Win32;
 using Windows.Win32.System.SystemInformation;
 using static BrowserAutomationMaster.Managers.ConfigManager;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Common.ProcessFactory;
 using static BrowserAutomationMaster.Managers.SystemInfo.CPU.RequiredInstructions;

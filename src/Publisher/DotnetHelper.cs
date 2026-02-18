@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using static BrowserAutomationMaster.Managers.Common.RequestManager.NetworkClient;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;

@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Managers.OS.Unix.Linux

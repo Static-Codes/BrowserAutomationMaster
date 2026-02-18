@@ -1,5 +1,5 @@
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Messaging.Errors;

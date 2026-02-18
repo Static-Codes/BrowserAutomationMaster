@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Messaging.Debug;
 
 namespace BrowserAutomationMaster.Messaging

@@ -3,7 +3,7 @@ using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Messaging;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 

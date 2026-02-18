@@ -1,6 +1,6 @@
 ﻿using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.ExtensionManager;
 using static BrowserAutomationMaster.Messaging.Errors;

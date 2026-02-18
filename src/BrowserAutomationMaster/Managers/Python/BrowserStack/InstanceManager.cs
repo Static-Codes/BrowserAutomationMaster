@@ -2,7 +2,7 @@
 using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Helpers.EnumHelper;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.Devices;

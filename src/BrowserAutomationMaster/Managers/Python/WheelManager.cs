@@ -1,4 +1,4 @@
-﻿using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+﻿using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Messaging.Errors;

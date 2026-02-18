@@ -1,7 +1,7 @@
 using BrowserAutomationMaster.Parsing;
 using System.Net;
 using System.Text.Json;
-using static BrowserAutomationMaster.Managers.Common.ConstantManager;
+using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.GUI.Response;
 using static BrowserAutomationMaster.Managers.UpdateManager;
