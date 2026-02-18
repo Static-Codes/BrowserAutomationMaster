@@ -234,7 +234,7 @@ namespace BrowserAutomationMaster.Managers
                         continue; 
                     }
 
-                    string resourcePattern = string.Format("BrowserAutomationMaster.userScripts.{0}", exampleFileName);
+                    string resourcePattern = string.Format("BrowserAutomationMaster.Resources.userScripts.{0}", exampleFileName);
 
                     // Retrieves and writes the contents of the embedded resource to disk.
                     await WriteEmbeddedResourceToDisk(exampleFileName, resourcePattern, filePath);
