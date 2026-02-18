@@ -3,6 +3,7 @@ using BrowserAutomationMaster.Messaging;
 using System.ComponentModel;
 using System.Diagnostics;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
@@ -39,9 +40,13 @@ namespace BrowserAutomationMaster.Managers
             {
                 Write(dataMessage);
                 response = Input.AskForInput("Have you backed up your data? [y/n]: ");
-                if (Input.ConditionAccepted(response)) {
-                    DoAppDataDeletion();
+
+                if (Input.ConditionRejected(response)) {
+                    Write("Performing backup, please wait.");
+                    ArchiveAppDataDirectory();
                 }
+
+                DoAppDataDeletion();
             }
 
             if (Platforms.IsWindows) {
@@ -111,19 +116,15 @@ namespace BrowserAutomationMaster.Managers
             Warning.Write(message);
             Environment.Exit(0);
         }
+        
         private static async Task DoLinuxUninstall()
         {
-            
-            string binaryPath = "/usr/local/bin/bamm";
+            (string symLinkPath, _) = Functions.RunCommand("which", "bamm");
+            symLinkPath = symLinkPath.Replace("\n", "");
 
-            string binaryNotFound = string.Join(NLC, [
-                $"Unable to locate the the BAMM executable at expected path: {binaryPath}",
-                "Please try executing:",
-                "which bamm",
-                NLC,
-                "If the above command returns a path, please execute:",
-                "sudo rm 'path/to/bamm'"
-            ]);
+            // string binaryPath = "/usr/local/bin/bamm";
+
+            string symLinkNotFound = $"Unable to locate the symlink to the BAMM executable at: {symLinkPath}";
             
             // Attempts to prompt the user for a distro choice if Platforms.CurrentDistribution is null.
             CheckLinuxDistro();
@@ -138,10 +139,21 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
-            if (!File.Exists(binaryPath)) 
+            // Debug Only
+            // Console.WriteLine($"symLinkPath: {symLinkPath}");
+
+            var binaryPath = GetAbsolutePathOfSymLink(symLinkPath);
+
+            // Debug Only
+            // Console.WriteLine($"binaryPath: {binaryPath}");
+            // Console.WriteLine($"File.Exists(binaryPath): {File.Exists(binaryPath)}");
+            // Console.WriteLine($"Path.Exists(binaryPath): {Path.Exists(binaryPath)}");
+            
+            
+            if (!File.Exists(symLinkPath)) 
             {
                 WriteAndExit(
-                    message: binaryNotFound,
+                    message: symLinkNotFound,
                     status: 1
                 );
             }
@@ -158,12 +170,18 @@ namespace BrowserAutomationMaster.Managers
 
             switch (Platforms.CurrentDistribution!.InstallationType)  {
                 case InstallationType.Binary:
-                    psi.Arguments = $"-c sudo rm {binaryPath}";
+                    psi.Arguments = $"-c \"sudo rm {binaryPath}\"";
                     break;
 
                 
                 case InstallationType.Package:
-                    psi.Arguments = $"-c {Platforms.CurrentDistribution.UninstallCommand}";
+                    psi.Arguments = string.Join(' ', [
+                        "-c",
+                        "\"sudo", 
+                        $"{Platforms.CurrentDistribution.PackageManager}",
+                        $"{Platforms.CurrentDistribution.UninstallCommand}",
+                        "bamm\""
+                    ]);
                     break;
                 
                 default:
@@ -207,7 +225,6 @@ namespace BrowserAutomationMaster.Managers
 
             WriteSuccessMessageAndExit(acknowledgementMessage, 0);
         }
-
         private static void DoAppDataDeletion()
         {
             try

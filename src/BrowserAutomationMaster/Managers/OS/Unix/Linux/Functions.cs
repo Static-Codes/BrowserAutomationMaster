@@ -17,6 +17,8 @@ using static BrowserAutomationMaster.Managers.Python.WheelManager;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 using static System.Runtime.InteropServices.Architecture;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
 {
@@ -71,6 +73,51 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
             - Python 3.9.8
 
         Version: ".Replace("            ", "");
+
+        public static void ARM32Check()
+        {
+
+            bool[] invalidStates = [
+                Platforms.IsLinux,
+                Platforms.IsWindows,
+                Platforms.IsMacOS,
+                !Platforms.IsChromeOS,
+                Platforms.CurrentArchitecture != Arm,
+            ];
+
+
+            // If this is true, the OS does not require precompiled wheels.
+            if (invalidStates.Any(invalidState => invalidState)) {
+                return;
+            }
+           
+            var psi = new ProcessStartInfo()
+            {
+                // Currently has a bug where --print-architecture writes to std out, this needs to be adjusted likely with >/dev/null 2>&1
+                FileName = HasDPKG ? "dpkg" : HasRPM ? "rpm" : "bin/bash",
+                Arguments = HasDPKG ? "--print-architecture" : HasRPM ? "--queryformat \"%{ARCH}\\n\" -qf /bin/ls" : "lscpu",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            
+            using var proc = ProcessFactory.SpawnProcess(psi, "check if the current system is using the ARMHF Architecture", runSync: true, writeSTDInOut: false).Result;
+            (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(proc).Result;
+
+            if (STDOut.Count == 0)
+            {
+                Warning.Write("Unable to determine if the current CPU ABI is ARMHF, you may experience runtime issues.");
+                return;
+            }
+
+            if (STDOut.Any(a => a.Contains("armhf", OIC))) {
+                Platforms.IsARMhf = true;
+            }
+
+            else if (STDOut.Any(a => a.Contains("armel", OIC))) {
+                Platforms.IsARMel = true;
+            }
+
+        }
 
         public static List<AppInfo> GetApps()
         {
@@ -144,60 +191,6 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
                 return [];
             }
         }
-
-        public static void ARM32Check()
-        {
-
-            bool[] invalidStates = [
-                Platforms.IsLinux,
-                Platforms.IsWindows,
-                Platforms.IsMacOS,
-                !Platforms.IsChromeOS,
-                Platforms.CurrentArchitecture != Arm,
-            ];
-
-
-            // If this is true, the OS does not require precompiled wheels.
-            if (invalidStates.Any(invalidState => invalidState)) {
-                return;
-            }
-           
-            var psi = new ProcessStartInfo()
-            {
-                // Currently has a bug where --print-architecture writes to std out, this needs to be adjusted likely with >/dev/null 2>&1
-                FileName = HasDPKG ? "dpkg" : HasRPM ? "rpm" : "bin/bash",
-                Arguments = HasDPKG ? "--print-architecture" : HasRPM ? "--queryformat \"%{ARCH}\\n\" -qf /bin/ls" : "lscpu",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            };
-            
-            using var proc = ProcessFactory.SpawnProcess(psi, "check if the current system is using the ARMHF Architecture", runSync: true, writeSTDInOut: false).Result;
-            (int ExitCode, List<string> STDOut, List<string> STDErr) = ProcessFactory.GetProcessResponse(proc).Result;
-
-            if (STDOut.Count == 0)
-            {
-                Warning.Write("Unable to determine if the current CPU ABI is ARMHF, you may experience runtime issues.");
-                return;
-            }
-
-            if (STDOut.Any(a => a.Contains("armhf", OIC))) {
-                Platforms.IsARMhf = true;
-            }
-
-            else if (STDOut.Any(a => a.Contains("armel", OIC))) {
-                Platforms.IsARMel = true;
-            }
-
-        }
-
-        // Due to the unique nature of how ANSI is handled on Kali Linux
-        public static bool IsKali() 
-        {
-            return 
-                Platforms.CurrentDistribution != null && 
-                Platforms.CurrentDistribution.Name.Equals("Kali Linux");
-        }
-
         public static void ChromeOSCheck()
         {
 
@@ -246,6 +239,53 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
             {
                 return false;
             }
+        }
+
+        public static string? GetAbsolutePathOfSymLink(string symLinkPath) 
+        {    
+            // ----------------------------------
+            // Pass 1: File.ResolveLinkTarget
+            // ----------------------------------
+            var targetObj = File.ResolveLinkTarget(symLinkPath, true);
+            if (targetObj != null) {
+                return targetObj.FullName;
+            }
+
+            // ----------------------------------
+            // Pass 2: using readlink from glibc
+            // ----------------------------------
+
+            // Docs: https://www.man7.org/linux/man-pages/man2/readlink.2.html
+            // Original Syntax: 
+            // #include <unistd.h>
+            // ssize_t readlink(const char *restrict path, char buf[restrict bufsiz], size_t bufsiz);
+
+            // Returns:  
+            // On success, these calls return the number of bytes placed in buf.
+            // (If the returned value equals bufsiz, then truncation may have occurred.)  
+            // On error, -1 is returned and errno is set to indicate the error.
+
+
+            [DllImport("libc", SetLastError = true)]
+            static extern int readlink(string path, byte[] buf, int bufsiz);
+
+            // https://linuxvox.com/blog/linux-max-path-length/
+            const int MAX_PATH_SIZE = 4096;
+
+            byte[] buffer = new byte[MAX_PATH_SIZE];
+
+            int result = readlink(symLinkPath, buffer, buffer.Length);
+
+            if (result == -1) {
+                throw new Exception(
+                    string.Join(NLC, [
+                        $"Unable to determine the absolute path for the symlink: {symLinkPath}",
+                        $"readlink exited with a status code of {Marshal.GetLastPInvokeError()}"
+                    ])
+                );
+            }
+
+            return Encoding.UTF8.GetString(buffer, 0, result);
         }
 
         // Unlike DistroManager.DetermineDistro() this is only used for debugging purposes.
@@ -448,6 +488,14 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
 
         }
         
+        // Due to the unique nature of how ANSI is handled on Kali Linux
+        public static bool IsKali() 
+        {
+            return 
+                Platforms.CurrentDistribution != null && 
+                Platforms.CurrentDistribution.Name.Equals("Kali Linux");
+        }
+        
         private static List<AppInfo> ParseDpkgList()
         {
             try
@@ -646,7 +694,7 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
             }
         }
 
-        public static (string, string) RunCommand(string cmd, string args)
+        public static (string output, string error) RunCommand(string cmd, string args)
         {
             string output = string.Empty;
             string error = string.Empty;
