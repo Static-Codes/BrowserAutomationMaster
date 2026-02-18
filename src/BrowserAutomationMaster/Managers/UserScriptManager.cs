@@ -1,11 +1,11 @@
 ﻿using BrowserAutomationMaster.Managers.Compilation;
 using BrowserAutomationMaster.Managers.Python;
-using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers
 {

@@ -2,7 +2,7 @@
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
-using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.Python
 {

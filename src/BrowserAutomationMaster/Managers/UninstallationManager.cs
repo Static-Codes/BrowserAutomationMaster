@@ -1,5 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
 using System.ComponentModel;
 using System.Diagnostics;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
@@ -7,8 +7,8 @@ using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Success;
 using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 
 namespace BrowserAutomationMaster.Managers

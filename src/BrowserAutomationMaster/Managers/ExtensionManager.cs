@@ -1,5 +1,5 @@
 using BrowserAutomationMaster.Managers.Python;
-using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
@@ -9,9 +9,9 @@ using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.RequestManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Input;
-using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Input;
+using static BrowserAutomationMaster.Managers.Messaging.Success;
 
 
 namespace BrowserAutomationMaster.Managers 

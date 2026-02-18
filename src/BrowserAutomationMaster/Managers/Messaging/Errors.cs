@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Messaging.Debug;
+using static BrowserAutomationMaster.Managers.Messaging.Debug;
 
-namespace BrowserAutomationMaster.Messaging
+namespace BrowserAutomationMaster.Managers.Messaging
 {
     public class Errors
     {

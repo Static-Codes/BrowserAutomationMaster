@@ -1,12 +1,12 @@
 ﻿using BrowserAutomationMaster.Managers.OS;
-using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers.Common
 {

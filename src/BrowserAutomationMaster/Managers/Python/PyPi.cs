@@ -2,8 +2,8 @@
 using System.Net;
 using static BrowserAutomationMaster.Managers.Common.RequestManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Success;
 
 namespace BrowserAutomationMaster.Managers.Python
 {

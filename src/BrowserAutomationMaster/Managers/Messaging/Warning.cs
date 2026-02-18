@@ -1,6 +1,6 @@
 ﻿using static BrowserAutomationMaster.Managers.Common.ANSI;
 
-namespace BrowserAutomationMaster.Messaging
+namespace BrowserAutomationMaster.Managers.Messaging
 {
     public class Warning
     {

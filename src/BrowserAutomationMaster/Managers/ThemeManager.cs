@@ -1,4 +1,4 @@
-﻿using BrowserAutomationMaster.Messaging;
+﻿using BrowserAutomationMaster.Managers.Messaging;
 using System.Drawing;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.ANSI;

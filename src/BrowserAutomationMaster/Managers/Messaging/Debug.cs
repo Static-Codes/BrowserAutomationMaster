@@ -6,7 +6,7 @@ using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Python.Runtime;
 
-namespace BrowserAutomationMaster.Messaging
+namespace BrowserAutomationMaster.Managers.Messaging
 {
     public static class Debug
     {

@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.UpdateManager;
-using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
 namespace Publisher.Build 
 {

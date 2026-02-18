@@ -5,7 +5,7 @@ using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.GUI.Response;
 using static BrowserAutomationMaster.Managers.UpdateManager;
-using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static System.Text.Encoding;
 
 namespace BrowserAutomationMaster.Managers.GUI 

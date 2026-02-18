@@ -1,5 +1,5 @@
 ﻿using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.Compilation
 {

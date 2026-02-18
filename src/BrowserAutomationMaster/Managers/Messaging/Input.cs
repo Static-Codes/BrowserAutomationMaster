@@ -1,9 +1,9 @@
 ﻿using Spectre.Console;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Messaging
+namespace BrowserAutomationMaster.Managers.Messaging
 {
     public class Input
     {

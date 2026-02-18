@@ -6,7 +6,7 @@ using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Managers.SystemInfo.CPU;
-using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
@@ -20,9 +20,9 @@ using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Managers.OS.Generic.InstalledApps;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.UpdateManager;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Menu;
-using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Menu;
+using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.Parsing.Parser;
 
 

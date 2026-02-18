@@ -1,6 +1,6 @@
 using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Success;
 
 namespace Tests
 {

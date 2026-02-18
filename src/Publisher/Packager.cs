@@ -1,5 +1,5 @@
 using BrowserAutomationMaster.Managers.Helpers;
-using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
 using Publisher.Build.Processes;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -12,7 +12,7 @@ using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.OS.Unix.UnixFilePermissions;
 using static BrowserAutomationMaster.Managers.UpdateManager;
-using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static Publisher.Build.BuildInfo;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;

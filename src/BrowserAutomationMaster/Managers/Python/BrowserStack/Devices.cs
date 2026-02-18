@@ -1,4 +1,4 @@
-﻿using BrowserAutomationMaster.Messaging;
+﻿using BrowserAutomationMaster.Managers.Messaging;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 
 namespace BrowserAutomationMaster.Managers.Python.BrowserStack

@@ -1,4 +1,4 @@
-using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
 using BrowserAutomationMaster.Managers.OS.Generic;
 using Microsoft.Win32;
 using Spectre.Console;
@@ -9,7 +9,7 @@ using Windows.Win32;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
-using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.OS
 {

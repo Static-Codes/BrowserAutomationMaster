@@ -1,6 +1,6 @@
 using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -8,7 +8,7 @@ using static BrowserAutomationMaster.Managers.Common.RequestManager.NetworkClien
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static Publisher.Build.BuildInfo;
 
 namespace Publisher 

@@ -1,6 +1,6 @@
 ﻿
 using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
@@ -13,8 +13,8 @@ using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.GUI.BackendFunctions;
 using static BrowserAutomationMaster.Managers.GUI.Response;
 using static BrowserAutomationMaster.Managers.Python.Runtime;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Success;
+using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static System.Text.Encoding;
 

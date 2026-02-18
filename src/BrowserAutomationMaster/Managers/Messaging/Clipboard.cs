@@ -8,7 +8,7 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 
-namespace BrowserAutomationMaster.Messaging
+namespace BrowserAutomationMaster.Managers.Messaging
 {
     public static partial class Clipboard
     {
