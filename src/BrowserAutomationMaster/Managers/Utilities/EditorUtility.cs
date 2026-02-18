@@ -1,7 +1,7 @@
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.UpdateManager;
+using static BrowserAutomationMaster.Managers.Utilities.AppUpdateUtility;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Input;
 using BrowserAutomationMaster.Managers.Common;

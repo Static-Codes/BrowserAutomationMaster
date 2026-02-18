@@ -24,7 +24,7 @@ using static BrowserAutomationMaster.Managers.OS.Generic.InstalledApps;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Parsing.Parser;
 using static BrowserAutomationMaster.Managers.Settings;
-using static BrowserAutomationMaster.Managers.UpdateManager;
+using static BrowserAutomationMaster.Managers.Utilities.AppUpdateUtility;
 
 
 namespace BrowserAutomationMaster

@@ -4,7 +4,7 @@ using System.Text.Json;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.GUI.Response;
-using static BrowserAutomationMaster.Managers.UpdateManager;
+using static BrowserAutomationMaster.Managers.Utilities.AppUpdateUtility;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static System.Text.Encoding;
 
@@ -129,7 +129,9 @@ namespace BrowserAutomationMaster.Managers.GUI
                     }
                 }
                 file.Close();
-                var successMessage = UTF8.GetBytes($"{{ \"success\": true, \"message\": \"Exported {fileName} successfully to {scriptPath}!\"}}");
+                var successMessage = UTF8.GetBytes(
+                    $"{{ \"success\": true, \"message\": \"Exported {fileName} successfully to {scriptPath}!\"}}"
+                );
                 await Server.WriteResponse(response, successMessage);
             }
             catch (Exception ex)

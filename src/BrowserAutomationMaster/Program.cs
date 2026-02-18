@@ -1,4 +1,4 @@
-﻿using static BrowserAutomationMaster.Managers.UpdateManager;
+﻿using static BrowserAutomationMaster.Managers.Utilities.AppUpdateUtility;
 using static BrowserAutomationMaster.ProgramFunctions;
 
 Console.Title = $"BrowserAutomationMaster Manager (BAMM!) {CurrentVersion}";

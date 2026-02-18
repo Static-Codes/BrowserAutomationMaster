@@ -1,6 +1,6 @@
 using System.Text;
 using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Managers.UpdateManager;
+using static BrowserAutomationMaster.Managers.Utilities.AppUpdateUtility;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static Publisher.Build.BuildInfo;
 
