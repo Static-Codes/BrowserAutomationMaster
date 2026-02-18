@@ -20,7 +20,8 @@ namespace BrowserAutomationMaster.Managers
         public bool UseBrowserstack { get; set; }
     }
 
-    public static class StringExtensions {
+    public static class StringExtensions 
+    {
         public static string ToTitle(this string value) => string.Concat(char.ToUpper(value[0]), value[1..]);
         public static string ToTitle(this string[] values) => string.Concat(
             values.Select(val => val.ToTitle())
@@ -61,38 +62,41 @@ namespace BrowserAutomationMaster.Managers
             ThemeType = ThemeManager.DefaultTheme,
             UseBrowserstack = false,
         };
-
-        private static readonly Dictionary<string, List<KeyValuePair<string, string>>> rawSections = new()
+        
+        private static readonly Dictionary<string, Dictionary<string, string>> rawSections = new()
         {
             {
-                "[messaging]", new List<KeyValuePair<string, string>>()
+                "[messaging]", new()
                 {
-                    KeyValuePair.Create("show_app_check", "false"),
-                    KeyValuePair.Create("show_cpu_check", "true"),
-                    KeyValuePair.Create("show_memory_check", "true"),
-                    KeyValuePair.Create("show_update_check", "false"),
+                    { "show_app_check", "false" },
+                    { "show_cpu_check", "true" },
+                    { "show_memory_check", "true" },
+                    { "show_update_check", "false" },
                 }
             },
+
             {
-                "[interface]", new List<KeyValuePair<string, string>>()
+                "[interface]", new()
                 {
-                    KeyValuePair.Create("theme_type", "dark"), // Also supports "light"
+                    { "theme_type", "dark" }, // Also supports "light"
                 }
             },
+
             {
-                "[compilation]", new List<KeyValuePair<string, string>>()
+                "[compilation]", new()
                 {
-                    KeyValuePair.Create("auto_copy_path", "false"),
-                    KeyValuePair.Create("run_on_compile", "false"),
-                    KeyValuePair.Create("use_browserstack", "false"),
+                    { "auto_copy_path", "false" },
+                    { "run_on_compile", "false" },
+                    { "use_browserstack", "false" },
                 }
             },
+
+            // This section uses a seperate syntax for @Override, it's handled in LoadConfig();
             {
-                "[overrides]", new List<KeyValuePair<string, string>>()
-                // This section uses a seperate syntax for @Override, it's handled in LoadConfig();
+                "[overrides]", new()
             },
         };
-
+        
         private static string ConfigDirectory { get; set; } = DirectoryManager.GetBAMConfigDirectory();
         public static string ConfigFilePath { get; private set; } = Path.Combine(ConfigDirectory, "config.ini");
 
