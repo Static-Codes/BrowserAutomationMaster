@@ -89,18 +89,6 @@ namespace BrowserAutomationMaster.Managers
                     );
                 }
             }
-            catch (FileNotFoundException notFound)
-            {
-                WriteAndExit(message: notFound.Message, status: 1);
-            }
-            catch (Win32Exception w32e)
-            {
-                WriteAndExit(message: w32e.Message, status: 1);
-            }
-            catch (ObjectDisposedException notDisposed)
-            {
-                WriteAndExit(message: notDisposed.Message, status: 1);
-            }
             catch (Exception ex)
             {
                 WriteAndExit(message: $"{ex.Message}", status: 1);
