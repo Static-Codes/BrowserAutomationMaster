@@ -1,22 +1,22 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.Helpers;
-using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Messaging;
-using BrowserAutomationMaster.Parsing;
+using BrowserAutomationMaster.Managers.Parsing;
+using BrowserAutomationMaster.Managers.Python;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.Compilation.BrowserFunctions;
-using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.RegexManager;
+using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.Devices;
 using static BrowserAutomationMaster.Managers.Python.Runtime;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
-using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
 

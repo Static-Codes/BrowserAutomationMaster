@@ -1,4 +1,4 @@
-using BrowserAutomationMaster.Parsing;
+using BrowserAutomationMaster.Managers.Parsing;
 using System.Net;
 using System.Text.Json;
 using static BrowserAutomationMaster.Managers.Common.Constants;

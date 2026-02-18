@@ -1,6 +1,6 @@
-﻿using BrowserAutomationMaster.Parsing;
-using BrowserAutomationMaster.Managers.Common;
+﻿using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.OS.Unix;
+using BrowserAutomationMaster.Managers.Parsing;
 using BrowserAutomationMaster.Managers.SystemInfo.CPU;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;

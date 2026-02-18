@@ -1,16 +1,16 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Managers.Messaging;
 using BrowserAutomationMaster.Managers.OS;
+using BrowserAutomationMaster.Managers.Parsing;
 using BrowserAutomationMaster.Managers.SystemInfo.CPU;
 using BrowserAutomationMaster.Managers.SystemInfo.RAM;
-using BrowserAutomationMaster.Managers.Messaging;
-using BrowserAutomationMaster.Parsing;
 using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.OS.Unix.MacOS;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
+using static BrowserAutomationMaster.Managers.OS.Unix.MacOS;
 
 namespace BrowserAutomationMaster.Managers.Python
 {

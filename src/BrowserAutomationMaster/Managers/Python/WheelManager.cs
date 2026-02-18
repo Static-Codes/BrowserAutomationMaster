@@ -93,8 +93,8 @@ namespace BrowserAutomationMaster.Managers.Python
             return packageName;
         }
 
-        public void UpdateResponse(string response) { InstallationResponse = response; }
-        public void UpdateStatus(int newStatus) { InstallationStatus = newStatus; }
+        public void UpdateResponse(string response) => InstallationResponse = response;
+        public void UpdateStatus(int newStatus) => InstallationStatus = newStatus;
 
     };
 

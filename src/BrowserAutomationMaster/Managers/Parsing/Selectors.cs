@@ -4,7 +4,7 @@ using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Parsing
+namespace BrowserAutomationMaster.Managers.Parsing
 {
     public enum SelectorCategory
     {

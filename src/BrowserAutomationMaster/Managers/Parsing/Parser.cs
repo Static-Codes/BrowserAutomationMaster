@@ -9,9 +9,9 @@ using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
-using static BrowserAutomationMaster.Parsing.LineValidation;
+using static BrowserAutomationMaster.Managers.Parsing.LineValidation;
 
-namespace BrowserAutomationMaster.Parsing
+namespace BrowserAutomationMaster.Managers.Parsing
 {
     public partial class Parser
     {

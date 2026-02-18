@@ -1,5 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers.Messaging;
-using BrowserAutomationMaster.Parsing;
+using BrowserAutomationMaster.Managers.Parsing;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.ExtensionManager;

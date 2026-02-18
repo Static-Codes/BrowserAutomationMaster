@@ -1,7 +1,6 @@
 ﻿using System.Net.NetworkInformation;
-using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Messaging;
-using BrowserAutomationMaster.Parsing;
+using BrowserAutomationMaster.Managers.Parsing;
 using static BrowserAutomationMaster.Managers.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.Common.Constants;

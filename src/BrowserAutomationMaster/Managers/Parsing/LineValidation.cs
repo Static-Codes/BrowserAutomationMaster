@@ -1,9 +1,10 @@
-﻿using static BrowserAutomationMaster.Parsing.LineValidationHelpers;
-using static BrowserAutomationMaster.Parsing.Parser;
+﻿
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Parsing.LineValidationHelpers;
+using static BrowserAutomationMaster.Managers.Parsing.Parser;
 
-namespace BrowserAutomationMaster.Parsing
+namespace BrowserAutomationMaster.Managers.Parsing
 {
     // Breakup Parser.HandleLineValidation() and Parser.IsValidLine() here
 

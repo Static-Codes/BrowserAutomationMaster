@@ -1,7 +1,7 @@
 ﻿using BrowserAutomationMaster.Managers.Compilation;
-using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Messaging;
-using BrowserAutomationMaster.Parsing;
+using BrowserAutomationMaster.Managers.Parsing;
+using BrowserAutomationMaster.Managers.Python;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;

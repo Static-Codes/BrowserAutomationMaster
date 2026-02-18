@@ -1,12 +1,12 @@
-﻿using System.Text.Json;
-using BrowserAutomationMaster.Managers;
+﻿using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Managers.Compilation;
+using BrowserAutomationMaster.Managers.Messaging;
 using BrowserAutomationMaster.Managers.OS;
 using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Managers.Python.BrowserStack;
 using BrowserAutomationMaster.Managers.SystemInfo.CPU;
-using BrowserAutomationMaster.Managers.Messaging;
+using System.Text.Json;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
@@ -17,13 +17,13 @@ using static BrowserAutomationMaster.Managers.Compilation.Transpiler;
 using static BrowserAutomationMaster.Managers.ConfigManager;
 using static BrowserAutomationMaster.Managers.GUI.Server;
 using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
-using static BrowserAutomationMaster.Managers.OS.Generic.InstalledApps;
-using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
-using static BrowserAutomationMaster.Managers.UpdateManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Menu;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
-using static BrowserAutomationMaster.Parsing.Parser;
+using static BrowserAutomationMaster.Managers.OS.Generic.InstalledApps;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Managers.Parsing.Parser;
+using static BrowserAutomationMaster.Managers.UpdateManager;
 
 
 namespace BrowserAutomationMaster
