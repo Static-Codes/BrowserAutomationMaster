@@ -1,15 +1,15 @@
-﻿using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Managers.Messaging;
-using System.ComponentModel;
+﻿using BrowserAutomationMaster.Managers.Messaging;
+using BrowserAutomationMaster.Managers.OS.Unix.Linux;
 using System.Diagnostics;
-using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
-using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
+using static BrowserAutomationMaster.Managers.Common.ProcessFactory;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Managers.Messaging.Input;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
-using BrowserAutomationMaster.Managers.OS.Unix.Linux;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 
 namespace BrowserAutomationMaster.Managers
 {
@@ -19,8 +19,8 @@ namespace BrowserAutomationMaster.Managers
         {
             Write("This will delete BAM Manager (BAMM) from your system.\n");
 
-            var response = Input.AskForInput("Would you like to continue with the uninstallation process? [y/n]: ");
-            var uninstallConfirmed = Input.ConditionAccepted(response);
+            var response = AskForInput("Would you like to continue with the uninstallation process? [y/n]: ");
+            var uninstallConfirmed = ConditionAccepted(response);
             
             if (!uninstallConfirmed) {
                 Environment.Exit(0);
@@ -33,15 +33,15 @@ namespace BrowserAutomationMaster.Managers
                 "bamm backup\n\n";
 
 
-            response = Input.AskForInput("Do you want to remove all application data? [y/n]: ");
-            var removeAppData = Input.ConditionAccepted(response);
+            response = AskForInput("Do you want to remove all application data? [y/n]: ");
+            var removeAppData = ConditionAccepted(response);
 
             if (removeAppData)
             {
                 Write(dataMessage);
-                response = Input.AskForInput("Have you backed up your data? [y/n]: ");
+                response = AskForInput("Have you backed up your data? [y/n]: ");
 
-                if (Input.ConditionRejected(response)) {
+                if (ConditionRejected(response)) {
                     Write("Performing backup, please wait.");
                     ArchiveAppDataDirectory();
                 }
@@ -68,9 +68,12 @@ namespace BrowserAutomationMaster.Managers
         
         private static void DoWindowsUninstall()
         {
-            string failureMessage = "BAM Manager (BAMM) was unable to determine the current directory, " +
-                    "please uninstall this application by searching " +
-                    "'Add or remove programs' in your Windows Searchbar.";
+            string failureMessage = string.Join(" ", [
+                "BAM Manager (BAMM) was unable to determine the current directory,",
+                "please uninstall this application by searching",
+                "'Add or remove programs' in your Windows Searchbar."
+            ]);
+
             string installationDirectory = AppContext.BaseDirectory;
 
             if (!Path.Exists(installationDirectory)) {
@@ -96,10 +99,11 @@ namespace BrowserAutomationMaster.Managers
         }
         private static void DoMacUninstall()
         {
-            var message =
-                "To uninstall BAM Manager (BAMM) on macOS:\n" +
-                "   - 1. Locate the 'bamm' executable file (wherever you saved it)\n" +
-                "   - 2. Drag the 'bamm' executable file to the Trash, or click 'Move To Trash'.";
+            var message = string.Join(NLC, [
+                "To uninstall BAM Manager (BAMM) on macOS:",
+                "   - 1. Locate the 'bamm' executable file (wherever you saved it)",
+                "   - 2. Drag the 'bamm' executable file to the Trash, or click 'Move To Trash'."
+            ]);
 
             Warning.Write(message);
             Environment.Exit(0);
@@ -107,7 +111,7 @@ namespace BrowserAutomationMaster.Managers
         
         private static async Task DoLinuxUninstall()
         {
-            (string symLinkPath, _) = Functions.RunCommand("which", "bamm");
+            (string symLinkPath, _) = RunCommand("which", "bamm");
             symLinkPath = symLinkPath.Replace("\n", "");
 
             // string binaryPath = "/usr/local/bin/bamm";
@@ -188,8 +192,8 @@ namespace BrowserAutomationMaster.Managers
                 );
             }
 
-            using var process = await ProcessFactory.SpawnProcess(psi, "attempting to uninstall", timeout: 60);
-            var (ExitCode, STDOut, STDErr) = await ProcessFactory.GetProcessResponse(process);
+            using var process = await SpawnProcess(psi, "attempting to uninstall", timeout: 60);
+            var (ExitCode, STDOut, STDErr) = await GetProcessResponse(process);
 
             if (ExitCode != 0) 
             {
@@ -221,15 +225,19 @@ namespace BrowserAutomationMaster.Managers
             }
             catch (Exception e)
             {
-                {
-                    var message =
-                        "Unable to delete app data for BAM Manager (BAMM).\n" +
-                        "Please remove this directory manually:\n" +
-                        $"{AppDataDirectory}\n" +
-                        $"Please make a bug report at {Constants.ISSUES_LINK}\n\n" +
-                        $"Error Log:\n{e.Message}";
-                    Write(message);
-                }
+                Write
+                (
+                    string.Join(NLC, [
+                        "Unable to delete app data for BAM Manager (BAMM).",
+                        "Please remove this directory manually:",
+                        AppDataDirectory,
+                        $"Please make a bug report at {ISSUES_LINK}",
+                        "", // Creates the double newline before the error log
+                        "Error Log:",
+                        e.Message
+                    ])
+                );
+                
             }
         }
     }

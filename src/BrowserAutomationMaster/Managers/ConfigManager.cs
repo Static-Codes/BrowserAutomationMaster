@@ -1,9 +1,10 @@
-﻿using BrowserAutomationMaster.Managers.Common;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.Constants;
+using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
+using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers
@@ -20,6 +21,7 @@ namespace BrowserAutomationMaster.Managers
         public bool UseBrowserstack { get; set; }
     }
 
+    // Since System.Globalization.TextInfo.ToTitleCase is more complicated than required
     public static class StringExtensions 
     {
         public static string ToTitle(this string value) => string.Concat(char.ToUpper(value[0]), value[1..]);
@@ -97,7 +99,7 @@ namespace BrowserAutomationMaster.Managers
             },
         };
         
-        private static string ConfigDirectory { get; set; } = DirectoryManager.GetBAMConfigDirectory();
+        private static string ConfigDirectory { get; set; } = GetBAMConfigDirectory();
         public static string ConfigFilePath { get; private set; } = Path.Combine(ConfigDirectory, "config.ini");
 
         public static readonly BindingFlags BindingAttr = BindingFlags.Instance | BindingFlags.Public;
@@ -299,16 +301,16 @@ namespace BrowserAutomationMaster.Managers
                 foreach (var propKvp in rawSections[sectionName])
                 {
                     if (propKvp.Key.Equals("theme_type")) {
-                        propsAndFuncs.Add(propKvp.Key, RegexManager.ThemeRegex());
+                        propsAndFuncs.Add(propKvp.Key, ThemeRegex());
                     }
 
                     else if (bool.TryParse(propKvp.Value, out bool _)) {
-                        propsAndFuncs.Add(propKvp.Key, RegexManager.BoolRegex());
+                        propsAndFuncs.Add(propKvp.Key, BoolRegex());
                     }
 
                     // Add support for integer properties if needed
                     else if (int.TryParse(propKvp.Value, out int _)) {
-                        propsAndFuncs.Add(propKvp.Key, RegexManager.IntRegex());
+                        propsAndFuncs.Add(propKvp.Key, IntRegex());
                     }
                 }
             }
@@ -476,7 +478,7 @@ namespace BrowserAutomationMaster.Managers
         } 
         private static ConfigOverrideResult? ParseOverrideLine(string line)
         {
-            var match = RegexManager.OverrideRegex().Match(line); // Will fail if a line has a comment (This is expected)
+            var match = OverrideRegex().Match(line); // Will fail if a line has a comment (This is expected)
             if (!match.Success) {
                 return null;
             }
