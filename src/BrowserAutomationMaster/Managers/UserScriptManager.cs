@@ -3,6 +3,7 @@ using BrowserAutomationMaster.Managers.Python;
 using BrowserAutomationMaster.Messaging;
 using BrowserAutomationMaster.Parsing;
 using static BrowserAutomationMaster.Managers.Common.Constants;
+using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Messaging.Errors;
 using static BrowserAutomationMaster.Messaging.Success;
 
@@ -236,7 +237,7 @@ namespace BrowserAutomationMaster.Managers
                     string resourcePattern = string.Format("BrowserAutomationMaster.userScripts.{0}", exampleFileName);
 
                     // Retrieves and writes the contents of the embedded resource to disk.
-                    await EmbeddedResourceManager.WriteEmbeddedResourceToDisk(exampleFileName, resourcePattern, filePath);
+                    await WriteEmbeddedResourceToDisk(exampleFileName, resourcePattern, filePath);
                 }
 
                 catch (Exception ex) 

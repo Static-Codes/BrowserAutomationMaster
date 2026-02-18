@@ -1,6 +1,5 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.OS.Unix;
-using BrowserAutomationMaster.Managers.SystemInfo.RAM;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -10,6 +9,7 @@ using Windows.Win32.System.SystemInformation;
 using Windows.Win32;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
+using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.SystemInfo.RAM
@@ -90,7 +90,7 @@ namespace BrowserAutomationMaster.Managers.SystemInfo.RAM
                     Console.WriteLine("For more information on free-for-macOS, please see the github repo:");
                     Console.WriteLine(FREE_FOR_MACOS_REPO_LINK);
 
-                    await EmbeddedResourceManager.WriteEmbeddedResourceToDisk(
+                    await WriteEmbeddedResourceToDisk(
                         resourceName: binaryName,
                         resourcePattern: binaryResourcePattern,
                         outputPath: freeBinaryPath

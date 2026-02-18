@@ -1,6 +1,7 @@
 ﻿using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
+using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers.Python
@@ -46,10 +47,10 @@ namespace BrowserAutomationMaster.Managers.Python
                 var ResourcePattern = string.Format("BrowserAutomationMaster.Resources.wheels.{0}.{1}", PlatformType, FileName);
                 
                 // Retrieving the contents of the resource.
-                var responseStream = EmbeddedResourceManager.GetEmbeddedResource(FileName, ResourcePattern);
+                var responseStream = GetEmbeddedResource(FileName, ResourcePattern);
                 
                 // Writing the contents to disk.
-                await EmbeddedResourceManager.WriteEmbeddedResourceToDisk(FileName, ResourcePattern, downloadPath);
+                await WriteEmbeddedResourceToDisk(FileName, ResourcePattern, downloadPath);
             }
             catch (Exception ex)
             {

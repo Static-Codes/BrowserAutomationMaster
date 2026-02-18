@@ -2,9 +2,9 @@ using System.Reflection;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Helpers
 {
-    public class EmbeddedResourceManager 
+    public class EmbeddedResourceHelper 
     {
         private static readonly Assembly assembly = Assembly.GetExecutingAssembly();
 
