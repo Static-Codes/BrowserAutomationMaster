@@ -216,7 +216,7 @@ namespace BrowserAutomationMaster.Managers
             catch (Exception ex)
             {
                 WriteMessage(ex.Message);
-                Write("Failed to validate config.ini, writing default values.");
+                Write("Failed to validate settings.ini, writing default values.");
                 string settingsContents = BuildFileContent();
                 ValidateConfigContents(settingsContents);
                 File.WriteAllText(SettingsFilePath, settingsContents); // Fixed: was ConfigDirectory, should be SettingsFilePath
@@ -334,7 +334,7 @@ namespace BrowserAutomationMaster.Managers
             Write
             (
                 GenerateErrorMessage(
-                    fileName: "config.ini",
+                    fileName: "settings.ini",
                     originalLine,
                     lineNumber: Array.IndexOf(splitLines, originalLine) + 1,
                     issueText: message
@@ -419,7 +419,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 WriteAndExit(
                     GenerateErrorMessage(
-                        fileName: "config.ini",
+                        fileName: "settings.ini",
                         originalLine,
                         lineNumber,
                         issueText: $"Property '{propName}' not found in Config class."
@@ -435,7 +435,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     WriteAndExit(
                         GenerateErrorMessage(
-                            fileName: "config.ini",
+                            fileName: "settings.ini",
                             originalLine,
                             lineNumber,
                             $"Failed to convert value '{propValue}' for property '{propName}'."),
@@ -447,7 +447,7 @@ namespace BrowserAutomationMaster.Managers
             {
                 WriteAndExit(
                     GenerateErrorMessage(
-                        "config.ini",
+                        "settings.ini",
                         originalLine,
                         lineNumber,
                         $"Failed to convert value '{propValue}' for property '{propName}': {ex.Message}"),
@@ -502,7 +502,7 @@ namespace BrowserAutomationMaster.Managers
                     if (!rawSections.ContainsKey(sectionName)) {
                         WriteAndExit(
                             GenerateErrorMessage(
-                                fileName: "config.ini",
+                                fileName: "settings.ini",
                                 originalLine,
                                 lineNumber: i + 1, // Fixed: line numbers should be 1-based
                                 issueText: $"Unknown section detected: `{sectionName}` is not a valid section."
@@ -514,7 +514,7 @@ namespace BrowserAutomationMaster.Managers
                     if (encounteredSections.Contains(sectionName)) {
                         WriteAndExit(
                             GenerateErrorMessage(
-                                fileName: "config.ini",
+                                fileName: "settings.ini",
                                 originalLine,
                                 lineNumber: i + 1,
                                 issueText: $"Duplicate section detected: `{sectionName}` has already been defined."
@@ -532,7 +532,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     WriteAndExit(
                         GenerateErrorMessage(
-                            fileName: "config.ini",
+                            fileName: "settings.ini",
                             originalLine,
                             lineNumber: i + 1,
                             issueText: "Content found before any section header. All configuration must be within a section."
@@ -552,7 +552,7 @@ namespace BrowserAutomationMaster.Managers
                 {
                     WriteAndExit(
                         GenerateErrorMessage(
-                            fileName: "config.ini",
+                            fileName: "settings.ini",
                             originalLine,
                             lineNumber: i + 1,
                             issueText: "Invalid property format, expected 'name = value'."
@@ -580,7 +580,7 @@ namespace BrowserAutomationMaster.Managers
                     WriteAndExit
                     (
                         GenerateErrorMessage(
-                            fileName: "config.ini",
+                            fileName: "settings.ini",
                             originalLine,
                             lineNumber: i + 1,
                             issueText: $"Unknown property `{propName}` in section `{currentSection}`."
@@ -602,7 +602,7 @@ namespace BrowserAutomationMaster.Managers
                         WriteAndExit
                         (
                             GenerateErrorMessage(
-                                fileName: "config.ini",
+                                fileName: "settings.ini",
                                 originalLine,
                                 lineNumber: i + 1,
                                 issueText: $"Invalid value '{propValue}' for property `{propName}`."
@@ -619,7 +619,7 @@ namespace BrowserAutomationMaster.Managers
 
                 WriteAndExit(
                     GenerateErrorMessage(
-                        fileName: "config.ini",
+                        fileName: "settings.ini",
                         originalLine,
                         lineNumber: i + 1,
                         issueText: $"No validation rule found for property `{propName}` in section `{currentSection}`."
