@@ -1,5 +1,5 @@
-using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Managers.OS.Unix;
+using BrowserAutomationMaster.Managers.Types;
 using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;

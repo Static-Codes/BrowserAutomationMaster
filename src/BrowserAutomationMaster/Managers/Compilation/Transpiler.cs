@@ -1,8 +1,8 @@
 ﻿using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Managers.Messaging;
 using BrowserAutomationMaster.Managers.Parsing;
 using BrowserAutomationMaster.Managers.Python;
+using BrowserAutomationMaster.Managers.Types;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
@@ -19,6 +19,7 @@ using static BrowserAutomationMaster.Managers.Python.BrowserStack.Devices;
 using static BrowserAutomationMaster.Managers.Python.Runtime;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
 using static BrowserAutomationMaster.Managers.Settings;
+using static BrowserAutomationMaster.Managers.Utilities.UserAgentUtility;
 
 namespace BrowserAutomationMaster.Managers.Compilation
 {
@@ -486,7 +487,7 @@ namespace BrowserAutomationMaster.Managers.Compilation
             // GetUserAgent will exit in the event an invalid browserName is passed, thus the use of the nullable operator
             if (config.browserPresent)
             {
-                var potentialUA = UserAgentManager.GetUserAgent(config.selectedBrowser, config.useMobileUserAgent);
+                var potentialUA = GetUserAgent(config.selectedBrowser, config.useMobileUserAgent);
                 if (potentialUA == null)
                 {
                     WriteErrorAndReturnNull(
