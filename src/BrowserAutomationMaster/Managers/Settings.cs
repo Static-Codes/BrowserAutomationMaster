@@ -1,4 +1,6 @@
-﻿using BrowserAutomationMaster.Managers.Utilities;
+﻿using BrowserAutomationMaster.Managers.Helpers;
+using BrowserAutomationMaster.Managers.Types;
+using BrowserAutomationMaster.Managers.Utilities;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -10,38 +12,7 @@ using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
 namespace BrowserAutomationMaster.Managers
 {
-    public partial class AppSettings
-    {
-        public required Theme ThemeType { get; set; }
-        public bool ShowAppCheck { get; set; }
-        public bool ShowCpuCheck { get; set; }
-        public bool ShowMemoryCheck { get; set; }
-        public bool ShowUpdateCheck { get; set; }
-        public bool AutoCopyPath { get; set; }
-        public bool RunOnCompile { get; set; }
-        public bool UseBrowserstack { get; set; }
-    }
-
-    public partial class SettingNameParser
-    {
-        public static string ConvertSnakeToPascal(string snake_case) => snake_case.Split('_').ToTitle();
-        public static string RemoveCommentIfPresent(string line)
-        {
-            if (line.Contains(" ; "))
-            {
-                int index = line.IndexOf(" ; ");
-                return line[..index];
-            }
-            return line;
-        }
-    }
     
-    public readonly struct SettingOverrideResult
-    {
-        public string PropertyName { get; init; }
-        public string ColorType { get; init; }
-        public string ColorValue { get; init; }
-    }
 
     public class Settings()
     {
@@ -149,6 +120,8 @@ namespace BrowserAutomationMaster.Managers
             return settingsContents.ToString();
         }
 
+        private static string ConvertSnakeToPascal(string snake_case) => snake_case.Split('_').ToTitle();
+        
         private static object? DoCast(string value, Type targetType)
         {
             if (targetType == typeof(bool)) {
@@ -287,7 +260,7 @@ namespace BrowserAutomationMaster.Managers
 
             foreach (string originalLine in splitLines)
             {
-                string trimmedLine = SettingNameParser.RemoveCommentIfPresent(originalLine.Replace('\r', ' ').Trim());
+                string trimmedLine = RemoveCommentIfPresent(originalLine.Replace('\r', ' ').Trim());
                 
                 if (string.IsNullOrWhiteSpace(trimmedLine)) {
                     continue;
@@ -366,6 +339,7 @@ namespace BrowserAutomationMaster.Managers
 
             return hasComment;
         } 
+        
         private static SettingOverrideResult? ParseOverrideLine(string line)
         {
             var match = OverrideRegex().Match(line); // Will fail if a line has a comment (This is expected)
@@ -409,7 +383,7 @@ namespace BrowserAutomationMaster.Managers
                 return;
             }
 
-            var propName = SettingNameParser.ConvertSnakeToPascal(parts[0].Trim());
+            var propName = ConvertSnakeToPascal(parts[0].Trim());
             var propValue = parts[1].Trim();
 
             var lineNumber = Array.IndexOf(splitLines, originalLine) + 1;
@@ -472,6 +446,16 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
+        private static string RemoveCommentIfPresent(string line)
+        {
+            if (line.Contains(" ; "))
+            {
+                int index = line.IndexOf(" ; ");
+                return line[..index];
+            }
+            return line;
+        }
+        
         private static bool SettingsFileExists()
         {
             return !string.IsNullOrEmpty(SettingsFilePath) && File.Exists(SettingsFilePath);
@@ -487,7 +471,7 @@ namespace BrowserAutomationMaster.Managers
             for (int i = 0; i < splitLines.Length; i++)
             {
                 string originalLine = splitLines[i];
-                string trimmedLine = SettingNameParser.RemoveCommentIfPresent(
+                string trimmedLine = RemoveCommentIfPresent(
                     originalLine.Replace('\r', ' ').Trim()
                 );
 
@@ -629,18 +613,7 @@ namespace BrowserAutomationMaster.Managers
             }
         }    
 
-        private static void ValidateConfigContents(FileStream settingsContents)
-        {
-
-        }
+        
     }
-
-     // Since System.Globalization.TextInfo.ToTitleCase is more complicated than required
-    public static class StringExtensions 
-    {
-        public static string ToTitle(this string value) => string.Concat(char.ToUpper(value[0]), value[1..]);
-        public static string ToTitle(this string[] values) => string.Concat(
-            values.Select(val => val.ToTitle())
-        );    
-    }
+    
 }

@@ -1,6 +1,4 @@
-﻿
-
-namespace BrowserAutomationMaster.Managers.Types
+﻿namespace BrowserAutomationMaster.Managers.Types
 {
     public enum AppNames
     {

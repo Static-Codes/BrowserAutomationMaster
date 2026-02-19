@@ -99,7 +99,7 @@ namespace BrowserAutomationMaster.Managers.Common
         [GeneratedRegex("rgb:([0-9a-fA-F]+/[0-9a-fA-F]+).*?\n.{51}([0-9a-fA-F]+/[0-9a-fA-F]+)", RegexOptions.Compiled)]
         private static partial Regex ForegroundColorRegex();
 
-        #region Start of SettingNameParser Regex
+        #region Start of Settings Regex
 
         [GeneratedRegex("^.*=.*(true|false)$")]
         public static partial Regex BoolRegex();
