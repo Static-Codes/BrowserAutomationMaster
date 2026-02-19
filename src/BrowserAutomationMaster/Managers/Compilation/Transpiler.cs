@@ -321,7 +321,7 @@ namespace BrowserAutomationMaster.Managers.Compilation
             // If argument `--bs` is not provided, usingBrowserstack will be false.
             // This functions checks if:
             // 1. The user is running on ChromeOS, since Chromebooks are 99/100 times too underpowered for Selenium execution.
-            // 2. The user modified the `use_browserstack` property in config.ini
+            // 2. The user modified the `use_browserstack` property in settings.ini
             // 3. The user is running on Raspberry Pi with less than 2GB of free memory.
             
             var memoryInfo = GetMemoryInfo();
