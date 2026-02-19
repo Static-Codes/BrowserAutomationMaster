@@ -11,8 +11,8 @@ using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Common.ProcessFactory;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
-using static BrowserAutomationMaster.Managers.Settings;
 using static BrowserAutomationMaster.Managers.SystemInfo.CPU.RequiredInstructions;
+using static BrowserAutomationMaster.Managers.Utilities.AppSettingsUtility;
 
 namespace BrowserAutomationMaster.Managers.SystemInfo.CPU
 {

@@ -16,8 +16,8 @@ using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
-using static BrowserAutomationMaster.Managers.Settings;
 using static BrowserAutomationMaster.Managers.Types.Installations;
+using static BrowserAutomationMaster.Managers.Utilities.AppSettingsUtility;
 using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Managers.OS.Unix.Linux

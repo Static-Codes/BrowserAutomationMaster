@@ -10,11 +10,9 @@ using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
 using static BrowserAutomationMaster.Managers.Common.RegexManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Utilities
 {
-    
-
-    public class Settings()
+    public class AppSettingsUtility()
     {
         public static AppSettings GlobalSettings { get; set; } = new()
         {

@@ -1,6 +1,6 @@
 ﻿using Spectre.Console;
 using System.Text;
-using static BrowserAutomationMaster.Managers.Settings;
+using static BrowserAutomationMaster.Managers.Utilities.AppSettingsUtility;
 
 namespace BrowserAutomationMaster.Managers.Common
 {

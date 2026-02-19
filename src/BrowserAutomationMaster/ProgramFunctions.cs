@@ -23,7 +23,7 @@ using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.Managers.OS.Generic.InstalledApps;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Parsing.Parser;
-using static BrowserAutomationMaster.Managers.Settings;
+using static BrowserAutomationMaster.Managers.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Managers.Utilities.AppUpdateUtility;
 
 

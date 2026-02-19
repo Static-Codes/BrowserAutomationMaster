@@ -18,7 +18,7 @@ using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.Managers.Python.BrowserStack.Devices;
 using static BrowserAutomationMaster.Managers.Python.Runtime;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
-using static BrowserAutomationMaster.Managers.Settings;
+using static BrowserAutomationMaster.Managers.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Managers.Utilities.UserAgentUtility;
 
 namespace BrowserAutomationMaster.Managers.Compilation
