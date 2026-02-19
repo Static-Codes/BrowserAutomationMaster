@@ -20,14 +20,31 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
             $"Please make a bug report at: {ISSUES_LINK}"
         ]);
 
-        private static string[] GetSupportedDistroNames() {
-            return [..distroObjects.Select(a => a.Name)];
-        }
-
-        public static Distro GetDistroByName(string name) 
+        public static void CheckLinuxDistro() 
         {
-            var distro = distroObjects.Where(distro => distro.Name.Equals(name)).FirstOrDefault();
-            return distro ?? Distros.Unknown;
+            if (Platforms.CurrentDistribution != null) {
+                return;
+            }
+            
+            var distroChoices = EnumHelper.GetStringReprs(typeof(Distros));
+            
+            var distroChoice = Input.WriteListFromOptions(distroChoices, noun: "distro");
+            
+
+            var memberObject = EnumHelper.GetEnumMemberFromStringRepr(typeof(Distros), distroChoice);
+
+            if (memberObject == null) 
+            {
+                WriteAndExit(
+                    string.Join(' ', [
+                        "Unable to determine the current Linux Distribution in use,",
+                        $"please make a bug report at: {ISSUES_LINK}", 
+                    ]),
+                    status: 1
+                );
+            }
+
+            Platforms.CurrentDistribution = (Distro)memberObject;
         }
 
         public static Distro DetermineDistro() 
@@ -88,88 +105,13 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
             }
         }
 
-        public static void CheckLinuxDistro() 
+        public static Distro GetDistroByName(string name) 
         {
-            if (Platforms.CurrentDistribution != null) {
-                return;
-            }
-            
-            
-            var distroChoices = EnumHelper.GetStringReprs(typeof(Distros));
-            
-            var distroChoice = Input.WriteListFromOptions(distroChoices, noun: "distro");
-            
-
-            var memberObject = EnumHelper.GetEnumMemberFromStringRepr(typeof(Distros), distroChoice);
-
-            if (memberObject == null) 
-            {
-                WriteAndExit(
-                    string.Join(' ', [
-                        "Unable to determine the current Linux Distribution in use,",
-                        $"please make a bug report at: {ISSUES_LINK}", 
-                    ]),
-                    status: 1
-                );
-            }
-
-            Platforms.CurrentDistribution = (Distro)memberObject;
+            var distro = distroObjects.Where(distro => distro.Name.Equals(name)).FirstOrDefault();
+            return distro ?? Distros.Unknown;
         }
 
-        public static Distro GetUserDistroChoice() 
-        {
-            var distroNames = GetSupportedDistroNames();
-                    
-            // Instead of adding another Distro object to Distros
-            // creating a temporary instance of Distros.Unknown
-            // then replacing .Name with "Not Listed" is more efficient.
-            var unsupportedDistroObj = Distros.Unknown;
-            unsupportedDistroObj.Name = "Not Listed";
 
-            var userDistroChoice = Input.WriteListFromOptions(
-                distroNames, 
-                "distro", 
-                pageSize: distroNames.Length
-            );
-
-            if (userDistroChoice.Equals("Not Listed")) {
-                WriteAndExit(
-                    message: string.Join(NLC, [
-                        "Currently, BAMM only supports the listed distros.",
-                        $"If your distro is not currently listed, please make a bug report at {ISSUES_LINK}",
-                        "Your OS will be considered in a future update."
-                    ]),
-                    status: 1
-                );   
-            }
-
-            return GetDistroByName(userDistroChoice);
-        }
-
-        private static Distro? TryAltCmds() 
-        {
-            foreach (var altCmd in altCmds) 
-            {
-                try 
-                {
-                    (var output, var error) = RunCommand("/bin/bash", $"-c '{altCmd}'");
-                    if (output == null || error != null) {
-                        continue;
-                    }
-                    
-                    switch (output) {
-                        case "FreeBSD" when altCmd is "uname -o":
-                            return Distros.FreeBSD;
-                    }
-                }
-                catch (Exception ex) 
-                {
-                    Warning.Write(ex.Message);
-                }
-            }
-            return null;
-        }
-    
         /// <summary>
         /// Checks if the provided package is installed on the current distro<br/>
         /// <param name="packageName">The package to check</param><br/>
@@ -236,6 +178,40 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
             );
         }
 
+        private static string[] GetSupportedDistroNames() {
+            return [..distroObjects.Select(a => a.Name)];
+        }
+
+        public static Distro GetUserDistroChoice() 
+        {
+            var distroNames = GetSupportedDistroNames();
+                    
+            // Instead of adding another Distro object to Distros
+            // creating a temporary instance of Distros.Unknown
+            // then replacing .Name with "Not Listed" is more efficient.
+            var unsupportedDistroObj = Distros.Unknown;
+            unsupportedDistroObj.Name = "Not Listed";
+
+            var userDistroChoice = Input.WriteListFromOptions(
+                distroNames, 
+                "distro", 
+                pageSize: distroNames.Length
+            );
+
+            if (userDistroChoice.Equals("Not Listed")) {
+                WriteAndExit(
+                    message: string.Join(NLC, [
+                        "Currently, BAMM only supports the listed distros.",
+                        $"If your distro is not currently listed, please make a bug report at {ISSUES_LINK}",
+                        "Your OS will be considered in a future update."
+                    ]),
+                    status: 1
+                );   
+            }
+
+            return GetDistroByName(userDistroChoice);
+        }
+        
         public static async Task<HashSet<string>> FindMissingPackages(string[] packageNames)
         {
             var missingPackages = new HashSet<string>();
@@ -249,5 +225,31 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
             }
             return missingPackages;
         } 
+
+        private static Distro? TryAltCmds() 
+        {
+            foreach (var altCmd in altCmds) 
+            {
+                try 
+                {
+                    (var output, var error) = RunCommand("/bin/bash", $"-c '{altCmd}'");
+                    if (output == null || error != null) {
+                        continue;
+                    }
+                    
+                    switch (output) {
+                        case "FreeBSD" when altCmd is "uname -o":
+                            return Distros.FreeBSD;
+                    }
+                }
+                catch (Exception ex) 
+                {
+                    Warning.Write(ex.Message);
+                }
+            }
+            return null;
+        }
+    
+        
     }
 }
