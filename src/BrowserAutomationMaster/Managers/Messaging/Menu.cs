@@ -4,6 +4,7 @@ using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Menu;
 using BrowserAutomationMaster.Managers.Python;
+using BrowserAutomationMaster.Managers.Utilities;
 using Spectre.Console;
 
 namespace BrowserAutomationMaster.Managers.Messaging

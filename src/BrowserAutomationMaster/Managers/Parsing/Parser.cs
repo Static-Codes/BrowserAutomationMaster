@@ -1,6 +1,6 @@
-﻿using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Managers.Common;
+﻿using BrowserAutomationMaster.Managers.Common;
 using BrowserAutomationMaster.Managers.Messaging;
+using BrowserAutomationMaster.Managers.Utilities;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
@@ -71,7 +71,7 @@ namespace BrowserAutomationMaster.Managers.Parsing
                     Directory.CreateDirectory(userScriptsDirectory);
                 }
                 
-                await UserScriptExamples.WriteScriptExamples();
+                await UserScriptUtility.WriteScriptExamples();
                 return true;
             }
 
