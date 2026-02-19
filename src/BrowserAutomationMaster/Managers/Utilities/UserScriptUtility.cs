@@ -7,14 +7,14 @@ using static BrowserAutomationMaster.Managers.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using static BrowserAutomationMaster.Managers.Messaging.Success;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Utilities
 {
-    public class UserScriptManager
+    public class UserScriptUtility
     {
         readonly string scriptPath = string.Empty;
         readonly string userScriptDirectory;
 
-        public UserScriptManager(string filePath, string method)
+        public UserScriptUtility(string filePath, string method)
         {
             // Performs path validation 1/6 (Ensures userScriptDirectory's value is not null or empty)
             userScriptDirectory = Parser.userScriptsDirectory;
@@ -205,25 +205,21 @@ namespace BrowserAutomationMaster.Managers
             }
         }
 
-    }
-
-    public static class UserScriptExamples
-    {
-        public readonly static List<string> ExampleFileNames = [
-            "codedpad.bamc",
-            "ebay.bamc",
-            "google-gemini.bamc",
-            "google-maps.bamc",
-            "google-search.bamc",
-            "js-embed.bamc",
-            "marketplace.bamc",
-            "steam.bamc",
-            "youtube-search.bamc",
-        ];
-
         public static async Task WriteScriptExamples()
         {
-            foreach (var exampleFileName in ExampleFileNames) 
+            List<string> exampleFileNames = [
+                "codedpad.bamc",
+                "ebay.bamc",
+                "google-gemini.bamc",
+                "google-maps.bamc",
+                "google-search.bamc",
+                "js-embed.bamc",
+                "marketplace.bamc",
+                "steam.bamc",
+                "youtube-search.bamc",
+            ];
+
+            foreach (var exampleFileName in exampleFileNames) 
             {
 
                 string filePath = Path.Combine(Parser.userScriptsDirectory, exampleFileName);
@@ -252,6 +248,5 @@ namespace BrowserAutomationMaster.Managers
                 }
             }
         }
-
     }
 }

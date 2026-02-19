@@ -91,7 +91,7 @@ namespace BrowserAutomationMaster
 
             if (usingUSM)
             {
-                _ = new UserScriptManager(pArgs[1], pArgs[0]);
+                _ = new UserScriptUtility(pArgs[1], pArgs[0]);
                 return true;
             }
 
@@ -99,7 +99,7 @@ namespace BrowserAutomationMaster
             // Handles double-clicking a BAMC file (On Windows)
             if (pArgs.Length == 1 && lArg0.EndsWith(".bamc") && File.Exists(pArgs[0]))
             {
-                _ = new UserScriptManager(pArgs[0], "add");
+                _ = new UserScriptUtility(pArgs[0], "add");
                 var response = Input.AskForInput("Would you like to continue? [y/n]: ");
                 var wantsToContinue = Input.ConditionAccepted(response); // OIC = StringComparison.OrdinalIgnoreCase
                 return !wantsToContinue; // Exit if user doesn't want to continue

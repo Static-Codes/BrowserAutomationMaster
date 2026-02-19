@@ -113,7 +113,7 @@ namespace BrowserAutomationMaster.Managers.Messaging
             }
 
             // This executes UserScriptManager.AddScript()
-            UserScriptManager _ = new(path, "add");
+            UserScriptUtility _ = new(path, "add");
             
             return KeyValuePair.Create(
                 key: MenuOption.Add, 
