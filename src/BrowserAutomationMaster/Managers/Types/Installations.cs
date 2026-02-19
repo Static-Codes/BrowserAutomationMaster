@@ -1,4 +1,4 @@
-﻿using BrowserAutomationMaster.Managers.Common;
+using BrowserAutomationMaster.Managers.Common;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Managers.Common.Constants;
@@ -6,26 +6,11 @@ using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 using static BrowserAutomationMaster.Managers.Messaging.Errors;
 using BrowserAutomationMaster.Managers.OS.Generic;
 
-namespace BrowserAutomationMaster.Managers.Helpers
-{
-    public enum ApplicationNames
-    {
-        //Brave,
-        Chrome,
-        Firefox,
-        Python3_X, // This flag is for MacOS since the default python installer is not a .app bundle
-        Python3_8, // THIS IS ONLY FOR CHROMEOS (Ubuntu 22.04.5 [Focal Fossa])
-        Python3_9, // Display warning that packages might not be compatible, stick to 3.10 or 3.11
-        Python3_10,
-        Python3_11,
-        Python3_12, // Display warning that all packages might not be compatible, compile with 3.10 or 3.11
-        Python3_13, // Display warning that all packages might not be compatible, compile with 3.10 or 3.11
-        Python3_14, // Display warning that all packages might not be compatible, compile with 3.10 or 3.11
-    }
 
+namespace BrowserAutomationMaster.Managers.Types
+{
     public partial class Installations
     {
-
         public List<ApplicationNames> AppNames { get; set; }
         
         public static readonly List<ApplicationNames> validPythonVersions = 
@@ -35,40 +20,44 @@ namespace BrowserAutomationMaster.Managers.Helpers
             ApplicationNames.Python3_13, ApplicationNames.Python3_14
         ];
 
+        // Uncomment if Brave support is reintroduced.
         //readonly List<ApplicationNames> validBrowsersApps = [ ApplicationNames.Brave, ApplicationNames.Chrome, ApplicationNames.Firefox ];
         readonly List<ApplicationNames> validBrowsersApps = [ ApplicationNames.Chrome, ApplicationNames.Firefox ];
 
+        readonly static string NoBrowsersMessage = string.Join(NLC, [
+            "BAM Manager (BAMM) was unable to detect any valid browser installations.",
+            "",
+            "Supported browsers include:",
+            "",
+            "    - Chrome",
+            "    - Firefox"
+        ]);
 
-        readonly static string NoBrowsersMessage = @"BAM Manager (BAMM) was unable to detect any valid browser installations.
+        readonly static string NoPythonMessage = string.Join(NLC, [
+            "BAM Manager (BAMM) was unable to detect any valid python installations.",
+            "",
+            "Supported versions include:",
+            "",
+            "    - Python 3.9.X",
+            "    - Python 3.10.X",
+            "    - Python 3.11.X",
+            "    - Python 3.12.X",
+            "    - Python 3.13.X",
+            "    - Python 3.14.X"
+        ]);
 
-Supported browsers include:
-
-    - Chrome
-    - Firefox".Replace("\r", ""); // Carriage returns cause issues with Spectre Console on Windows... odd?
-
-        readonly static string NoPythonMessage = @"BAM Manager (BAMM) was unable to detect any valid python installations.
-
-Supported versions include:
-
-- Python 3.9.X
-- Python 3.10.X
-- Python 3.11.X
-- Python 3.12.X
-- Python 3.13.X
-- Python 3.14.X".Replace("\r", ""); // Carriage returns cause issues with Spectre Console on Windows... odd?
-
-        readonly Dictionary<string, ApplicationNames> pythonVerMap = new()
+        private readonly Dictionary<string, ApplicationNames> pythonVerMap = new()
         {
-                { "Python 3.8", ApplicationNames.Python3_8 },
-                { "Python 3.9", ApplicationNames.Python3_9 },
-                { "Python 3.10", ApplicationNames.Python3_10 },
-                { "Python 3.11", ApplicationNames.Python3_11 },
-                { "Python 3.12", ApplicationNames.Python3_12 },
-                { "Python 3.13", ApplicationNames.Python3_13 },
-                { "Python 3.14", ApplicationNames.Python3_14 }
+            { "Python 3.8", ApplicationNames.Python3_8 },
+            { "Python 3.9", ApplicationNames.Python3_9 },
+            { "Python 3.10", ApplicationNames.Python3_10 },
+            { "Python 3.11", ApplicationNames.Python3_11 },
+            { "Python 3.12", ApplicationNames.Python3_12 },
+            { "Python 3.13", ApplicationNames.Python3_13 },
+            { "Python 3.14", ApplicationNames.Python3_14 }
         };
 
-        void Add(ApplicationNames app)
+        private void Add(ApplicationNames app)
         {
             if (!AppNames.Contains(app)) {
                 AppNames.Add(app);
@@ -80,7 +69,7 @@ Supported versions include:
         /// <param name="name">The string representation of the Python version.</param>
         /// <param name="app">The returned enum member</param>
         /// <returns>Either the ApplicationNames member associated or ApplicationNames.Python3_X which will throw an exception later down the stack.</returns>
-        bool GetEnumMemberFromString(string name, out ApplicationNames app)
+        private bool GetEnumMemberFromString(string name, out ApplicationNames app)
         {
             var collection = pythonVerMap.Where(map => name.StartsWith(map.Key));
             
@@ -94,7 +83,7 @@ Supported versions include:
             return app != ApplicationNames.Python3_X;
         }
 
-        void CheckApp(AppInfo app, bool pythonOnly, string? version = null)
+        private void CheckApp(AppInfo app, bool pythonOnly, string? version = null)
         {
             if (app == null || app.Name == null || app.Name.Length == 0) {
                 return;
@@ -135,7 +124,7 @@ Supported versions include:
 
             else if (app.Name.StartsWith("python3"))
             {
-                var foundVersion = GetMissingPyVersion();
+                var foundVersion = GetMissingPythonVersion();
 
                 if (string.IsNullOrEmpty(foundVersion)) {
                     Add(ApplicationNames.Python3_X); // This will raise an error once Transpiler.New is executed.
@@ -148,7 +137,7 @@ Supported versions include:
             }
         }
             
-        void CheckAndAdd(List<AppInfo> detectedApplications, string? verNum = null, bool pythonOnly = false)
+        private void CheckAndAdd(List<AppInfo> detectedApplications, string? verNum = null, bool pythonOnly = false)
         {
             foreach (AppInfo app in detectedApplications) {
                 CheckApp(app, pythonOnly: pythonOnly, version: verNum);
@@ -157,7 +146,6 @@ Supported versions include:
 
         public Installations(List<AppInfo> detectedApplications)
         {
-
             AppNames = [];
 
             CheckAndAdd(detectedApplications);
@@ -177,7 +165,7 @@ Supported versions include:
             AppNames = []; // This wont be reached, its purely to appease the compilers static nature.
         }
 
-        public static string GetMissingPyVersion(string pythonVar = "python3")
+        public static string GetMissingPythonVersion(string pythonVar = "python3")
         {
             if (!Platforms.IsUnixLike) {
                 return string.Empty;
@@ -199,7 +187,7 @@ Supported versions include:
 
         private void HandleArchLinuxPythonCheck() 
         {
-            var missingVersion = GetMissingPyVersion(pythonVar: "python");
+            var missingVersion = GetMissingPythonVersion(pythonVar: "python");
 
             if (string.IsNullOrEmpty(missingVersion)) {
                 WriteAndExit(NoPythonMessage, 1);

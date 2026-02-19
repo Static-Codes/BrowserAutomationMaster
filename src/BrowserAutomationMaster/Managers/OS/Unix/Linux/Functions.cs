@@ -1,5 +1,4 @@
 using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Managers.Helpers;
 using BrowserAutomationMaster.Managers.Messaging;
 using BrowserAutomationMaster.Managers.OS.Generic;
 using Spectre.Console;
@@ -18,6 +17,7 @@ using static BrowserAutomationMaster.Managers.Messaging.Success;
 using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Managers.Python.WheelManager;
 using static BrowserAutomationMaster.Managers.Settings;
+using static BrowserAutomationMaster.Managers.Types.Installations;
 using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
@@ -428,7 +428,7 @@ namespace BrowserAutomationMaster.Managers.OS.Unix.Linux
 
                 var installCMD = $"-c \"sudo {installPrefix}";
 
-                var pyVersion = Installations.GetMissingPyVersion();
+                var pyVersion = GetMissingPythonVersion();
                 while (pyVersion == null || !PyVersionRegex.IsMatch(pyVersion))
                 {
                     Warning.Write("Unable to detect the installed version of Python.");
