@@ -1,114 +1,14 @@
-﻿using BrowserAutomationMaster.Managers.Messaging;
+using BrowserAutomationMaster.Managers.Messaging;
+using BrowserAutomationMaster.Managers.Types;
+using static BrowserAutomationMaster.Managers.Helpers.UserAgentHelper;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Utilities
 {
-    public class UserAgentManager
+    public class UserAgentUtility
     {
         private static string lastBrowserName = string.Empty; 
         private static bool lastMobileStatus = false;
-
         private static UserAgent[] UserAgentChoices = [];
-        public static UserAgent? GetUserAgent(string browserName, bool isMobile)
-        {
-            // Only reassigning UserAgentChoices if a new browserName or mobileStatus is passed.
-            if (lastBrowserName != browserName || lastMobileStatus != isMobile) 
-            {
-                Console.WriteLine();
-                Warning.Write($"Updating user agents, please wait..");
-                Thread.Sleep(100);
-
-                UserAgentChoices = (browserName, isMobile) switch {
-                    ("chrome", false) => UserAgentHelpers.GetChromeDesktopUserAgents(),
-                    ("firefox", false) => UserAgentHelpers.GetFirefoxDesktopUserAgents(),
-                    ("safari", false) => UserAgentHelpers.GetSafariDesktopUserAgents(),
-                    ("safari", true) => UserAgentHelpers.GetSafariMobileUserAgents(),
-                    _ => throw new ArgumentException(
-                        $"Invalid data passed to GetUserAgent -> GetUserAgent(browserName: {browserName}, isMobile: {isMobile})"
-                    )
-                };
-
-                Success.WriteSuccessMessage
-                (
-                    string.Join("", [
-                        "Operation successful, the current session will choose at random between ",
-                        UserAgentChoices.Length,
-                        "/",
-                        UserAgents.FullList.Count, 
-                        " supported user agents."
-                    ])
-                );
-
-                // Updating state vars
-                lastBrowserName = browserName;
-                lastMobileStatus = isMobile;
-            }
-
-            if (UserAgentChoices.Length == 0) {
-                Errors.Write("UserAgentChoices has a length of 0.");
-                return null;
-            }
-
-            return UserAgentChoices[
-                Random.Shared.Next(0, UserAgentChoices.Length - 1)
-            ];
-        }
-    }
-
-    public class UserAgent(string browserName, string userAgentString, bool isMobileDevice) 
-    {
-        public string browserName = browserName;
-        public string userAgentString = userAgentString;
-        public bool isMobileDevice = isMobileDevice;
-    }
-    
-    public static class UserAgentHelpers 
-    {
-        public static UserAgent[] GetChromeDesktopUserAgents() 
-        {
-            return [.. UserAgents.FullList
-                   .Where(userAgent => userAgent.browserName.Equals("chrome"))
-                   .Where(userAgent => !userAgent.isMobileDevice)];
-        }
-
-        public static UserAgent[] GetFirefoxDesktopUserAgents() 
-        {
-            return [.. UserAgents.FullList
-                   .Where(userAgent => userAgent.browserName.Equals("firefox"))
-                   .Where(userAgent => !userAgent.isMobileDevice)];
-        }
-        public static UserAgent[] GetSafariDesktopUserAgents() 
-        {
-            return [.. UserAgents.FullList
-                   .Where(userAgent => userAgent.browserName.Equals("safari"))
-                   .Where(userAgent => !userAgent.isMobileDevice)];
-        }
-
-        public static UserAgent[] GetSafariMobileUserAgents() 
-        {
-            return [.. UserAgents.FullList
-                   .Where(userAgent => userAgent.browserName.Equals("safari"))
-                   .Where(userAgent => userAgent.isMobileDevice)];
-        }
-    }
-
-    public readonly struct UserAgents() 
-    {
-        public static UserAgent AddChromeUserAgent(string userAgentString, bool isMobileDevice) {
-            return GenerateUserAgent("chrome", userAgentString, isMobileDevice);
-        }
-
-        public static UserAgent AddFirefoxUserAgent(string userAgentString, bool isMobileDevice) {
-            return GenerateUserAgent("firefox", userAgentString, isMobileDevice);
-        }
-
-        public static UserAgent AddSafariUserAgent(string userAgentString, bool isMobileDevice) {
-            return GenerateUserAgent("safari", userAgentString, isMobileDevice);
-        }
-
-        private static UserAgent GenerateUserAgent(string browserName, string userAgentString, bool isMobileDevice) {
-            return new UserAgent(browserName, userAgentString, isMobileDevice);
-        }
-
         public readonly static List<UserAgent> FullList = 
         [
             // -------------------------------
@@ -270,5 +170,66 @@ namespace BrowserAutomationMaster.Managers
             AddSafariUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15", isMobileDevice: false),
 
         ];
+    
+        public static UserAgent? GetUserAgent(string browserName, bool isMobile)
+        {
+            // Only reassigning UserAgentChoices if a new browserName or mobileStatus is passed.
+            if (lastBrowserName != browserName || lastMobileStatus != isMobile) 
+            {
+                Console.WriteLine();
+                Warning.Write($"Updating user agents, please wait..");
+                Thread.Sleep(100);
+
+                UserAgentChoices = (browserName, isMobile) switch {
+                    ("chrome", false) => GetChromeDesktopUserAgents(),
+                    ("firefox", false) => GetFirefoxDesktopUserAgents(),
+                    ("safari", false) => GetSafariDesktopUserAgents(),
+                    ("safari", true) => GetSafariMobileUserAgents(),
+                    _ => throw new ArgumentException(
+                        $"Invalid data passed to GetUserAgent -> GetUserAgent(browserName: {browserName}, isMobile: {isMobile})"
+                    )
+                };
+
+                Success.WriteSuccessMessage
+                (
+                    string.Join("", [
+                        "Operation successful, the current session will choose at random between ",
+                        UserAgentChoices.Length,
+                        "/",
+                        FullList.Count, 
+                        " supported user agents."
+                    ])
+                );
+
+                // Updating state vars
+                lastBrowserName = browserName;
+                lastMobileStatus = isMobile;
+            }
+
+            if (UserAgentChoices.Length == 0) {
+                Errors.Write("UserAgentChoices has a length of 0.");
+                return null;
+            }
+
+            return UserAgentChoices[
+                Random.Shared.Next(0, UserAgentChoices.Length - 1)
+            ];
+        }
+        
+        private static UserAgent AddChromeUserAgent(string userAgentString, bool isMobileDevice) {
+            return GenerateUserAgent("chrome", userAgentString, isMobileDevice);
+        }
+
+        private static UserAgent AddFirefoxUserAgent(string userAgentString, bool isMobileDevice) {
+            return GenerateUserAgent("firefox", userAgentString, isMobileDevice);
+        }
+
+        private static UserAgent AddSafariUserAgent(string userAgentString, bool isMobileDevice) {
+            return GenerateUserAgent("safari", userAgentString, isMobileDevice);
+        }
+
+        private static UserAgent GenerateUserAgent(string browserName, string userAgentString, bool isMobileDevice) {
+            return new UserAgent(browserName, userAgentString, isMobileDevice);
+        }
     }
 }

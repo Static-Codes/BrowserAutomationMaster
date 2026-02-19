@@ -5,10 +5,10 @@ using static BrowserAutomationMaster.Managers.Common.ANSI;
 using static BrowserAutomationMaster.Managers.Common.Constants;
 using static BrowserAutomationMaster.Managers.Common.PlatformManager;
 
-namespace BrowserAutomationMaster.Managers
+namespace BrowserAutomationMaster.Managers.Utilities
 {
 
-    public class ThemeManager
+    public class ThemeUtility
     {
         private static readonly Color CherryRed = Color.FromArgb(156, 1, 1);
         private static readonly Color DarkGray = Color.FromArgb(25, 25, 25);
@@ -93,14 +93,5 @@ namespace BrowserAutomationMaster.Managers
         }
     }
 
-    public class Theme(Color ForegroundColor, Color SuccessColor, Color WarningColor, Color ErrorColor, Color HighlightBackground, Color HighlightForeground, Color AccentColor)
-    {
-        public Color ForegroundColor { get; set; } = ForegroundColor;
-        public Color SuccessColor { get; set; } = SuccessColor;
-        public Color WarningColor { get; set; } = WarningColor;
-        public Color ErrorColor { get; set; } = ErrorColor;
-        public Color HighlightBackground { get; set; } = HighlightBackground;
-        public Color HighlightForeground { get; set; } = HighlightForeground;
-        public Color AccentColor { get; set; } = AccentColor;
-    }
+    
 }

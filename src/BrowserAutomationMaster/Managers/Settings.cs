@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using BrowserAutomationMaster.Managers.Utilities;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Managers.Common.ANSI;
@@ -52,7 +53,7 @@ namespace BrowserAutomationMaster.Managers
             ShowCpuCheck = true,
             ShowMemoryCheck = true,
             ShowUpdateCheck = true,
-            ThemeType = ThemeManager.DefaultTheme,
+            ThemeType = ThemeUtility.DefaultTheme,
             UseBrowserstack = false,
         };
 
@@ -167,7 +168,7 @@ namespace BrowserAutomationMaster.Managers
                 var bindingAttr = BindingFlags.Public | BindingFlags.Static;
                 
                 var exc = new ArgumentException($"Theme '{value}' not found in ThemeManager (expected field '{themeName}').");
-                var field = typeof(ThemeManager).GetField(themeName, bindingAttr) ?? throw exc;
+                var field = typeof(ThemeUtility).GetField(themeName, bindingAttr) ?? throw exc;
                 return field.GetValue(null);
             }
 
