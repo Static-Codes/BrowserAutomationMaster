@@ -2,7 +2,7 @@
 
 namespace BrowserAutomationMaster.Managers.Types
 {
-    public enum ApplicationNames
+    public enum AppNames
     {
         //Brave,
         Chrome,

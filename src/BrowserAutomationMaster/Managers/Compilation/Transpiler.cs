@@ -1004,15 +1004,15 @@ namespace BrowserAutomationMaster.Managers.Compilation
             var maxVersions = 6;
             var versionArray = new string[maxVersions];
 
-            var versionMapping = new Dictionary<ApplicationNames, string>() {
-                { ApplicationNames.Python3_X, "3." },
-                { ApplicationNames.Python3_8, "3.8" },
-                { ApplicationNames.Python3_9, "3.9" },
-                { ApplicationNames.Python3_10, "3.10" },
-                { ApplicationNames.Python3_11, "3.11" },
-                { ApplicationNames.Python3_12, "3.12" },
-                { ApplicationNames.Python3_13, "3.13" },
-                { ApplicationNames.Python3_14, "3.14" },
+            var versionMapping = new Dictionary<AppNames, string>() {
+                { AppNames.Python3_X, "3." },
+                { AppNames.Python3_8, "3.8" },
+                { AppNames.Python3_9, "3.9" },
+                { AppNames.Python3_10, "3.10" },
+                { AppNames.Python3_11, "3.11" },
+                { AppNames.Python3_12, "3.12" },
+                { AppNames.Python3_13, "3.13" },
+                { AppNames.Python3_14, "3.14" },
             };
 
             var errorMessage =
@@ -1020,7 +1020,7 @@ namespace BrowserAutomationMaster.Managers.Compilation
                 $"If this error persists, please make a bug report at {ISSUES_LINK}";
 
             int index = 0;
-            foreach (ApplicationNames app in installations.AppNames)
+            foreach (AppNames app in installations.AppNames)
             {
                 if (index == maxVersions) {
                     break;

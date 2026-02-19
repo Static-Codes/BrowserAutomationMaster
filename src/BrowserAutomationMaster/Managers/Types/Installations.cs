@@ -11,18 +11,18 @@ namespace BrowserAutomationMaster.Managers.Types
 {
     public partial class Installations
     {
-        public List<ApplicationNames> AppNames { get; set; }
+        public List<AppNames> AppNames { get; set; }
         
-        public static readonly List<ApplicationNames> validPythonVersions = 
+        public static readonly List<AppNames> validPythonVersions = 
         [
-            ApplicationNames.Python3_X, ApplicationNames.Python3_8, ApplicationNames.Python3_9, 
-            ApplicationNames.Python3_10, ApplicationNames.Python3_11, ApplicationNames.Python3_12, 
-            ApplicationNames.Python3_13, ApplicationNames.Python3_14
+            Types.AppNames.Python3_X, Types.AppNames.Python3_8, Types.AppNames.Python3_9,
+            Types.AppNames.Python3_10, Types.AppNames.Python3_11, Types.AppNames.Python3_12,
+            Types.AppNames.Python3_13, Types.AppNames.Python3_14
         ];
 
         // Uncomment if Brave support is reintroduced.
-        //readonly List<ApplicationNames> validBrowsersApps = [ ApplicationNames.Brave, ApplicationNames.Chrome, ApplicationNames.Firefox ];
-        readonly List<ApplicationNames> validBrowsersApps = [ ApplicationNames.Chrome, ApplicationNames.Firefox ];
+        //readonly List<AppNames> validBrowsersApps = [ AppNames.Brave, AppNames.Chrome, AppNames.Firefox ];
+        readonly List<AppNames> validBrowsersApps = [Types.AppNames.Chrome, Types.AppNames.Firefox ];
 
         readonly static string NoBrowsersMessage = string.Join(NLC, [
             "BAM Manager (BAMM) was unable to detect any valid browser installations.",
@@ -46,18 +46,18 @@ namespace BrowserAutomationMaster.Managers.Types
             "    - Python 3.14.X"
         ]);
 
-        private readonly Dictionary<string, ApplicationNames> pythonVerMap = new()
+        private readonly Dictionary<string, AppNames> pythonVerMap = new()
         {
-            { "Python 3.8", ApplicationNames.Python3_8 },
-            { "Python 3.9", ApplicationNames.Python3_9 },
-            { "Python 3.10", ApplicationNames.Python3_10 },
-            { "Python 3.11", ApplicationNames.Python3_11 },
-            { "Python 3.12", ApplicationNames.Python3_12 },
-            { "Python 3.13", ApplicationNames.Python3_13 },
-            { "Python 3.14", ApplicationNames.Python3_14 }
+            { "Python 3.8", Types.AppNames.Python3_8 },
+            { "Python 3.9", Types.AppNames.Python3_9 },
+            { "Python 3.10", Types.AppNames.Python3_10 },
+            { "Python 3.11", Types.AppNames.Python3_11 },
+            { "Python 3.12", Types.AppNames.Python3_12 },
+            { "Python 3.13", Types.AppNames.Python3_13 },
+            { "Python 3.14", Types.AppNames.Python3_14 }
         };
 
-        private void Add(ApplicationNames app)
+        private void Add(AppNames app)
         {
             if (!AppNames.Contains(app)) {
                 AppNames.Add(app);
@@ -68,19 +68,19 @@ namespace BrowserAutomationMaster.Managers.Types
         /// <summary>Attempts to get the enum member associated with the python version string <summary>
         /// <param name="name">The string representation of the Python version.</param>
         /// <param name="app">The returned enum member</param>
-        /// <returns>Either the ApplicationNames member associated or ApplicationNames.Python3_X which will throw an exception later down the stack.</returns>
-        private bool GetEnumMemberFromString(string name, out ApplicationNames app)
+        /// <returns>Either the AppNames member associated or AppNames.Python3_X which will throw an exception later down the stack.</returns>
+        private bool GetEnumMemberFromString(string name, out AppNames app)
         {
             var collection = pythonVerMap.Where(map => name.StartsWith(map.Key));
             
             if (!collection.Any())
             {
-                app = ApplicationNames.Python3_X;
+                app = Types.AppNames.Python3_X;
                 return false;
             }
 
             app = collection.First().Value;
-            return app != ApplicationNames.Python3_X;
+            return app != Types.AppNames.Python3_X;
         }
 
         private void CheckApp(AppInfo app, bool pythonOnly, string? version = null)
@@ -96,29 +96,29 @@ namespace BrowserAutomationMaster.Managers.Types
 
             // Uncomment these two when readding brave support
             // if (app.Name.Contains("brave", CCIC)) {
-            //     Add(ApplicationNames.Brave);
+            //     Add(AppNames.Brave);
             // }
 
             // else if (!pythonOnly && app.Name.Contains("chrome", CCIC)) {
-            //     Add(ApplicationNames.Chrome);
+            //     Add(AppNames.Chrome);
             // }
             
             // Delete this line if the above two checks are reintroduced.
             if (!pythonOnly && app.Name.Contains("chrome", CCIC)) {
-                Add(ApplicationNames.Chrome);
+                Add(Types.AppNames.Chrome);
             }
 
             else if (!pythonOnly && app.Name.Contains("firefox", CCIC)) {
-                Add(ApplicationNames.Firefox);
+                Add(Types.AppNames.Firefox);
             }
 
-            else if (version == null && GetEnumMemberFromString(app.Name, out ApplicationNames appName)) {
+            else if (version == null && GetEnumMemberFromString(app.Name, out AppNames appName)) {
                 Add(appName);
             }
 
             // Unix Specific Recursive Case
             // To prevent an infinite loop, version must have a value to continue
-            else if (Platforms.IsUnixLike && version != null && GetEnumMemberFromString(version, out ApplicationNames appName2)) {
+            else if (Platforms.IsUnixLike && version != null && GetEnumMemberFromString(version, out AppNames appName2)) {
                 Add(appName2);
             }
 
@@ -127,10 +127,10 @@ namespace BrowserAutomationMaster.Managers.Types
                 var foundVersion = GetMissingPythonVersion();
 
                 if (string.IsNullOrEmpty(foundVersion)) {
-                    Add(ApplicationNames.Python3_X); // This will raise an error once Transpiler.New is executed.
+                    Add(Types.AppNames.Python3_X); // This will raise an error once Transpiler.New is executed.
                 }
 
-                else if (GetEnumMemberFromString(foundVersion, out ApplicationNames _)) {
+                else if (GetEnumMemberFromString(foundVersion, out AppNames _)) {
                     CheckApp(app, pythonOnly: true, version: foundVersion);
                 }
 
@@ -194,8 +194,8 @@ namespace BrowserAutomationMaster.Managers.Types
             }
 
             // This will return bool if successful, however:
-            // As a fallback ApplicationNames.Python3_X is returned, thus no check is required.
-            GetEnumMemberFromString(missingVersion, out ApplicationNames appName);
+            // As a fallback AppNames.Python3_X is returned, thus no check is required.
+            GetEnumMemberFromString(missingVersion, out AppNames appName);
             Add(appName);
         }
 
