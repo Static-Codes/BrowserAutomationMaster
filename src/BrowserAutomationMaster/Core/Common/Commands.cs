@@ -697,6 +697,15 @@ namespace BrowserAutomationMaster.Core.Common
             }
             return command.First();
         }
+        
+        public static string[] GetCommandNamesByType(CommandType type)
+        {
+            return [..
+               CommandList
+               .Where(command => command.Type == type)
+               .Select(command => command.Name)
+            ];
+        }
 
         public static List<Command> GetCommands(CommandType type)
         {

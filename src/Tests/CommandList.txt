@@ -1,0 +1,33 @@
+browser | first command or defaults to firefox | can either be on line 1 or not present.
+---------------- Actions ----------------
+add-cookie
+click
+click-at-position
+click-exp
+close-current-tab
+end-javascript
+fill-text
+fill-text-exp
+get-text
+open-new-tab
+save-as-html
+save-as-html-exp
+select-option
+select-element
+set-custom-useragent
+start-javascript
+take-screenshot
+visit | can 
+wait-for-seconds
+
+
+---------------- Features ----------------
+add-extension
+disable-pycache
+disable-ssl
+run-headless
+use-http-proxy
+use-https-proxy
+use-mobile-user-agent
+use-socks4-proxy
+use-socks5-proxy
