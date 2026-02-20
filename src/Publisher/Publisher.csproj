@@ -16,7 +16,7 @@
 		<Description>Packager for BAMM Manager (Developer Use Only)</Description>
   </PropertyGroup>
   <ItemGroup>
-    	<ProjectReference Include="..\BrowserAutomationMaster\BrowserAutomationMaster.csproj" />
+    <ProjectReference Include="..\BrowserAutomationMaster\BrowserAutomationMaster.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Octokit" Version="14.0.0" />

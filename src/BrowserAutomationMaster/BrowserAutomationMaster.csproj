@@ -169,6 +169,32 @@
 		<EmbeddedResource Include="Resources/userScripts/*.bamc" />
 	</ItemGroup>
 
+	<!-- Port of NativeFileDialogSharp by Milleniumbug for .NET 10  -->
+	<!-- https://github.com/Static-Codes/NativeFileDialogSharp -->
+	
+	<ItemGroup>
+		<Content Include="Resources/NativeFileDialog/runtimes/linux-x64/libnfd.so">
+		<Link>libnfd.so</Link>
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		<Visible>false</Visible>
+		</Content>
+	
+		<Content Include="Resources/NativeFileDialog/runtimes/osx-x64/libnfd.dylib">
+		<Link>libnfd.dylib</Link>
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		<Visible>false</Visible>
+		</Content>
+
+		<Content Include="Resources/NativeFileDialog/runtimes/win-x64/nfd.dll">
+		<Link>nfd.dll</Link>
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		<Visible>false</Visible>
+		</Content>
+	</ItemGroup>
+
 	
 	<!-- Esprima (JS Validation) + Packaging.Targets (Cross Platform Publishing) -->
 	<ItemGroup>
@@ -180,9 +206,10 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		<PackageReference Include="Spectre.Console" Version="0.50.0" />
-		<!-- <PackageReference Include="System.Memory" Version="4.6.3" />
-		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" /> -->
 		<PackageReference Include="TextCopy" Version="6.2.1" />
 		<PackageReference Include="YamlDotNet" Version="16.3.0" />
 	</ItemGroup>
+
+	
+
 </Project>
