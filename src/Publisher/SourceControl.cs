@@ -1,8 +1,8 @@
-using BrowserAutomationMaster.Managers.Messaging;
-using static BrowserAutomationMaster.Managers.Common.RequestManager.NetworkClient;
-using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
-using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using BrowserAutomationMaster.Core.Messaging;
+using static BrowserAutomationMaster.Core.Common.RequestManager.NetworkClient;
+using static BrowserAutomationMaster.Core.Common.Constants;
+using static BrowserAutomationMaster.Core.Common.DirectoryManager;
+using static BrowserAutomationMaster.Core.Messaging.Errors;
 
 namespace Publisher 
 {

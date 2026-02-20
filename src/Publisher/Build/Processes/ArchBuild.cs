@@ -1,7 +1,7 @@
-using BrowserAutomationMaster.Managers.Helpers;
+using BrowserAutomationMaster.Core.Helpers;
 using System.Text;
-using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Core.Common.Constants;
+using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static Publisher.Build.BuildInfo;
 
 namespace Publisher.Build.Processes

@@ -1,23 +1,23 @@
-using BrowserAutomationMaster.Managers.Helpers;
-using BrowserAutomationMaster.Managers.Messaging;
+using BrowserAutomationMaster.Core.Helpers;
+using BrowserAutomationMaster.Core.Messaging;
 using Publisher.Build.Processes;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
-using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.Common.RegexManager;
-using static BrowserAutomationMaster.Managers.Messaging.Errors;
-using static BrowserAutomationMaster.Managers.OS.Unix.Linux.DistroManager;
-using static BrowserAutomationMaster.Managers.OS.Unix.Linux.Functions;
-using static BrowserAutomationMaster.Managers.OS.Unix.UnixFilePermissions;
-using static BrowserAutomationMaster.Managers.Utilities.AppUpdateUtility;
+using static BrowserAutomationMaster.Core.Common.Constants;
+using static BrowserAutomationMaster.Core.Common.DirectoryManager;
+using static BrowserAutomationMaster.Core.Common.PlatformManager;
+using static BrowserAutomationMaster.Core.Common.RegexManager;
+using static BrowserAutomationMaster.Core.Messaging.Errors;
+using static BrowserAutomationMaster.Core.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.OS.Unix.UnixFilePermissions;
+using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
 using static Publisher.Build.BuildInfo;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
-using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Managers.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.Common;
+using BrowserAutomationMaster.Core.OS.Unix.Linux;
 
 namespace Publisher 
 {

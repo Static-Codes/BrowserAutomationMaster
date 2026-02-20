@@ -1,11 +1,11 @@
-using BrowserAutomationMaster.Managers.Helpers;
-using BrowserAutomationMaster.Managers.Messaging;
+using BrowserAutomationMaster.Core.Helpers;
+using BrowserAutomationMaster.Core.Messaging;
 using Publisher;
 using System.Runtime.InteropServices;
-using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
-using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.Utilities.AppUpdateUtility;
-using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Core.Common.DirectoryManager;
+using static BrowserAutomationMaster.Core.Common.PlatformManager;
+using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
+using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static Publisher.PlatformSelection;
 using static Publisher.SourceControl;

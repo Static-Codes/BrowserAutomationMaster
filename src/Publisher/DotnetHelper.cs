@@ -1,14 +1,14 @@
-using BrowserAutomationMaster.Managers.Helpers;
-using BrowserAutomationMaster.Managers.Common;
-using BrowserAutomationMaster.Managers.Messaging;
+using BrowserAutomationMaster.Core.Helpers;
+using BrowserAutomationMaster.Core.Common;
+using BrowserAutomationMaster.Core.Messaging;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
-using static BrowserAutomationMaster.Managers.Common.RequestManager.NetworkClient;
-using static BrowserAutomationMaster.Managers.Common.Constants;
-using static BrowserAutomationMaster.Managers.Common.DirectoryManager;
-using static BrowserAutomationMaster.Managers.Common.PlatformManager;
-using static BrowserAutomationMaster.Managers.Messaging.Errors;
+using static BrowserAutomationMaster.Core.Common.RequestManager.NetworkClient;
+using static BrowserAutomationMaster.Core.Common.Constants;
+using static BrowserAutomationMaster.Core.Common.DirectoryManager;
+using static BrowserAutomationMaster.Core.Common.PlatformManager;
+using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static Publisher.Build.BuildInfo;
 
 namespace Publisher 
