@@ -16,6 +16,15 @@
         public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
         public const char HORIZONTAL_TAB = '\t';
 
+        
+        // Paths for embedded project resources.
+        // Doesn't include:
+        // - Embedded python wheels in: BrowserAutomationMaster.Core.Python.Wheel.Download
+        // - Embedded userScripts in: BrowserAutomationMaster.Core.Utilities.UserScriptUtility.WriteScriptExamples
+        public const string UI_DAEMON_RESOURCE_PATH = "BrowserAutomationMaster.Resources.UIDaemon.py";
+        public const string GUI_ZIP_RESOURCE_PATH = "BrowserAutomationMaster.Resources.gui.zip";
+        public const string FREE_FOR_MACOS_RESOURCE_PATH = "BrowserAutomationMaster.Resources.macOS.free";
+
         // Used in ExtensionManager
         // Using ReadOnlySpan<byte> for constants to avoid heap allocations
         public static readonly ReadOnlyMemory<byte> XPIMagicBytes = new byte[4] { 0x50, 0x4B, 0x05, 0x06 };

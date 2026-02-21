@@ -73,8 +73,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.RAM
             {
                 var binariesDirectory = DirectoryManager.GetBinariesDirectory();
                 var binaryName = "free";
-                var binaryResourcePattern = "BrowserAutomationMaster.Resources.macOS.free";
-
+                
                 var freeBinaryPath = Path.Combine(binariesDirectory, binaryName);
 
                 if (!Directory.Exists(binariesDirectory)) {
@@ -92,7 +91,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.RAM
 
                     await WriteEmbeddedResourceToDisk(
                         resourceName: binaryName,
-                        resourcePattern: binaryResourcePattern,
+                        resourcePattern: FREE_FOR_MACOS_RESOURCE_PATH,
                         outputPath: freeBinaryPath
                     );
                 }
@@ -109,7 +108,8 @@ namespace BrowserAutomationMaster.Core.SystemInfo.RAM
                 {
                     WriteAndExit(
                         message: string.Join(NLC, [
-                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.{NLC}",
+                            $"BAM Manager (BAMM) was unable to determine the amount of available system memory, please try again.",
+                            NLC,
                             $"If this issue persists please make a bug report at {ISSUES_LINK}{NLC}",
                             "Error log:",
                             $"Unable to give executable permissions to '{freeBinaryPath}'"
