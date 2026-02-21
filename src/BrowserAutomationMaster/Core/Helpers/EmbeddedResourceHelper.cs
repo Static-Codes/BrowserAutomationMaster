@@ -16,7 +16,6 @@ namespace BrowserAutomationMaster.Core.Helpers
 
         public static Stream GetEmbeddedResource(string resourceName, string resourcePattern) 
         {
-            // var resourcePattern = "*MacPackager*.*AppIcon*.icns";
             Stream? resourceStream = null;
 
             try

@@ -17,6 +17,7 @@ using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Compilation.Transpiler;
 using static BrowserAutomationMaster.Core.GUI.Server;
 using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
+using static BrowserAutomationMaster.Core.Helpers.FileDialogHelper;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Menu;
 using static BrowserAutomationMaster.Core.Messaging.Success;
@@ -25,7 +26,7 @@ using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Parsing.Parser;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
-
+using static BrowserAutomationMaster.Resources.NativeFileDialog.LibraryLoader;
 
 namespace BrowserAutomationMaster
 {
@@ -69,6 +70,8 @@ namespace BrowserAutomationMaster
             HandlePythonVersionSelection(GetInstallations());
             
             await HandleHardwareCheck(args);
+
+            await InitializeNativeFileDialog();
         }
 
         /// <summary>Processes any CLI arguments and returns execution status.</summary>
