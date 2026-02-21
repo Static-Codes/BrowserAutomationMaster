@@ -191,13 +191,15 @@ namespace BrowserAutomationMaster
             // Handles '--gui' command using default port (8008)
             if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
             {
-                await StartServer();
+                // await StartServer();
+                StartGUIThread();
             }
 
             // Handles '--gui --port==X' command where X is a valid integer between 1 and 65535
             else if (pArgs.Length == 2 && pArgs[0].Equals("--gui") && IsMatches(GUIPortRegex(), pArgs[1], out string port))
             {
-                await StartServer(port);
+                // await StartServer(port);
+                StartGUIThread();
             }
 
             else if (pArgs.Any(arg => arg.Equals("--version"))) 
@@ -607,7 +609,8 @@ namespace BrowserAutomationMaster
                         break;
 
                     case MenuOption.GUI:
-                        await StartServer();
+                        // await StartServer();
+                        StartGUIThread();
                         break;
 
                     case MenuOption.Help:

@@ -95,13 +95,9 @@
 	<Target Name="RetrieveAndEmbedResources" BeforeTargets="PrepareForBuild">
 
 		<!-- Erroring out if an unsupported Windows Build is found.-->
-		<Error 
-			Condition="'$(IsSupportedWin10)' == 'false'" 
-			Text="Build Failure: Unsupported Windows 10 build version detected: $(WindowsBuildVersion)" 
-		/>
+		<Error Condition="'$(IsSupportedWin10)' == 'false'" Text="Build Failure: Unsupported Windows 10 build version detected: $(WindowsBuildVersion)" />
 
-		<Error Condition="'$(ResourceURL)' == ''" 
-			Text="Build Failure: ResourceURL property is empty." />
+		<Error Condition="'$(ResourceURL)' == ''" Text="Build Failure: ResourceURL property is empty." />
 
 		<!-- Creating the DownloadDir, if it was removed for some reason. -->
 		<MakeDir Directories="$(DownloadDir)" />
@@ -111,23 +107,14 @@
 
 		<!-- Downloading the file located at the specified url, to the provided output path. -->
 		<!-- Handle exit code 6, which means no network connection is present. -->
-		<Exec 
-			Command="curl -fLs &quot;$(ResourceURL)&quot; -o &quot;$(_FullResourcePath)&quot;" 
-			StandardOutputImportance="low"
-			IgnoreExitCode="true">
+		<Exec Command="curl -fLs &quot;$(ResourceURL)&quot; -o &quot;$(_FullResourcePath)&quot;" StandardOutputImportance="low" IgnoreExitCode="true">
 			
-			<Output TaskParameter="ExitCode" PropertyName="CurlExitCode"/>
+			<Output TaskParameter="ExitCode" PropertyName="CurlExitCode" />
 		</Exec>
 		
-		<Error 
-			Condition="'$(CurlExitCode)' == '6'" 
-			Text="Please ensure you have an active network connection; curl could not resolve the host for $(ResourceURL)."
-		/>
+		<Error Condition="'$(CurlExitCode)' == '6'" Text="Please ensure you have an active network connection; curl could not resolve the host for $(ResourceURL)." />
 
-		<Error 
-			Condition="'$(CurlExitCode)' != '0' AND '$(CurlExitCode)' != '6'" 
-			Text="Resource download failed with exit code: $(CurlExitCode)."
-		/>
+		<Error Condition="'$(CurlExitCode)' != '0' AND '$(CurlExitCode)' != '6'" Text="Resource download failed with exit code: $(CurlExitCode)." />
 
 		<ItemGroup>
 			<EmbeddedResource Include="$(_FullResourcePath)" Watch="false" />
@@ -162,7 +149,7 @@
 		<!-- App Icon -->
 		<EmbeddedResource Include="Resources/bamm.ico" />
 
-		<EmbeddedResource Include="Resources/UIDaemon.py"/>
+		<EmbeddedResource Include="Resources/UIDaemon.py" />
 
 		<!-- Precompiled Wheels -->
 		<EmbeddedResource Include="Resources/wheels/*/*.whl" />
@@ -205,6 +192,8 @@
 		<PackageReference Include="Packaging.Targets" Version="0.1.232">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
+		<PackageReference Include="Photino.NET" Version="4.0.16" />
+		<PackageReference Include="Silk.NET.Windowing" Version="2.23.0" />
 		<PackageReference Include="Spectre.Console" Version="0.50.0" />
 		<PackageReference Include="TextCopy" Version="6.2.1" />
 		<PackageReference Include="YamlDotNet" Version="16.3.0" />

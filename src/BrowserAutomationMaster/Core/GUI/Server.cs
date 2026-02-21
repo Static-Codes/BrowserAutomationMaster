@@ -17,6 +17,8 @@ using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static System.Text.Encoding;
+using Photino.NET;
+using BrowserAutomationMaster.Core.Helpers;
 
 namespace BrowserAutomationMaster.Core.GUI
 {
@@ -27,6 +29,9 @@ namespace BrowserAutomationMaster.Core.GUI
         private readonly static string GUI_ZIP_PATH = GetGUIZipPath();
         private static bool isRunning = true;
         private readonly static HttpListener listener = new();
+
+        public static readonly string MAIN_GUI_LINK = GetMainGUIPage(includeProtocol: true);
+        public static readonly string MAIN_GUI_PAGE = MAIN_GUI_LINK.Replace("file://", "");
         
         public static bool IsRunning() => isRunning;
         public static void StopExecution() => isRunning = false;
@@ -260,10 +265,46 @@ namespace BrowserAutomationMaster.Core.GUI
                 foundPorts
                 .ToString()
                 .Split(NLC)
-                .Where(val => !string.IsNullOrEmpty(val)) // Fixes bug where splitting using NLC causes element at index 0 to be empty.
+                // Fixes bug where splitting using NLC causes element at index 0 to be empty.
+                .Where(val => !string.IsNullOrEmpty(val)) 
                 .Distinct()
                 .Order()
             ];
+        }
+
+        [STAThread] // Required as this will be a separate thread
+        public static void StartGUIThread(string port = DEFAULT_PORT) 
+        {
+            // Starts the backend listener which handles the requests.
+            Task.Run(() => StartServer(port));
+
+            (string monitorName, int? xSize, int? ySize) = ScreenHelper.GetScreenSize();
+
+            var usingDefaultSize = xSize == null || ySize == null;
+
+            var window = new PhotinoWindow
+            {
+                LogVerbosity = -1
+            };
+
+            window = usingDefaultSize switch 
+            {
+                true => 
+                    window
+                    .SetTitle("BAMM GUI")
+                    .SetUseOsDefaultSize(true)
+                    .Load(MAIN_GUI_PAGE),
+                
+                false => 
+                    window
+                    .SetTitle("BAMM GUI")
+                    .SetUseOsDefaultSize(false)
+                    .SetSize(xSize!.Value, ySize!.Value)
+                    .Load(MAIN_GUI_PAGE),
+            };
+
+            window.WaitForClose();    
+            Environment.Exit(0);
         }
 
         public static async Task StartServer(string port = DEFAULT_PORT)
@@ -274,13 +315,25 @@ namespace BrowserAutomationMaster.Core.GUI
             {
                 WriteAndExit(
                     message:
-                        string.Join(
-                            string.Empty, 
-                            [
-                                "Unable to run the BAMM GUI on your current operating system, ",
-                                "please open a text editor of your choice and create a new .bamc file."
-                            ]
-                        ), 
+                        string.Join(NLC, [
+                            "Unable to run the BAMM GUI on your current operating system.",
+                            "",
+                            "Please download one the following:",
+                            "",
+                            "VS Code: https://code.visualstudio.com/",
+                            "VS Codium: https://vscodium.com/",
+                            "",
+                            "Then follow these steps to start coding in BAMC",
+                            "1. Open VSCode/VSCodium",
+                            "2. Type Ctrl/Cmd + Shift + X",
+                            "3. Search for 'BAMC Language Server'",
+                            "4. Download the extension by the author 'Static-Codes'",
+                            "5. Type Ctrl/Cmd + N",
+                            "6. Type Ctrl/Cmd + S",
+                            "7. Save the file as <filename>.bamc (Replace <filename> with your desired filename)",
+                            $"8. Check out {DOCUMENTATION_LINK} for more information!"
+                        ]
+                    ), 
                     status: 1
                 );
             }
@@ -316,14 +369,13 @@ namespace BrowserAutomationMaster.Core.GUI
                 // Downloads the GUI files if they are not already present.
                 await HandleGUIDownload();
 
+                // Fixes a bug where the 'compiled' directory may not be written to disk at this point.
+                EnsureDirectoryExists(GetDesiredSaveDirectory());
+
                 listener.Prefixes.Add(url);
                 listener.Start();
                 Console.WriteLine("Started GUI Server on {0}\n", url);
-                Console.WriteLine("To access the GUI visit {0}\n", GetMainGUIPage(includeProtocol: true));
-
-                // ADD THIS FEATURE
-                // Would you like to open the GUI in your default browser?
-                // If yes, then open for the user
+                Console.WriteLine("To access the GUI visit {0}\n", MAIN_GUI_LINK);
 
                 await HandleEndpointRequests();
                 listener.Close();
