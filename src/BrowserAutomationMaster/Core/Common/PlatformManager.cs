@@ -87,16 +87,6 @@ namespace BrowserAutomationMaster.Core.Common
                 );
             }
 
-            if (Platforms.CurrentArchitecture is Arm64)
-            {
-                Warning.Write(
-                    string.Join("", [
-                        "BAM Manager (BAMM) supports ARM64 architecture, ",
-                        "but performance for browser automation can vary widely depending on your specific ARM processor. ",
-                        "Some lower-power ARM systems may experience degraded performance."
-                    ])
-                );
-            }
 
             if (Runtime.IsSupportedWindowsVersion()) {
                 Platforms.IsWindows = true;
@@ -131,6 +121,17 @@ namespace BrowserAutomationMaster.Core.Common
                         "-> MacOS 11+"
                         ]
                     )
+                );
+            }
+
+            if (Platforms.CurrentArchitecture is Arm64)
+            {
+                Warning.Write(
+                    string.Join("", [
+                        "BAM Manager (BAMM) supports ARM64 architecture, ",
+                        "but performance for browser automation can vary widely depending on your specific ARM processor. ",
+                        "Some lower-power ARM systems may experience degraded performance."
+                    ])
                 );
             }
         }
