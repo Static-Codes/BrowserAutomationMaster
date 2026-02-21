@@ -143,6 +143,22 @@
     	<_FullResourcePath>$(DownloadDir)/$(DownloadedFileName)</_FullResourcePath>
 	</PropertyGroup>
 
+	<!-- Port of NativeFileDialogSharp by Milleniumbug for .NET 10  -->
+	<!-- https://github.com/Static-Codes/NativeFileDialogSharp -->
+	<!-- Embedding the NFD library for the appropriate target -->
+	<ItemGroup>
+		<EmbeddedResource Include="Resources/NativeFileDialog/runtimes/win-x64/nfd.dll" 
+						  Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+
+		<EmbeddedResource Include="Resources/NativeFileDialog/runtimes/osx-x64/libnfd.dylib" 
+						  Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+
+		<EmbeddedResource Include="Resources/NativeFileDialog/runtimes/linux-x64/libnfd.so" 
+						  Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+	</ItemGroup>
+
+
+
 	<!-- Embedded Resource Logic -->
 	<ItemGroup>
 
@@ -154,32 +170,7 @@
 		<!-- Precompiled Wheels -->
 		<EmbeddedResource Include="Resources/wheels/*/*.whl" />
 		<EmbeddedResource Include="Resources/userScripts/*.bamc" />
-	</ItemGroup>
-
-	<!-- Port of NativeFileDialogSharp by Milleniumbug for .NET 10  -->
-	<!-- https://github.com/Static-Codes/NativeFileDialogSharp -->
 	
-	<ItemGroup>
-		<Content Include="Resources/NativeFileDialog/runtimes/linux-x64/libnfd.so">
-		<Link>libnfd.so</Link>
-		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-		<Visible>false</Visible>
-		</Content>
-	
-		<Content Include="Resources/NativeFileDialog/runtimes/osx-x64/libnfd.dylib">
-		<Link>libnfd.dylib</Link>
-		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-		<Visible>false</Visible>
-		</Content>
-
-		<Content Include="Resources/NativeFileDialog/runtimes/win-x64/nfd.dll">
-		<Link>nfd.dll</Link>
-		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-		<Visible>false</Visible>
-		</Content>
 	</ItemGroup>
 
 	
