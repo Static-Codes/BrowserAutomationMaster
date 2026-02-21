@@ -22,7 +22,7 @@ namespace BrowserAutomationMaster.Core.Types
                 (true, false, false) => DefaultEditor.Windows,
                 (false, true, false) => DefaultEditor.Mac,
                 (false, false, true) => DefaultEditor.Linux,
-                _ => throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms")
+                _ => throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms")
             };
         }
 
@@ -92,7 +92,7 @@ namespace BrowserAutomationMaster.Core.Types
 
             else
             {
-                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
             }
 
             ProcessStartInfo psi;
@@ -142,7 +142,7 @@ namespace BrowserAutomationMaster.Core.Types
 
             else
             {
-                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
             }
             
             // Debug only do NOT leave in production release.

@@ -416,7 +416,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.CPU
             }
 
             else {
-                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
             }
 
             var psi = new ProcessStartInfo()

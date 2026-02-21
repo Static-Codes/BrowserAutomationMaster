@@ -86,7 +86,7 @@ namespace BrowserAutomationMaster.Core.Utilities
                 (true, false, false) => (chosenEditor.Value.Value, "", ""),
                 (false, true, false) => (chosenEditor.Value.Value, "", ""),
                 (false, false, true) => (chosenEditor.Value.Value, "", ""),
-                _ => throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms")
+                _ => throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms")
             };
             
             // Will either return an Editor object, or throw an exception.
@@ -116,7 +116,7 @@ namespace BrowserAutomationMaster.Core.Utilities
                 (true, false, false) => GetSupportedWindowsEditors(),
                 (false, true, false) => GetSupportedMacEditors(),
                 (false, false, true) => GetSupportedLinuxEditors(),
-                _ => throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms")
+                _ => throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms")
             };
         }
 

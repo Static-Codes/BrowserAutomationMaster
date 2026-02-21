@@ -82,7 +82,7 @@ namespace BrowserAutomationMaster.Core.GUI
             }
 
             else
-                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace BrowserAutomationMaster.Core.GUI
                     );
             }
             
-            throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
+            throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
         }
 
         public static async Task HandleEndpointRequests()

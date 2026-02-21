@@ -241,7 +241,7 @@ namespace BrowserAutomationMaster.Core.Utilities
             }
             
             else {
-                throw new PlatformNotSupportedException("Failed to set all values for members in InternalPlatforms.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
             }
         }
     }
