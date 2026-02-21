@@ -66,14 +66,14 @@ namespace BrowserAutomationMaster.Core.SystemInfo.RAM
             };
         }
             
-        [UnsupportedOSPlatform("windows")]
+        [SupportedOSPlatform("maccatalyst")]
         private static async Task<MemoryInfo?> CheckForOSX() 
         {
             try 
             {
                 var binariesDirectory = DirectoryManager.GetBinariesDirectory();
                 var binaryName = "free";
-                var binaryResourcePattern = "BrowserAutomationMaster.Helpers.macOS.free";
+                var binaryResourcePattern = "BrowserAutomationMaster.Resources.macOS.free";
 
                 var freeBinaryPath = Path.Combine(binariesDirectory, binaryName);
 
