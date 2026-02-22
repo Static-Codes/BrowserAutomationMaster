@@ -1,11 +1,8 @@
-using BrowserAutomationMaster.Core.Types;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
-using static BrowserAutomationMaster.Core.Types.LibraryInfo;
 
 namespace BrowserAutomationMaster.Resources.NativeFileDialog
 {
@@ -13,14 +10,26 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
     public static class LibraryLoader 
     {
         private static string? libName = null;
-        private static string basePattern = "BrowserAutomationMaster.Resources.NativeFileDialog.runtimes";
-        
+        private static readonly string basePattern = "BrowserAutomationMaster.Resources.NativeFileDialog.runtimes";
+
+        public static void RegisterResolver(string extractedPath)
+        {
+            NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), (libraryName, assembly, searchPath) =>
+            {
+                if (libraryName == "nfd") {
+                    return NativeLibrary.Load(extractedPath);
+                }
+                throw new Exception($"Invalid libraryName passed to RegisterResolver, expected 'nfd', received '{libraryName}'");
+            });
+        }
+
         // <summary>
-        // Writes the appropriate NativeFileDialog library to disk.
+        // Writes the appropriate NativeFileDialog library to a temp file on disk.
         // </summary>
 
         public static async Task InitializeNativeFileDialog()
         {
+            
             string resourcePattern;
 
             if (Platforms.IsWindows)
@@ -54,12 +63,15 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
             };
 
             // This will only write the resource to disk if either of the above checks return null.
+            var tempPath = Path.GetTempFileName();
             await WriteEmbeddedResourceToDisk(
                 resourceName: libName,
                 resourcePattern: resourcePattern,
-                outputPath: Path.Combine(Directory.GetCurrentDirectory(), libName),
+                outputPath: tempPath,
                 optionalChecks
             );
+
+            RegisterResolver(tempPath);
         }
 
         private static bool IsFileLocked(string filePath)

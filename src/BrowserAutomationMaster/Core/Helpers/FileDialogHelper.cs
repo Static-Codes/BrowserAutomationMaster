@@ -1,5 +1,4 @@
 using BrowserAutomationMaster.Resources.NativeFileDialog;
-using static BrowserAutomationMaster.Resources.NativeFileDialog.LibraryLoader;
 
 namespace BrowserAutomationMaster.Core.Helpers 
 {
