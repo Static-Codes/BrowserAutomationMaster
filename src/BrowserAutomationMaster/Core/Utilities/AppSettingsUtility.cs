@@ -117,8 +117,6 @@ namespace BrowserAutomationMaster.Core.Utilities
 
             return settingsContents.ToString();
         }
-
-        private static string ConvertSnakeToPascal(string snake_case) => snake_case.Split('_').ToTitle();
         
         private static object? DoCast(string value, Type targetType)
         {
@@ -134,12 +132,16 @@ namespace BrowserAutomationMaster.Core.Utilities
                 return value;
             }
 
-            else if (targetType == typeof(Theme)) {
-                var themeName = value.ToTitle() + "Theme";
+            else if (targetType == typeof(Theme)) 
+            {
+                var themeName = value.ToTitle();
+                
+                var className = string.Concat(themeName, "Theme");
+
                 var bindingAttr = BindingFlags.Public | BindingFlags.Static;
                 
-                var exc = new ArgumentException($"Theme '{value}' not found in ThemeManager (expected field '{themeName}').");
-                var field = typeof(ThemeUtility).GetField(themeName, bindingAttr) ?? throw exc;
+                var exc = new ArgumentException($"Theme '{value}' not found in ThemeManager (expected field '{className}').");
+                var field = typeof(ThemeUtility).GetField(className, bindingAttr) ?? throw exc;
                 return field.GetValue(null);
             }
 
@@ -381,7 +383,7 @@ namespace BrowserAutomationMaster.Core.Utilities
                 return;
             }
 
-            var propName = ConvertSnakeToPascal(parts[0].Trim());
+            var propName = parts[0].Trim().ToPascalCase();
             var propValue = parts[1].Trim();
 
             var lineNumber = Array.IndexOf(splitLines, originalLine) + 1;
