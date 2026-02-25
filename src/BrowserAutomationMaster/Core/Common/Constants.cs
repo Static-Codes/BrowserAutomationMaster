@@ -15,6 +15,7 @@
         public const StringComparison CCIC = StringComparison.CurrentCultureIgnoreCase;
         public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
         public const char HORIZONTAL_TAB = '\t';
+        public const string CPU_INFO_PATH = "/proc/cpuinfo";
 
         
         // Paths for embedded project resources.

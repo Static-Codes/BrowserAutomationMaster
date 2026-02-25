@@ -139,9 +139,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.CPU
 
         private static (int, int) GetCPUTopologyLinux()
         {
-            const string cpuInfoPath = "/proc/cpuinfo";
-
-            if (!File.Exists(cpuInfoPath))
+            if (!File.Exists(CPU_INFO_PATH))
             {
                 Warning.Write(
                     string.Join(NLC, [
@@ -161,7 +159,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.CPU
 
             try
             {
-                var lines = File.ReadLines(cpuInfoPath);
+                var lines = File.ReadLines(CPU_INFO_PATH);
 
                 foreach (var line in lines)
                 {

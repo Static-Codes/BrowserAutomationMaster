@@ -130,7 +130,7 @@ namespace BrowserAutomationMaster
             if (Platforms.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
                 Console.WriteLine("====================================");
                 Console.WriteLine($"$DISPLAY Set: {Platforms.CurrentDistribution?.DisplayServer != DisplayServer.None}");
-                Console.WriteLine($"Active Server: {Platforms.CurrentDistribution?.DisplayServer.ToString() ?? "None"}");
+                Console.WriteLine($"Active Server: {Platforms.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}");
                 Console.WriteLine("===================================={0}{1}", NLC, NLC);
             }
 
