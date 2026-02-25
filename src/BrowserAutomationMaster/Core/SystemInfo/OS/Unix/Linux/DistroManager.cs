@@ -1,11 +1,12 @@
 using System.Diagnostics;
-using BrowserAutomationMaster.Core.Helpers;
 using BrowserAutomationMaster.Core.Common;
+using BrowserAutomationMaster.Core.Helpers;
 using BrowserAutomationMaster.Core.Messaging;
-using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using BrowserAutomationMaster.Core.Types.Linux;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 
 namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
 {

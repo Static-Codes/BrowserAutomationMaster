@@ -12,6 +12,7 @@ using static BrowserAutomationMaster.Core.Messaging.Success;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static System.Runtime.InteropServices.Architecture;
+using BrowserAutomationMaster.Core.Types.Linux;
 
 namespace BrowserAutomationMaster.Core.Utilities
 {

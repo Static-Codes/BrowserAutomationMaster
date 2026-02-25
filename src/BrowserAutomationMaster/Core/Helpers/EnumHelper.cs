@@ -1,4 +1,5 @@
 ﻿using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.Types.Linux;
 
 namespace BrowserAutomationMaster.Core.Helpers
 {
@@ -28,7 +29,7 @@ namespace BrowserAutomationMaster.Core.Helpers
             // Handles case where Distros members are Distro object
             var returnType = type.Name.Equals("Distros") ? typeof(Distro) : type;
 
-            var status = Enum.TryParse(returnType, StringRepr, out object? parsedEnum);
+            var _ = Enum.TryParse(returnType, StringRepr, out object? parsedEnum);
 
             return parsedEnum ?? null;
         }

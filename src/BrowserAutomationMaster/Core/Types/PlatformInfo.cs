@@ -1,12 +1,7 @@
 using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
-using BrowserAutomationMaster.Core.Python;
-using BrowserAutomationMaster.Core.Messaging;
+using BrowserAutomationMaster.Core.Types.Linux;
 using System.Runtime.InteropServices;
-using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
-using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Messaging.Errors;
-using static System.Runtime.InteropServices.Architecture;
-
+using static BrowserAutomationMaster.Core.Common.PlatformManager;
 
 namespace BrowserAutomationMaster.Core.Types 
 {
@@ -28,15 +23,17 @@ namespace BrowserAutomationMaster.Core.Types
         public string GetRaspiModelName()
         {
             if (!IsRaspi) {
-                return string.Empty;
+                return "N/A";
             }
             
             if (RaspiModelInfo == null) {
-                return string.Empty;
+                return "N/A";
             }
             
             return RaspiModelInfo.Value.Key;
         }
+
+        public bool IsSupportedArchitecture() => ValidArchitectures.Contains(CurrentArchitecture);
         
         public void SetRaspiModel(string Name, bool SupportsGUI)
         {

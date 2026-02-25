@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
+using BrowserAutomationMaster.Core.Messaging;
+using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
@@ -12,15 +14,22 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
         private static string? libName = null;
         private static readonly string basePattern = "BrowserAutomationMaster.Resources.NativeFileDialog.runtimes";
 
-        public static void RegisterResolver(string extractedPath)
+        private static readonly Architecture[] supportedArchitectures = ValidArchitectures[..1]; // This returns X64 and ARM64
+        private static readonly bool usingNFD = supportedArchitectures.Contains(Platforms.CurrentArchitecture);
+
+        public static bool NFDIsCallable() => usingNFD;
+
+        private static bool FileIsLocked(string filePath)
         {
-            NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), (libraryName, assembly, searchPath) =>
-            {
-                if (libraryName == "nfd") {
-                    return NativeLibrary.Load(extractedPath);
-                }
-                throw new Exception($"Invalid libraryName passed to RegisterResolver, expected 'nfd', received '{libraryName}'");
-            });
+            try { 
+                using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None); 
+            } 
+
+            catch (IOException) { 
+                return true; 
+            }
+
+            return false;
         }
 
         // <summary>
@@ -29,8 +38,20 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
 
         public static async Task InitializeNativeFileDialog()
         {
-            
-            string resourcePattern;
+            if (!usingNFD) 
+            {
+                Warning.Write(
+                    string.Join(NLC, [
+                        "A non fatal exception occured:",
+                        NLC,
+                        "Error Log:",
+                        "Unable to load NativeFileDialog library for the current architecture."
+                    ])
+                );
+                return;
+            }
+
+            string resourcePattern = "";
 
             if (Platforms.IsWindows)
             {
@@ -47,19 +68,19 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
                 libName = "libnfd.so";
                 resourcePattern = $"{basePattern}.linux_x64.libnfd.so";
             }
+
             else
             {
                 WriteAndExit(
                     $"[ERROR]: No OS detected for NFD injection, please ensure SetPlatforms is working.", 
                     status: 1
                 );
-                return;
             }
 
             var optionalChecks = new Dictionary<string, bool[]>
             {
                 // This checks if the file already exists and/or has permissions issues.
-                { "File Access Check", [ !File.Exists(libName) || IsFileLocked(libName) == false ] }
+                { "File Access Check", [ !File.Exists(libName) || FileIsLocked(libName) == false ] }
             };
 
             // This will only write the resource to disk if either of the above checks return null.
@@ -74,17 +95,15 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
             RegisterResolver(tempPath);
         }
 
-        private static bool IsFileLocked(string filePath)
+        private static void RegisterResolver(string extractedPath)
         {
-            try { 
-                using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None); 
-            } 
-
-            catch (IOException) { 
-                return true; 
-            }
-
-            return false;
+            NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), (libraryName, assembly, searchPath) =>
+            {
+                if (libraryName == "nfd") {
+                    return NativeLibrary.Load(extractedPath);
+                }
+                throw new Exception($"Invalid libraryName passed to RegisterResolver, expected 'nfd', received '{libraryName}'");
+            });
         }
     }
 }

@@ -46,7 +46,7 @@ namespace BrowserAutomationMaster.Core.Python
                 // Null forgiveness is used here due to the coalesce operation above. 
                 var pipPath = GetProjectVEnvPipPath(ParentDirectory!);
 
-                var bsVersion = PyPi.GetVersion("browserstack-sdk", GetGlobalPythonVersion());
+                var bsVersion = PyPi.GetVersion("browserstack-sdk");
 
                 await InstallIndividualPackage(pipPath, $"browserstack-sdk=={bsVersion}");
                 await InstallIndividualPackage(pipPath, $"browserstack-local");

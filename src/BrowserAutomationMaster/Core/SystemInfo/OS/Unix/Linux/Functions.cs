@@ -19,6 +19,7 @@ using static BrowserAutomationMaster.Core.Python.WheelManager;
 using static BrowserAutomationMaster.Core.Types.Installations;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static System.Runtime.InteropServices.Architecture;
+using BrowserAutomationMaster.Core.Types.Linux;
 
 namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
 {
@@ -370,14 +371,16 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             }
         }
 
-        public static bool HasDisplayVarSet()
+        public static bool HasDisplayVariableSet()
         {
             // This check doesnt need to non-unix systems.
             if (!Platforms.IsUnixLike) { 
                 return true; 
             }
 
-            return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"));
+            return !string.IsNullOrEmpty(
+                Environment.GetEnvironmentVariable("DISPLAY")
+            );
         }
 
         // Installs the required packages and writes the required wheels to disks (if needed)

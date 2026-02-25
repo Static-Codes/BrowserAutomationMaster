@@ -35,13 +35,14 @@ namespace BrowserAutomationMaster.Core.Common
             RaspberryPiCheck();
 
 
-            if (!ValidArchitectures.Contains(Platforms.CurrentArchitecture))
+            if (!Platforms.IsSupportedArchitecture())
             {
                 WriteAndExit(
                     message:
                         string.Join(NLC, [
                             "You're attempting to run BAM Manager (BAMM) on an unsupported CPU Architecture.",
-                            $"Current Architecture: {Platforms.CurrentArchitecture}{NLC}",
+                            $"Current Architecture: {Platforms.CurrentArchitecture}",
+                            NLC,
                             "Supported Architectures:",
                             $"{string.Join(NLC, ValidArchitectures)}"
                         ]),

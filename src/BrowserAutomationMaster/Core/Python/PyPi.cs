@@ -60,12 +60,12 @@ namespace BrowserAutomationMaster.Core.Python
 
         
 
-        public static string GetVersion(string packageName, string pythonVersion)
+        public static string GetVersion(string packageName)
         {
-            return GetSupportedPackageVersion(packageName, pythonVersion);
+            return GetSupportedPackageVersion(packageName);
         }
 
-        private static string GetSupportedPackageVersion(string packageName, string pythonVersion)
+        private static string GetSupportedPackageVersion(string packageName)
         {
             if (!PrecompiledPackageRegex().IsMatch(packageName))
             {
@@ -86,11 +86,6 @@ namespace BrowserAutomationMaster.Core.Python
             }
 
             return package.PackageVersion;
-        }
-
-        public static string[] GetSupportedPyVersions(string packageName, string packageVersion)
-        {
-            return SupportedPythonVersions;
         }
         
         public static async Task<bool> IsDeprecated(string packageName, string packageVersion)

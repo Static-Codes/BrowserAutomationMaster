@@ -3,8 +3,9 @@ using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using BrowserAutomationMaster.Core.Parsing;
 using BrowserAutomationMaster.Core.SystemInfo.CPU;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
-using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Python.Runtime;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Resources.NativeFileDialog.LibraryLoader;
 
 namespace BrowserAutomationMaster.Core.Messaging
 {
@@ -65,6 +66,7 @@ namespace BrowserAutomationMaster.Core.Messaging
                     AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
+                    NFD Callable: {NFDIsCallable()}
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: {ProcessorInfo.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
@@ -83,6 +85,7 @@ namespace BrowserAutomationMaster.Core.Messaging
                     AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
+                    NFD Callable: {NFDIsCallable()}
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: {ProcessorInfo.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
@@ -101,6 +104,8 @@ namespace BrowserAutomationMaster.Core.Messaging
                     AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
+                    NFD Callable: {NFDIsCallable()}
+                    Display Server: {Platforms.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: {ProcessorInfo.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
@@ -117,6 +122,7 @@ namespace BrowserAutomationMaster.Core.Messaging
                     AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
+                    NFD Callable: {NFDIsCallable()}
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: Unknown
                     CPU Core Count: {GetCoreCount()}

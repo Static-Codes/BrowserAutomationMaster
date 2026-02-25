@@ -1,5 +1,6 @@
 ﻿using BrowserAutomationMaster.Core.Messaging;
 using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.Types.Linux;
 using System.Diagnostics;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;

@@ -18,6 +18,7 @@ using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
 using BrowserAutomationMaster.Core.Common;
 using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.Types.Linux;
 
 namespace Publisher 
 {

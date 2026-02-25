@@ -254,7 +254,7 @@ namespace BrowserAutomationMaster.Core.Common
 
         private static string GetDefaultBackupPath(string compression = "zip")
         {
-            if (Platforms.IsUnixLike && !HasDisplayVarSet())
+            if (Platforms.IsUnixLike && !HasDisplayVariableSet())
             {
                 return Path.Combine("~", $"BAMM-Backup.{compression}");
             }

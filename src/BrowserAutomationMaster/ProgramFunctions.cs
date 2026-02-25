@@ -27,6 +27,7 @@ using static BrowserAutomationMaster.Core.Parsing.Parser;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
 using static BrowserAutomationMaster.Resources.NativeFileDialog.LibraryLoader;
+using BrowserAutomationMaster.Core.Types.Linux;
 
 namespace BrowserAutomationMaster
 {
@@ -128,7 +129,8 @@ namespace BrowserAutomationMaster
 
             if (Platforms.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
                 Console.WriteLine("====================================");
-                Console.WriteLine("$DISPLAY Set: {0}", HasDisplayVarSet());
+                Console.WriteLine($"$DISPLAY Set: {Platforms.CurrentDistribution?.DisplayServer != DisplayServer.None}");
+                Console.WriteLine($"Active Server: {Platforms.CurrentDistribution?.DisplayServer.ToString() ?? "None"}");
                 Console.WriteLine("===================================={0}{1}", NLC, NLC);
             }
 
@@ -176,7 +178,7 @@ namespace BrowserAutomationMaster
             }
 
             // If no display is set and the user attempts to user the GUI, browserstack will be set.
-            if (pArgs.Any(arg => arg.Equals("--gui")) && !HasDisplayVarSet())
+            if (pArgs.Any(arg => arg.Equals("--gui")) && !HasDisplayVariableSet())
             {
                 Warning.Write($"Unable to query $DISPLAY, BAMM's GUI will not work.");
                 SetBrowserStackStatus(true);
