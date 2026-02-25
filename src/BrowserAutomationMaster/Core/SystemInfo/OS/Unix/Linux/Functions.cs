@@ -1,6 +1,6 @@
 using BrowserAutomationMaster.Core.Common;
 using BrowserAutomationMaster.Core.Messaging;
-using BrowserAutomationMaster.Core.OS.Generic;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Generic;
 using Spectre.Console;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -14,13 +14,13 @@ using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Compilation.Transpiler;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Core.Python.WheelManager;
 using static BrowserAutomationMaster.Core.Types.Installations;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static System.Runtime.InteropServices.Architecture;
 
-namespace BrowserAutomationMaster.Core.OS.Unix.Linux
+namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
 {
     public static partial class Functions
     {

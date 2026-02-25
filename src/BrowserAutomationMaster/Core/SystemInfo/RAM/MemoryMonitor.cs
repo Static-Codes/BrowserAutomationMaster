@@ -1,5 +1,5 @@
 ﻿using BrowserAutomationMaster.Core.Common;
-using BrowserAutomationMaster.Core.OS.Unix;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using BrowserAutomationMaster.Core.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;

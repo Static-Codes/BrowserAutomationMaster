@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
-namespace BrowserAutomationMaster.Core.OS.Unix 
+namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix 
 {
 
     [UnsupportedOSPlatform("windows")]

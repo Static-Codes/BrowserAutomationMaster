@@ -2,7 +2,7 @@
 using BrowserAutomationMaster.Core;
 using BrowserAutomationMaster.Core.Common;
 using BrowserAutomationMaster.Core.Helpers;
-using BrowserAutomationMaster.Core.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static Tests.Runner;

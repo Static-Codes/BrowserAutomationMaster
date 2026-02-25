@@ -1,6 +1,6 @@
 ﻿using BrowserAutomationMaster.Core.Common;
 using BrowserAutomationMaster.Core.Messaging;
-using BrowserAutomationMaster.Core.OS;
+using BrowserAutomationMaster.Core.SystemInfo.OS;
 using BrowserAutomationMaster.Core.Parsing;
 using BrowserAutomationMaster.Core.SystemInfo.CPU;
 using BrowserAutomationMaster.Core.SystemInfo.RAM;
@@ -9,7 +9,7 @@ using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
-using static BrowserAutomationMaster.Core.OS.Unix.MacOS;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.MacOS;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 
 namespace BrowserAutomationMaster.Core.Python

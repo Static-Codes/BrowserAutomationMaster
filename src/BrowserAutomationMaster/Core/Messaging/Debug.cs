@@ -1,9 +1,9 @@
 ﻿using BrowserAutomationMaster.Core.Common;
-using BrowserAutomationMaster.Core.OS.Unix;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using BrowserAutomationMaster.Core.Parsing;
 using BrowserAutomationMaster.Core.SystemInfo.CPU;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Python.Runtime;
 
 namespace BrowserAutomationMaster.Core.Messaging

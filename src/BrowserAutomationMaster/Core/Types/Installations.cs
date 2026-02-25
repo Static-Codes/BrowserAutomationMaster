@@ -1,10 +1,10 @@
 using BrowserAutomationMaster.Core.Common;
 using System.Text.RegularExpressions;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
-using BrowserAutomationMaster.Core.OS.Generic;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Generic;
 
 
 namespace BrowserAutomationMaster.Core.Types

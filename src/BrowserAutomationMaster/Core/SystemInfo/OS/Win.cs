@@ -1,5 +1,5 @@
 using BrowserAutomationMaster.Core.Messaging;
-using BrowserAutomationMaster.Core.OS.Generic;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Generic;
 using Microsoft.Win32;
 using Spectre.Console;
 using System.Diagnostics;
@@ -11,7 +11,7 @@ using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Core.OS
+namespace BrowserAutomationMaster.Core.SystemInfo.OS
 {
     // This is the first win10 build, all versions before are not supported
     // https://en.wikipedia.org/wiki/Windows_10_version_history

@@ -1,4 +1,4 @@
-﻿using BrowserAutomationMaster.Core.OS;
+﻿using BrowserAutomationMaster.Core.SystemInfo.OS;
 using BrowserAutomationMaster.Core.Messaging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;

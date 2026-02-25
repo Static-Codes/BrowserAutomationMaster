@@ -4,7 +4,7 @@ using System.Drawing;
 using static BrowserAutomationMaster.Core.Common.ANSI;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 
 namespace BrowserAutomationMaster.Core.Utilities
 {

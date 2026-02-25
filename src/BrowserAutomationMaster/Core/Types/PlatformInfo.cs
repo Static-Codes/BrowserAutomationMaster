@@ -1,8 +1,8 @@
-using BrowserAutomationMaster.Core.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
 using BrowserAutomationMaster.Core.Python;
 using BrowserAutomationMaster.Core.Messaging;
 using System.Runtime.InteropServices;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static System.Runtime.InteropServices.Architecture;

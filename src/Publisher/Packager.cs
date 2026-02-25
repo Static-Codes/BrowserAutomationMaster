@@ -9,15 +9,15 @@ using static BrowserAutomationMaster.Core.Common.DirectoryManager;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.DistroManager;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
-using static BrowserAutomationMaster.Core.OS.Unix.UnixFilePermissions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.UnixFilePermissions;
 using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
 using static Publisher.Build.BuildInfo;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
 using BrowserAutomationMaster.Core.Common;
-using BrowserAutomationMaster.Core.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
 
 namespace Publisher 
 {

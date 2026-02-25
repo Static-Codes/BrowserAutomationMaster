@@ -1,12 +1,12 @@
 using BrowserAutomationMaster.Core.Common;
 using BrowserAutomationMaster.Core.Messaging;
-using BrowserAutomationMaster.Core.OS.Generic;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Generic;
 using BrowserAutomationMaster.Core.Types;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Input;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 namespace BrowserAutomationMaster.Core.Utilities
 {
 

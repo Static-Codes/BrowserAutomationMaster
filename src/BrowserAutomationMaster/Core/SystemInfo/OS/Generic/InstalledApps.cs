@@ -1,11 +1,11 @@
-using BrowserAutomationMaster.Core.OS.Unix;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using BrowserAutomationMaster.Core.Types;
 using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 
-namespace BrowserAutomationMaster.Core.OS.Generic
+namespace BrowserAutomationMaster.Core.SystemInfo.OS.Generic
 {
     public static class InstalledApps
     {

@@ -1,10 +1,10 @@
-using BrowserAutomationMaster.Core.OS.Generic;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Generic;
 using static BrowserAutomationMaster.Core.Common.ANSI;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 
-namespace BrowserAutomationMaster.Core.OS.Unix
+namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix
 {
     public static class MacOS
     {

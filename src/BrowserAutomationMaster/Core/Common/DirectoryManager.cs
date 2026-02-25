@@ -1,7 +1,7 @@
 ﻿using BrowserAutomationMaster.Core.Messaging;
 using System.IO.Compression;
 using System.Security;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;

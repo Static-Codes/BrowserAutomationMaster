@@ -1,5 +1,5 @@
 ﻿using BrowserAutomationMaster.Core.Messaging;
-using BrowserAutomationMaster.Core.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
 using System.Diagnostics;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
@@ -8,8 +8,8 @@ using static BrowserAutomationMaster.Core.Common.ProcessFactory;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Input;
 using static BrowserAutomationMaster.Core.Messaging.Success;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.DistroManager;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 
 namespace BrowserAutomationMaster.Core.Utilities
 {

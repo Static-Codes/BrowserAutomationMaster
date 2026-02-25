@@ -1,5 +1,5 @@
 ﻿using BrowserAutomationMaster.Core.Common;
-using BrowserAutomationMaster.Core.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
 using BrowserAutomationMaster.Core.Messaging;
 using System.Diagnostics;
 using System.Net;
@@ -9,8 +9,8 @@ using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.DistroManager;
-using static BrowserAutomationMaster.Core.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.DistroManager;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Core.Utilities

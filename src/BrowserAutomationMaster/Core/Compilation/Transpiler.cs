@@ -183,7 +183,7 @@ namespace BrowserAutomationMaster.Core.Compilation
             //        "from selenium.webdriver.chrome.options import Options",
             //        "from selenium.webdriver.chrome.service import Service as ChromeService",
             //        "from webdriver_manager.chrome import ChromeDriverManager",
-            //        "from webdriver_manager.core.os_manager import ChromeType"
+            //        "from webdriver_manager.Core.SystemInfo.OS_manager import ChromeType"
             //    ];
             //    script.Imports.AddStatements(statements);
             //}
