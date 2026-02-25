@@ -148,13 +148,19 @@
 	<!-- Embedding the NFD library for the appropriate target -->
 	<ItemGroup>
 		<EmbeddedResource Include="Resources/NativeFileDialog/runtimes/win-x64/nfd.dll" 
-						  Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+						  Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 
 		<EmbeddedResource Include="Resources/NativeFileDialog/runtimes/osx-x64/libnfd.dylib" 
-						  Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+						  Condition="'$(RuntimeIdentifier)' == 'osx-x64'" />
+
+		<EmbeddedResource Include="Resources/NativeFileDialog/runtimes/osx-arm64/libnfd.dylib"
+						  Condition="'$(RuntimeIdentifier)' == 'osx-arm64'" />
 
 		<EmbeddedResource Include="Resources/NativeFileDialog/runtimes/linux-x64/libnfd.so" 
-						  Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+						  Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+
+		<EmbeddedResource Include="Resources/NativeFileDialog/runtimes/linux-arm64/libnfd.so"
+						  Condition="'$(RuntimeIdentifier)' == 'linux-arm64'" />
 	</ItemGroup>
 
 
