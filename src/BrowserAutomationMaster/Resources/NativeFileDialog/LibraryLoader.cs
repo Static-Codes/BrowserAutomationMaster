@@ -14,10 +14,9 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
         private static string? libName = null;
         private static readonly string basePattern = "BrowserAutomationMaster.Resources.NativeFileDialog.runtimes";
 
-        private static readonly Architecture[] supportedArchitectures = ValidArchitectures[..1]; // This returns X64 and ARM64
-        private static readonly bool usingNFD = supportedArchitectures.Contains(Platforms.CurrentArchitecture);
-
-        public static bool NFDIsCallable() => usingNFD;
+        private static readonly Architecture[] supportedArchitectures = ValidArchitectures[1..]; // This returns X64 and ARM64
+        
+        public static bool NFDIsCallable() => supportedArchitectures.Contains(Platforms.CurrentArchitecture);
 
         private static bool FileIsLocked(string filePath)
         {
@@ -38,7 +37,7 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
 
         public static async Task InitializeNativeFileDialog()
         {
-            if (!usingNFD) 
+            if (!NFDIsCallable()) 
             {
                 Warning.Write(
                     string.Join(NLC, [
