@@ -3,6 +3,8 @@ using BrowserAutomationMaster.Core;
 using BrowserAutomationMaster.Core.Common;
 using BrowserAutomationMaster.Core.Helpers;
 using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
+
+using BrowserAutomationMaster.Resources.CpuInfoSharp;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static Tests.Runner;
@@ -10,9 +12,14 @@ using static Tests.Runner;
 // Logic from Main application around colored text.
 SetPlatform();
 await InitializeAsync(["--nohwc"]);
-FileDialogHelper.RunTest();
 
-// FileDialogHelper.RunTest();
+
+
+Console.WriteLine("Thread Count: {0}", CpuInfoWrappers.GetThreadCount());
+Console.WriteLine("Core Count: {0}", CpuInfoWrappers.GetCoreCount());
+
+
+
 // var data = new Dictionary<int, (object, object)>() {
 //     { 1, ( "A", "A" ) },
 //     { 2, ( "B", "B" ) },

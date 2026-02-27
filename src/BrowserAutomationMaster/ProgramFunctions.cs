@@ -1,5 +1,4 @@
-﻿using BrowserAutomationMaster.Core;
-using BrowserAutomationMaster.Core.Compilation;
+﻿using BrowserAutomationMaster.Core.Compilation;
 using BrowserAutomationMaster.Core.Messaging;
 using BrowserAutomationMaster.Core.SystemInfo.OS;
 using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
@@ -7,7 +6,7 @@ using BrowserAutomationMaster.Core.Python;
 using BrowserAutomationMaster.Core.Python.BrowserStack;
 using BrowserAutomationMaster.Core.SystemInfo.CPU;
 using BrowserAutomationMaster.Core.Utilities;
-using System.Text.Json;
+using BrowserAutomationMaster.Core.Types.Linux;
 using static BrowserAutomationMaster.Core.Common.ANSI;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
@@ -17,7 +16,6 @@ using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Compilation.Transpiler;
 using static BrowserAutomationMaster.Core.GUI.Server;
 using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
-using static BrowserAutomationMaster.Core.Helpers.FileDialogHelper;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Menu;
 using static BrowserAutomationMaster.Core.Messaging.Success;
@@ -26,20 +24,11 @@ using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Parsing.Parser;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
-using static BrowserAutomationMaster.Resources.NativeFileDialog.LibraryLoader;
-using BrowserAutomationMaster.Core.Types.Linux;
+using static BrowserAutomationMaster.Resources.CpuInfoSharp.Loader;
+using static BrowserAutomationMaster.Resources.NativeFileDialog.Loader;
 
 namespace BrowserAutomationMaster
 {
-    public static class ByteArrayExtensions
-    {
-        public static async Task<T?> Deserialize<T>(this byte[] data) where T : class
-        {
-            using var stream = new MemoryStream(data);
-            return await JsonSerializer.DeserializeAsync(stream, typeof(T)) as T;
-        }
-    }
-    
     public class ProgramFunctions
     {
         /// <summary>Handles all of the initial application setup and prerequisite checks.</summary>
@@ -73,6 +62,8 @@ namespace BrowserAutomationMaster
             await HandleHardwareCheck(args);
 
             await InitializeNativeFileDialog();
+
+            await InitializeCpuInfo();
         }
 
         /// <summary>Processes any CLI arguments and returns execution status.</summary>
