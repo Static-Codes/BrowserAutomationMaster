@@ -2,10 +2,11 @@
 using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using BrowserAutomationMaster.Core.Parsing;
 using BrowserAutomationMaster.Core.SystemInfo.CPU;
+using System.Reflection;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Python.Runtime;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
-using static BrowserAutomationMaster.Resources.NativeFileDialog.LibraryLoader;
+using static BrowserAutomationMaster.Resources.NativeFileDialog.Loader;
 
 namespace BrowserAutomationMaster.Core.Messaging
 {
@@ -130,6 +131,30 @@ namespace BrowserAutomationMaster.Core.Messaging
                     Total RAM: {totalMemoryAmount}
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }
+        }
+
+        private static string[] GetEmbeddedResource() 
+        {
+            var assembly = Assembly.GetExecutingAssembly(); 
+            return assembly.GetManifestResourceNames();
+        }
+
+        public static void ResourceIsEmbedded(string resourcePath) {
+            var resourceNames = GetEmbeddedResource();
+            Console.WriteLine($"Found: {resourceNames.Contains(resourcePath)}");
+            Environment.Exit(0);
+        }
+
+        public static void ShowEmbeddedResources() 
+        {
+            var resourceNames = GetEmbeddedResource();
+
+            Console.WriteLine("--- Embedded Resources Found ---");
+            foreach (var name in resourceNames)
+            {
+                Console.WriteLine($"Found: {name}");
+            }
+            Console.WriteLine("--------------------------------");
         }
 
     }
