@@ -20,6 +20,7 @@
     <ItemGroup>
         <Content Include="runtimes\**" Visible="false">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <!-- <Content Include="nfd.dll">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
