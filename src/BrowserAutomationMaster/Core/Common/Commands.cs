@@ -105,13 +105,13 @@ namespace BrowserAutomationMaster.Core.Common
             
             {
                 new Command(
-                    name: "--platform-debug",
+                    name: "--platform-info",
                     description:
                         string.Join(NLC, [
                             "Displays the platform information associated with the current session.",
                             "This should only be used for development, or if requested on github.",
                         ]),
-                    examples: [ "bamm --nohwc --platform-debug" ],
+                    examples: [ "bamm --nohwc --platform-info" ],
                     type: CommandType.Argument
                 )
             },

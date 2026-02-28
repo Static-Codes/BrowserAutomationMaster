@@ -99,7 +99,7 @@ namespace BrowserAutomationMaster
                 return !wantsToContinue; // Exit if user doesn't want to continue
             }
 
-            if (pArgs.Any(arg => arg.Equals("--platform-debug")))
+            if (pArgs.Any(arg => arg.Equals("--platform-info")))
             {
                 Warning.Write(string.Join(NLC, [
                     "---------------- PLATFORM CLASS DEBUG INFO ----------------",
