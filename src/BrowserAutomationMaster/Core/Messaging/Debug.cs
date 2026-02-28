@@ -1,7 +1,6 @@
 ﻿using BrowserAutomationMaster.Core.Common;
-using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using BrowserAutomationMaster.Core.Parsing;
-using BrowserAutomationMaster.Core.SystemInfo.CPU;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using System.Reflection;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;

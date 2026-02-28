@@ -4,7 +4,6 @@ using BrowserAutomationMaster.Core.SystemInfo.OS;
 using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
 using BrowserAutomationMaster.Core.Python;
 using BrowserAutomationMaster.Core.Python.BrowserStack;
-using BrowserAutomationMaster.Core.SystemInfo.CPU;
 using BrowserAutomationMaster.Core.Utilities;
 using BrowserAutomationMaster.Core.Types.Linux;
 using static BrowserAutomationMaster.Core.Common.ANSI;
