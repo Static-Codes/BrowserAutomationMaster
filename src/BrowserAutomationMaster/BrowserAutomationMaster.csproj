@@ -217,8 +217,8 @@
 	
 	<!-- Esprima (JS Validation) + Packaging.Targets (Cross Platform Publishing) -->
 	<ItemGroup>
-		<!-- <PackageReference Include="csharp-cpuinfo-binding" Version="1.0.0.37" /> -->
 		<PackageReference Include="Esprima" Version="3.0.5" />
+		<PackageReference Include="Hardware.Info" Version="101.1.1.1" />
 		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
 		  <PrivateAssets>all</PrivateAssets>
 		</PackageReference>
