@@ -323,17 +323,19 @@ namespace BrowserAutomationMaster.Core.Compilation
             // 1. The user is running on ChromeOS, since Chromebooks are 99/100 times too underpowered for Selenium execution.
             // 2. The user modified the `use_browserstack` property in settings.ini
             // 3. The user is running on Raspberry Pi with less than 2GB of free memory.
-            
-            var memoryInfo = GetMemoryInfo();
 
-            if (memoryInfo == null) {
+            if (GlobalUserInfo.HardwareInformation.MemoryInfo == null) {
                 return;
             }
             
-            var availableMemory = memoryInfo.Value.FreeMemory;
+            var availableMemory = GlobalUserInfo.HardwareInformation.MemoryInfo.Value.FreeMemory;
 
-            if (!usingBrowserstack) {
-                usingBrowserstack = GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalSettings.UseBrowserstack || GlobalUserInfo.PlatformInfo.IsRaspi && availableMemory < 2048;
+            if (!usingBrowserstack) 
+            {
+                usingBrowserstack = 
+                    GlobalUserInfo.PlatformInfo.IsChromeOS || 
+                    GlobalSettings.UseBrowserstack || 
+                    GlobalUserInfo.PlatformInfo.IsRaspi && availableMemory < 2048;
             }
         }
 

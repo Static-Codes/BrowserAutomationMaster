@@ -21,8 +21,6 @@ namespace BrowserAutomationMaster.Core.Python
         
         public string InterpreterPath { get; } = GetInterpreterFromPath();
 
-        private static MemoryInfo? memoryInfo = null;
-
         private static int? CoreCount = null;
         public static void SetCoreCount(int count) => CoreCount = count;
 
@@ -104,7 +102,7 @@ namespace BrowserAutomationMaster.Core.Python
             );
         }
         
-        public static MemoryInfo? GetMemoryInfo() { return memoryInfo; }
+        
         private static string GetUserScriptChoice(List<string> scriptPaths, string[] menu)
         {
             while (true)
@@ -176,7 +174,7 @@ namespace BrowserAutomationMaster.Core.Python
             await SetMemoryInfo();
 
             // Less than 2GiB Total (The check above ensures memoryInfo is not null)
-            if (memoryInfo!.Value.TotalMemory < 2048)
+            if (GlobalUserInfo.HardwareInformation.MemoryInfo!.Value.TotalMemory < 2048)
             {
                 WriteAndExit
                 (
@@ -187,7 +185,7 @@ namespace BrowserAutomationMaster.Core.Python
             }
 
             // Less than 512MiB Free
-            if (memoryInfo.Value.FreeMemory < 512)
+            if (GlobalUserInfo.HardwareInformation.MemoryInfo.Value.FreeMemory < 512)
             {
                 WriteAndExit
                 (
@@ -198,7 +196,10 @@ namespace BrowserAutomationMaster.Core.Python
             }
 
             // Less than 4GiB Total but between 512MiB and 1GiB Free.
-            else if (memoryInfo.Value.TotalMemory < 4096 && memoryInfo.Value.FreeMemory < 1024)
+            else if (
+                GlobalUserInfo.HardwareInformation.MemoryInfo.Value.TotalMemory < 4096 && 
+                GlobalUserInfo.HardwareInformation.MemoryInfo.Value.FreeMemory < 1024
+            )
             {
                 Warning.Write
                 (
@@ -210,7 +211,10 @@ namespace BrowserAutomationMaster.Core.Python
             }
 
             // 4GiB Total but under 1GiB Free.
-            else if (memoryInfo.Value.TotalMemory == 4096 && memoryInfo.Value.FreeMemory < 1024)
+            else if (
+                GlobalUserInfo.HardwareInformation.MemoryInfo.Value.TotalMemory == 4096 && 
+                GlobalUserInfo.HardwareInformation.MemoryInfo.Value.FreeMemory < 1024
+            )
             {
                 Warning.Write
                 (
@@ -224,7 +228,10 @@ namespace BrowserAutomationMaster.Core.Python
             }
 
             // 4GiB Total and 1GiB free.
-            else if (memoryInfo.Value.TotalMemory == 4096 && memoryInfo.Value.FreeMemory >= 1024)
+            else if (
+                GlobalUserInfo.HardwareInformation.MemoryInfo.Value.TotalMemory == 4096 && 
+                GlobalUserInfo.HardwareInformation.MemoryInfo.Value.FreeMemory >= 1024
+            )
             {
                 // I hate nested conditionals, but this allows for a graceful passthrough
                 if (GlobalSettings.ShowMemoryCheck)
@@ -267,9 +274,9 @@ namespace BrowserAutomationMaster.Core.Python
 
         public static async Task SetMemoryInfo()
         {
-            memoryInfo = await MemoryMonitor.GetMemoryInfoAsync();
+            GlobalUserInfo.HardwareInformation.MemoryInfo = await MemoryMonitor.GetMemoryInfoAsync();
 
-            if (!memoryInfo.HasValue)
+            if (!GlobalUserInfo.HardwareInformation.MemoryInfo.HasValue)
             {
                 WriteAndExit
                 (

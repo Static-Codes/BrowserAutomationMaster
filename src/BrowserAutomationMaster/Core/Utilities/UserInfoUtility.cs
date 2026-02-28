@@ -4,6 +4,6 @@ namespace BrowserAutomationMaster.Core.Utilities
 {
     public class UserInfoUtility 
     {
-        public static UserInfo GlobalUserInfo = new UserInfo();
+        public readonly static UserInfo GlobalUserInfo = new();
     }
 }

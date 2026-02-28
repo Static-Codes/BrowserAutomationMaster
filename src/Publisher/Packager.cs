@@ -1,24 +1,23 @@
+using BrowserAutomationMaster.Core.Common;
 using BrowserAutomationMaster.Core.Helpers;
 using BrowserAutomationMaster.Core.Messaging;
+using BrowserAutomationMaster.Core.Types.Linux;
 using Publisher.Build.Processes;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.UnixFilePermissions;
 using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static Publisher.Build.BuildInfo;
 using static Publisher.DotnetHelper;
 using static Publisher.PlatformSelection;
-using BrowserAutomationMaster.Core.Common;
-using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
-using BrowserAutomationMaster.Core.Types.Linux;
 
 namespace Publisher 
 {
@@ -50,12 +49,12 @@ namespace Publisher
         }
         
 
-        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Platforms.IsUnixLike handles checks.")]
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "GlobalUserInfo.PlatformInfo.IsUnixLike handles checks.")]
         private async Task<(bool, string?)> BuildArchPackage(string workingDir, string appVersion) 
         {
             bool[] invalidStates = [
-                !Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.ArchLinux),
-                !Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian)
+                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.ArchLinux),
+                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian)
             ];
 
             // If both cases are true, execution haults, and an exception is thrown.
@@ -165,14 +164,14 @@ namespace Publisher
             // Does infact NOT install the package manager "pacman", it installs a pacman game.
             // I was doing a test for Arch Packaging on Debian, the game popped up leaving me very confused.
             string[] packages = 
-                Platforms.CurrentDistribution.BaseDistro.Equals(DistroBase.ArchLinux) ? 
+                GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroBase.ArchLinux) ? 
                 ["pacman", "makepkg"] : // Arch
                 ["pacman-package-manager", "makepkg", "libarchive-tools"]; // Debian
             
             var missingPackages = await FindMissingPackages(packages);
 
             bool needsAptCacheRefresh = 
-                Platforms.CurrentDistribution.BaseDistro.Equals(DistroBase.Debian) &&
+                GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroBase.Debian) &&
                 missingPackages.Contains("libarchive-tools");
             
             if (needsAptCacheRefresh) {
@@ -252,12 +251,12 @@ namespace Publisher
             return (true, null);   
         }
 
-        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Platforms.IsUnixLike handles checks.")]
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "GlobalUserInfo.PlatformInfo.IsUnixLike handles checks.")]
         private async Task<(bool, string?)> BuildPCLinuxOSPackage(string workingDir) 
         {
             bool[] invalidStates = [
-                Platforms.CurrentDistribution!.Name != "PCLinuxOS",
-                !Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian)
+                GlobalUserInfo.PlatformInfo.CurrentDistribution!.Name != "PCLinuxOS",
+                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian)
             ];
 
             // If both cases are true, execution haults, and an exception is thrown.
@@ -349,7 +348,7 @@ namespace Publisher
 
 
             string[] packages = 
-                Platforms.CurrentDistribution.BaseDistro.Equals(DistroBase.ArchLinux) ? 
+                GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroBase.ArchLinux) ? 
                 [ "rpm-build", "rpm-tools", "pkgutils" ] :  // PCLinuxOS
                 [ "rpm" ]; // Debian
             
@@ -361,7 +360,7 @@ namespace Publisher
             {
                 Console.WriteLine($"Located {missingPackages.Count} missing package(s) required for the build process.");
                 bool needsAptCacheRefresh = 
-                    Platforms.CurrentDistribution.BaseDistro.Equals(DistroBase.Debian) &&
+                    GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroBase.Debian) &&
                     missingPackages.Contains("libarchive-tools");
 
                 if (needsAptCacheRefresh) {
@@ -470,7 +469,7 @@ namespace Publisher
         private static string GetRollForwardCommand()
         {
             // dotnet-deb and dotnet-rpm are still on .NET 9 as of 01/31/2026
-            return Platforms.IsWindows switch {
+            return GlobalUserInfo.PlatformInfo.IsWindows switch {
                 true => "set DOTNET_ROLL_FORWARD=Major &&",
                 false => "export DOTNET_ROLL_FORWARD=Major &&", 
             };
@@ -538,17 +537,17 @@ namespace Publisher
                 var isMissingMakePKG = !CommandExists(packageName);
 
                 if (isMissingMakePKG) {
-                    var installPrefix = Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
+                    var installPrefix = GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
                     {
                         true => string.Join(' ', [
                             "DEBIAN_FRONTEND=noninteractive", 
-                            Platforms.CurrentDistribution!.PackageManager,
-                            Platforms.CurrentDistribution.InstallCommand
+                            GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManager,
+                            GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallCommand
                         ]),
 
                         _ => string.Join(' ', [
-                            Platforms.CurrentDistribution!.PackageManager,
-                            Platforms.CurrentDistribution.InstallCommand
+                            GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManager,
+                            GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallCommand
                         ])
                     };
 

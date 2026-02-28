@@ -4,17 +4,25 @@ using Publisher;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
-using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
+using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static Publisher.PlatformSelection;
 using static Publisher.SourceControl;
 
 // Logic from Main application around colored text.
-SetPlatform();
+SetPlatform(GlobalUserInfo);
 await InitializeAsync(["--nohwc"]);
 
-if (Platforms.IsRaspi || Platforms.IsARMel || Platforms.IsARMhf || Platforms.IsChromeOS) {
+bool[] invalidStates = [
+    GlobalUserInfo.PlatformInfo.IsRaspi,
+    GlobalUserInfo.PlatformInfo.IsARMel,
+    GlobalUserInfo.PlatformInfo.IsARMhf,
+    GlobalUserInfo.PlatformInfo.IsChromeOS
+];
+
+if (invalidStates.Any(invalidState => invalidState)) {
     Warning.Write("Your system was determined to be potentially underpowered for the purposed of compiling BAMM from source.");
     Warning.Write("If you experience build related issues, please try a more powerful system.");
 };

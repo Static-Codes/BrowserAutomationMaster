@@ -7,8 +7,8 @@ using System.Text.Json.Serialization;
 using static BrowserAutomationMaster.Core.Common.RequestManager.NetworkClient;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static Publisher.Build.BuildInfo;
 
 namespace Publisher 
@@ -63,27 +63,27 @@ namespace Publisher
             // ------------------------------------------
             // Start of pre-download platform validation.
             // ------------------------------------------
-            if (Platforms.CurrentDistribution == null) 
+            if (GlobalUserInfo.PlatformInfo.CurrentDistribution == null) 
             {
                 WriteAndExit
                 (
                     message: string.Join(NLC, [
                         "Unable to determine the current machine's Distribution information.",
                         "Error Log:",
-                        "Platforms.CurrentDistribution is null in DownloadLatestDotnetSDK()"
+                        "GlobalUserInfo.PlatformInfo.CurrentDistribution is null in DownloadLatestDotnetSDK()"
                     ]),
                     status: 1
                 );
             }
 
-            if (!Platforms.IsLinux) 
+            if (!GlobalUserInfo.PlatformInfo.IsLinux) 
             {
                 WriteAndExit
                 (
                     message: string.Join(NLC, [
                         "The current .NET SDK download logic only supports Linux-based distributions.",
                         "Error Log:",
-                        "Platforms.IsLinux is false in DownloadLatestDotnetSDK()"
+                        "GlobalUserInfo.PlatformInfo.IsLinux is false in DownloadLatestDotnetSDK()"
                     ]),
                     status: 1
                 );
@@ -342,7 +342,7 @@ namespace Publisher
         /// </summary>
         public static string GetDotnetBinaryName()
         {
-            return Platforms.IsWindows switch {
+            return GlobalUserInfo.PlatformInfo.IsWindows switch {
                 true => "dotnet.exe",
                 false => "dotnet"
             };
@@ -475,7 +475,7 @@ namespace Publisher
         /// </summary>
         public static string GetShellPath() 
         {
-            return Platforms.IsWindows switch {
+            return GlobalUserInfo.PlatformInfo.IsWindows switch {
                 true => "cmd.exe",
                 false => "/bin/bash"
             };
@@ -487,7 +487,7 @@ namespace Publisher
         /// </summary>
         public static string GetShellArg() 
         {
-            return Platforms.IsWindows switch {
+            return GlobalUserInfo.PlatformInfo.IsWindows switch {
                 true => "/c",
                 false => "-c",
             };
@@ -499,7 +499,7 @@ namespace Publisher
         /// </summary>
         public static string GetWhichCommand()
         {
-            return Platforms.IsWindows switch {
+            return GlobalUserInfo.PlatformInfo.IsWindows switch {
                 true => "where.exe",
                 false => "which"
             };
