@@ -7,12 +7,12 @@ using System.Runtime.Intrinsics.X86;
 using Windows.Win32;
 using Windows.Win32.System.SystemInformation;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Common.ProcessFactory;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
 using static BrowserAutomationMaster.Core.SystemInfo.CPU.RequiredInstructions;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.SystemInfo.CPU
 {
@@ -129,7 +129,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.CPU
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static int GetCoreCount()
         {
-            return (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
+            return (GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsMacOS, GlobalUserInfo.PlatformInfo.IsLinux) switch {
                 (true, _, _) => GetPhysicalCoreCountWindows(),
                 (_, true, _) => GetPhysicalCoreCountMacOS(),
                 (_, _, true) => GetPhysicalCoreCountLinux(),
@@ -399,22 +399,22 @@ namespace BrowserAutomationMaster.Core.SystemInfo.CPU
             string? processName;
             string? processArgs;
 
-            if (Platforms.IsWindows) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
                 return GetCPUName();
             }
 
-            else if (Platforms.IsMacOS) {
+            else if (GlobalUserInfo.PlatformInfo.IsMacOS) {
                 processName = "/bin/bash";
                 processArgs = "-c \"sysctl -n machdep.cpu.brand_string\"";
             }
 
-            else if (Platforms.IsLinux) {
+            else if (GlobalUserInfo.PlatformInfo.IsLinux) {
                 processName = "/bin/bash";
                 processArgs = "-c \"lscpu | grep 'Model name:' | sed -r 's/Model name:\\s{1,}//g'\"";
             }
 
             else {
-                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in GlobalUserInfo.PlatformInfo");
             }
 
             var psi = new ProcessStartInfo()

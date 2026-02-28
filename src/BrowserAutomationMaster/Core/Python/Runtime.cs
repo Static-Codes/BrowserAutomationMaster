@@ -6,11 +6,11 @@ using BrowserAutomationMaster.Core.SystemInfo.CPU;
 using BrowserAutomationMaster.Core.SystemInfo.RAM;
 using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.MacOS;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Python
 {
@@ -81,13 +81,13 @@ namespace BrowserAutomationMaster.Core.Python
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static string GetInterpreterFromPath()
         {
-            if (Platforms.IsWindows)
+            if (GlobalUserInfo.PlatformInfo.IsWindows)
             {
                 return Win.GetInterpreterPath();
             }
 
             // Path to full executable is required to replicate the expected behavior due to OSX being built off BSD 
-            if (Platforms.IsUnixLike || Platforms.IsChromeOS)
+            if (GlobalUserInfo.PlatformInfo.IsUnixLike || GlobalUserInfo.PlatformInfo.IsChromeOS)
             {
                 return "python3";
             }
@@ -304,7 +304,7 @@ namespace BrowserAutomationMaster.Core.Python
                 return;
             }
 
-            if (Platforms.IsMacOS) {
+            if (GlobalUserInfo.PlatformInfo.IsMacOS) {
                 HandleVEnvExceptions(result.Errors);  // Will exit if an exception is found.
             }
 

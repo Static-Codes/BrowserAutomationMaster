@@ -1,9 +1,9 @@
 using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using BrowserAutomationMaster.Core.Types;
 using System.Diagnostics.CodeAnalysis;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.SystemInfo.OS.Generic
 {
@@ -16,15 +16,15 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Generic
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         private static async Task<List<AppInfo>> GetInstalledApps()
         {
-            if (Platforms.IsWindows) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
                 return await Task.Run(Win.GetApps);
             }
 
-            if (Platforms.IsMacOS) {
+            if (GlobalUserInfo.PlatformInfo.IsMacOS) {
                 return await Task.Run(MacOS.GetApps);
             }
 
-            if (Platforms.IsLinux) {
+            if (GlobalUserInfo.PlatformInfo.IsLinux) {
                 return await Task.Run(GetApps);
             }
 
@@ -43,7 +43,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Generic
             await PopulateAppInfoList();
             InstallationsList = new Installations(AppInfoList);
 
-            if (Platforms.IsLinux) {
+            if (GlobalUserInfo.PlatformInfo.IsLinux) {
                 await InstallRequiredLinuxPackages();
             }
         }

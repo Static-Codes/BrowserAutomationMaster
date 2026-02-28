@@ -4,13 +4,13 @@ using BrowserAutomationMaster.Core.Types.Linux;
 using System.Diagnostics;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Common.ProcessFactory;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Input;
 using static BrowserAutomationMaster.Core.Messaging.Success;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Utilities
 {
@@ -48,11 +48,11 @@ namespace BrowserAutomationMaster.Core.Utilities
 
             string symLinkNotFound = $"Unable to locate the symlink to the BAMM executable at: {symLinkPath}";
             
-            // Attempts to prompt the user for a distro choice if Platforms.CurrentDistribution is null.
+            // Attempts to prompt the user for a distro choice if GlobalUserInfo.PlatformInfo.CurrentDistribution is null.
             CheckLinuxDistro();
 
             // CheckLinuxDistro exits if Platform.CurrentDistribution is null.
-            var invalidDistro = Platforms.CurrentDistribution!.Equals(Distros.Unknown);
+            var invalidDistro = GlobalUserInfo.PlatformInfo.CurrentDistribution!.Equals(Distros.Unknown);
 
             if (invalidDistro) {
                 WriteAndExit(
@@ -82,7 +82,7 @@ namespace BrowserAutomationMaster.Core.Utilities
 
             
             var psi = new ProcessStartInfo() {
-                FileName = Platforms.CurrentDistribution!.ShellPath,
+                FileName = GlobalUserInfo.PlatformInfo.CurrentDistribution!.ShellPath,
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardError = true,
@@ -90,7 +90,7 @@ namespace BrowserAutomationMaster.Core.Utilities
                 RedirectStandardOutput = true,
             };
 
-            switch (Platforms.CurrentDistribution!.InstallationType)  {
+            switch (GlobalUserInfo.PlatformInfo.CurrentDistribution!.InstallationType)  {
                 case InstallationType.Binary:
                     psi.Arguments = $"-c \"sudo rm {binaryPath}\"";
                     break;
@@ -100,8 +100,8 @@ namespace BrowserAutomationMaster.Core.Utilities
                     psi.Arguments = string.Join(' ', [
                         "-c",
                         "\"sudo", 
-                        $"{Platforms.CurrentDistribution.PackageManager}",
-                        $"{Platforms.CurrentDistribution.UninstallCommand}",
+                        $"{GlobalUserInfo.PlatformInfo.CurrentDistribution.PackageManager}",
+                        $"{GlobalUserInfo.PlatformInfo.CurrentDistribution.UninstallCommand}",
                         "bamm\""
                     ]);
                     break;
@@ -229,20 +229,20 @@ namespace BrowserAutomationMaster.Core.Utilities
                 DoAppDataDeletion();
             }
 
-            if (Platforms.IsWindows) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
                 DoWindowsUninstall();
             }
             
-            else if (Platforms.IsMacOS) {
+            else if (GlobalUserInfo.PlatformInfo.IsMacOS) {
                 DoMacUninstall();
             }
 
-            else if (Platforms.IsLinux) {
+            else if (GlobalUserInfo.PlatformInfo.IsLinux) {
                 await DoLinuxUninstall();
             }
             
             else {
-                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in GlobalUserInfo.PlatformInfo");
             }
         }
     }

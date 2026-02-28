@@ -1,6 +1,7 @@
 using BrowserAutomationMaster.Core.Common;
 using BrowserAutomationMaster.Core.Messaging;
 using BrowserAutomationMaster.Core.SystemInfo.OS.Generic;
+using BrowserAutomationMaster.Core.Types.Linux;
 using Spectre.Console;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -9,7 +10,6 @@ using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Core.Common.ANSI;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Compilation.Transpiler;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
@@ -18,8 +18,8 @@ using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.DistroManager
 using static BrowserAutomationMaster.Core.Python.WheelManager;
 using static BrowserAutomationMaster.Core.Types.Installations;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static System.Runtime.InteropServices.Architecture;
-using BrowserAutomationMaster.Core.Types.Linux;
 
 namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
 {
@@ -79,11 +79,11 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
         {
 
             bool[] invalidStates = [
-                Platforms.IsLinux,
-                Platforms.IsWindows,
-                Platforms.IsMacOS,
-                !Platforms.IsChromeOS,
-                Platforms.CurrentArchitecture != Arm,
+                GlobalUserInfo.PlatformInfo.IsLinux,
+                GlobalUserInfo.PlatformInfo.IsWindows,
+                GlobalUserInfo.PlatformInfo.IsMacOS,
+                !GlobalUserInfo.PlatformInfo.IsChromeOS,
+                GlobalUserInfo.HardwareInformation.CurrentArchitecture != Arm,
             ];
 
 
@@ -111,11 +111,11 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             }
 
             if (STDOut.Any(a => a.Contains("armhf", OIC))) {
-                Platforms.IsARMhf = true;
+                GlobalUserInfo.PlatformInfo.IsARMhf = true;
             }
 
             else if (STDOut.Any(a => a.Contains("armel", OIC))) {
-                Platforms.IsARMel = true;
+                GlobalUserInfo.PlatformInfo.IsARMel = true;
             }
 
         }
@@ -202,7 +202,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             try
             {
                 string cmdline = File.ReadAllText("/proc/cmdline");
-                Platforms.IsChromeOS = cmdline.Contains("cros_");
+                GlobalUserInfo.PlatformInfo.IsChromeOS = cmdline.Contains("cros_");
             }
 
             catch (Exception ex)
@@ -314,9 +314,9 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
         public static string? GetTerminalBackgroundColor()
         {
             bool[] statesToReturnBlack = [
-                Platforms.IsChromeOS,
-                Platforms.IsMacOS,
-                Platforms.IsRaspi,
+                GlobalUserInfo.PlatformInfo.IsChromeOS,
+                GlobalUserInfo.PlatformInfo.IsMacOS,
+                GlobalUserInfo.PlatformInfo.IsRaspi,
                 IsKali()
             ];
 
@@ -374,7 +374,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
         public static bool HasDisplayVariableSet()
         {
             // This check doesnt need to non-unix systems.
-            if (!Platforms.IsUnixLike) { 
+            if (!GlobalUserInfo.PlatformInfo.IsUnixLike) { 
                 return true; 
             }
 
@@ -387,10 +387,10 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
         public static async Task InstallRequiredLinuxPackages()
         {
             bool[] platformsThatRequireWheels = [
-                Platforms.IsARMel, 
-                Platforms.IsARMhf, 
-                Platforms.IsChromeOS, 
-                Platforms.IsRaspi
+                GlobalUserInfo.PlatformInfo.IsARMel, 
+                GlobalUserInfo.PlatformInfo.IsARMhf, 
+                GlobalUserInfo.PlatformInfo.IsChromeOS, 
+                GlobalUserInfo.PlatformInfo.IsRaspi
             ];
 
             // Ensuring the wheels are only downloaded on platforms that potentially require it.
@@ -410,22 +410,22 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
                 
 
 
-                // Exits if Platforms.CurrentDistribution is null.
+                // Exits if GlobalUserInfo.PlatformInfo.CurrentDistribution is null.
                 CheckLinuxDistro();
 
 
                 // Adds the DEBIAN_FRONTEND=noninteractive prefix if the current distro in use is based off Debian.
-                var installPrefix = Platforms.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
+                var installPrefix = GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
                 {
                     true => string.Join(' ', [
                         "DEBIAN_FRONTEND=noninteractive", 
-                        Platforms.CurrentDistribution!.PackageManager,
-                        Platforms.CurrentDistribution.InstallCommand
+                        GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManager,
+                        GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallCommand
                     ]),
 
                     _ => string.Join(' ', [
-                        Platforms.CurrentDistribution!.PackageManager,
-                        Platforms.CurrentDistribution.InstallCommand
+                        GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManager,
+                        GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallCommand
                     ])
                 };
 
@@ -438,8 +438,8 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
                     pyVersion = Input.AskForInput(pyVerInputMessage);
                 }
 
-                string[] requiredPackages = Platforms.CurrentDistribution!.RequiredPackages;
-                string[] optionalPackages = GetBrowserStackStatus() ? Platforms.CurrentDistribution!.OptionalPackages : [];
+                string[] requiredPackages = GlobalUserInfo.PlatformInfo.CurrentDistribution!.RequiredPackages;
+                string[] optionalPackages = GetBrowserStackStatus() ? GlobalUserInfo.PlatformInfo.CurrentDistribution!.OptionalPackages : [];
                 string[] packages = [.. requiredPackages, .. optionalPackages];
 
                 var missingPackages = await FindMissingPackages(packages);
@@ -495,8 +495,8 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
         private static bool IsKali() 
         {
             return 
-                Platforms.CurrentDistribution != null && 
-                Platforms.CurrentDistribution.Name.Equals("Kali Linux");
+                GlobalUserInfo.PlatformInfo.CurrentDistribution != null && 
+                GlobalUserInfo.PlatformInfo.CurrentDistribution.Name.Equals("Kali Linux");
         }
         
         private static List<AppInfo> ParseDpkgList()
@@ -623,7 +623,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
         {
             try 
             {
-                if (Platforms.CurrentDistribution!.Equals(DistroBase.Debian)) {
+                if (GlobalUserInfo.PlatformInfo.CurrentDistribution!.Equals(DistroBase.Debian)) {
                     Warning.Write("One or more dependencies are requiring a refresh of the apt-cache, please wait.");
                     RunCommand("apt-get", "update");
                 }
@@ -686,9 +686,9 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
                     // The value of the pair is a boolean determining whether the specified model can run the GUI.
                     var validatedMatch = validatedMatches.First();
 
-                    Platforms.IsRaspi = true;
-                    Platforms.IsUnixLike = true;
-                    Platforms.SetRaspiModel(modelName, validatedMatch.Value);
+                    GlobalUserInfo.PlatformInfo.IsRaspi = true;
+                    GlobalUserInfo.PlatformInfo.IsUnixLike = true;
+                    GlobalUserInfo.PlatformInfo.SetRaspiModel(modelName, validatedMatch.Value);
                     
                 }
             }

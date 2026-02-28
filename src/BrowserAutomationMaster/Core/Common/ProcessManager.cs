@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Common
 {
@@ -39,7 +39,7 @@ namespace BrowserAutomationMaster.Core.Common
                 var instances = Process.GetProcessesByName(curProc.ProcessName);
                 if (instances.Length > 1)
                 {
-                    if (Platforms.IsWindows) {
+                    if (GlobalUserInfo.PlatformInfo.IsWindows) {
                         Win.HandleMultipleInstances(instances);  // Execution ends if this line is hit.
                     }
 
@@ -99,7 +99,7 @@ namespace BrowserAutomationMaster.Core.Common
                 WriteAndExit(errMessage, 1); 
             }
 
-            if (Platforms.IsWindows) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
                 dBuilder.Append(".exe");
             }
 

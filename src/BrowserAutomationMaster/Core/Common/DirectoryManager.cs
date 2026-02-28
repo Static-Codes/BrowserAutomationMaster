@@ -3,9 +3,9 @@ using System.IO.Compression;
 using System.Security;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Common
 {
@@ -224,17 +224,17 @@ namespace BrowserAutomationMaster.Core.Common
 
             string appName = "BrowserAutomationMaster";
 
-            if (Platforms.IsWindows)
+            if (GlobalUserInfo.PlatformInfo.IsWindows)
             {
                 return GetAppDataWindows(appName);
             }
 
-            else if (Platforms.IsMacOS)
+            else if (GlobalUserInfo.PlatformInfo.IsMacOS)
             {
                 return GetAppDataMacOS(appName);
             }
 
-            else if (Platforms.IsLinux || Platforms.IsChromeOS || Platforms.IsRaspi)
+            else if (GlobalUserInfo.PlatformInfo.IsLinux || GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalUserInfo.PlatformInfo.IsRaspi)
             {
                 return GetAppDataLinux(appName);
             }
@@ -254,7 +254,7 @@ namespace BrowserAutomationMaster.Core.Common
 
         private static string GetDefaultBackupPath(string compression = "zip")
         {
-            if (Platforms.IsUnixLike && !HasDisplayVariableSet())
+            if (GlobalUserInfo.PlatformInfo.IsUnixLike && !HasDisplayVariableSet())
             {
                 return Path.Combine("~", $"BAMM-Backup.{compression}");
             }
@@ -333,11 +333,11 @@ namespace BrowserAutomationMaster.Core.Common
 
         public static string GetProjectVEnvPythonPath(string ParentDirectory)
         {
-            if (Platforms.IsWindows) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "Scripts", "python.exe");
             }
 
-            if (Platforms.IsUnixLike) {
+            if (GlobalUserInfo.PlatformInfo.IsUnixLike) {
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "python3");
             }
 
@@ -347,11 +347,11 @@ namespace BrowserAutomationMaster.Core.Common
 
         public static string GetProjectVEnvPipPath(string ParentDirectory)
         {
-            if (Platforms.IsWindows) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "Scripts", "pip.exe");
             }
 
-            if (Platforms.IsUnixLike) {
+            if (GlobalUserInfo.PlatformInfo.IsUnixLike) {
                 return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "pip");
             }
 

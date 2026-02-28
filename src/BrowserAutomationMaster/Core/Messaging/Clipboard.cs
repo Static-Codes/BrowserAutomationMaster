@@ -6,7 +6,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using Windows.Win32;
 using Windows.Win32.Foundation;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Messaging
 {
@@ -228,11 +228,11 @@ namespace BrowserAutomationMaster.Core.Messaging
 
         public static bool TrySetText(string text)
         {
-            if (Platforms.IsWindows) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
                 Clipboard.Win.SetText(text);
-            } else if (Platforms.IsMacOS) {
+            } else if (GlobalUserInfo.PlatformInfo.IsMacOS) {
                 Clipboard.OSX.SetText(text);
-            } else if (Platforms.IsLinux) {
+            } else if (GlobalUserInfo.PlatformInfo.IsLinux) {
                 Clipboard.Linux.SetText(text);
             } else {
                 return false;

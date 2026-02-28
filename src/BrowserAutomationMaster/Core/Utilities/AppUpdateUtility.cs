@@ -1,18 +1,18 @@
 ﻿using BrowserAutomationMaster.Core.Common;
-using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
 using BrowserAutomationMaster.Core.Messaging;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.Types.Linux;
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.DistroManager;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static System.Runtime.InteropServices.Architecture;
-using BrowserAutomationMaster.Core.Types.Linux;
 
 namespace BrowserAutomationMaster.Core.Utilities
 {
@@ -126,7 +126,7 @@ namespace BrowserAutomationMaster.Core.Utilities
 
         private static void OpenLatestForWindows(string currentReleaseUri)
         {
-            string url = Platforms.CurrentArchitecture switch
+            string url = GlobalUserInfo.HardwareInformation.CurrentArchitecture switch
             {
                 Arm64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-ARM64-Setup.exe"),
                 X64 => Path.Combine(currentReleaseUri, $"BAMM-{LatestVersion}-x64-Setup.exe"),
@@ -155,7 +155,7 @@ namespace BrowserAutomationMaster.Core.Utilities
         {
             CheckLinuxDistro();
             
-            var invalidDistro = Platforms.CurrentDistribution!.Equals(Distros.Unknown);
+            var invalidDistro = GlobalUserInfo.PlatformInfo.CurrentDistribution!.Equals(Distros.Unknown);
 
             if (invalidDistro) {
                 WriteAndExit(
@@ -167,9 +167,9 @@ namespace BrowserAutomationMaster.Core.Utilities
             string? uri = null;
 
             // Handling Linux installations that are bundled as packages for the CurrentDistribution
-            if (Platforms.CurrentDistribution.InstallationType.Equals(InstallationType.Package))
+            if (GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallationType.Equals(InstallationType.Package))
             {
-                if (Platforms.CurrentDistribution.PackageType.Equals(PackageType.DEB)) 
+                if (GlobalUserInfo.PlatformInfo.CurrentDistribution.PackageType.Equals(PackageType.DEB)) 
                 {
                     uri = RuntimeInformation.ProcessArchitecture switch
                     {
@@ -180,7 +180,7 @@ namespace BrowserAutomationMaster.Core.Utilities
                     };
                 }
 
-                else if (Platforms.CurrentDistribution.PackageType.Equals(PackageType.RPM))
+                else if (GlobalUserInfo.PlatformInfo.CurrentDistribution.PackageType.Equals(PackageType.RPM))
                 {
                     uri = RuntimeInformation.ProcessArchitecture switch
                     {
@@ -232,15 +232,15 @@ namespace BrowserAutomationMaster.Core.Utilities
             {
                 string currentReleaseUri = Path.Combine(RELEASES_DOWNLOAD_LINK, LatestVersion);
 
-                if (Platforms.IsWindows) {
+                if (GlobalUserInfo.PlatformInfo.IsWindows) {
                     OpenLatestForWindows(currentReleaseUri);
                 }
 
-                else if (Platforms.IsMacOS) {
+                else if (GlobalUserInfo.PlatformInfo.IsMacOS) {
                     OpenLatestForMacOS(currentReleaseUri);
                 }
 
-                else if (Platforms.IsLinux) {
+                else if (GlobalUserInfo.PlatformInfo.IsLinux) {
                     OpenLatestForLinux(currentReleaseUri);
                 }
             }

@@ -4,9 +4,9 @@ using BrowserAutomationMaster.Core.Helpers;
 using BrowserAutomationMaster.Core.Messaging;
 using BrowserAutomationMaster.Core.Types.Linux;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
 {
@@ -23,7 +23,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
 
         public static void CheckLinuxDistro() 
         {
-            if (Platforms.CurrentDistribution != null) {
+            if (GlobalUserInfo.PlatformInfo.CurrentDistribution != null) {
                 return;
             }
             
@@ -45,7 +45,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
                 );
             }
 
-            Platforms.CurrentDistribution = (Distro)memberObject;
+            GlobalUserInfo.PlatformInfo.CurrentDistribution = (Distro)memberObject;
         }
 
         public static Distro DetermineDistro() 
@@ -130,8 +130,8 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             {
                 var psi = new ProcessStartInfo() 
                 {
-                    FileName = Platforms.CurrentDistribution!.QueryCommand,
-                    Arguments = $"{Platforms.CurrentDistribution.QueryArguments} {packageName}",
+                    FileName = GlobalUserInfo.PlatformInfo.CurrentDistribution!.QueryCommand,
+                    Arguments = $"{GlobalUserInfo.PlatformInfo.CurrentDistribution.QueryArguments} {packageName}",
                     RedirectStandardError = true,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
@@ -152,8 +152,8 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
                 
 
                 // If a keyword check is required.
-                if (status && !string.IsNullOrWhiteSpace(Platforms.CurrentDistribution!.InstallationKeyword)) {
-                    status = STDOut.Any(line => line.Contains(Platforms.CurrentDistribution!.InstallationKeyword));
+                if (status && !string.IsNullOrWhiteSpace(GlobalUserInfo.PlatformInfo.CurrentDistribution!.InstallationKeyword)) {
+                    status = STDOut.Any(line => line.Contains(GlobalUserInfo.PlatformInfo.CurrentDistribution!.InstallationKeyword));
                 }
 
                 return (status, ExitCode, STDOut, STDErr);

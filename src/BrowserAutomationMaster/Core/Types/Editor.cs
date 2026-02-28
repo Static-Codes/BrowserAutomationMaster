@@ -4,6 +4,7 @@ using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Types
 {    
@@ -17,12 +18,13 @@ namespace BrowserAutomationMaster.Core.Types
             @"C:\Windows\System32\notepad.exe", "/System/Applications/TextEdit.app", "vi"
         );
 
-        public static string GetDefaultEditorPath() {
-            return (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
-                (true, false, false) => DefaultEditor.Windows,
-                (false, true, false) => DefaultEditor.Mac,
-                (false, false, true) => DefaultEditor.Linux,
-                _ => throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms")
+        public static string GetDefaultEditorPath() 
+        {
+            return true switch {
+                _ when GlobalUserInfo.PlatformInfo.IsWindows => DefaultEditor.Windows,
+                _ when GlobalUserInfo.PlatformInfo.IsMacOS => DefaultEditor.Mac,
+                _ when GlobalUserInfo.PlatformInfo.IsLinux => DefaultEditor.Linux,
+                _ => throw new PlatformNotSupportedException("Failed to set all values for members in GlobalUserInfo.PlatformInfo")
             };
         }
 
@@ -71,20 +73,20 @@ namespace BrowserAutomationMaster.Core.Types
             string editorParams;
 
             // Determines the editor and its parameters based on platform and user setting
-            if (Platforms.IsWindows)
+            if (GlobalUserInfo.PlatformInfo.IsWindows)
             {
                 editor = !string.IsNullOrEmpty(EditorPath.Windows) ? EditorPath.Windows : DefaultEditor.Windows;
                 editorParams = !string.IsNullOrEmpty(EditorParams.Windows) ? EditorParams.Windows : string.Empty;
             }
 
-            else if (Platforms.IsMacOS)
+            else if (GlobalUserInfo.PlatformInfo.IsMacOS)
             {
                 // On macOS, the default 'open' command is used, and the editor is passed via the '-a' flag.
                 editor = !string.IsNullOrEmpty(EditorPath.Mac) ? EditorPath.Mac : DefaultEditor.Mac;
                 editorParams = !string.IsNullOrEmpty(EditorParams.Mac) ? EditorParams.Mac : string.Empty;
             }
 
-            else if (Platforms.IsLinux)
+            else if (GlobalUserInfo.PlatformInfo.IsLinux)
             {
                 editor = !string.IsNullOrEmpty(EditorPath.Linux) ? EditorPath.Linux : DefaultEditor.Linux;
                 editorParams = !string.IsNullOrEmpty(EditorParams.Linux) ? EditorParams.Linux : string.Empty;
@@ -92,12 +94,12 @@ namespace BrowserAutomationMaster.Core.Types
 
             else
             {
-                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in GlobalUserInfo.PlatformInfo");
             }
 
             ProcessStartInfo psi;
 
-            if (Platforms.IsWindows)
+            if (GlobalUserInfo.PlatformInfo.IsWindows)
             {
                 // Direct execution of the editor executable.
                 psi = new ProcessStartInfo
@@ -108,7 +110,7 @@ namespace BrowserAutomationMaster.Core.Types
                 };
             }
 
-            else if (Platforms.IsMacOS)
+            else if (GlobalUserInfo.PlatformInfo.IsMacOS)
             {
                 // Uses the 'open' command which launches .app bundles and handles path association.
                 psi = new ProcessStartInfo
@@ -125,7 +127,7 @@ namespace BrowserAutomationMaster.Core.Types
                 };
             }
 
-            else if (Platforms.IsLinux)
+            else if (GlobalUserInfo.PlatformInfo.IsLinux)
             {
                 var textBasedEditors = new string[4] {"helix", "nano", "vi", "xed"};
 
@@ -142,7 +144,7 @@ namespace BrowserAutomationMaster.Core.Types
 
             else
             {
-                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in GlobalUserInfo.PlatformInfo");
             }
             
             // Debug only do NOT leave in production release.

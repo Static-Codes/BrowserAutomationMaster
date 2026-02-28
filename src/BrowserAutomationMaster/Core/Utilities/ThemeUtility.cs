@@ -3,8 +3,8 @@ using BrowserAutomationMaster.Core.Types;
 using System.Drawing;
 using static BrowserAutomationMaster.Core.Common.ANSI;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Utilities
 {
@@ -45,7 +45,7 @@ namespace BrowserAutomationMaster.Core.Utilities
         {
             try
             {
-                if (!Platforms.IsLinux || Platforms.IsChromeOS || Platforms.IsRaspi) {
+                if (!GlobalUserInfo.PlatformInfo.IsLinux || GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalUserInfo.PlatformInfo.IsRaspi) {
                     return LightTheme;
                 }
 

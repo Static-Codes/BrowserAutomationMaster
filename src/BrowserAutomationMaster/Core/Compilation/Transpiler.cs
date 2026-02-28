@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Core.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
@@ -20,6 +19,7 @@ using static BrowserAutomationMaster.Core.Python.Runtime;
 using static BrowserAutomationMaster.Core.Python.WheelManager;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Core.Utilities.UserAgentUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Compilation
 {
@@ -136,7 +136,7 @@ namespace BrowserAutomationMaster.Core.Compilation
 
 
             // ARMv7 (ARMel + ARMhf) Specific Packages (Precompiled Wheels for each Architecture)
-            if (Platforms.IsARMel || Platforms.IsARMhf) {
+            if (GlobalUserInfo.PlatformInfo.IsARMel || GlobalUserInfo.PlatformInfo.IsARMhf) {
                 script.AddRequirementPackages(GetRequirementStrings());
             }
 
@@ -333,7 +333,7 @@ namespace BrowserAutomationMaster.Core.Compilation
             var availableMemory = memoryInfo.Value.FreeMemory;
 
             if (!usingBrowserstack) {
-                usingBrowserstack = Platforms.IsChromeOS || GlobalSettings.UseBrowserstack || Platforms.IsRaspi && availableMemory < 2048;
+                usingBrowserstack = GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalSettings.UseBrowserstack || GlobalUserInfo.PlatformInfo.IsRaspi && availableMemory < 2048;
             }
         }
 

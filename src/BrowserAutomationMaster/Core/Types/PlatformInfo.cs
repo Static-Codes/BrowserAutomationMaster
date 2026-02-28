@@ -17,7 +17,6 @@ namespace BrowserAutomationMaster.Core.Types
         public bool IsUnixLike { get; set; } // Linux + OSX
 
         public Distro? CurrentDistribution = null;
-        public Architecture CurrentArchitecture { get; private set; } = RuntimeInformation.OSArchitecture;
         public KeyValuePair<string, bool>? RaspiModelInfo { get; set; }
 
         public string GetRaspiModelName()
@@ -33,7 +32,6 @@ namespace BrowserAutomationMaster.Core.Types
             return RaspiModelInfo.Value.Key;
         }
 
-        public bool IsSupportedArchitecture() => ValidArchitectures.Contains(CurrentArchitecture);
         
         public void SetRaspiModel(string Name, bool SupportsGUI)
         {

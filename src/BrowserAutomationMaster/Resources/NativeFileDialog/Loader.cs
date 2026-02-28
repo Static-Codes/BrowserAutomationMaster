@@ -3,6 +3,7 @@ using BrowserAutomationMaster.Core.Messaging;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Utilities.LibraryUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Resources.NativeFileDialog
 {
@@ -13,7 +14,7 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
 
         private static readonly Architecture[] supportedArchitectures = ValidArchitectures[1..]; // This returns X64 and ARM64
         
-        public static bool NFDIsCallable() => supportedArchitectures.Contains(Platforms.CurrentArchitecture);
+        public static bool NFDIsCallable() => supportedArchitectures.Contains(GlobalUserInfo.HardwareInformation.CurrentArchitecture);
 
         // <summary>
         // Writes the appropriate NativeFileDialog library to a temp file on disk.
@@ -34,7 +35,7 @@ namespace BrowserAutomationMaster.Resources.NativeFileDialog
                 return;
             }
 
-            var libName =  (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
+            var libName =  (GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsMacOS, GlobalUserInfo.PlatformInfo.IsLinux) switch {
                 (true, _, _) => "nfd",
                 (_, true, _) => "libnfd",
                 (_, _, true) => "libnfd",

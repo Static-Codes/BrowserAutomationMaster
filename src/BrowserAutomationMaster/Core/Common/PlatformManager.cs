@@ -19,10 +19,8 @@ namespace BrowserAutomationMaster.Core.Common
             Arm64, // ARMv8 (64 bit)
             X64, // x86-64 (64 bit)
         ];
-
-        public static PlatformInfo Platforms { get; private set; } = new PlatformInfo();
         
-        public static void SetPlatform()
+        public static void SetPlatform(UserInfo UserInfo)
         {
 
             // Checks if ChromeOS is in use.
@@ -34,14 +32,14 @@ namespace BrowserAutomationMaster.Core.Common
             // Checks if a Raspberry Pi is in use.
             RaspberryPiCheck();
 
-
-            if (!Platforms.IsSupportedArchitecture())
+            
+            if (!UserInfo.HardwareInformation.IsSupportedArchitecture())
             {
                 WriteAndExit(
                     message:
                         string.Join(NLC, [
                             "You're attempting to run BAM Manager (BAMM) on an unsupported CPU Architecture.",
-                            $"Current Architecture: {Platforms.CurrentArchitecture}",
+                            $"Current Architecture: {UserInfo.HardwareInformation.CurrentArchitecture}",
                             NLC,
                             "Supported Architectures:",
                             $"{string.Join(NLC, ValidArchitectures)}"
@@ -52,24 +50,24 @@ namespace BrowserAutomationMaster.Core.Common
 
 
             if (Runtime.IsSupportedWindowsVersion()) {
-                Platforms.IsWindows = true;
+                UserInfo.PlatformInfo.IsWindows = true;
             }
 
             else if (Runtime.IsSupportedOSXVersion())
             {
-                Platforms.IsMacOS = true;
-                Platforms.IsUnixLike = true;
+                UserInfo.PlatformInfo.IsMacOS = true;
+                UserInfo.PlatformInfo.IsUnixLike = true;
             }
 
             else if (OperatingSystem.IsLinux())
             {
-                Platforms.IsLinux = true;
-                Platforms.IsUnixLike = true;
-                Platforms.CurrentDistribution = DistroManager.DetermineDistro();
+                UserInfo.PlatformInfo.IsLinux = true;
+                UserInfo.PlatformInfo.IsUnixLike = true;
+                UserInfo.PlatformInfo.CurrentDistribution = DistroManager.DetermineDistro();
             }
 
             // Acts a fallthrough so the exception below is not thrown.
-            else if (Platforms.IsRaspi) {
+            else if (UserInfo.PlatformInfo.IsRaspi) {
                 return;
             }
 
@@ -87,7 +85,7 @@ namespace BrowserAutomationMaster.Core.Common
                 );
             }
 
-            if (Platforms.CurrentArchitecture is Arm64)
+            if (UserInfo.HardwareInformation.CurrentArchitecture is Arm64)
             {
                 Warning.Write(
                     string.Join("", [

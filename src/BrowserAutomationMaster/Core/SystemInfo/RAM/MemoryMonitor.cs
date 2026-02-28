@@ -8,9 +8,9 @@ using System.Runtime.Versioning;
 using Windows.Win32.System.SystemInformation;
 using Windows.Win32;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.SystemInfo.RAM
 {
@@ -23,9 +23,9 @@ namespace BrowserAutomationMaster.Core.SystemInfo.RAM
         {
             return true switch
             {
-                _ when Platforms.IsWindows => CheckForWindows(),
-                _ when Platforms.IsMacOS => await CheckForOSX(),
-                _ when Platforms.IsLinux => CheckForLinux(),
+                _ when GlobalUserInfo.PlatformInfo.IsWindows => CheckForWindows(),
+                _ when GlobalUserInfo.PlatformInfo.IsMacOS => await CheckForOSX(),
+                _ when GlobalUserInfo.PlatformInfo.IsLinux => CheckForLinux(),
                 _ => null
             };
         }
@@ -333,7 +333,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.RAM
             // Setting cache index for use below.
             // On Linux, cache is the 6th entry (5th index) on the second line of the output from the 'free' command.
             // On MacOS, cache is the 5th entry (4th index) on the second line of the output from the 'free-for-macOS' binary.
-            var cacheIndex = Platforms.IsLinux ? 5 : 4;
+            var cacheIndex = GlobalUserInfo.PlatformInfo.IsLinux ? 5 : 4;
 
             // Assigning a flag that will be tested below to determine if the cached RAM amount should be queried.
             var checkCache = true;
@@ -400,9 +400,9 @@ namespace BrowserAutomationMaster.Core.SystemInfo.RAM
             var adjustedFreeMem = freeMem + cacheMem;
 
             // OSX Specific logic, since OSX reports in bytes unlike linux which reports in mebibytes
-            totalMem = Platforms.IsMacOS ? totalMem / 1024 : totalMem;
-            usedMem = Platforms.IsMacOS ? usedMem / 1024 : usedMem;
-            adjustedFreeMem = Platforms.IsMacOS ? adjustedFreeMem / 1024 : adjustedFreeMem;
+            totalMem = GlobalUserInfo.PlatformInfo.IsMacOS ? totalMem / 1024 : totalMem;
+            usedMem = GlobalUserInfo.PlatformInfo.IsMacOS ? usedMem / 1024 : usedMem;
+            adjustedFreeMem = GlobalUserInfo.PlatformInfo.IsMacOS ? adjustedFreeMem / 1024 : adjustedFreeMem;
 
             return (totalMem, usedMem, adjustedFreeMem);
         }

@@ -4,12 +4,11 @@ using System.Diagnostics;
 using System.Text;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Compilation.Transpiler;
-using static BrowserAutomationMaster.Core.Python.BrowserStack.Instance;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
-
+using static BrowserAutomationMaster.Core.Python.BrowserStack.Instance;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Python
 {
@@ -32,8 +31,8 @@ namespace BrowserAutomationMaster.Core.Python
             return Path.Combine(
                 // Null forgiveness is used here due to the coalesce operation above. 
                 GetProjectVEnvPath(ParentDirectory!), 
-                Platforms.IsUnixLike ? "bin" : "Scripts",
-                Platforms.IsUnixLike ? "browserstack-sdk" : "browserstack-sdk.exe"
+                GlobalUserInfo.PlatformInfo.IsUnixLike ? "bin" : "Scripts",
+                GlobalUserInfo.PlatformInfo.IsUnixLike ? "browserstack-sdk" : "browserstack-sdk.exe"
             );
         }
 
@@ -212,19 +211,19 @@ namespace BrowserAutomationMaster.Core.Python
                 throw new ArgumentException("ParentDirectory == null");
             }
 
-            if (Platforms.IsWindows || Platforms.IsRaspi) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows || GlobalUserInfo.PlatformInfo.IsRaspi) {
                 return $"\"{ScriptFilePath}\"";
             }
 
-            if (Platforms.IsARMel || Platforms.IsARMhf) {
+            if (GlobalUserInfo.PlatformInfo.IsARMel || GlobalUserInfo.PlatformInfo.IsARMhf) {
                 return $"-c \"source '{Path.Combine(ParentDirectory, "venv", "bin", "activate")}'";
             }
 
-            if (Platforms.IsLinux) {
+            if (GlobalUserInfo.PlatformInfo.IsLinux) {
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && python3 '{ScriptFilePath}'\"";
             }
 
-            if (Platforms.IsMacOS) {
+            if (GlobalUserInfo.PlatformInfo.IsMacOS) {
                 return $"-c \"source '{ParentDirectory}/venv/bin/activate' && '{pythonPath}' '{ScriptFilePath}'";
             }
 
@@ -349,7 +348,7 @@ namespace BrowserAutomationMaster.Core.Python
             await InstallProjectPackages();
             await Task.Delay(1000);
 
-            if (Platforms.IsChromeOS || GetBrowserStackStatus() || usingBrowserStack) {
+            if (GlobalUserInfo.PlatformInfo.IsChromeOS || GetBrowserStackStatus() || usingBrowserStack) {
                 await RunScriptWithBrowserStack();
             }
 
@@ -402,7 +401,7 @@ namespace BrowserAutomationMaster.Core.Python
                 WorkingDirectory = ParentDirectory,
             };
 
-            executablePath = Platforms.IsUnixLike ? "/bin/bash" : executablePath;
+            executablePath = GlobalUserInfo.PlatformInfo.IsUnixLike ? "/bin/bash" : executablePath;
 
             SetProcessFileName(ref psi, useCMD: false, fileName: executablePath);
 
@@ -569,7 +568,7 @@ namespace BrowserAutomationMaster.Core.Python
                 WriteAndExit("A fileName param must be specified for SetProcessFileName when useShell = false", 1);
             }
 
-            psi.FileName = (Platforms.IsWindows, Platforms.IsUnixLike, useCMD) switch 
+            psi.FileName = (GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsUnixLike, useCMD) switch 
             {
                 (true, false, true) => "cmd.exe",
                 (false, true, true) => psi.FileName = "/bin/bash",

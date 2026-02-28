@@ -1,8 +1,8 @@
 ﻿using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 namespace BrowserAutomationMaster.Core.Python
 {
@@ -62,7 +62,7 @@ namespace BrowserAutomationMaster.Core.Python
         {
 
             var baseDir = GetPythonWheelDirectory();
-            var platformName = Platforms.IsARMhf ? "armhf" : "generic";
+            var platformName = GlobalUserInfo.PlatformInfo.IsARMhf ? "armhf" : "generic";
             var platformWheelDir = Path.Combine(baseDir, platformName);
 
 
@@ -112,12 +112,12 @@ namespace BrowserAutomationMaster.Core.Python
         private static Wheel PSUtilARMhf = new("PSUtil for ARMhf", "psutil-7.1.3-cp36-abi3-linux_armv7l.whl", "generic");
         
         // The first 3 wheels are downloaded for both generic ARMv7 and ARMhf
-        // The PSUtil wheel differs between platforms.
+        // The PSUtil wheel differs between GlobalUserInfo.PlatformInfo.
         public static readonly Wheel[] ArmWheels = [
             BrotliARMv7,
             CFFIARMv7,
             ZSTDARMv7,
-            Platforms.IsARMhf ? PSUtilARMhf : PSUtilARMv7,
+            GlobalUserInfo.PlatformInfo.IsARMhf ? PSUtilARMhf : PSUtilARMv7,
         ];
 
         public static async Task DownloadWheels()

@@ -24,6 +24,7 @@ using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Parsing.Parser;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static BrowserAutomationMaster.Resources.CpuInfoSharp.Loader;
 using static BrowserAutomationMaster.Resources.NativeFileDialog.Loader;
 
@@ -36,7 +37,7 @@ namespace BrowserAutomationMaster
         public static async Task InitializeAsync(string[] args)
         {
             // Sets PlatformManager.PlatformName to be used across the session duration.
-            SetPlatform();
+            SetPlatform(GlobalUserInfo);
 
             // BUG FIXED: DO NOT CHANGE POSITION
             // If GlobalSettings is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
@@ -50,7 +51,7 @@ namespace BrowserAutomationMaster
 
             #pragma warning disable CA1416 // Handled by SetPlatforms()
 
-            if (Platforms.IsWindows) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
                 Win.VerifyRootDrive();
             }
 
@@ -104,24 +105,24 @@ namespace BrowserAutomationMaster
             {
                 Warning.Write(string.Join(NLC, [
                     "---------------- PLATFORM CLASS DEBUG INFO ----------------",
-                    $"IsARMel: {Platforms.IsARMel}",
-                    $"IsARMhf: {Platforms.IsARMhf}",
-                    $"IsChromeOS: {Platforms.IsChromeOS}",
-                    $"IsLinux: {Platforms.IsLinux}",
-                    $"IsMacOS: {Platforms.IsMacOS}",
-                    $"IsRaspi: {Platforms.IsRaspi}",
-                    $"Raspi Model: {Platforms.GetRaspiModelName()}",
-                    $"IsUnixLike: {Platforms.IsUnixLike}",
-                    $"IsWindows: {Platforms.IsWindows}",
+                    $"IsARMel: {GlobalUserInfo.PlatformInfo.IsARMel}",
+                    $"IsARMhf: {GlobalUserInfo.PlatformInfo.IsARMhf}",
+                    $"IsChromeOS: {GlobalUserInfo.PlatformInfo.IsChromeOS}",
+                    $"IsLinux: {GlobalUserInfo.PlatformInfo.IsLinux}",
+                    $"IsMacOS: {GlobalUserInfo.PlatformInfo.IsMacOS}",
+                    $"IsRaspi: {GlobalUserInfo.PlatformInfo.IsRaspi}",
+                    $"Raspi Model: {GlobalUserInfo.PlatformInfo.GetRaspiModelName()}",
+                    $"IsUnixLike: {GlobalUserInfo.PlatformInfo.IsUnixLike}",
+                    $"IsWindows: {GlobalUserInfo.PlatformInfo.IsWindows}",
                     NLC, 
                     NLC,
                 ]));
             }
 
-            if (Platforms.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
+            if (GlobalUserInfo.PlatformInfo.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
                 Console.WriteLine("====================================");
-                Console.WriteLine($"$DISPLAY Set: {Platforms.CurrentDistribution?.DisplayServer != DisplayServer.None}");
-                Console.WriteLine($"Active Server: {Platforms.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}");
+                Console.WriteLine($"$DISPLAY Set: {GlobalUserInfo.PlatformInfo.CurrentDistribution?.DisplayServer != DisplayServer.None}");
+                Console.WriteLine($"Active Server: {GlobalUserInfo.PlatformInfo.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}");
                 Console.WriteLine("===================================={0}{1}", NLC, NLC);
             }
 
@@ -146,7 +147,7 @@ namespace BrowserAutomationMaster
 
             if (pArgs.Any(arg => arg.Equals("--show-distro"))) 
             {
-                var distro = Platforms.CurrentDistribution ?? Distros.Unknown;
+                var distro = GlobalUserInfo.PlatformInfo.CurrentDistribution ?? Distros.Unknown;
                 WriteSuccessMessage(distro.ToString());
             }
             

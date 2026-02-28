@@ -3,10 +3,11 @@ using BrowserAutomationMaster.Core.Messaging;
 using BrowserAutomationMaster.Core.SystemInfo.OS.Generic;
 using BrowserAutomationMaster.Core.Types;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Input;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
+
 namespace BrowserAutomationMaster.Core.Utilities
 {
 
@@ -22,21 +23,21 @@ namespace BrowserAutomationMaster.Core.Utilities
                 Warning.Write("BAM Manager (BAMM) was unable to locate any supported text editors, defaulting to platform default.");
                 
                 var editorNames = (
-                    Platforms.IsWindows ? "Notepad" : "",
-                    Platforms.IsMacOS ? "TextEdit" : "",
-                    Platforms.IsLinux ? "Vim" : ""
+                    GlobalUserInfo.PlatformInfo.IsWindows ? "Notepad" : "",
+                    GlobalUserInfo.PlatformInfo.IsMacOS ? "TextEdit" : "",
+                    GlobalUserInfo.PlatformInfo.IsLinux ? "Vim" : ""
                 );
 
                 var editorPaths = (
-                    Platforms.IsWindows ? defaultEditorPath : "",
-                    Platforms.IsMacOS ? defaultEditorPath : "",
-                    Platforms.IsLinux ? defaultEditorPath : ""
+                    GlobalUserInfo.PlatformInfo.IsWindows ? defaultEditorPath : "",
+                    GlobalUserInfo.PlatformInfo.IsMacOS ? defaultEditorPath : "",
+                    GlobalUserInfo.PlatformInfo.IsLinux ? defaultEditorPath : ""
                 );
 
                 return new Editor()
                 { 
                     Names = editorNames,
-                    Supports = (Platforms.IsWindows, Platforms.IsWindows, Platforms.IsWindows),
+                    Supports = (GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsWindows),
                     EditorPath = editorPaths,
                     // EditorParams = ("", "", "")
                 };
@@ -62,31 +63,31 @@ namespace BrowserAutomationMaster.Core.Utilities
                     ])
                 );
                 var editorNames = (
-                    Platforms.IsWindows ? "Notepad" : "",
-                    Platforms.IsMacOS ? "TextEdit" : "",
-                    Platforms.IsLinux ? "Xed" : ""
+                    GlobalUserInfo.PlatformInfo.IsWindows ? "Notepad" : "",
+                    GlobalUserInfo.PlatformInfo.IsMacOS ? "TextEdit" : "",
+                    GlobalUserInfo.PlatformInfo.IsLinux ? "Xed" : ""
                 );
 
                 var editorPaths = (
-                    Platforms.IsWindows ? defaultEditorPath : "",
-                    Platforms.IsMacOS ? defaultEditorPath : "",
-                    Platforms.IsLinux ? defaultEditorPath : ""
+                    GlobalUserInfo.PlatformInfo.IsWindows ? defaultEditorPath : "",
+                    GlobalUserInfo.PlatformInfo.IsMacOS ? defaultEditorPath : "",
+                    GlobalUserInfo.PlatformInfo.IsLinux ? defaultEditorPath : ""
                 );
 
                 return new Editor()
                 { 
                     Names = editorNames,
-                    Supports = (Platforms.IsWindows, Platforms.IsWindows, Platforms.IsWindows),
+                    Supports = (GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsWindows),
                     EditorPath = editorPaths,
                     // EditorParams = ("", "", "")
                 };
             }
 
-            var path = (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
+            var path = (GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsMacOS, GlobalUserInfo.PlatformInfo.IsLinux) switch {
                 (true, false, false) => (chosenEditor.Value.Value, "", ""),
                 (false, true, false) => (chosenEditor.Value.Value, "", ""),
                 (false, false, true) => (chosenEditor.Value.Value, "", ""),
-                _ => throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms")
+                _ => throw new PlatformNotSupportedException("Failed to set all values for members in GlobalUserInfo.PlatformInfo")
             };
             
             // Will either return an Editor object, or throw an exception.
@@ -112,11 +113,11 @@ namespace BrowserAutomationMaster.Core.Utilities
         
         private static Dictionary<string, string> GetSupportedEditors() 
         {
-            return (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
+            return (GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsMacOS, GlobalUserInfo.PlatformInfo.IsLinux) switch {
                 (true, false, false) => GetSupportedWindowsEditors(),
                 (false, true, false) => GetSupportedMacEditors(),
                 (false, false, true) => GetSupportedLinuxEditors(),
-                _ => throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms")
+                _ => throw new PlatformNotSupportedException("Failed to set all values for members in GlobalUserInfo.PlatformInfo")
             };
         }
 

@@ -3,9 +3,9 @@ using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using BrowserAutomationMaster.Core.Parsing;
 using BrowserAutomationMaster.Core.SystemInfo.CPU;
 using System.Reflection;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Python.Runtime;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static BrowserAutomationMaster.Resources.NativeFileDialog.Loader;
 
 namespace BrowserAutomationMaster.Core.Messaging
@@ -56,7 +56,7 @@ namespace BrowserAutomationMaster.Core.Messaging
             }
 
 
-            if (Platforms.IsWindows)
+            if (GlobalUserInfo.PlatformInfo.IsWindows)
             {
                 var windowsVersion = Environment.OSVersion.Version.Build >= 22000 ? "11" : "10";
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
@@ -71,12 +71,12 @@ namespace BrowserAutomationMaster.Core.Messaging
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: {ProcessorInfo.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
-                    CPU Architecture: {Platforms.CurrentArchitecture}
+                    CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }
 
-            else if (Platforms.IsMacOS)
+            else if (GlobalUserInfo.PlatformInfo.IsMacOS)
             {
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
                     macOS Version: {MacOS.GetMacOSVersion()}
@@ -90,12 +90,12 @@ namespace BrowserAutomationMaster.Core.Messaging
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: {ProcessorInfo.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
-                    CPU Architecture: {Platforms.CurrentArchitecture}
+                    CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }
 
-            else if (Platforms.IsLinux)
+            else if (GlobalUserInfo.PlatformInfo.IsLinux)
             {
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
                     Distro Name: {GetFullDistroName()}
@@ -106,11 +106,11 @@ namespace BrowserAutomationMaster.Core.Messaging
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
                     NFD Callable: {NFDIsCallable()}
-                    Display Server: {Platforms.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}
+                    Display Server: {GlobalUserInfo.PlatformInfo.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: {ProcessorInfo.GetCPUName()}
                     CPU Core Count: {GetCoreCount()}
-                    CPU Architecture: {Platforms.CurrentArchitecture}
+                    CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }
@@ -127,7 +127,7 @@ namespace BrowserAutomationMaster.Core.Messaging
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: Unknown
                     CPU Core Count: {GetCoreCount()}
-                    CPU Architecture: {Platforms.CurrentArchitecture}
+                    CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
             }

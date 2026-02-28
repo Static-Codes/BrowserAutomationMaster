@@ -2,8 +2,8 @@ using BrowserAutomationMaster.Core.Messaging;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static System.Runtime.InteropServices.Architecture;
 
 namespace BrowserAutomationMaster.Core.Utilities 
@@ -29,7 +29,7 @@ namespace BrowserAutomationMaster.Core.Utilities
 
         public static string GetFullLibraryFileName(string libName) {
 
-            var extension = (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch
+            var extension = (GlobalUserInfo.PlatformInfo.IsWindows, GlobalUserInfo.PlatformInfo.IsMacOS, GlobalUserInfo.PlatformInfo.IsLinux) switch
             {
                 (true, _, _) => "dll",
                 (_, true, _) => "dylib",
@@ -43,7 +43,7 @@ namespace BrowserAutomationMaster.Core.Utilities
 
         public static string GetRID() 
         {
-            var arch = Platforms.CurrentArchitecture switch {
+            var arch = GlobalUserInfo.HardwareInformation.CurrentArchitecture switch {
                 X64 => "x64",
                 Arm64 => "arm64",
                 Arm => "arm",
@@ -52,10 +52,10 @@ namespace BrowserAutomationMaster.Core.Utilities
                 )
             };
 
-            var platform = (Platforms.IsWindows, Platforms.IsMacOS, Platforms.IsLinux) switch {
-                (true, _, _) => "win",
-                (_, true, _) => "osx",
-                (_, _, true) => "linux",
+            var platform = true switch {
+                _ when GlobalUserInfo.PlatformInfo.IsWindows => "win",
+                _ when GlobalUserInfo.PlatformInfo.IsMacOS => "osx",
+                _ when GlobalUserInfo.PlatformInfo.IsLinux => "linux",
                 _ => throw new PlatformNotSupportedException(
                     "No supported OS found in GetRID(), Please ensure SetPlatforms() was successfully executed."
                 )

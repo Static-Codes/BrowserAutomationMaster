@@ -1,24 +1,24 @@
 ﻿
 using BrowserAutomationMaster.Core.Common;
+using BrowserAutomationMaster.Core.Helpers;
 using BrowserAutomationMaster.Core.Messaging;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using Photino.NET;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.GUI.BackendFunctions;
 using static BrowserAutomationMaster.Core.GUI.Response;
 using static BrowserAutomationMaster.Core.Python.Runtime;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static BrowserAutomationMaster.ProgramFunctions;
 using static System.Text.Encoding;
-using Photino.NET;
-using BrowserAutomationMaster.Core.Helpers;
 
 namespace BrowserAutomationMaster.Core.GUI
 {
@@ -73,16 +73,16 @@ namespace BrowserAutomationMaster.Core.GUI
 
         public static (string name, string args) GetProcessNameAndArgs(bool scan = false)
         {
-            if (scan && Platforms.IsChromeOS || Platforms.IsUnixLike) { 
+            if (scan && GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalUserInfo.PlatformInfo.IsUnixLike) { 
                 return ("netstat", "-ltu");
             }
 
-            else if (scan && Platforms.IsWindows) {
+            else if (scan && GlobalUserInfo.PlatformInfo.IsWindows) {
                 return ("cmd.exe", "/c netstat -ano");
             }
 
             else
-                throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
+                throw new PlatformNotSupportedException("Failed to set all values for members in GlobalUserInfo.PlatformInfo");
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace BrowserAutomationMaster.Core.GUI
                 return [];
             }
 
-            if (Platforms.IsWindows)
+            if (GlobalUserInfo.PlatformInfo.IsWindows)
             {
                 return groups
                     .Values
@@ -108,7 +108,7 @@ namespace BrowserAutomationMaster.Core.GUI
                     );
             }
 
-            if (Platforms.IsUnixLike || Platforms.IsChromeOS)
+            if (GlobalUserInfo.PlatformInfo.IsUnixLike || GlobalUserInfo.PlatformInfo.IsChromeOS)
             {
                 return groups.Values
                     .Where(val => 
@@ -117,7 +117,7 @@ namespace BrowserAutomationMaster.Core.GUI
                     );
             }
             
-            throw new PlatformNotSupportedException("Failed to set all values for members in PlatformInfo.Platforms");
+            throw new PlatformNotSupportedException("Failed to set all values for members in GlobalUserInfo.PlatformInfo");
         }
 
         public static async Task HandleEndpointRequests()

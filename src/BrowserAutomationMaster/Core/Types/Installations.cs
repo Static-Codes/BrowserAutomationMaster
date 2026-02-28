@@ -2,9 +2,9 @@ using BrowserAutomationMaster.Core.Common;
 using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.PlatformManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using BrowserAutomationMaster.Core.SystemInfo.OS.Generic;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 
 namespace BrowserAutomationMaster.Core.Types
@@ -90,7 +90,7 @@ namespace BrowserAutomationMaster.Core.Types
             }
             
             // Arch specific case (May also work for UnixLike machines that are unconventional)
-            if (app.Name.Equals("python") && Platforms.IsLinux)  {
+            if (app.Name.Equals("python") && GlobalUserInfo.PlatformInfo.IsLinux)  {
                 HandleArchLinuxPythonCheck();
             }
 
@@ -118,7 +118,7 @@ namespace BrowserAutomationMaster.Core.Types
 
             // Unix Specific Recursive Case
             // To prevent an infinite loop, version must have a value to continue
-            else if (Platforms.IsUnixLike && version != null && GetEnumMemberFromString(version, out AppNames appName2)) {
+            else if (GlobalUserInfo.PlatformInfo.IsUnixLike && version != null && GetEnumMemberFromString(version, out AppNames appName2)) {
                 Add(appName2);
             }
 
@@ -154,7 +154,7 @@ namespace BrowserAutomationMaster.Core.Types
                 WriteAndExit(NoBrowsersMessage, 1);
             }
 
-            if (!AppNames.Intersect(validPythonVersions).Any() && !Platforms.IsChromeOS) {
+            if (!AppNames.Intersect(validPythonVersions).Any() && !GlobalUserInfo.PlatformInfo.IsChromeOS) {
                 WriteAndExit(NoPythonMessage, 1);
             }
         }
@@ -167,7 +167,7 @@ namespace BrowserAutomationMaster.Core.Types
 
         public static string GetMissingPythonVersion(string pythonVar = "python3")
         {
-            if (!Platforms.IsUnixLike) {
+            if (!GlobalUserInfo.PlatformInfo.IsUnixLike) {
                 return string.Empty;
             }
 

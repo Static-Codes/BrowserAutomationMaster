@@ -20,9 +20,11 @@ namespace BrowserAutomationMaster.Resources.CpuInfoSharp
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial IntPtr cpuinfo_get_cores(); // Used in GetCoreCount
 
-        [LibraryImport(ResolvedName, EntryPoint = "cpuinfo_get_packages")]
+        [DllImport(ResolvedName, EntryPoint = "cpuinfo_get_packages")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial uint cpuinfo_get_packages(); // Used in GetCoreCount
+
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(cpuinfo_package))]
+        public static extern IntPtr cpuinfo_get_packages(); // Used in GetCoreCount
 
     }
 }
