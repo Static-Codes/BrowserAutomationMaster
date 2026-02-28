@@ -347,22 +347,20 @@ namespace BrowserAutomationMaster.Core.GUI
                     throw new HttpListenerException(1, "Access is denied");
                 }
 
-                var memoryInfo = GetMemoryInfo();
-
                 // Coalesce operator will break the current logic implementation, as such this warning can be ignored.
                 #pragma warning disable IDE0270
-                if (memoryInfo == null)
+                if (GlobalUserInfo.HardwareInformation.MemoryInfo == null)
                 {
                     throw new InsufficientMemoryException("Unable to determine available system memory, as such the GUI could not be loaded.");
                 }
                 #pragma warning restore IDE0270
 
-                if (memoryInfo.Value.TotalMemory < MINIMUM_GUI_MEMORY_MB){
+                if (GlobalUserInfo.HardwareInformation.MemoryInfo.Value.TotalMemory < MINIMUM_GUI_MEMORY_MB){
                     throw new InsufficientMemoryException("Your system currently has less than 2GB of total RAM as such the GUI could not be loaded.");
                 }
 
 
-                if (memoryInfo.Value.FreeMemory < MINIMUM_GUI_MEMORY_MB / 2){
+                if (GlobalUserInfo.HardwareInformation.MemoryInfo.Value.FreeMemory < MINIMUM_GUI_MEMORY_MB / 2){
                     throw new InsufficientMemoryException("Your system currently has less than 1GB of free RAM as such the GUI could not be loaded.");
                 }
                 

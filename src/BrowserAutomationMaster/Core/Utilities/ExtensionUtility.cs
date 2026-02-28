@@ -12,6 +12,7 @@ using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Input;
 using static BrowserAutomationMaster.Core.Messaging.Success;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 
 
 namespace BrowserAutomationMaster.Core.Utilities
@@ -864,7 +865,7 @@ namespace BrowserAutomationMaster.Core.Utilities
             // 8MB chunks on lower end systems
             var assignedChunkSize = totalBufferSize <= chunkSize1 * 10 ? totalBufferSize : chunkSize8;
 
-            var memoryInfo = Runtime.GetMemoryInfo();
+            var memoryInfo = GlobalUserInfo.HardwareInformation.MemoryInfo;
 
             var useLowChunkBuffer = 
                 memoryInfo.HasValue && 

@@ -41,13 +41,13 @@ namespace BrowserAutomationMaster.Core.Messaging
 
         public static string GetPlatformInfoForErrorLog()
         {
-            var rawMemoryInfo = GetMemoryInfo();
+            // var rawMemoryInfo = GlobalUserInfo.HardwareInformation.MemoryInfo;
             var totalMemoryAmount = "Unknown";
             var freeMemoryAmount = "Unknown";
 
 
             // Sanitizes rawMemoryInfo via pattern matching, modifies totalMemoryAmount and freeMemoryAmount
-            if (rawMemoryInfo is {
+            if (GlobalUserInfo.HardwareInformation.MemoryInfo is {
                 TotalMemory: not null,
                 FreeMemory: not null
             } memoryInfo){ 
