@@ -58,7 +58,7 @@ namespace BrowserAutomationMaster.Core.Messaging
             if (GlobalUserInfo.PlatformInfo.IsWindows)
             {
                 var windowsVersion = Environment.OSVersion.Version.Build >= 22000 ? "11" : "10";
-                return @$"---------------- PLATFORM DEBUG INFO ----------------
+                return @$"---------------- APPLICATION DEBUG INFO ----------------
                     Windows Version: {windowsVersion} (Build {Environment.OSVersion.Version.Build})
                     Platform: {Environment.OSVersion.Platform}
                     Current Dir: {Environment.CurrentDirectory}
@@ -79,7 +79,7 @@ namespace BrowserAutomationMaster.Core.Messaging
 
             else if (GlobalUserInfo.PlatformInfo.IsMacOS)
             {
-                return @$"---------------- PLATFORM DEBUG INFO ----------------
+                return @$"---------------- APPLICATION DEBUG INFO ----------------
                     macOS Version: {MacOS.GetMacOSVersion()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
                     Current Dir: {Environment.CurrentDirectory}
@@ -100,7 +100,7 @@ namespace BrowserAutomationMaster.Core.Messaging
 
             else if (GlobalUserInfo.PlatformInfo.IsLinux)
             {
-                return @$"---------------- PLATFORM DEBUG INFO ----------------
+                return @$"---------------- APPLICATION DEBUG INFO ----------------
                     Distro Name: {GetFullDistroName()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
                     Display Server: {GlobalUserInfo.PlatformInfo.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}
@@ -122,7 +122,8 @@ namespace BrowserAutomationMaster.Core.Messaging
             else
             {
 
-                return @$"Platform: {Environment.OSVersion.Platform}
+                return @$"---------------- PLATFORM DEBUG INFO ----------------
+                    Platform: {Environment.OSVersion.Platform}
                     Current Dir: {Environment.CurrentDirectory}
                     Application Dir: {AppContext.BaseDirectory}
                     AppData Dir: {DirectoryManager.AppDataDirectory}
