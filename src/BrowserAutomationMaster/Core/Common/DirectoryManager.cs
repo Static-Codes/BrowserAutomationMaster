@@ -234,7 +234,7 @@ namespace BrowserAutomationMaster.Core.Common
                 return GetAppDataMacOS(appName);
             }
 
-            else if (GlobalUserInfo.PlatformInfo.IsLinux || GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalUserInfo.PlatformInfo.IsRaspi)
+            else if (GlobalUserInfo.PlatformInfo.IsLinux || GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalUserInfo.PlatformInfo.IsPiDevice)
             {
                 return GetAppDataLinux(appName);
             }

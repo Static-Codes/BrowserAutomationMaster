@@ -38,6 +38,8 @@ namespace BrowserAutomationMaster
             // Sets PlatformManager.PlatformName to be used across the session duration.
             SetPlatform(GlobalUserInfo);
 
+            GlobalUserInfo.HardwareInformation.SetCpuInfo();
+
             // BUG FIXED: DO NOT CHANGE POSITION
             // If GlobalSettings is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
             GlobalSettings = Load();
@@ -46,7 +48,6 @@ namespace BrowserAutomationMaster
             await PopulateInstallations();
 
             CheckForMultipleInstances();
-
 
             #pragma warning disable CA1416 // Handled by SetPlatforms()
 
@@ -107,7 +108,7 @@ namespace BrowserAutomationMaster
                     $"IsChromeOS: {GlobalUserInfo.PlatformInfo.IsChromeOS}",
                     $"IsLinux: {GlobalUserInfo.PlatformInfo.IsLinux}",
                     $"IsMacOS: {GlobalUserInfo.PlatformInfo.IsMacOS}",
-                    $"IsRaspi: {GlobalUserInfo.PlatformInfo.IsRaspi}",
+                    $"IsPiDevice: {GlobalUserInfo.PlatformInfo.IsPiDevice}",
                     $"Raspi Model: {GlobalUserInfo.PlatformInfo.GetRaspiModelName()}",
                     $"IsUnixLike: {GlobalUserInfo.PlatformInfo.IsUnixLike}",
                     $"IsWindows: {GlobalUserInfo.PlatformInfo.IsWindows}",
@@ -186,6 +187,7 @@ namespace BrowserAutomationMaster
             if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
             {
                 // await StartServer();
+                Console.WriteLine("Starting HTTP Server for GUI..");
                 StartGUIThread();
             }
 
@@ -193,6 +195,7 @@ namespace BrowserAutomationMaster
             else if (pArgs.Length == 2 && pArgs[0].Equals("--gui") && IsMatches(GUIPortRegex(), pArgs[1], out string port))
             {
                 // await StartServer(port);
+                Console.WriteLine("Starting HTTP Server for GUI..");
                 StartGUIThread();
             }
 
@@ -513,22 +516,15 @@ namespace BrowserAutomationMaster
                 await CheckForUpdate();
             }
 
-            if (doHardwareCheck) {
-                await Runtime.DoRuntimeCheck();
+            await Runtime.SetMemoryInfo();
+
+            // Avoiding the hardware check at the user's request.
+            if (!doHardwareCheck) {
+                Warning.Write("Skipping runtime validation.. please note this may have unintended consequences.");
                 return;
             }
-
-            // Fixed bug where passing --nohwc will cause the CPU core count to be skipped all together.
-            // To ensure this is working as intended:
-            // dotnet run --nohwc --force-error
-            else 
-            {
-                ProcessorInfo processorInfo = new();
-                Runtime.SetCoreCount(processorInfo.Cores);
-            }
-
-            await Runtime.SetMemoryInfo();
             
+            await Runtime.DoRuntimeCheck();
         }
 
 

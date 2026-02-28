@@ -866,6 +866,7 @@ namespace BrowserAutomationMaster.Core.Utilities
             var assignedChunkSize = totalBufferSize <= chunkSize1 * 10 ? totalBufferSize : chunkSize8;
 
             var memoryInfo = GlobalUserInfo.HardwareInformation.MemoryInfo;
+            var coreCount = GlobalUserInfo.HardwareInformation.CpuCoreCount;
 
             var useLowChunkBuffer = 
                 memoryInfo.HasValue && 
@@ -873,7 +874,7 @@ namespace BrowserAutomationMaster.Core.Utilities
                 memoryInfo.Value.FreeMemory >= totalBufferSize * 16;
 
             // Using a 1MB buffer for higher end systems. 
-            if (Runtime.GetCoreCount() > 8 && useLowChunkBuffer && assignedChunkSize == chunkSize8){
+            if (coreCount > 8 && useLowChunkBuffer && assignedChunkSize == chunkSize8){
                 assignedChunkSize = chunkSize1;
             }
 

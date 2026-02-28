@@ -211,7 +211,7 @@ namespace BrowserAutomationMaster.Core.Python
                 throw new ArgumentException("ParentDirectory == null");
             }
 
-            if (GlobalUserInfo.PlatformInfo.IsWindows || GlobalUserInfo.PlatformInfo.IsRaspi) {
+            if (GlobalUserInfo.PlatformInfo.IsWindows || GlobalUserInfo.PlatformInfo.IsPiDevice) {
                 return $"\"{ScriptFilePath}\"";
             }
 

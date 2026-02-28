@@ -335,7 +335,7 @@ namespace BrowserAutomationMaster.Core.Compilation
                 usingBrowserstack = 
                     GlobalUserInfo.PlatformInfo.IsChromeOS || 
                     GlobalSettings.UseBrowserstack || 
-                    GlobalUserInfo.PlatformInfo.IsRaspi && availableMemory < 2048;
+                    GlobalUserInfo.PlatformInfo.IsPiDevice && availableMemory < 2048;
             }
         }
 

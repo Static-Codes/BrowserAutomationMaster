@@ -316,7 +316,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             bool[] statesToReturnBlack = [
                 GlobalUserInfo.PlatformInfo.IsChromeOS,
                 GlobalUserInfo.PlatformInfo.IsMacOS,
-                GlobalUserInfo.PlatformInfo.IsRaspi,
+                GlobalUserInfo.PlatformInfo.IsPiDevice,
                 IsKali()
             ];
 
@@ -390,7 +390,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
                 GlobalUserInfo.PlatformInfo.IsARMel, 
                 GlobalUserInfo.PlatformInfo.IsARMhf, 
                 GlobalUserInfo.PlatformInfo.IsChromeOS, 
-                GlobalUserInfo.PlatformInfo.IsRaspi
+                GlobalUserInfo.PlatformInfo.IsPiDevice
             ];
 
             // Ensuring the wheels are only downloaded on platforms that potentially require it.
@@ -686,7 +686,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
                     // The value of the pair is a boolean determining whether the specified model can run the GUI.
                     var validatedMatch = validatedMatches.First();
 
-                    GlobalUserInfo.PlatformInfo.IsRaspi = true;
+                    GlobalUserInfo.PlatformInfo.IsPiDevice = true;
                     GlobalUserInfo.PlatformInfo.IsUnixLike = true;
                     GlobalUserInfo.PlatformInfo.SetRaspiModel(modelName, validatedMatch.Value);
                     

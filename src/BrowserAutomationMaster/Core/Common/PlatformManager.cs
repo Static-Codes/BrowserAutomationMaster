@@ -67,7 +67,7 @@ namespace BrowserAutomationMaster.Core.Common
             }
 
             // Acts a fallthrough so the exception below is not thrown.
-            else if (UserInfo.PlatformInfo.IsRaspi) {
+            else if (UserInfo.PlatformInfo.IsPiDevice) {
                 return;
             }
 

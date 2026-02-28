@@ -7,15 +7,7 @@ namespace BrowserAutomationMaster.Core.Types
 {
     public class HardwareInformation() 
     {
-
-        private readonly HardwareInfo _HardwareInfo = new();
-        // private void SetCpuInfo() {
-        //     _HardwareInfo.RefreshCPUList(includePercentProcessorTime: false, includePerformanceCounter: false);
-        //     NumberOfCpu = _HardwareInfo.CpuList.Count;
-        //     CpuCoreCount = _HardwareInfo.CpuList.Sum(a => a.CpuCoreList.Count);
-
-        // };
-
+        private static readonly HardwareInfo _HardwareInfo = new();
         public string CpuName { get; set; } = "Not Set";
         public int NumberOfCpu { get; set; } = 1;
         public int CpuCoreCount { get; set; } = 1;
@@ -23,5 +15,18 @@ namespace BrowserAutomationMaster.Core.Types
         public Architecture CurrentArchitecture { get; init; } = RuntimeInformation.OSArchitecture;
         public MemoryInfo? MemoryInfo { get; set; }
         public bool IsSupportedArchitecture() => ValidArchitectures.Contains(CurrentArchitecture);
+
+        public void SetCpuInfo() {
+            _HardwareInfo.RefreshCPUList(includePercentProcessorTime: false, includePerformanceCounter: false);
+
+            if (_HardwareInfo.CpuList.Count == 0) {
+                throw new Exception("BrowserAutomationMaster.Core.Types.HardwareInformation._HardwareInfo.CpuList.Count returned 0");
+            }
+
+            CpuName = _HardwareInfo.CpuList[0].Name;
+            NumberOfCpu = _HardwareInfo.CpuList.Count;
+            CpuCoreCount = (int)_HardwareInfo.CpuList.Sum(a => a.NumberOfCores);
+            CpuThreadCount = Environment.ProcessorCount;
+        }
     } 
 }

@@ -10,7 +10,7 @@ namespace BrowserAutomationMaster.Core.Types
         public bool IsARMel { get; set; } // 32 Bit ARMv7 (el = EABI Little Endian)
         public bool IsARMhf { get; set; } // 32 Bit ARMv7 (hf = Hard Float)
         public bool IsChromeOS { get; set; }
-        public bool IsRaspi { get; set; } // Raspberry Pi
+        public bool IsPiDevice { get; set; } // Raspberry Pi
         public bool IsWindows { get; set; }
         public bool IsMacOS { get; set; }
         public bool IsLinux { get; set; }
@@ -21,7 +21,7 @@ namespace BrowserAutomationMaster.Core.Types
 
         public string GetRaspiModelName()
         {
-            if (!IsRaspi) {
+            if (!IsPiDevice) {
                 return "N/A";
             }
             
@@ -35,7 +35,7 @@ namespace BrowserAutomationMaster.Core.Types
         
         public void SetRaspiModel(string Name, bool SupportsGUI)
         {
-            if (!IsRaspi) {
+            if (!IsPiDevice) {
                 return;
             }
             RaspiModelInfo = new(Name, SupportsGUI);

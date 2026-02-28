@@ -62,7 +62,7 @@ namespace BrowserAutomationMaster.Core.GUI
             {
                 ZipFile.ExtractToDirectory(GUI_ZIP_PATH, AppDataDirectory);
                 File.Delete(GUI_ZIP_PATH);
-                WriteSuccessMessage("Successfully extracted GUI, please wait while the HTTP Server starts..");
+                WriteSuccessMessage("Successfully extracted GUI!");
             }
             catch (Exception ex)
             {

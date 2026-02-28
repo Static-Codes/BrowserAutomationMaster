@@ -16,7 +16,7 @@ SetPlatform(GlobalUserInfo);
 await InitializeAsync(["--nohwc"]);
 
 bool[] invalidStates = [
-    GlobalUserInfo.PlatformInfo.IsRaspi,
+    GlobalUserInfo.PlatformInfo.IsPiDevice,
     GlobalUserInfo.PlatformInfo.IsARMel,
     GlobalUserInfo.PlatformInfo.IsARMhf,
     GlobalUserInfo.PlatformInfo.IsChromeOS

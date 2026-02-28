@@ -45,7 +45,7 @@ namespace BrowserAutomationMaster.Core.Utilities
         {
             try
             {
-                if (!GlobalUserInfo.PlatformInfo.IsLinux || GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalUserInfo.PlatformInfo.IsRaspi) {
+                if (!GlobalUserInfo.PlatformInfo.IsLinux || GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalUserInfo.PlatformInfo.IsPiDevice) {
                     return LightTheme;
                 }
 

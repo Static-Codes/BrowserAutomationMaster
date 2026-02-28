@@ -70,7 +70,8 @@ namespace BrowserAutomationMaster.Core.Messaging
                     NFD Callable: {NFDIsCallable()}
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: {ProcessorInfo.GetCPUName()}
-                    CPU Core Count: {GetCoreCount()}
+                    CPU Core Count: {GlobalUserInfo.HardwareInformation.CpuCoreCount}
+                    CPU Thread Count: {GlobalUserInfo.HardwareInformation.CpuThreadCount}
                     CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
@@ -89,7 +90,8 @@ namespace BrowserAutomationMaster.Core.Messaging
                     NFD Callable: {NFDIsCallable()}
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: {ProcessorInfo.GetCPUName()}
-                    CPU Core Count: {GetCoreCount()}
+                    CPU Core Count: {GlobalUserInfo.HardwareInformation.CpuCoreCount}
+                    CPU Thread Count: {GlobalUserInfo.HardwareInformation.CpuThreadCount}
                     CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
@@ -109,7 +111,8 @@ namespace BrowserAutomationMaster.Core.Messaging
                     Display Server: {GlobalUserInfo.PlatformInfo.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: {ProcessorInfo.GetCPUName()}
-                    CPU Core Count: {GetCoreCount()}
+                    CPU Core Count: {GlobalUserInfo.HardwareInformation.CpuCoreCount}
+                    CPU Thread Count: {GlobalUserInfo.HardwareInformation.CpuThreadCount}
                     CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");
@@ -126,7 +129,8 @@ namespace BrowserAutomationMaster.Core.Messaging
                     NFD Callable: {NFDIsCallable()}
                     ---------------- SYSTEM SPEC INFO ----------------
                     CPU Name: Unknown
-                    CPU Core Count: {GetCoreCount()}
+                    CPU Core Count: {GlobalUserInfo.HardwareInformation.CpuCoreCount}
+                    CPU Thread Count: {GlobalUserInfo.HardwareInformation.CpuThreadCount}
                     CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
                     Total RAM: {totalMemoryAmount}
                     Free RAM: {freeMemoryAmount}".Replace("    ", "");

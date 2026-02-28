@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
+using static BrowserAutomationMaster.Core.SystemInfo.CPU.ProcessorInfo;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.MacOS;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
@@ -21,8 +22,8 @@ namespace BrowserAutomationMaster.Core.Python
         
         public string InterpreterPath { get; } = GetInterpreterFromPath();
 
-        private static int? CoreCount = null;
-        public static void SetCoreCount(int count) => CoreCount = count;
+        // private static int? CoreCount = null;
+        // public static void SetCoreCount(int count) => CoreCount = count;
 
         private static string[] BuildScriptMenu(List<string> scriptPaths)
         {
@@ -45,17 +46,20 @@ namespace BrowserAutomationMaster.Core.Python
         public static async Task DoRuntimeCheck()
         {
             await HasEnoughMemory();
-            ProcessorInfo processorInfo = new();
-            CoreCount = processorInfo.Cores;
-            if (!processorInfo.HasEnoughCores())
+
+            if (!HasEnoughCores())
             {
                 WriteAndExit
                 (
                     message:
-                        $"BAM Manager (BAMM) requires atleast a 2 core cpu, " +
-                        $"unfortunately your CPU is not powerful enough for modern browser automation, " +
-                        $"if you believe this is an error, please submit a bug report at {ISSUES_LINK}\n\n" +
-                        $"Error log:\nBAM Manager (BAMM) detected {processorInfo.Cores} physical CPU cores.",
+                        string.Join(NLC, [
+                            $"BAM Manager (BAMM) requires atleast a 2 core cpu, ",
+                            $"unfortunately your CPU is not powerful enough for modern browser automation, ",
+                            $"if you believe this is an error, please submit a bug report at {ISSUES_LINK}",
+                            "",
+                            "Error log:",
+                            $"BAM Manager (BAMM) detected {GlobalUserInfo.HardwareInformation.CpuCoreCount} physical CPU cores."
+                        ]),
                     status: 1
                 );
             }
@@ -70,24 +74,22 @@ namespace BrowserAutomationMaster.Core.Python
                 .Distinct()];
         }
 
-        public static int GetCoreCount()
-        {
-            return CoreCount ?? 0;
-        }
-
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         public static string GetInterpreterFromPath()
         {
-            if (GlobalUserInfo.PlatformInfo.IsWindows)
-            {
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
                 return Win.GetInterpreterPath();
             }
 
             // Path to full executable is required to replicate the expected behavior due to OSX being built off BSD 
-            if (GlobalUserInfo.PlatformInfo.IsUnixLike || GlobalUserInfo.PlatformInfo.IsChromeOS)
-            {
+            if (GlobalUserInfo.PlatformInfo.IsMacOS || GlobalUserInfo.PlatformInfo.IsChromeOS) {
                 return "python3";
+            }
+
+            // This also handles GlobalUserInfo.PlatformInfo.IsPiDevice
+            if (GlobalUserInfo.PlatformInfo.IsLinux) {
+                
             }
 
             throw new PlatformNotSupportedException(
