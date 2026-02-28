@@ -1,6 +1,3 @@
-using BrowserAutomationMaster.Core.Helpers;
-using BrowserAutomationMaster.Core.Messaging;
-
 namespace BrowserAutomationMaster.Core.SystemInfo.RAM
 {
     public struct MemoryInfo
