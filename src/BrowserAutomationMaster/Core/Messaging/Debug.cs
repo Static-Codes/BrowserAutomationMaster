@@ -3,7 +3,6 @@ using BrowserAutomationMaster.Core.SystemInfo.OS.Unix;
 using BrowserAutomationMaster.Core.Parsing;
 using BrowserAutomationMaster.Core.SystemInfo.CPU;
 using System.Reflection;
-using static BrowserAutomationMaster.Core.Python.Runtime;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static BrowserAutomationMaster.Resources.NativeFileDialog.Loader;
@@ -63,13 +62,14 @@ namespace BrowserAutomationMaster.Core.Messaging
                     Windows Version: {windowsVersion} (Build {Environment.OSVersion.Version.Build})
                     Platform: {Environment.OSVersion.Platform}
                     Current Dir: {Environment.CurrentDirectory}
-                    Installation Dir: {AppContext.BaseDirectory}
+                    Application Dir: {AppContext.BaseDirectory}
                     AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
-                    NFD Callable: {NFDIsCallable()}
-                    ---------------- SYSTEM SPEC INFO ----------------
-                    CPU Name: {ProcessorInfo.GetCPUName()}
+                    NativeFileDialog Loaded: {NFDIsCallable()}
+                    Debug Mode Active: {IsDebugRelease}
+                    ---------------- HARDWARE INFORMATION ----------------
+                    CPU Name: {GlobalUserInfo.HardwareInformation.CpuName}
                     CPU Core Count: {GlobalUserInfo.HardwareInformation.CpuCoreCount}
                     CPU Thread Count: {GlobalUserInfo.HardwareInformation.CpuThreadCount}
                     CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
@@ -83,13 +83,14 @@ namespace BrowserAutomationMaster.Core.Messaging
                     macOS Version: {MacOS.GetMacOSVersion()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
                     Current Dir: {Environment.CurrentDirectory}
-                    Installation Dir: {AppContext.BaseDirectory}
+                    Application Dir: {AppContext.BaseDirectory}
                     AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
-                    NFD Callable: {NFDIsCallable()}
-                    ---------------- SYSTEM SPEC INFO ----------------
-                    CPU Name: {ProcessorInfo.GetCPUName()}
+                    NativeFileDialog Loaded: {NFDIsCallable()}
+                    Debug Mode Active: {IsDebugRelease}
+                    ---------------- HARDWARE INFORMATION ----------------
+                    CPU Name: {GlobalUserInfo.HardwareInformation.CpuName}
                     CPU Core Count: {GlobalUserInfo.HardwareInformation.CpuCoreCount}
                     CPU Thread Count: {GlobalUserInfo.HardwareInformation.CpuThreadCount}
                     CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
@@ -102,15 +103,16 @@ namespace BrowserAutomationMaster.Core.Messaging
                 return @$"---------------- PLATFORM DEBUG INFO ----------------
                     Distro Name: {GetFullDistroName()}
                     Kernel Version: {Environment.OSVersion.Version.ToString().Replace("Unix", "")}
+                    Display Server: {GlobalUserInfo.PlatformInfo.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}
                     Current Dir: {Environment.CurrentDirectory}
-                    Installation Dir: {AppContext.BaseDirectory}
+                    Application Dir: {AppContext.BaseDirectory}
                     AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
-                    NFD Callable: {NFDIsCallable()}
-                    Display Server: {GlobalUserInfo.PlatformInfo.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}
-                    ---------------- SYSTEM SPEC INFO ----------------
-                    CPU Name: {ProcessorInfo.GetCPUName()}
+                    NativeFileDialog Loaded: {NFDIsCallable()}
+                    Debug Mode Active: {IsDebugRelease}
+                    ---------------- HARDWARE INFORMATION ----------------
+                    CPU Name: {GlobalUserInfo.HardwareInformation.CpuName}
                     CPU Core Count: {GlobalUserInfo.HardwareInformation.CpuCoreCount}
                     CPU Thread Count: {GlobalUserInfo.HardwareInformation.CpuThreadCount}
                     CPU Architecture: {GlobalUserInfo.HardwareInformation.CurrentArchitecture}
@@ -122,12 +124,12 @@ namespace BrowserAutomationMaster.Core.Messaging
 
                 return @$"Platform: {Environment.OSVersion.Platform}
                     Current Dir: {Environment.CurrentDirectory}
-                    Installation Dir: {AppContext.BaseDirectory}
+                    Application Dir: {AppContext.BaseDirectory}
                     AppData Dir: {DirectoryManager.AppDataDirectory}
                     UserScripts Dir: {Parser.userScriptsDirectory}
                     GUI Downloaded: {Directory.Exists(DirectoryManager.GetGUIDirectoryPath())}
-                    NFD Callable: {NFDIsCallable()}
-                    ---------------- SYSTEM SPEC INFO ----------------
+                    NativeFileDialog Callable: {NFDIsCallable()}
+                    ---------------- HARDWARE INFORMATION ----------------
                     CPU Name: Unknown
                     CPU Core Count: {GlobalUserInfo.HardwareInformation.CpuCoreCount}
                     CPU Thread Count: {GlobalUserInfo.HardwareInformation.CpuThreadCount}
@@ -145,7 +147,7 @@ namespace BrowserAutomationMaster.Core.Messaging
 
         public static void ResourceIsEmbedded(string resourcePath) {
             var resourceNames = GetEmbeddedResource();
-            Console.WriteLine($"Found: {resourceNames.Contains(resourcePath)}");
+            Console.WriteLine($"Is Embedded: {resourceNames.Contains(resourcePath)}");
             Environment.Exit(0);
         }
 
@@ -161,5 +163,17 @@ namespace BrowserAutomationMaster.Core.Messaging
             Console.WriteLine("--------------------------------");
         }
 
-    }
+        public static bool IsDebugRelease
+        {
+            get {
+                #if DEBUG
+                    return true;
+                #else
+                    return false;
+                #endif
+                }
+            }
+        }
+
+    
 }
