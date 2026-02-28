@@ -25,7 +25,6 @@ using static BrowserAutomationMaster.Core.Parsing.Parser;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
 using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
-using static BrowserAutomationMaster.Resources.CpuInfoSharp.Loader;
 using static BrowserAutomationMaster.Resources.NativeFileDialog.Loader;
 
 namespace BrowserAutomationMaster
@@ -63,8 +62,6 @@ namespace BrowserAutomationMaster
             await HandleHardwareCheck(args);
 
             await InitializeNativeFileDialog();
-
-            await InitializeCpuInfo();
         }
 
         /// <summary>Processes any CLI arguments and returns execution status.</summary>
