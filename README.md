@@ -11,6 +11,10 @@ Your **.BAMC** file is then passed to the compiler, which creates a Python file 
 
 https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 
+## Note:
+- BAMM will be rewritten and released as **BAMM** *Version* **2** *Alpha Build* **1** (`BAMM v2.0.0A1`)
+- A new branch will be created [here](https://github.com/Static-Codes/BrowserAutomationMaster/tree/rewrite) once this development has started.
+
 ## Quick Start Guide 🚀
 - To get started with BAMM:
 
