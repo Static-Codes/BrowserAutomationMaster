@@ -17,8 +17,18 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 - A new branch will be created [here](https://github.com/Static-Codes/BrowserAutomationMaster/tree/rewrite) once this development has started.
 
 ## Quick Start Guide 🚀
-- To get started with BAMM:
+#### Using a GUI (**Recommended**)
+  - Run **BAMM** with the following command to access the Script Builder's Graphical User Interface:
 
+    ##### Windows
+    ```powershell
+    bamm --gui
+    ```
+    ##### macOS and Linux
+    ```bash
+    ./bamm --gui
+    ```
+#### Using the LSP (Advanced Users):
   - Download the VSCode/VSCodium Extension <a target="_new" href="https://github.com/Static-Codes/BAMM-LSP/releases/latest">here</a>
   - Visit the documentation <a href="https://static-codes.github.io/BAMM-Docs/" target="_new">here</a>
 
