@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-﻿using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Managers;
 using BrowserAutomationMaster.Messaging;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -268,15 +268,11 @@ namespace BrowserAutomationMaster.Parsing
             }
 
             // Handles all others
-            else
-            {
-                lineArgs = line.Split(" ");
-            }
+            else { lineArgs = line.Split(" "); }
 
-            // DEBUG ONLY
-            // foreach (var lineArg in lineArgs ){
-            //     Console.WriteLine(lineArg);
-            // }
+            # if DEBUG
+            foreach (var lineArg in lineArgs ){ Console.WriteLine(lineArg); }
+            #endif
 
             string firstArg = lineArgs[0];
 
