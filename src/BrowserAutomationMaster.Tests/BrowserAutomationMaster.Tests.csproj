@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>BrowserAutomationMaster.Tests</RootNamespace>
+    <AssemblyName>BrowserAutomationMaster.Tests</AssemblyName>
+
+    <!--
+      NAOT (Native AOT) compliance is intentionally NOT required for this project.
+      See: https://github.com/Static-Codes/BrowserAutomationMaster/issues/10
+      "Since NAOT isn't used in BAMM, the XUnit tests aren't required to be NAOT compliant."
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../BrowserAutomationMaster\BrowserAutomationMaster.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../ExampleScripts/**/*.bamc" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

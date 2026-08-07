@@ -150,7 +150,10 @@ namespace BrowserAutomationMaster.Managers
         #endregion
 
         #region Start of SelectorParser Regex
-        // Used an LLM to help fix formatting on these regexes, I need to take the time to learn regex properly and not rely on a crutch. (9/11/25 update I feel comfortable with regex
+        // Used an LLM to help fix formatting on these regexes, I need to take the time to learn regex properly and not rely on a crutch.
+        // (09/11/25 update I feel comfortable with regex)
+        // (08/07/26) update I love regex, and understand it well!)
+        
         [GeneratedRegex(@"^(?:#(?<id>[\w-]+)|\.(?<class>[\w-]+)|\[\s*name\s*=\s*(?:\""(?<nameValDQ>[^\""]*)\""|'(?<nameValSQ>[^']*)'|(?<nameValUQ>[^\]\s'\""]+))\s*\]|(?<xpath>(?:\B\/|\.\/|\(\/).*)|(?<tag>[a-zA-Z][\w:-]*))$", RegexOptions.ExplicitCapture | RegexOptions.Compiled)]
         private static partial Regex CompileMainSelectorRegex();
         public readonly static Regex SelectorRegex = CompileMainSelectorRegex();
