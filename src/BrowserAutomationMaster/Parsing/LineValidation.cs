@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-﻿using static BrowserAutomationMaster.Parsing.LineValidationHelpers;
+using static BrowserAutomationMaster.Parsing.LineValidationHelpers;
 using static BrowserAutomationMaster.Parsing.Parser;
 using static BrowserAutomationMaster.Managers.ConstantManager;
 using static BrowserAutomationMaster.Messaging.Errors;
@@ -27,6 +27,17 @@ namespace BrowserAutomationMaster.Parsing
 
         // Helper to check for integer validity (ignoring quotes)
         public static bool IsInt(string s) => int.TryParse(s.Trim('"', '\'', ' '), out _);
+        
+        /// <summary> </summary>
+        /// <param name="argument">The argument to validate. </param>
+        /// <param name="stripped">If the argument had a leading double quote removed prior to validation.</param>
+        /// <returns>A boolean representing if the argument is quoted.</returns>
+        public static bool IsArgQuoted(string argument, bool stripped = false)
+        {
+            var firstCondition = (stripped || argument.StartsWith('"')) && argument.EndsWith('"');
+            var secondCondition = argument.StartsWith('\'') && argument.EndsWith('\'');
+            return firstCondition || secondCondition;
+        }
 
         public static bool ValidateOneArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null) 
         {   
@@ -68,7 +79,17 @@ namespace BrowserAutomationMaster.Parsing
             };
         } 
 
-        public static bool ValidateTwoArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null) 
+        /// <summary> Validates a command with two additional arguments. </summary>
+        /// <param name="fileName">The name of the BAMC file being parsed.</param>
+        /// <param name="line">The raw string contents of the current line being parsed.</param>
+        /// <param name="lineNumber">The line number for the current line being parsed.</param>
+        /// <param name="firstArg">The first parsed argument of the line. </param>
+        /// <param name="lineArgs">A string array holding all lines in the current BAMC file.</param>
+        /// <param name="selectorString">A placeholder string showing a valid format for the command being parsed.</param>
+        /// <param name="optionalChecks">A list of additional boolean checks that should be performed.</param>
+        /// <param name="stripped">If the arguments were stripped/santized prior to validation.</param>
+        /// <returns>A boolean representing the validity status for a provided command. </returns>
+        public static bool ValidateTwoArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null, bool stripped = false) 
         {
             var eMessage = $"BAM Manager (BAMM) ran into a BAMC validation error:{NLC}{NLC}" +
                          $"File: \"{fileName}\"\nInvalid syntax on line {lineNumber}{NLC}" +
@@ -82,18 +103,10 @@ namespace BrowserAutomationMaster.Parsing
 
             var trimmedArg1 = lineArgs[1].Trim();
             var trimmedArg2 = lineArgs[2].Trim();
-            
-            var firstArgQuoted = 
-                trimmedArg1.StartsWith('"') && 
-                trimmedArg1.EndsWith('"') ||
-                trimmedArg1.StartsWith('\'') && 
-                trimmedArg1.EndsWith('\'');
 
-            var secondArgQuoted = 
-                trimmedArg2.StartsWith('"') && 
-                trimmedArg2.EndsWith('"') ||
-                trimmedArg2.StartsWith('\'') && 
-                trimmedArg2.EndsWith('\'');
+            var (firstArgQuoted, secondArgQuoted) = (
+                IsArgQuoted(trimmedArg1, stripped), IsArgQuoted(trimmedArg2, stripped)
+            );
 
             if (!firstArgQuoted || !secondArgQuoted) {
                 return WriteErrorAndReturnBool(eMessage, returnBool: false);
@@ -117,6 +130,8 @@ namespace BrowserAutomationMaster.Parsing
         }
     }
 
+        
+
     public static class LineValidation
     {
         public static bool AddCookie(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
@@ -130,7 +145,7 @@ namespace BrowserAutomationMaster.Parsing
         public static bool AddHeader(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
         {
             selectorString = "\"header-name\" \"header-value\"";
-            return LineValidationHelpers.ValidateTwoArgCommand(
+            return ValidateTwoArgCommand(
                 fileName, line, lineNumber, firstArg, lineArgs, ref selectorString
             );
         }
@@ -156,27 +171,15 @@ namespace BrowserAutomationMaster.Parsing
 
         public static bool BasicCommands(string fileName, string line, int lineNumber, string arg1, string[] lineArgs, ref string selectorString)
         {
-            if (arg1.Contains("save-as-html"))
-            {
-                selectorString = "filename.html";
-            }
+            if (arg1.Contains("save-as-html")) { selectorString = "filename.html"; }
+            else if (arg1.Equals("take-screenshot")) { selectorString = "filename.png"; }
 
-            else if (arg1.Equals("take-screenshot"))
-            {
-                selectorString = "filename.png";
-            }
-
-            else if (arg1.Equals("select-option"))
-            {
-                selectorString = "option-selector";
-            }
+            else if (arg1.Equals("select-option")) { selectorString = "option-selector"; }
             
-            else if (arg1.Equals("visit")) 
-            {
-                selectorString = "url";
-            }
+            else if (arg1.Equals("visit")) { selectorString = "url"; }
 
-            else if (lineArgs.Length != 2 || !lineArgs[1].Trim().StartsWith('"') || !lineArgs[1].Trim().EndsWith('"'))
+            // The actual validation logic starts here.
+            if (lineArgs.Length != 2 || !lineArgs[1].Trim().StartsWith('"') || !lineArgs[1].Trim().EndsWith('"'))
             {
                 return WriteErrorAndReturnBool(
                     message:
@@ -212,8 +215,7 @@ namespace BrowserAutomationMaster.Parsing
             // There are atleast 3 lines in the file (visit, start-javascript, and end-javascript)
             // Its also possible browser is defined at the top of the file.
 
-            if (line.StartsWith("end-javascript") && JavaScript.IsValidSyntax(jsBlockContent, out jsError))
-            {
+            if (line.StartsWith("end-javascript") && JavaScript.IsValidSyntax(jsBlockContent, out jsError)) {
                 jsBlockFinished = true;
             }
 
