@@ -7,7 +7,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserAutomationMaster", "BrowserAutomationMaster\BrowserAutomationMaster.csproj", "{C9370506-CCF5-4C09-B5DE-6372EA337D98}"
 EndProject
 
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{3EC15CB7-2E64-4CA0-BD81-9A149AB73B3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserAutomationMaster.Tests", "BrowserAutomationMaster.Tests\BrowserAutomationMaster.Tests.csproj", "{3EC15CB7-2E64-4CA0-BD81-9A149AB73B3F}"
 EndProject
 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Publisher", "Publisher\Publisher.csproj", "{01640D9F-5D3C-4B8D-8784-7CFE5847CBD7}"
