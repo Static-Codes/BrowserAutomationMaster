@@ -24,7 +24,7 @@
 		<PackageId>bamm</PackageId>
 		<PackageVersion>1.0.0-alpha8</PackageVersion>
 		<!-- Windows & OSX License -->
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageLicenseExpression>GNUv3</PackageLicenseExpression>
 		<ApplicationIcon>bamm.ico</ApplicationIcon>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
@@ -34,7 +34,7 @@
 		<CommonPackageName>$(PackageId)</CommonPackageName>
 		<CommonPackageVersion>$(PackageVersion)</CommonPackageVersion>
 		<CommonPackageSummary>Custom scripting language for Web Automation that compiles for Python</CommonPackageSummary>
-		<CommonPackageLicense>MIT</CommonPackageLicense>
+		<CommonPackageLicense>GNUv3</CommonPackageLicense>
 		<CommonDesktopName>BAM Manager (BAMM!)</CommonDesktopName>
 		<RepositoryUrl>https://github.com/Static-Codes/BrowserAutomationMaster/</RepositoryUrl>
 	</PropertyGroup>
