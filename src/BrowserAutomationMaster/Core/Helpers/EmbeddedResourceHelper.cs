@@ -22,8 +22,7 @@ namespace BrowserAutomationMaster.Core.Helpers
             {
                 resourceStream = assembly.GetManifestResourceStream(resourcePattern);
 
-                if (resourceStream == null) 
-                {
+                if (resourceStream == null) {
                     WriteAndExit
                     (
                         string.Join(NLC, [
@@ -167,12 +166,16 @@ namespace BrowserAutomationMaster.Core.Helpers
 
                 var bytesLeftToRead = bufferArray.Length;
 
-                // // Debug only do not remove comments
-                // // Console.WriteLine($"stream.Length: {stream.Length}");
-                // // Console.WriteLine($"stream.Position: {stream.Position}");
-                // // Console.WriteLine($"bytesLeftToRead: {bytesLeftToRead}");
+                #if DEBUG
+                    Console.WriteLine("======= PRE LOOP STATE ====== ");
+                    Console.WriteLine($"stream.Length: {stream.Length}");
+                    Console.WriteLine($"stream.Position: {stream.Position}");
+                    Console.WriteLine($"bytesLeftToRead: {bytesLeftToRead}");
+                #endif
 
                 while (stream.Position < stream.Length) {
+                    
+                    Console.WriteLine("======= LOOP STATE ====== ");
 
                     // Using 1MB chunk size or the remaining buffer is less than 1MB in size (1024 bytes).
                     var chunkSize = stream.Length - stream.Position > 1024 ? 1024 : (int)(stream.Length - stream.Position);
@@ -184,9 +187,10 @@ namespace BrowserAutomationMaster.Core.Helpers
                     bytesLeftToRead -= chunkSize;
 
                     // // Debug only do not remove comments
-                    // // Console.WriteLine($"stream.Position: {stream.Position}");
-                    // // Console.WriteLine($"bytesLeftToRead: {bytesLeftToRead}");
-
+                    #if DEBUG
+                        Console.WriteLine($"stream.Position: {stream.Position}");
+                        Console.WriteLine($"bytesLeftToRead: {bytesLeftToRead}");
+                    #endif
                 }
 
                 // Writing the contents to outputPath

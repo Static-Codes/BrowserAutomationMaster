@@ -78,7 +78,7 @@ namespace BrowserAutomationMaster.Core.Types.Linux
         {
             DisplayServer potentialServer = DisplayServer.None;
 
-            if (Environment.GetEnvironmentVariable("$WAYLAND_DISPLAY") != null) {
+            if (Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") != null) {
                 return DisplayServer.Wayland;
             }
 

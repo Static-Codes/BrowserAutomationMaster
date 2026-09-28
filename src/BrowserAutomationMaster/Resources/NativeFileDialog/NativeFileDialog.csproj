@@ -22,12 +22,6 @@
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <!-- <Content Include="nfd.dll">
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-        </Content>
-        <Content Include="nfd_x86.dll">
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-        </Content> -->
     </ItemGroup>
 
 </Project>
