@@ -17,7 +17,7 @@ kill_command = None
 start_command = None
 
 if platName == "Windows":
-    daemonScriptPath = f"C:/Users/{userName}/AppData/Roaming/BrowserautomationMaster/guiDaemon.py"
+    daemonScriptPath = f"C:/Users/{userName}/AppData/Roaming/BrowserAutomationMaster/guiDaemon.py"
     kill_command = ["taskkill", "/F", "/im", f"{procName}.exe"]
     start_command = f"start /B {procName}.exe --gui"
 
