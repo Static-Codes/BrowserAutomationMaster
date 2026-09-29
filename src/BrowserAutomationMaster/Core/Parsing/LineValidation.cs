@@ -10,13 +10,16 @@ namespace BrowserAutomationMaster.Core.Parsing
 
     public static class LineValidationHelpers 
     {
-        public static bool IsArgQuoted(string arg) 
+        /// <summary>Checks whether a parsed argument is still surrounded by its quote characters.</summary>
+        /// <param name="arg">The parsed argument to check.</param>
+        /// <param name="stripped">
+        ///     True when the argument was produced by a split on ' "', which consumes the opening quote and leaves only the trailing one.
+        /// </param>
+        public static bool IsArgQuoted(string arg, bool stripped = false) 
         {
-            return 
-                arg.StartsWith('"') && 
-                arg.EndsWith('"') ||
-                arg.StartsWith('\'') && 
-                arg.EndsWith('\'');
+            var doubleQuoted = (stripped || arg.StartsWith('"')) && arg.EndsWith('"');
+            var singleQuoted = arg.StartsWith('\'') && arg.EndsWith('\'');
+            return doubleQuoted || singleQuoted;
         }
 
         // Helper to check for integer validity (ignoring quotes)
@@ -52,7 +55,9 @@ namespace BrowserAutomationMaster.Core.Parsing
             };
         } 
 
-        public static bool ValidateTwoArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null) 
+        /// <summary>Validates a command that takes two quoted arguments.</summary>
+        /// <param name="stripped"> True when the arguments were split on " \"", which consumes each opening quote. </param>
+        public static bool ValidateTwoArgCommand(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString, bool[]? optionalChecks = null, bool stripped = false) 
         {
             var eMessage = GetValidationErrorMessage(fileName, line, lineNumber, firstArg, selectorString);
 
@@ -60,8 +65,8 @@ namespace BrowserAutomationMaster.Core.Parsing
                 return WriteErrorAndReturnBool(eMessage, returnBool: false);
             }
 
-            var firstArgQuoted = IsArgQuoted(lineArgs[1].Trim());
-            var secondArgQuoted = IsArgQuoted(lineArgs[2].Trim());
+            var firstArgQuoted = IsArgQuoted(lineArgs[1].Trim(), stripped);
+            var secondArgQuoted = IsArgQuoted(lineArgs[2].Trim(), stripped);
 
             if (!firstArgQuoted || !secondArgQuoted) {
                 return WriteErrorAndReturnBool(eMessage, returnBool: false);
@@ -98,9 +103,11 @@ namespace BrowserAutomationMaster.Core.Parsing
         public static bool AddHeader(string fileName, string line, int lineNumber, string firstArg, string[] lineArgs, ref string selectorString)
         {
             selectorString = "\"header-name\" \"header-value\"";
-            return ValidateTwoArgCommand(
-                fileName, line, lineNumber, firstArg, lineArgs, ref selectorString
-            );
+
+            // add-header is included in lineArgSpecialCases, so its arguments were split on " \"".
+            // This split behavior consumes the opening quote of each argument. 
+            // Using the stripped flag ensures the quote check only requires a trailing quote to pass.
+            return ValidateTwoArgCommand(fileName, line, lineNumber, firstArg, lineArgs, ref selectorString, stripped: true);
         }
 
         public static bool AddHeaders(string fileName, string line, int lineNumber, ref string selectorString)
