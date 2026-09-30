@@ -182,8 +182,24 @@ namespace BrowserAutomationMaster.Core.GUI
                         await Version(response);
                         break;
 
+                    case "/gui_version":
+                        await GuiVersion(response);
+                        break;
+
                     default:
+                        // A response must be written even for an unknown route. Previously this only
+                        // logged, leaving the connection open with nothing sent, so the requester's
+                        // fetch() saw a network error instead of a diagnosable 404.
                         Warning.Write($"Invalid route provided: {request.Url.AbsolutePath}");
+
+                        response.StatusCode = (int)HttpStatusCode.NotFound;
+
+                        await HandleInvalidResponse
+                        (
+                            response,
+                            $"Invalid route provided: {request.Url.AbsolutePath}"
+                        );
+
                         break;
 
 

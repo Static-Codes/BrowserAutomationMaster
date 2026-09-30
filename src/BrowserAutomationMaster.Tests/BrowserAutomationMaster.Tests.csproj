@@ -27,6 +27,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +35,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../ExampleScripts/**/*.bamc" CopyToOutputDirectory="PreserveNewest" />
+    <!--
+      BAMM's validation routines write to the process-global Console, so test collections running
+      in parallel interleave their output character by character and render the results unreadable.
+      Collections are therefore run sequentially. The suite is fast enough that this costs little.
+    -->
+    <None Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Fallback script discovery for the ScriptExecution suite. The filenames under
+      examples/Chrome and examples/Firefox are unique, so flattening them into a
+      single userScripts directory is safe.
+    -->
+    <None Include="../../examples/**/*.bamc" Link="userScripts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

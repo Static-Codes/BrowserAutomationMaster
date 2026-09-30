@@ -293,7 +293,7 @@ namespace BrowserAutomationMaster.Core.Compilation
                 return (false, ex.Message);
             }
         }
-        public static (bool, string) OpenNewTab(List<string> scriptBody, string sanitizedArg2, string sanitizedArg3)
+        public static (bool, string) OpenNewTab(List<string> scriptBody, string sanitizedArg2, string sanitizedArg3, bool disableSSL = false)
         {
             try
             {
@@ -302,7 +302,7 @@ namespace BrowserAutomationMaster.Core.Compilation
                     sanitizedArg2 = sanitizedArg2[..^1]; 
                 }
 
-                if (!IsResolvableLink(sanitizedArg2)) {
+                if (!IsResolvableLink(sanitizedArg2, disableSSL)) {
                     WriteAndExit(
                         message:
                             "BAM Manager (BAMM) was unable to compile the requested script:\n\nError log:\n" +
@@ -478,7 +478,7 @@ namespace BrowserAutomationMaster.Core.Compilation
             bool firstVisitFinished, bool disableSSL, bool runHeadless, ExtensionUtility[] Extensions
         )
         {
-            if (!IsResolvableLink(sanitizedArg2))
+            if (!IsResolvableLink(sanitizedArg2, disableSSL))
             {
                 WriteAndExit(
                     message:

@@ -12,6 +12,7 @@ using static BrowserAutomationMaster.Core.Compilation.BrowserFunctions;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
+using static BrowserAutomationMaster.Core.Common.RequestManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Success;
 using static BrowserAutomationMaster.Core.Python.BrowserStack.Devices;
@@ -42,6 +43,36 @@ namespace BrowserAutomationMaster.Core.Compilation
         private static string requestUserAgent = DEFAULT_USER_AGENT;
 
         private readonly static string[] browserlessActions = ["save-as-html", "wait-for-seconds"];
+
+        /// <summary>
+        /// Every command the transpiler accepts. Mirrors the switch in
+        /// <c>Parser.HandleLineValidation()</c>; 'browser' and 'feature' are included even though
+        /// neither emits a body line here, because both are consumed earlier in the compilation
+        /// pass. 'add-headers' is absent because it is handled before the switch and continues.
+        /// </summary>
+        internal static readonly string[] validCommands =
+        [
+            "add-cookie",
+            "add-header",
+            "browser",
+            "click",
+            "click-at-position",
+            "click-exp",
+            "close-current-tab",
+            "feature",
+            "fill-text",
+            "fill-text-exp",
+            "get-text",
+            "open-new-tab",
+            "save-as-html",
+            "save-as-html-exp",
+            "select-element",
+            "select-option",
+            "set-custom-useragent",
+            "take-screenshot",
+            "visit",
+            "wait-for-seconds"
+        ];
 
         // Not to be confused with browserPresent, this is a flag that will be set true if no valid browser installations are found.
         private static bool noBrowsersFound = false;
@@ -420,10 +451,20 @@ namespace BrowserAutomationMaster.Core.Compilation
         private static void GetDesiredUrls(string[] lines)
         {
             int lineNumber = 1;
-            foreach (string line in lines)
+            foreach (string originalLine in lines)
             {
-                string[] args = line.Split(' ') ?? [];
-                if (args.Length == 2 && line.Contains("visit"))
+                // Comments are stripped for the same reason they are in HandleCompilation: a
+                // trailing comment adds tokens, so 'visit "url" // note' would not be recognised as
+                // a visit command and the script would be reported as having none.
+                string line = Parser.DeleteCommentIfPresent(originalLine);
+
+                string[] args = line.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? [];
+
+                // firstArg is compared exactly, rather than with Contains("visit"), so a feature
+                // named 'use-visit-proxy' is not mistaken for a visit.
+                bool isVisitCommand = args.Length > 0 && args[0].Equals("visit", StringComparison.Ordinal);
+
+                if (args.Length == 2 && isVisitCommand)
                 {
                     string sanitizedArg = args[1].Replace('"', ' ').Trim();
                     desiredUrls.TryAdd(sanitizedArg, lineNumber);
@@ -541,6 +582,24 @@ namespace BrowserAutomationMaster.Core.Compilation
                 if (string.IsNullOrEmpty(line)) // Skip blank lines.
                 {
                     continue;
+                }
+
+                // Comments are not valid commands, so they must be removed before the line is split.
+                // Without this, a trailing comment pushes a command over the valid token counts below
+                // and the script is rejected with "Invalid command syntax."
+                // Parser.DeleteCommentIfPresent() is used deliberately: Parser.IsValidFile() applies the
+                // exact same rule, and the two must agree, otherwise a script the parser accepts cannot
+                // be compiled. Javascript blocks are excluded, a '//' within one is JavaScript syntax.
+                if (!isJSBlock)
+                {
+                    line = Parser.DeleteCommentIfPresent(line);
+
+                    // A line holding nothing but a comment is now empty and must not reach the length
+                    // check, where it would be reported as a syntax error.
+                    if (string.IsNullOrEmpty(line))
+                    {
+                        continue;
+                    }
                 }
 
                 // Indicates a comment is present (ignores comments within JS blocks)
@@ -734,6 +793,30 @@ namespace BrowserAutomationMaster.Core.Compilation
                 }
 
                 string firstArg = splitLine.First();
+
+                // An unrecognised command cannot be detected by the switch below: most of its cases
+                // are guarded by a `when` clause that only matches on *failure*, so a successful
+                // command falls straight through. An unknown command is therefore indistinguishable
+                // from a successful one there, and was silently dropped from the compiled output,
+                // producing a script that quietly does less than it appears to.
+                // Parser.HandleLineValidation() already rejects these, but this path never calls the
+                // parser, so the command name is checked here instead. CommandRegistryTests asserts
+                // this list stays in step with the parser's.
+                if (!validCommands.Contains(firstArg))
+                {
+                    WriteAndExit
+                    (
+                        message: GenerateErrorMessage(
+                            fileName,
+                            line,
+                            lineNumber,
+                            $"Invalid command on line {lineNumber}.\n" +
+                            "Please check your spelling and try again."
+                        ),
+                        status: 1
+                    );
+                }
+
                 bool canRunBrowserless = browserlessActions.Any(action => action.StartsWith(firstArg));
 
                 if (!canRunBrowserless && noBrowsersFound)
@@ -868,7 +951,8 @@ namespace BrowserAutomationMaster.Core.Compilation
                     case "open-new-tab" when CompilationHandler.OpenNewTab(
                         script.Body.scriptLines,
                         sanitizedArg2,
-                        sanitizedArg3
+                        sanitizedArg3,
+                        config.disableSSL
                         ) is (false, var errorText):
 
                         WriteAndExit(
@@ -1193,7 +1277,12 @@ namespace BrowserAutomationMaster.Core.Compilation
             return File.Exists(filePath);
         }
 
-        public static bool IsResolvableLink(string link)
+        /// <param name="disableSSL">
+        /// When true, the probe accepts any server certificate. Set by <c>feature "disable-ssl"</c>,
+        /// which also disables verification in the generated script, so the probe must not be
+        /// stricter than the script it is checking.
+        /// </param>
+        public static bool IsResolvableLink(string link, bool disableSSL = false)
         {
             try
             {
@@ -1236,7 +1325,10 @@ namespace BrowserAutomationMaster.Core.Compilation
 
                 RequestManager requestManager = new(uriResult, timeout: 10);
 
-                HttpClient client = requestManager.Client;
+                HttpClient client = disableSSL
+                    ? NetworkClient.GetClientWithRedirectsAllowed(allowRedirects: true, disableSSL: true)
+                    : requestManager.Client;
+
                 Uri uriToRequest = requestManager.Uri;
                 TimeSpan requestTimeout = requestManager.Timeout;
 

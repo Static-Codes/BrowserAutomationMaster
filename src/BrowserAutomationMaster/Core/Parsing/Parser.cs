@@ -109,11 +109,24 @@ namespace BrowserAutomationMaster.Core.Parsing
                 return string.Empty;
             }
 
+            string trimmedLine = line.Trim();
+
+            // A comment can be the whole remainder of the line with nothing after it, as in
+            // 'visit "https://example.com" //'. The IndexOf below cannot see that, because it
+            // requires a trailing space. Requiring whitespace before the slashes keeps a URL's
+            // 'https://' intact, since that is always preceded by a colon.
+            if (trimmedLine.EndsWith("//", StringComparison.Ordinal)
+                && trimmedLine.Length > 2
+                && char.IsWhiteSpace(trimmedLine[^3]))
+            {
+                return trimmedLine[..^2].Trim();
+            }
+
             int commentIndex = line.IndexOf(" // ");
 
             // If no comment is found, commentIndex will equal -1, meaning the entire line is just code.
-            if (commentIndex == -1) {                
-                return line.Trim();
+            if (commentIndex == -1) {
+                return trimmedLine;
             }
             
             // If a comment is found, it gets removed since comments aren't valid commands.
@@ -668,8 +681,11 @@ namespace BrowserAutomationMaster.Core.Parsing
                         return false;
                     }
 
-                    // Ignores comments
-                    if (!line.StartsWith("//"))
+                    // Ignores comments.
+                    // 'feature' must be excluded, otherwise the first feature line closes the block
+                    // and a second one is reported as misplaced, making multiple 'feature' commands
+                    // impossible to declare.
+                    if (!line.StartsWith("//") && !firstArg.Equals("feature"))
                     {
                         // Flag used to ensure all 'feature' commands are placed before all other commands, excluding 'browser'.
                         featureBlockFinished = true;

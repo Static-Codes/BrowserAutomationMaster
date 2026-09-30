@@ -1,6 +1,6 @@
 ## Changelog
 
-`405d277` → `0b9fbb4` (branch `canary`) · 184 commits · 145 files changed, 10,322 insertions(+), 30,999 deletions(-)
+`405d277` → `43e8ab7` (branch `canary`) · 200 commits · 172 files changed, 11,433 insertions(+), 31,152 deletions(-)
 
 <details>
   <summary> Click here to view a summary of changes </summary>
@@ -48,6 +48,8 @@ After many months of inactivity, BAMM v1.0.0A8 is ready for release!
 
 - Renamed `**platform-debug**` to **`--platform-info`** (new debug/diagnostics command, originally `--platform-debug`; renamed for clarity): prints platform, distribution, architecture, and Native File Dialog status.
 
+- Added **`--allow-multiple-instances`**: bypasses the single instance guard, allowing BAMM to run alongside another instance. Intended for automated/headless invocation and unit test execution.
+
 - Reworked backend for the **`use-mobile-user-agent`** feature command. `UserAgentManager` was split into `UserAgentHelper`,`UserAgentUtility`, `Types.UserAgent`.
 
 ### GUI Improvements (User and Developer)
@@ -55,16 +57,23 @@ After many months of inactivity, BAMM v1.0.0A8 is ready for release!
   <summary> Click to see a summary of changes impacting users </summary>
 
   <details>
-    - **11% memory reduction:** GUI startup memory dropped from **236MB → 210MB** (measured with a minimal Linux Firefox install).
+  
+  - **11% memory reduction:** GUI startup memory dropped from **236MB → 210MB** (measured with a minimal Linux Firefox install).
 
-    - **No browser required:** The GUI no longer requires a browser to be installed to start.
+  - **No browser required:** The GUI no longer requires a browser to be installed to start.
+  
   </details>
+
+  <br>
 
   <summary> Click to see a summary of changes impacting developers </summary>
   
-<details>
+  <details>
   
   - **Embedded GUI:** `gui.zip` is now downloaded at *build* time from the `gui` branch via a new `RetrieveAndEmbedResources` MSBuild target and embedded as a resource, replacing the runtime `DownloadGUI()` call.
+
+  - **Versioned GUI:** the GUI now ships from its own repository ([BAMM-GUI](https://github.com/Static-Codes/BAMM-GUI)) on its own release cadence, so `RetrieveAndEmbedResources` pulls it from `releases/latest/download/gui.zip` instead of the `gui` branch. The `gui` branch is no longer a build input.
+    - Added a **`/gui_version`** endpoint to the GUI's `HttpListener`, reporting the version of the GUI this build serves. The value is read out of the embedded archive at runtime rather than hardcoded, so it cannot drift from the GUI that was actually embedded. The GUI can compare it against its own `GUI_VERSION` const in `scripts/version.js`.
 
   - **Server split:** `LocalServerManager.cs` was broken up from 943 LoC into `Server.cs`, `BackendFunctions.cs`, and `Response.cs` under the new `Core.GUI` namespace; `LocalServerManager` was renamed `GUIServer`.
 
@@ -98,6 +107,28 @@ After many months of inactivity, BAMM v1.0.0A8 is ready for release!
   - Moved Linux related types to `Core/Types/Linux/`.
 
   - Added `PackageTypeExtension` to manage the `PackageType` enum.
+
+</details>
+
+### Test Suite (Developer)
+
+<summary> For more information on changes to the test suite, click here </summary>
+
+<details>
+
+- **Script execution tests:** a new `ScriptExecution` suite compiles every discoverable `.bamc` script by running the real BAMM CLI as a child process with `compile <script>.bamc`, and judges each run by its exit code. Scripts come from the real `userScripts` directory, falling back to the repository's `examples/`. Each child gets a throwaway AppData directory, so nothing is written to the developer's real `userScripts/` or `compiled/` directories. Tagged `[Trait("Category", "E2E")]` and excluded from the default run; use `dotnet test --filter "Category=E2E"`.
+  - `VisitUrlPreflight` probes every `visit` and `open-new-tab` target using the same reachability rules as the `Transpiler`, so an environmental network failure is reported as a skip rather than a failure. A clean exit passes, a failure alongside an unreachable URL skips and names the URL, anything else fails.
+  - Overridable with the `BAMM_EXE` environment variable, and `BAMM_TEST_TIMEOUT_SECONDS` for the per-script budget.
+
+- **Command registry tests:** `CommandRegistryTests` pins the registration of `--allow-multiple-instances` in `Commands.CommandList`, so a refactor cannot silently drop a command and leave `bamm help <argument>` and the documentation out of sync with the binary.
+
+- **GUI version tests:** `GuiVersionTests` covers the `/gui_version` lookup, including that the archive is actually embedded and that the `GUI_VERSION` regex ignores commented-out assignments.
+
+- **Terminal probe tests:** `TerminalProbeTests` asserts that `GetTerminalBackgroundColor()` is skipped when stdin is redirected, guarding against the `/dev/tty` corruption described under Bug Fixes.
+
+- **Compilation validation tests:** `CompilationValidationTests` covers the defects above that are reachable without spawning the CLI: that `Transpiler`'s accepted command set matches `Parser.HandleLineValidation()`, that every shipped example passes the parser, that multiple `feature` commands are accepted while a late one is still rejected, and that trailing comments no longer break a command line. It reads `Transpiler.validCommands` through a new `InternalsVisibleTo`, rather than widening that field to public for the sake of a test.
+
+- **Test output is now contained:** see the `xunit.runner.json` and `ConsoleCapture` entries under Bug Fixes.
 
 </details>
 
@@ -203,7 +234,23 @@ The vast majority of commits in this release (86/184) are purely related to rena
 
 ### API Changes
 
-> All types are in the root namespace `BrowserAutomationMaster` unless stated. Every entry below was verified against the source at both `405d277` and `0b9fbb4`.
+> All types are in the root namespace `BrowserAutomationMaster` unless stated. Every entry below was verified against the source at both `405d277` and `43e8ab7`.
+
+- `ProcessManager.CheckForMultipleInstances` gained an optional `bool allowMultipleInstances = false` parameter. The default preserves existing behaviour, so no call site breaks.
+
+- `Transpiler.validCommands` was added as `internal` (visible to the test project only), as the list of commands the compilation pass accepts.
+
+- `LineValidationHelpers` gained optional `bool stripped = false` parameters, to repair a merge conflict regression (#15):
+  - `IsArgQuoted(string arg)` → `IsArgQuoted(string arg, bool stripped = false)`
+  - `ValidateTwoArgCommand(..., bool[]? optionalChecks = null)` → `ValidateTwoArgCommand(..., bool[]? optionalChecks = null, bool stripped = false)`
+
+  `stripped` is true when the arguments were split on `' "'`, which consumes each opening quote and leaves only the trailing one. Without it, `add-header` and other special-cased commands failed their own quote check.
+
+- `IsResolvableLink` gained an optional `bool disableSSL = false` parameter, set by `feature "disable-ssl"`.
+
+- `CompilationHandler.OpenNewTab` gained an optional `bool disableSSL = false` parameter, forwarded to `IsResolvableLink`.
+
+- `RequestManager.NetworkClient.GetClientWithRedirectsAllowed` gained an optional `bool disableSSL = false` parameter, which installs a permissive certificate validation callback.
 
 #### Namespaces
 
@@ -267,6 +314,8 @@ The vast majority of commits in this release (86/184) are purely related to rena
 
 | Data type | Before | After |
 | --- | --- | --- |
+| `static method` | `LineValidationHelpers.IsArgQuoted(string)` | `LineValidationHelpers.IsArgQuoted(string, bool stripped = false)` |
+| `static method` | `LineValidationHelpers.ValidateTwoArgCommand(..., bool[]? optionalChecks = null)` | `LineValidationHelpers.ValidateTwoArgCommand(..., bool[]? optionalChecks = null, bool stripped = false)` |
 | `static property` | `AppSettingsUtility.GlobalConfig` | `AppSettingsUtility.GlobalSettings` |
 | `static method` | `MemoryInfoManager.RunCheck` | `MemoryMonitor.GetMemoryInfoAsync` |
 | `static method` | `Win.GetPhysicalCoreCount` | `ProcessorInfo.GetPhysicalCoreCountWindows` |
@@ -285,9 +334,35 @@ The vast majority of commits in this release (86/184) are purely related to rena
 
 - Re-introduced `RunOnCompile`; furthered memory-leak prevention in `ProcessManager` and `VirtualEnvironment`.
 
+- Replaced the `====`-delimited comment banners in `Core/Python/BrowserStack/Devices.cs` with `#region` directives, so its structure is navigable in the IDE.
+
+- Extracted the HTML instruction string out of `BackendFunctions.Redirect()` into `GetRedirectInstructions()`, leaving `Redirect()` responsible only for writing the response.
+
+- Corrected the GUI extraction message, which still described the archive as downloaded at runtime from the `gui` branch. It reports the version read out of the embedded archive.
+
+> **Note on provenance:** the `Devices.cs` reformat and the `Redirect` extraction were already in the working tree when this changeset was assembled, and were swept into it alongside the fixes above. Both are refactors with no behavioural change, and neither is a response to anything described here. They are recorded for completeness rather than because they belong to the same body of work; they are separable into a commit of their own if a reviewer would rather see the fixes on their own.
+
 ---
 
 ## 🐛 Bug Fixes
+
+- **Unknown commands silently ignored:** fixed `bamm compile` accepting a command it does not recognise and emitting nothing for it, producing a script that quietly does less than it appears to. `Parser.HandleLineValidation()` has always rejected these, but the compilation pass re-implements parsing rather than calling the parser, so it never saw them. A command check now runs before the emit switch; `CompilationValidationTests` asserts the accepted set stays in step with the parser's. The switch itself could not do this: most of its cases are guarded by a `when` clause that matches only on failure, so a *successful* command falls straight through and is indistinguishable from an unrecognised one.
+
+- **`disable-ssl` ignored during compilation:** `feature "disable-ssl"` was applied to the generated script but not to the compile-time URL check, so a self-signed host failed to compile even though the script would have loaded it. The reachability probe now accepts any certificate when the feature is set, mirroring the script's own `CERT_NONE` verification mode. This also unblocked `examples/Firefox/no-ssl-example.bamc`, which had never compiled anywhere.
+
+- **`--gui --port==X` ignored:** the port was parsed out of the argument and then discarded, so the listener always bound the default `8008` regardless of what was requested. The parsed port is now forwarded to `StartGUIThread()`, and a value outside 1–65535 is rejected with a clear message instead of being passed to `HttpListener`.
+
+- **Unknown GUI routes returned no response:** requesting a path the `HttpListener` does not serve only logged a warning and wrote nothing, leaving the connection open. A requester saw a network error rather than a diagnosable `404`. An unrecognised route now returns `404` with the reason in the response body.
+
+- **Multiple `feature` commands were impossible:** the first `feature` line closed the feature block, so a second one was reported as misplaced. A script could declare at most one feature. The ordering rule is unchanged; a `feature` line no longer closes its own block.
+
+- **Trailing comments on `visit` lines:** `GetDesiredUrls()` split raw lines, so a `visit` command carrying a comment was not recognised and the script was reported as containing no `visit` commands at all. Comments are now stripped there too, matching `HandleCompilation()`. The command is also matched on its first argument instead of with `Contains("visit")`, which would have matched a feature named `use-visit-proxy`.
+
+- **Bare trailing comments:** `DeleteCommentIfPresent()` only detected `" // "`, so a line ending in `//` with nothing after it was not treated as a comment. A comment is now also recognised when the slashes are preceded by whitespace, which keeps a URL's `https://` intact.
+
+- **`examples/Firefox/no-ssl-example.bamc`:** corrected two errors in the example itself. It used `feature "no-ssl"`, which is not a real feature; and its `feature` lines sat after the `visit`, which the ordering rule forbids. It is now the only example that exercises the feature block at all, and it compiles.
+
+- **Trailing comments:** Fixed `bamm compile` rejecting a script whose commands carried an inline `//` comment. `Transpiler.HandleCompilation()` now strips comments before a line is split into tokens, using `Parser.DeleteCommentIfPresent()` — the same rule `Parser.IsValidFile()` applies — so a script the parser accepts can always be compiled. Previously the comment pushed the line past the valid token counts and the compile failed with `Invalid command syntax.`; `examples/Chrome/marketplace.bamc` and `examples/Firefox/no-ssl-example.bamc` were both affected. JavaScript blocks are excluded, since a `//` inside one is JavaScript syntax.
 
 - **ARM64 crash:** Fixed premature crash on ARM64 caused by ANSI not being able to determine the active platform.
 
@@ -307,9 +382,16 @@ The vast majority of commits in this release (86/184) are purely related to rena
 
 - **PyPI:** fixed package-installation failures on PCLinuxOS; refined decompression logic.
 
+- **Test output:** fixed the test report becoming unreadable gibberish, twice over.
+  - BAMM's validation routines write to the process-global `Console`, and xunit v2 runs one collection per test class in parallel, so concurrent suites interleaved their output character by character. Added `xunit.runner.json` with `parallelizeTestCollections: false`; the suites are fast enough that serializing them costs almost nothing.
+  - The inverse tests deliberately feed malformed input to BAMM to prove it is rejected, and those diagnostics then landed in the report padded to the console width, making a passing run look like a wall of errors. `ConsoleCapture` now diverts them into a buffer, so a passing run reports only results.
+
+- **Terminal input corruption:** `GetTerminalBackgroundColor()` no longer probes `/dev/tty` when stdin is not a terminal. The probe writes an OSC 11 query to `/dev/tty` and reads the reply back from `/dev/tty`; because `/dev/tty` is the controlling terminal shared with the parent, a BAMM run with redirected stdin (a pipe, an editor, CI, or a test host) left the reply in the shell's input queue, where the **next command typed at that terminal read it**. It also removes the spurious "An exception occured while determining default theme" error, which was `ForegroundMatch` failing to parse the concatenated replies.
+
 - **GUI:** fixed GUI download logic; `RunOnCompile` restored.
 
 - **Windows:** refined `IsSupportedWindowsVersion()`.
+
 
 - **Misc:** trailing newline on `fileHeaderStr`, missing NFD library check, `packages.json` file existence check, redundant exception handling removed.
 

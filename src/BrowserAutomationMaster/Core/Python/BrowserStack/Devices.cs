@@ -5,9 +5,7 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
 {
     internal class Devices
     {
-        // ========================================================================
-        // Data Structures
-        // ========================================================================
+        # region Data Structs
 
         public struct PlatformSupport
         {
@@ -54,15 +52,15 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             public List<string> Browsers { get; set; } = [];
         }
 
-        // ========================================================================
-        // Hardcoded Data (Originally in browserstack.json)
-        // ========================================================================
+        # endregion
+
+        
+        # region BrowserStack Data
 
         public static readonly List<BrowserDefinition> AvailableBrowsers =
         [
-            // ------------------------------------------------------------------------
-            // Google Chrome (Versions 14.0 -> 145.0 beta)
-            // ------------------------------------------------------------------------
+            # region Google Chrome (Versions 14.0 -> 145.0 beta)
+            
             GenerateChrome("145.0 beta", win10: true, win11: true, macBigSur: true, macMonterey: true, macVentura: true, macSonoma: true, macSequoia: true),
             GenerateChrome("144.0", win10: true, win11: true, macBigSur: true, macMonterey: true, macVentura: true, macSonoma: true, macSequoia: true),
             GenerateChrome("143.0", win10: true, win11: true, macBigSur: true, macMonterey: true, macVentura: true, macSonoma: true, macSequoia: true),
@@ -119,10 +117,11 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             GenerateChrome("30.0", winXP: true, win7: true, win8: true, win81: true, macMountainLion: true, macMavericks: true),
             GenerateChrome("22.0", winXP: true, win7: true, win8: true, macLion: true, macMountainLion: true),
             GenerateChrome("14.0", winXP: true, win7: true, macSnowLeopard: true, macLion: true),
-
-            // ------------------------------------------------------------------------
-            // Mozilla Firefox (Versions 3.6 -> 148.0 beta)
-            // ------------------------------------------------------------------------
+            
+            # endregion
+            
+            # region Mozilla Firefox (Versions 3.6 -> 148.0 beta)
+            
             GenerateFirefox("148.0 beta", win10: true, win11: true, macBigSur: true, macMonterey: true, macVentura: true, macSonoma: true, macSequoia: true),
             GenerateFirefox("147.0", win10: true, win11: true, macBigSur: true, macMonterey: true, macVentura: true, macSonoma: true, macSequoia: true),
             GenerateFirefox("146.0", win10: true, win11: true, macBigSur: true, macMonterey: true, macVentura: true, macSonoma: true, macSequoia: true),
@@ -170,9 +169,10 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             GenerateFirefox("10.0", winXP: true, win7: true, macSnowLeopard: true, macLion: true),
             GenerateFirefox("3.6", winXP: true, macSnowLeopard: true),
 
-            // ------------------------------------------------------------------------
-            // Microsoft Edge (Versions 15.0 -> 145.0 beta)
-            // ------------------------------------------------------------------------
+            #endregion
+
+            # region Microsoft Edge (Versions 15.0 -> 145.0 beta)
+
             GenerateEdge("145.0 beta", win10: true, win11: true, macBigSur: true, macMonterey: true, macVentura: true, macSonoma: true, macSequoia: true),
             GenerateEdge("144.0", win10: true, win11: true, macBigSur: true, macMonterey: true, macVentura: true, macSonoma: true, macSequoia: true),
             GenerateEdge("143.0", win10: true, win11: true, macBigSur: true, macMonterey: true, macVentura: true, macSonoma: true, macSequoia: true),
@@ -219,9 +219,10 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             GenerateEdge("16.0", win10: true),
             GenerateEdge("15.0", win10: true),
 
-            // ------------------------------------------------------------------------
-            // Safari (Tied to macOS Version)
-            // ------------------------------------------------------------------------
+            # endregion
+
+            # region Safari (Tied to macOS Version)
+            
             GenerateSafari("18.4", macSequoia: true),
             GenerateSafari("18.0", macSequoia: true),
             GenerateSafari("17.0", macSonoma: true),
@@ -239,9 +240,10 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             GenerateSafari("6.0", macLion: true, macMountainLion: true),
             GenerateSafari("5.1", winXP: true, win7: true, macSnowLeopard: true, macLion: true),
 
-            // ------------------------------------------------------------------------
-            // Internet Explorer
-            // ------------------------------------------------------------------------
+            # endregion
+
+            # region Internet Explorer
+                
             GenerateIE("11.0", win7: true, win8: true, win81: true, win10: true),
             GenerateIE("10.0", win7: true, win8: true),
             GenerateIE("9.0", win7: true),
@@ -249,18 +251,20 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             GenerateIE("7.0", winXP: true),
             GenerateIE("6.0", winXP: true),
 
-            // ------------------------------------------------------------------------
-            // Opera
-            // ------------------------------------------------------------------------
+            #endregion
+
+            # region Opera
+            
             GenerateOpera("12.16", winXP: true, win7: true, win8: true, win81: true, macSnowLeopard: true, macLion: true, macMountainLion: true),
             GenerateOpera("12.15", winXP: true, win7: true, win8: true, win81: true, macSnowLeopard: true, macLion: true, macMountainLion: true)
+
+            # endregion
         ];
 
         public static readonly List<MobileDeviceDefinition> MobileDevices =
         [
-            // ------------------------------------------------------------------------
-            // Google Pixel
-            // ------------------------------------------------------------------------
+            #region Google Pixel
+            
             new() { DeviceName = "Google Pixel 10 Pro XL", OS = "android", OSVersion = "16.0", Browsers = ["Chrome"] },
             new() { DeviceName = "Google Pixel 10 Pro", OS = "android", OSVersion = "16.0", Browsers = ["Chrome"] },
             new() { DeviceName = "Google Pixel 10", OS = "android", OSVersion = "16.0", Browsers = ["Chrome"] },
@@ -278,9 +282,10 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             new() { DeviceName = "Google Pixel 6", OS = "android", OSVersion = "12.0", Browsers = ["Chrome"] },
             new() { DeviceName = "Google Pixel 5", OS = "android", OSVersion = "11.0", Browsers = ["Chrome"] },
 
-            // ------------------------------------------------------------------------
-            // Samsung Galaxy S-Series
-            // ------------------------------------------------------------------------
+            # endregion
+
+            # region Samsung Galaxy S-Series
+            
             new() { DeviceName = "Samsung Galaxy S25 Ultra", OS = "android", OSVersion = "15.0", Browsers = ["Chrome", "Samsung"] },
             new() { DeviceName = "Samsung Galaxy S25", OS = "android", OSVersion = "15.0", Browsers = ["Chrome", "Samsung"] },
             new() { DeviceName = "Samsung Galaxy S24 Ultra", OS = "android", OSVersion = "14.0", Browsers = ["Chrome", "Samsung"] },
@@ -299,9 +304,10 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             new() { DeviceName = "Samsung Galaxy S20", OS = "android", OSVersion = "10.0", Browsers = ["Chrome", "Samsung"] },
             new() { DeviceName = "Samsung Galaxy S10", OS = "android", OSVersion = "9.0", Browsers = ["Chrome", "Samsung"] },
 
-            // ------------------------------------------------------------------------
-            // Samsung Galaxy Note, A, M Series
-            // ------------------------------------------------------------------------
+            # endregion
+
+            # region Samsung Galaxy Note, A, M Series
+            
             new() { DeviceName = "Samsung Galaxy Note 20", OS = "android", OSVersion = "10.0", Browsers = ["Chrome", "Samsung"] },
             new() { DeviceName = "Samsung Galaxy Note 9", OS = "android", OSVersion = "8.1", Browsers = ["Chrome", "Samsung"] },
             new() { DeviceName = "Samsung Galaxy A52", OS = "android", OSVersion = "11.0", Browsers = ["Chrome", "Samsung"] },
@@ -311,9 +317,10 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             new() { DeviceName = "Samsung Galaxy M52", OS = "android", OSVersion = "11.0", Browsers = ["Chrome", "Samsung"] },
             new() { DeviceName = "Samsung Galaxy M32", OS = "android", OSVersion = "11.0", Browsers = ["Chrome", "Samsung"] },
 
-            // ------------------------------------------------------------------------
-            // Apple iPhone
-            // ------------------------------------------------------------------------
+            # endregion
+
+            # region iPhone Models
+
             new() { DeviceName = "iPhone 17 Pro Max", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
             new() { DeviceName = "iPhone 17 Pro", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
             new() { DeviceName = "iPhone 17", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
@@ -365,43 +372,50 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             new() { DeviceName = "iPhone SE 2020", OS = "ios", OSVersion = "16", Browsers = ["Safari"] },
             new() { DeviceName = "iPhone SE 2020", OS = "ios", OSVersion = "13", Browsers = ["Safari"] },
 
-            // ------------------------------------------------------------------------
-            // Apple iPad
-            // ------------------------------------------------------------------------
-            new() { DeviceName = "iPad Pro 13 2025", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
-            new() { DeviceName = "iPad Pro 11 2025", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
+            # endregion
+
+            # region iPad Models
+            
             new() { DeviceName = "iPad Air 13 2025", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
             new() { DeviceName = "iPad Air 13 2025", OS = "ios", OSVersion = "18", Browsers = ["Safari", "Chrome"] },
-            new() { DeviceName = "iPad Pro 13 2024", OS = "ios", OSVersion = "17", Browsers = ["Safari", "Chrome"] },
-            new() { DeviceName = "iPad Pro 11 2024", OS = "ios", OSVersion = "17", Browsers = ["Safari", "Chrome"] },
             new() { DeviceName = "iPad Air 6", OS = "ios", OSVersion = "17", Browsers = ["Safari", "Chrome"] },
+            new() { DeviceName = "iPad Air 5", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
+            new() { DeviceName = "iPad Air 5", OS = "ios", OSVersion = "15", Browsers = ["Safari"] },
+            new() { DeviceName = "iPad Air 4", OS = "ios", OSVersion = "14", Browsers = ["Safari"] },
+
+            new() { DeviceName = "iPad Pro 13 2024", OS = "ios", OSVersion = "17", Browsers = ["Safari", "Chrome"] },
+            new() { DeviceName = "iPad Pro 13 2025", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
+
             new() { DeviceName = "iPad Pro 12.9 2022", OS = "ios", OSVersion = "16", Browsers = ["Safari"] },
-            new() { DeviceName = "iPad Pro 11 2022", OS = "ios", OSVersion = "16", Browsers = ["Safari"] },
-            new() { DeviceName = "iPad 10th", OS = "ios", OSVersion = "16", Browsers = ["Safari"] },
             new() { DeviceName = "iPad Pro 12.9 2021", OS = "ios", OSVersion = "18", Browsers = ["Safari", "Chrome"] },
             new() { DeviceName = "iPad Pro 12.9 2021", OS = "ios", OSVersion = "17", Browsers = ["Safari", "Chrome"] },
             new() { DeviceName = "iPad Pro 12.9 2021", OS = "ios", OSVersion = "14", Browsers = ["Safari"] },
-            new() { DeviceName = "iPad Pro 11 2021", OS = "ios", OSVersion = "18", Browsers = ["Safari", "Chrome"] },
-            new() { DeviceName = "iPad Pro 11 2021", OS = "ios", OSVersion = "14", Browsers = ["Safari"] },
-            new() { DeviceName = "iPad Mini 2021", OS = "ios", OSVersion = "15", Browsers = ["Safari"] },
-            new() { DeviceName = "iPad Air 5", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
-            new() { DeviceName = "iPad Air 5", OS = "ios", OSVersion = "15", Browsers = ["Safari"] },
-            new() { DeviceName = "iPad 9th", OS = "ios", OSVersion = "18", Browsers = ["Safari", "Chrome"] },
-            new() { DeviceName = "iPad 9th", OS = "ios", OSVersion = "15", Browsers = ["Safari"] },
             new() { DeviceName = "iPad Pro 12.9 2020", OS = "ios", OSVersion = "16", Browsers = ["Safari"] },
             new() { DeviceName = "iPad Pro 12.9 2020", OS = "ios", OSVersion = "14", Browsers = ["Safari"] },
             new() { DeviceName = "iPad Pro 12.9 2020", OS = "ios", OSVersion = "13", Browsers = ["Safari"] },
+            
+            new() { DeviceName = "iPad Pro 11 2025", OS = "ios", OSVersion = "26", Browsers = ["Safari", "Chrome"] },
+            new() { DeviceName = "iPad Pro 11 2024", OS = "ios", OSVersion = "17", Browsers = ["Safari", "Chrome"] },
+            new() { DeviceName = "iPad Pro 11 2022", OS = "ios", OSVersion = "16", Browsers = ["Safari"] },
+            new() { DeviceName = "iPad Pro 11 2021", OS = "ios", OSVersion = "18", Browsers = ["Safari", "Chrome"] },
+            new() { DeviceName = "iPad Pro 11 2021", OS = "ios", OSVersion = "14", Browsers = ["Safari"] },
             new() { DeviceName = "iPad Pro 11 2020", OS = "ios", OSVersion = "16", Browsers = ["Safari"] },
             new() { DeviceName = "iPad Pro 11 2020", OS = "ios", OSVersion = "13", Browsers = ["Safari"] },
-            new() { DeviceName = "iPad Air 4", OS = "ios", OSVersion = "14", Browsers = ["Safari"] },
+
+            new() { DeviceName = "iPad Mini 2021", OS = "ios", OSVersion = "15", Browsers = ["Safari"] },
+            
+            new() { DeviceName = "iPad 10th", OS = "ios", OSVersion = "16", Browsers = ["Safari"] },
+            new() { DeviceName = "iPad 9th", OS = "ios", OSVersion = "18", Browsers = ["Safari", "Chrome"] },
+            new() { DeviceName = "iPad 9th", OS = "ios", OSVersion = "15", Browsers = ["Safari"] },
             new() { DeviceName = "iPad 8th", OS = "ios", OSVersion = "16", Browsers = ["Safari"] },
             new() { DeviceName = "iPad 8th", OS = "ios", OSVersion = "14", Browsers = ["Safari"] },
             new() { DeviceName = "iPad 7th", OS = "ios", OSVersion = "13", Browsers = ["Safari"] },
             new() { DeviceName = "iPad 6th", OS = "ios", OSVersion = "11", Browsers = ["Safari"] },
+            
+            # endregion
 
-            // ------------------------------------------------------------------------
-            // OnePlus, Motorola, Vivo, Oppo, Xiaomi, Huawei
-            // ------------------------------------------------------------------------
+            # region OnePlus, Motorola, Vivo, Oppo, Xiaomi, Huawei
+            
             new() { DeviceName = "OnePlus 13R", OS = "android", OSVersion = "15.0", Browsers = ["Chrome"] },
             new() { DeviceName = "OnePlus 12R", OS = "android", OSVersion = "14.0", Browsers = ["Chrome"] },
             new() { DeviceName = "OnePlus 11R", OS = "android", OSVersion = "13.0", Browsers = ["Chrome"] },
@@ -419,18 +433,20 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             new() { DeviceName = "Xiaomi Redmi Note 9", OS = "android", OSVersion = "10.0", Browsers = ["Chrome"] },
             new() { DeviceName = "Huawei P30", OS = "android", OSVersion = "9.0", Browsers = ["Chrome"] },
 
-            // ------------------------------------------------------------------------
-            // Android Tablets
-            // ------------------------------------------------------------------------
+            # endregion
+
+            # region Android Tablets
+            
             new() { DeviceName = "Samsung Galaxy Tab S9", OS = "android", OSVersion = "13.0", Browsers = ["Chrome", "Samsung"] },
             new() { DeviceName = "Samsung Galaxy Tab S8", OS = "android", OSVersion = "12.0", Browsers = ["Chrome", "Samsung"] }
+            
+            #endregion
         ];
 
+        # endregion
 
-        // ========================================================================
-        // Helper Methods for Data Generation
-        // ========================================================================
-
+        #region  Helper Methods for Data Generation
+        
         private static BrowserDefinition GenerateChrome(string version, bool winXP = false, bool win7 = false, bool win8 = false, bool win81 = false, bool win10 = false, bool win11 = false, bool macSnowLeopard = false, bool macLion = false, bool macMountainLion = false, bool macMavericks = false, bool macYosemite = false, bool macElCapitan = false, bool macSierra = false, bool macHighSierra = false, bool macMojave = false, bool macCatalina = false, bool macBigSur = false, bool macMonterey = false, bool macVentura = false, bool macSonoma = false, bool macSequoia = false, bool macTahoe = false)
         {
             return new BrowserDefinition { 
@@ -590,9 +606,9 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             };
         }
 
-        // ========================================================================
-        // Logic & Helpers
-        // ========================================================================
+        # endregion
+
+        # region Logic & Helpers
 
         public static string[] OSNames = ["Android", "iOS", "MacOS", "Windows"];
         public static string[] WindowsVersions = ["11", "10", "8.1", "8", "7", "XP"];
@@ -620,8 +636,7 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
         ];
         
         // Updated Android Versions to match expanded device list
-        public static string[] AndroidVersions =
-        [
+        public static string[] AndroidVersions = [
             "16.0", "15.0", "14.0", "13.0", "12.0", "11.0", "10.0", "9.0", "8.1", "8.0"
         ];
 
@@ -639,7 +654,7 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
 
         public static string SanitizeOSVersion(string rawOSVersion, string rawOSName, string[] versions)
         {
-            if (rawOSVersion.EndsWith("Beta")) return rawOSVersion;
+            if (rawOSVersion.EndsWith("Beta")) { return rawOSVersion; }
 
             bool isAndroid = rawOSName.Equals("android", StringComparison.OrdinalIgnoreCase);
             var osVersion = GetVersionNumber(rawOSVersion, isAndroid);
@@ -672,26 +687,26 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
             int index = 0;
             for (int i = 0; i < chars.Length; i++)
             {
-                if (!char.IsNumber(chars[i]) && chars[i] != '.')
-                {
+                if (!char.IsNumber(chars[i]) && chars[i] != '.') {
                     index = i;
                     break;
                 }
                 index++;
             }
 
-            if (index == 0) return "Not Found";
+            if (index == 0) { return "Not Found"; }
 
             var version = chars[..index].ToString();
-            // Android versions in BS often use .0 suffix (e.g. 13.0)
-            if (isAndroid && !version.Contains('.')) return version + ".0";
+
+            // Android versions in BrowserStack often use .0 suffix (e.g. 13.0)
+            if (isAndroid && !version.Contains('.'))  { return version + ".0"; }
+            
             return version;
         }
 
         public class DeviceHelper()
         {
-            public static string[] GetMobileDeviceNames()
-            {
+            public static string[] GetMobileDeviceNames() {
                 return [.. MobileDevices.Select(d => d.DeviceName).Distinct()];
             }
 
@@ -807,5 +822,7 @@ namespace BrowserAutomationMaster.Core.Python.BrowserStack
                 };
             }
         }
+
+        # endregion
     }
 }

@@ -99,6 +99,13 @@ namespace BrowserAutomationMaster.Core.Common
         [GeneratedRegex("rgb:([0-9a-fA-F]+/[0-9a-fA-F]+).*?\n.{51}([0-9a-fA-F]+/[0-9a-fA-F]+)", RegexOptions.Compiled)]
         private static partial Regex ForegroundColorRegex();
 
+        // Extracts the GUI's own version from the GUI_VERSION const in the GUI's scripts/version.js.
+        // The declaration keyword is required, and the line must start the match, so a commented-out
+        // assignment in that file is not mistaken for the live one.
+        public static readonly Regex GuiVersionRegex = GuiVersionRegexCompilation();
+        [GeneratedRegex(@"^\s*(?:const|let|var)\s+GUI_VERSION\s*=\s*['""]([^'""]+)['""]", RegexOptions.Compiled | RegexOptions.Multiline)]
+        private static partial Regex GuiVersionRegexCompilation();
+
         #region Start of Settings Regex
 
         [GeneratedRegex("^.*=.*(true|false)$")]

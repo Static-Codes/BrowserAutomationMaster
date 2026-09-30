@@ -1,3 +1,5 @@
+using BrowserAutomationMaster.Core.Messaging;
+using System.IO.Compression;
 using System.Reflection;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
@@ -47,6 +49,49 @@ namespace BrowserAutomationMaster.Core.Helpers
             }
 
             return resourceStream;
+        }
+
+        /// <summary>
+        /// Reads a single text entry out of an embedded zip, without extracting the archive.
+        /// </summary>
+        /// <returns>The entry's contents, or null when the resource or the entry is missing.</returns>
+        /// <remarks>
+        /// The entry name is matched against the archive's full paths, so a caller passing
+        /// "gui/scripts/version.js" also finds the "gui/scripts/version.js" entry of an archive
+        /// whose entries are rooted at "gui/".
+        /// </remarks>
+        public static string? GetEmbeddedZipEntryText(
+            string resourceName, string resourcePattern, string entryName
+        )
+        {
+            // GetEmbeddedResource calls WriteAndExit when the resource is missing, which is the
+            // established behaviour for embedded resources and is deliberately not bypassed here.
+            using Stream resourceStream = GetEmbeddedResource(resourceName, resourcePattern);
+            using ZipArchive archive = new(resourceStream, ZipArchiveMode.Read);
+
+            string suffix = entryName.TrimStart('/');
+
+            ZipArchiveEntry? match = archive.Entries.FirstOrDefault(
+                entry => entry.FullName.Equals(suffix, StringComparison.Ordinal)
+                    || entry.FullName.EndsWith($"/{suffix}", StringComparison.Ordinal)
+            );
+
+            if (match == null)
+            {
+                Warning.Write(
+                    string.Join(NLC, [
+                        $"[WARNING]: The entry '{entryName}' was not found inside '{resourceName}'.",
+                        $"Entries present: {string.Join(", ", archive.Entries.Select(entry => entry.FullName))}"
+                    ])
+                );
+
+                return null;
+            }
+
+            using Stream entryStream = match.Open();
+            using StreamReader reader = new(entryStream);
+
+            return reader.ReadToEnd();
         }
 
 

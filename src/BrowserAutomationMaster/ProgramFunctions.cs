@@ -14,6 +14,7 @@ using static BrowserAutomationMaster.Core.Common.ProcessManager;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Compilation.Transpiler;
 using static BrowserAutomationMaster.Core.GUI.Server;
+using static BrowserAutomationMaster.Core.GUI.BackendFunctions;
 using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.Messaging.Menu;
@@ -46,7 +47,13 @@ namespace BrowserAutomationMaster
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
 
-            CheckForMultipleInstances();
+            // Note: this is handled here rather than in HandleCLIArguments() because Program.cs
+            // calls InitializeAsync() first. The argument may appear in any position.
+            bool allowMultipleInstances = args.Any(arg => arg.Equals("--allow-multiple-instances", OIC));
+            if (allowMultipleInstances)
+                WriteSuccessMessage("Argument `--allow-multiple-instances` found, the multiple instance check has been bypassed.");
+
+            CheckForMultipleInstances(allowMultipleInstances);
 
             #pragma warning disable CA1416 // Handled by SetPlatforms()
 
@@ -185,7 +192,6 @@ namespace BrowserAutomationMaster
             // Handles '--gui' command using default port (8008)
             if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
             {
-                // await StartServer();
                 Console.WriteLine("Starting HTTP Server for GUI..");
                 StartGUIThread();
             }
@@ -193,9 +199,23 @@ namespace BrowserAutomationMaster
             // Handles '--gui --port==X' command where X is a valid integer between 1 and 65535
             else if (pArgs.Length == 2 && pArgs[0].Equals("--gui") && IsMatches(GUIPortRegex(), pArgs[1], out string port))
             {
-                // await StartServer(port);
-                Console.WriteLine("Starting HTTP Server for GUI..");
-                StartGUIThread();
+                // 'port' must be forwarded. It was previously discarded here, so --port==X always
+                // started the listener on the default 8008.
+                if (!int.TryParse(port, out int parsedPort) || parsedPort is < 1 or > 65535)
+                {
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"Unable to start BAMM's GUI.",
+                            $"'{port}' is not a valid port.",
+                            "Please provide a port between 1 and 65535, for example: bamm --gui --port==42069"
+                        ]),
+                        status: 1
+                    );
+                }
+
+                Console.WriteLine($"Starting HTTP Server for GUI on port {parsedPort}..");
+                StartGUIThread(parsedPort.ToString());
             }
 
             else if (pArgs.Any(arg => arg.Equals("--version"))) 
@@ -469,7 +489,7 @@ namespace BrowserAutomationMaster
 
                     WriteSuccessMessage(
                         string.Join(NLC, [
-                            "Successfully downloaded gui.zip from BAMM's gui branch.",
+                            $"Successfully extracted the embedded gui.zip (GUI version {GetGuiVersion() ?? "unknown"}).",
                             "Please wait while it's extracted..."
                         ])
                     );

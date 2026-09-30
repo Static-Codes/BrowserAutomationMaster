@@ -15,10 +15,16 @@ namespace BrowserAutomationMaster.Core.Common
         /// <summary>
         /// Performs a check on all active processes, if more than one instance of BAMM is found, the newest one is closed.
         /// </summary>
+        /// <param name="allowMultipleInstances">
+        /// When <see langword="true"/>, the check is skipped entirely. This is intended for automated and headless
+        /// invocation, where BAMM may be launched as a child process whose name collides with other processes.
+        /// </param>
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "RuntimeManager.IsSupportedWindowsVersion() handles checks.")]
-        public static void CheckForMultipleInstances()
+        public static void CheckForMultipleInstances(bool allowMultipleInstances = false)
         {
+            if (allowMultipleInstances) { return; }
+
             var curProc = Process.GetCurrentProcess();
             if (curProc == null)
             {

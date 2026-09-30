@@ -1,9 +1,14 @@
+using BrowserAutomationMaster.Core.Helpers;
+using BrowserAutomationMaster.Core.Messaging;
 using BrowserAutomationMaster.Core.Parsing;
 using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
+using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.GUI.Response;
+using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
 using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static System.Text.Encoding;
@@ -12,6 +17,10 @@ namespace BrowserAutomationMaster.Core.GUI
 {
     public static class BackendFunctions
     {
+        // Resolved once, because the answer cannot change while BAMM is running.
+        private static string? guiVersion;
+        private static bool guiVersionResolved = false;
+
         public static async Task Export(HttpListenerRequest request, HttpListenerResponse response)
         {
             if (request.HttpMethod == "OPTIONS")
@@ -161,11 +170,9 @@ namespace BrowserAutomationMaster.Core.GUI
             }
         }
 
-        public static void Redirect(HttpListenerResponse response)
+        private static string GetRedirectInstructions(string absolutePath)
         {
-            string absolutePath = GetMainGUIPage(includeProtocol: false);
-
-            string instructionalHTML = $@"
+            return $@"
     <html>
     <head>
         <title>Local GUI Access Required</title>
@@ -236,6 +243,11 @@ namespace BrowserAutomationMaster.Core.GUI
     </body>
     </html>
     ";
+        }
+
+        public static void Redirect(HttpListenerResponse response)
+        {
+            string instructionalHTML = GetRedirectInstructions(absolutePath: GetMainGUIPage(includeProtocol: false));
 
             byte[] buffer = UTF8.GetBytes(instructionalHTML);
 
@@ -243,14 +255,8 @@ namespace BrowserAutomationMaster.Core.GUI
             response.ContentType = "text/html; charset=utf-8";
             response.ContentLength64 = buffer.Length;
 
-            try
-            {
-                response.OutputStream.Write(buffer, 0, buffer.Length);
-            }
-            finally
-            {
-                response.Close();
-            }
+            try { response.OutputStream.Write(buffer, 0, buffer.Length); }
+            finally { response.Close(); }
         }
 
         public static async Task Terminate(HttpListenerResponse response) 
@@ -308,8 +314,9 @@ namespace BrowserAutomationMaster.Core.GUI
                 var lines = File.ReadAllLines(path);
                 var items = new Dictionary<string, string>();
 
-                for (int i = 0; i < lines.Length; i++)
+                for (int i = 0; i < lines.Length; i++) {
                     items.Add(i.ToString(), lines[i]);
+                }
 
                 await HandleValidResponse(response, items);
             }
@@ -466,6 +473,102 @@ namespace BrowserAutomationMaster.Core.GUI
             await Server.WriteResponse(response, responseBytes);
 
             
+        }
+
+        /// <summary>
+        /// Resolves the version of the GUI that this BAMM build ships, or null when it cannot be
+        /// determined.
+        /// </summary>
+        /// <remarks>
+        /// The version is read out of the embedded gui.zip rather than hardcoded here, so it always
+        /// matches the archive that is actually served. The GUI is fetched from the BAMM-GUI
+        /// repository's latest release, so a separately maintained constant here would silently drift
+        /// from what the user is looking at. The extracted copy on disk is used as a fallback for the
+        /// case where the archive has already been unpacked.
+        /// </remarks>
+        public static string? GetGuiVersion()
+        {
+            if (guiVersionResolved)
+            {
+                return guiVersion;
+            }
+
+            guiVersionResolved = true;
+
+            try
+            {
+                string? source = GetEmbeddedZipEntryText(
+                    resourceName: "gui.zip",
+                    resourcePattern: GUI_ZIP_RESOURCE_PATH,
+                    entryName: GUI_VERSION_ZIP_ENTRY
+                );
+
+                if (source == null)
+                {
+                    string onDisk = Path.Combine(GetGUIScriptsPath(), GUI_VERSION_FILE);
+
+                    if (File.Exists(onDisk))
+                    {
+                        source = File.ReadAllText(onDisk);
+                    }
+                }
+
+                if (source == null)
+                {
+                    Warning.Write("Unable to locate the GUI's version file, the GUI version is unknown.");
+                    return guiVersion;
+                }
+
+                Match match = GuiVersionRegex.Match(source);
+
+                if (!match.Success)
+                {
+                    Warning.Write(
+                        string.Join(NLC, [
+                            "The GUI's version file does not contain a readable GUI_VERSION const.",
+                            "The GUI version is unknown."
+                        ])
+                    );
+
+                    return guiVersion;
+                }
+
+                guiVersion = match.Groups[1].Value;
+            }
+            catch (Exception ex)
+            {
+                Warning.Write(
+                    string.Join(NLC, [
+                        "An exception occured while determining the GUI version, it is reported as unknown.",
+                        "Error Log:",
+                        ex.Message
+                    ])
+                );
+            }
+
+            return guiVersion;
+        }
+
+        /// <summary>
+        /// Reports the version of the GUI served by this BAMM build, so the GUI can compare it
+        /// against the version it shipped with.
+        /// </summary>
+        public static async Task GuiVersion(HttpListenerResponse response)
+        {
+            string? version = GetGuiVersion();
+
+            try
+            {
+                var responseJson = new Dictionary<string, string>() {
+                    { "gui_version", version ?? "unknown" }
+                };
+
+                await Server.WriteResponse(response, JsonSerializer.SerializeToUtf8Bytes(responseJson));
+            }
+            catch (Exception ex)
+            {
+                await HandleInvalidResponse(response, ex.Message);
+            }
         }
 
     }

@@ -26,6 +26,12 @@
         public const string GUI_ZIP_RESOURCE_PATH = "BrowserAutomationMaster.Resources.gui.zip";
         public const string FREE_FOR_MACOS_RESOURCE_PATH = "BrowserAutomationMaster.Resources.macOS.free";
 
+        // The GUI's own version lives in the GUI repository, as GUI_VERSION inside this file:
+        // gui/scripts/version.js. It is read out of the embedded archive rather than duplicated
+        // here, so the reported version always matches the archive BAMM actually ships.
+        public const string GUI_VERSION_ZIP_ENTRY = "gui/scripts/version.js";
+        public const string GUI_VERSION_FILE = "version.js";
+
         // Used in ExtensionManager
         // Using ReadOnlySpan<byte> for constants to avoid heap allocations
         public static readonly ReadOnlyMemory<byte> XPIMagicBytes = new byte[4] { 0x50, 0x4B, 0x05, 0x06 };

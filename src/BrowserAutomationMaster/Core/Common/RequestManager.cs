@@ -281,13 +281,23 @@ namespace BrowserAutomationMaster.Core.Common
             }
             
 
-            public static HttpClient GetClientWithRedirectsAllowed(bool allowRedirects, string? userAgent = null)
+            public static HttpClient GetClientWithRedirectsAllowed(bool allowRedirects, string? userAgent = null, bool disableSSL = false)
             {
                 if (string.IsNullOrEmpty(userAgent)) {
                     userAgent = DefaultUserAgent;
                 }
 
                 var handler = new HttpClientHandler { AllowAutoRedirect = allowRedirects };
+
+                // Mirrors the `feature "disable-ssl"` behaviour of the generated script, which sets
+                // verify_mode to CERT_NONE. Without this the compile-time probe rejects a
+                // self-signed host that the script would have loaded without complaint.
+                if (disableSSL)
+                {
+                    handler.ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                }
+
                 var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
                 client.DefaultRequestHeaders.Add("User-Agent", userAgent);
                 return client;

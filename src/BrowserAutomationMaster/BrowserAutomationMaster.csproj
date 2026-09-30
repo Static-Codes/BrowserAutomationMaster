@@ -135,8 +135,16 @@
 	</Target>
 
 	<!-- GUI.zip Download and Embed Logic -->
+	<!--
+		The GUI is versioned and released from its own repository, so it is pulled from the latest
+		GitHub release rather than from a branch. Every release attaches its archive as gui.zip, which
+		is what /latest/download resolves to; pinning a tag here instead would mean a forgotten bump
+		ships a stale GUI.
+		The version served on /gui_version is read back out of this archive at runtime, so it always
+		matches the GUI that was actually embedded.
+	-->
 	<PropertyGroup>
-		<ResourceURL>https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip</ResourceURL>
+		<ResourceURL>https://github.com/Static-Codes/BAMM-GUI/releases/latest/download/gui.zip</ResourceURL>
     	<DownloadDir>Resources</DownloadDir>
     	<DownloadedFileName>gui.zip</DownloadedFileName>
 		<!-- MSBuild on Windows handles forward slashes as intended, but, Unix treats backslashes as literals rather than seperators -->
@@ -193,6 +201,12 @@
 		<PackageReference Include="Spectre.Console" Version="0.50.0" />
 		<PackageReference Include="TextCopy" Version="6.2.1" />
 		<PackageReference Include="YamlDotNet" Version="16.3.0" />
+	</ItemGroup>
+
+	<!-- CompilationValidationTests reads Transpiler.validCommands to prove it stays in step with
+		 Parser.HandleLineValidation(). Widening that field to public would only serve the test. -->
+	<ItemGroup>
+		<InternalsVisibleTo Include="BrowserAutomationMaster.Tests" />
 	</ItemGroup>
 
 </Project>

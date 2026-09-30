@@ -327,7 +327,18 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
                 if (statesToReturnBlack.Any(stateToReturnBlack => stateToReturnBlack)) {
                     return black;
                 }
-                
+
+                // This probe writes an OSC 11 query to /dev/tty and reads the terminal's reply back
+                // from /dev/tty. Both share the controlling terminal's input queue with whatever
+                // launched this process, so when stdin is not a terminal (pipes, editors, CI, test
+                // hosts) the reply is never reliably consumed and its bytes leak into the parent's
+                // input, where the next command typed at that terminal reads them.
+                // Only probe when there is an interactive terminal to answer.
+                if (Console.IsInputRedirected || !HasDisplayVariableSet())
+                {
+                    return null;
+                }
+
                 string tempFile = Path.GetTempFileName();
 
                 string command = "bash";

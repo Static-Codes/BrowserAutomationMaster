@@ -26,6 +26,15 @@ namespace BrowserAutomationMaster.Core.Common
         {
             {
                 new Command(
+                    name: "--allow-multiple-instances",
+                    description: "Disables the single instance guard, allowing BAMM to run alongside another instance. Intended for automated/headless invocation.",
+                    examples: [ "bamm --allow-multiple-instances", "bamm --allow-multiple-instances compile \"ebay.bamc\"" ],
+                    type: CommandType.Argument
+                )
+            },
+
+            {
+                new Command(
                     name: "--bs",
                     description: $"Instructs BAMM to use BrowserStack, for more information see: {BASE_REPO_LINK}",
                     examples: [ "bamm --bs" ],

@@ -1,9 +1,7 @@
 browser "firefox" // Sets the browser to firefox, "chrome" is also a supported value.
-// This is a webserver with an intentionally misconfigured ssl certificate.
-visit "https://self-signed.badssl.com/"
-feature "no-ssl" // Disables ssl certificate authorization (Useful if a website is misbehaving)
+feature "disable-ssl" // Disables ssl certificate authorization (Useful if a website is misbehaving)
 feature "disable-pycache"
-
+visit "https://self-signed.badssl.com/" // This is a webserver with an intentionally misconfigured ssl certificate.
 
 wait-for-seconds .5 // Waits a half second for the site to load.
 click "#advancedButton" // Clicks the 'Advanced' button.
