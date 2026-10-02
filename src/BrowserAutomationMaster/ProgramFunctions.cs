@@ -1,57 +1,34 @@
-// Copyright (C) 2026 Static Codes
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-﻿using System.Text.Json;
-using BrowserAutomationMaster.Compilation;
-using BrowserAutomationMaster.Managers;
-using BrowserAutomationMaster.Managers.AppManager.OS;
-using BrowserAutomationMaster.Managers.AppManager.OS.Linux;
-using BrowserAutomationMaster.Managers.Python;
-using BrowserAutomationMaster.Managers.Python.BrowserStack;
-using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Compilation.Transpiler;
-using static BrowserAutomationMaster.Managers.AnsiManager;
-using static BrowserAutomationMaster.Managers.AppManager.InstalledApps;
-using static BrowserAutomationMaster.Managers.AppManager.OS.Linux.Functions;
-using static BrowserAutomationMaster.Managers.ConfigManager;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
-using static BrowserAutomationMaster.Managers.LocalServerManager;
-using static BrowserAutomationMaster.Managers.PlatformManager;
-using static BrowserAutomationMaster.Managers.ProcessManager;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.BrowserVersionManager;
-using static BrowserAutomationMaster.Managers.Python.BrowserStack.DeviceManager;
-using static BrowserAutomationMaster.Managers.RegexManager;
-using static BrowserAutomationMaster.Managers.UpdateManager;
-using static BrowserAutomationMaster.Messaging.Errors;
-using static BrowserAutomationMaster.Messaging.Menu;
-using static BrowserAutomationMaster.Messaging.Success;
-using static BrowserAutomationMaster.Parsing.Parser;
-
+﻿using BrowserAutomationMaster.Core.Compilation;
+using BrowserAutomationMaster.Core.Messaging;
+using BrowserAutomationMaster.Core.SystemInfo.OS;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
+using BrowserAutomationMaster.Core.Python;
+using BrowserAutomationMaster.Core.Python.BrowserStack;
+using BrowserAutomationMaster.Core.Utilities;
+using BrowserAutomationMaster.Core.Types.Linux;
+using static BrowserAutomationMaster.Core.Common.ANSI;
+using static BrowserAutomationMaster.Core.Common.Constants;
+using static BrowserAutomationMaster.Core.Common.DirectoryManager;
+using static BrowserAutomationMaster.Core.Common.PlatformManager;
+using static BrowserAutomationMaster.Core.Common.ProcessManager;
+using static BrowserAutomationMaster.Core.Common.RegexManager;
+using static BrowserAutomationMaster.Core.Compilation.Transpiler;
+using static BrowserAutomationMaster.Core.GUI.Server;
+using static BrowserAutomationMaster.Core.GUI.BackendFunctions;
+using static BrowserAutomationMaster.Core.Helpers.EmbeddedResourceHelper;
+using static BrowserAutomationMaster.Core.Messaging.Errors;
+using static BrowserAutomationMaster.Core.Messaging.Menu;
+using static BrowserAutomationMaster.Core.Messaging.Success;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Generic.InstalledApps;
+using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
+using static BrowserAutomationMaster.Core.Parsing.Parser;
+using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
+using static BrowserAutomationMaster.Core.Utilities.AppUpdateUtility;
+using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
+using static BrowserAutomationMaster.Resources.NativeFileDialog.Loader;
 
 namespace BrowserAutomationMaster
 {
-    public static class ByteArrayExtensions
-    {
-        public static async Task<T?> Deserialize<T>(this byte[] data) where T : class
-        {
-            using var stream = new MemoryStream(data);
-            return await JsonSerializer.DeserializeAsync(stream, typeof(T)) as T;
-        }
-    }
-    
     public class ProgramFunctions
     {
         /// <summary>Handles all of the initial application setup and prerequisite checks.</summary>
@@ -59,47 +36,39 @@ namespace BrowserAutomationMaster
         public static async Task InitializeAsync(string[] args)
         {
             // Sets PlatformManager.PlatformName to be used across the session duration.
-            SetPlatform();
+            SetPlatform(GlobalUserInfo);
 
-            // Writes packages.json to disk (bundled with the binary in BrowserAutomationMaster.csproj)
-            await PyPiPackageManager.Initalize();
+            GlobalUserInfo.HardwareInformation.SetCpuInfo();
 
             // BUG FIXED: DO NOT CHANGE POSITION
-            // If GlobalConfig is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
-            GlobalConfig = LoadConfig();
+            // If GlobalSettings is loaded after PopulateInstallations(), DefaultTheme's colors are used to display installation information.
+            GlobalSettings = Load();
 
             // Populates AppManager.InstalledApps.AppInfo
             await PopulateInstallations();
 
-            // Populates DeviceManager.Devices
-            if (!PopulateDevices()) {
-                Environment.Exit(0);
-            }
-            
-            // Populates BrowserVersionManager.browserVersions
-            SetBrowserVersions(await GetLatestVersionInfo());
-            var versions = GetBrowserVersion();
+            // Note: this is handled here rather than in HandleCLIArguments() because Program.cs
+            // calls InitializeAsync() first. The argument may appear in any position.
+            bool allowMultipleInstances = args.Any(arg => arg.Equals("--allow-multiple-instances", OIC));
+            if (allowMultipleInstances)
+                WriteSuccessMessage("Argument `--allow-multiple-instances` found, the multiple instance check has been bypassed.");
 
-            // Null check on BrowserVersionManager.browserVersions
-            if (versions == null)
-            {
-                Warning.Write(
-                    "Unable to get most browser versions, please ensure you have an active internet connection.\n" +
-                    $"If this issue persists, please make a bug report at {ISSUES_LINK}\n\n"
-                );
+            CheckForMultipleInstances(allowMultipleInstances);
+
+            #pragma warning disable CA1416 // Handled by SetPlatforms()
+
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
+                Win.VerifyRootDrive();
             }
 
-            CheckForMultipleInstances();
-
-            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
-            {
-                Win.VerifyRootDrive(args);
-            }
+            #pragma warning restore
 
             // The user will select the version of python they want to use
             HandlePythonVersionSelection(GetInstallations());
             
             await HandleHardwareCheck(args);
+
+            await InitializeNativeFileDialog();
         }
 
         /// <summary>Processes any CLI arguments and returns execution status.</summary>
@@ -107,8 +76,9 @@ namespace BrowserAutomationMaster
         /// <returns>True if BAMM is to be terminated | False if execution is to continue.</returns>
         public static async Task<bool> HandleCLIArguments(string[] pArgs)
         {
-            if (pArgs.Length == 0) 
+            if (pArgs.Length == 0) {
                 return false; // No args, proceed to main menu loop.
+            }
 
             // Defining the lowercase representation of pArgs[0] to save memory (Not that its required, but its a good practice)
             var lArg0 = pArgs[0].ToLower();
@@ -121,42 +91,46 @@ namespace BrowserAutomationMaster
 
             if (usingUSM)
             {
-                _ = new UserScriptManager(pArgs[1], pArgs[0]);
+                _ = new UserScriptUtility(pArgs[1], pArgs[0]);
                 return true;
             }
 
             // Note: no-hwc is handled in HandleHardwareCheck()
-
             // Handles double-clicking a BAMC file (On Windows)
             if (pArgs.Length == 1 && lArg0.EndsWith(".bamc") && File.Exists(pArgs[0]))
             {
-                _ = new UserScriptManager(pArgs[0], "add");
+                _ = new UserScriptUtility(pArgs[0], "add");
                 var response = Input.AskForInput("Would you like to continue? [y/n]: ");
                 var wantsToContinue = Input.ConditionAccepted(response); // OIC = StringComparison.OrdinalIgnoreCase
                 return !wantsToContinue; // Exit if user doesn't want to continue
             }
 
-            if (pArgs.Any(arg => arg.Equals("--platform-debug")))
+            if (pArgs.Any(arg => arg.Equals("--platform-info")))
             {
+                // Defining the label for platform detection.
+                var labelText = GlobalUserInfo.PlatformInfo.IsLinux ? "Detected Distro:" : "OS Name:";
+
                 Warning.Write(string.Join(NLC, [
                     "---------------- PLATFORM CLASS DEBUG INFO ----------------",
-                    $"IsARMel: {Platforms.IsARMel}",
-                    $"IsARMhf: {Platforms.IsARMhf}",
-                    $"IsChromeOS: {Platforms.IsChromeOS}",
-                    $"IsLinux: {Platforms.IsLinux}",
-                    $"IsMacOS: {Platforms.IsMacOS}",
-                    $"IsRaspi: {Platforms.IsRaspi}",
-                    $"Raspi Model: {Platforms.GetRaspiModelName()}",
-                    $"IsUnixLike: {Platforms.IsUnixLike}",
-                    $"IsWindows: {Platforms.IsWindows}",
+                    $"IsARMel: {GlobalUserInfo.PlatformInfo.IsARMel}",
+                    $"IsARMhf: {GlobalUserInfo.PlatformInfo.IsARMhf}",
+                    $"IsChromeOS: {GlobalUserInfo.PlatformInfo.IsChromeOS}",
+                    $"IsLinux: {GlobalUserInfo.PlatformInfo.IsLinux}",
+                    $"IsMacOS: {GlobalUserInfo.PlatformInfo.IsMacOS}",
+                    $"IsPiDevice: {GlobalUserInfo.PlatformInfo.IsPiDevice}",
+                    $"Raspi Model: {GlobalUserInfo.PlatformInfo.GetRaspiModelName()}",
+                    $"IsUnixLike: {GlobalUserInfo.PlatformInfo.IsUnixLike}",
+                    $"IsWindows: {GlobalUserInfo.PlatformInfo.IsWindows}",
+                    $"{labelText}: {GlobalUserInfo.PlatformInfo.CurrentPlatform?.PrettyName ?? "Not Detected"}",
                     NLC, 
                     NLC,
                 ]));
             }
 
-            if (Platforms.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
+            if (GlobalUserInfo.PlatformInfo.IsUnixLike && pArgs.Any(arg => arg.Equals("--query-display"))){
                 Console.WriteLine("====================================");
-                Console.WriteLine("$DISPLAY Set: {0}", HasDisplayVarSet());
+                Console.WriteLine($"$DISPLAY Set: {GlobalUserInfo.PlatformInfo.CurrentDistribution?.DisplayServer != DisplayServer.None}");
+                Console.WriteLine($"Active Server: {GlobalUserInfo.PlatformInfo.CurrentDistribution?.DisplayServer.ToString() ?? "Not Set"}");
                 Console.WriteLine("===================================={0}{1}", NLC, NLC);
             }
 
@@ -164,6 +138,7 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("--bs", CCIC))
             {
                 SetBrowserStackStatus(status: true);
+                WriteSuccessMessage("Argument `--bs` found, runtime execution will be done through BrowserStack.");
                 return false;
             }
 
@@ -174,23 +149,25 @@ namespace BrowserAutomationMaster
                 return true;
             }
 
-            if (pArgs.Any(arg => arg.Equals("--force-error")))
-            {
+            if (pArgs.Any(arg => arg.Equals("--force-error"))) {
                 WriteAndExit("", 0);
             }
 
             if (pArgs.Any(arg => arg.Equals("--show-distro"))) 
             {
-                var distro = Platforms.CurrentDistribution ?? Distros.Unknown;
+                var distro = GlobalUserInfo.PlatformInfo.CurrentDistribution ?? Distros.Unknown;
                 WriteSuccessMessage(distro.ToString());
             }
             
-            if (pArgs.Any(arg => arg.Equals("--gui") && !Directory.Exists(userScriptsDirectory))){
-                WriteAndExit(
+            if (pArgs.Any(arg => arg.Equals("--gui") && !Directory.Exists(userScriptsDirectory)))
+            {
+                WriteAndExit
+                (
                     string.Join(NLC, [
                         "Unable to start BAMM's GUI.",
                         "Please start BAMM without any arguments for your first run, unless instructed otherwise.",
-                        $"Once you see the Main Menu, select \"GUI\".{NLC}",
+                        $"Once you see the Main Menu, select \"GUI\".",
+                        NLC,
                         "Please note, you are seeing this because either:",
                         "- 1. You are running BAMM for the first time.",
                         "- 2. The userScripts directory has not been created, or has been corrupted.",
@@ -201,29 +178,48 @@ namespace BrowserAutomationMaster
             }
 
             // If no display is set and the user attempts to user the GUI, browserstack will be set.
-            if (pArgs.Any(arg => arg.Equals("--gui")) && !HasDisplayVarSet())
+            if (pArgs.Any(arg => arg.Equals("--gui")) && !HasDisplayVariableSet())
             {
                 Warning.Write($"Unable to query $DISPLAY, BAMM's GUI will not work.");
                 SetBrowserStackStatus(true);
             }
 
-            // Downloads a local copy of the GUI (If one is not already present) from:
-            // https://raw.githubusercontent.com/Static-Codes/BrowserAutomationMaster/refs/heads/gui/gui.zip
-            else if (pArgs[0].Equals("--gui") && !Directory.Exists(GetGUIDirectoryPath()))
-            {
+            // Writes the GUI to disk if not already present.
+            else if (
+                pArgs[0].Equals("--gui") && 
+                !Directory.Exists(GetGUIDirectoryPath()) || 
+                !File.Exists(GetGUIDaemonPath())
+            ) {
                 await HandleGUIDownload();
             }
 
             // Handles '--gui' command using default port (8008)
             if (pArgs.Length == 1 && pArgs[0].Equals("--gui"))
             {
-                await StartServer();
+                Console.WriteLine("Starting HTTP Server for GUI..");
+                StartGUIThread();
             }
 
             // Handles '--gui --port==X' command where X is a valid integer between 1 and 65535
             else if (pArgs.Length == 2 && pArgs[0].Equals("--gui") && IsMatches(GUIPortRegex(), pArgs[1], out string port))
             {
-                await StartServer(port);
+                // 'port' must be forwarded. It was previously discarded here, so --port==X always
+                // started the listener on the default 8008.
+                if (!int.TryParse(port, out int parsedPort) || parsedPort is < 1 or > 65535)
+                {
+                    WriteAndExit
+                    (
+                        message: string.Join(NLC, [
+                            $"Unable to start BAMM's GUI.",
+                            $"'{port}' is not a valid port.",
+                            "Please provide a port between 1 and 65535, for example: bamm --gui --port==42069"
+                        ]),
+                        status: 1
+                    );
+                }
+
+                Console.WriteLine($"Starting HTTP Server for GUI on port {parsedPort}..");
+                StartGUIThread(parsedPort.ToString());
             }
 
             else if (pArgs.Any(arg => arg.Equals("--version"))) 
@@ -338,25 +334,22 @@ namespace BrowserAutomationMaster
             if (pArgs[0].Equals("uninstall", CCIC))
             {
                 // This will exit regardless of success status so no return is neccessary.
-                await UninstallationManager.Uninstall();
+                await AppRemovalUtility.Uninstall();
             }
 
             // Handles 'validate' command variations
             if (pArgs[0].Equals("validate", CCIC))
             {
-                if (pArgs.Length != 2)
-                {
-                    WriteAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", 1);
+                if (pArgs.Length != 2) {
+                    WriteAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", status: 1);
                 }
 
-                if (IsValidFile(pArgs[1]))
-                {
-                    WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
+                if (IsValidFile(pArgs[1])) {
+                    WriteSuccessMessageAndExit("Selected file has valid syntax.", exitCode: 0);
                 }
 
-                else
-                {
-                    WriteAndExit("Selected file has invalid syntax.", 1);
+                else {
+                    WriteAndExit("Selected file has invalid syntax.", status: 1);
                 }
                 return true;
             }
@@ -383,10 +376,7 @@ namespace BrowserAutomationMaster
                 return;
             }
 
-            if (pArgs.Length == 1)
-            {
-                ArchiveAppDataDirectory();
-            }
+            if (pArgs.Length == 1) { ArchiveAppDataDirectory(); }
 
             if (pArgs.Length == 2)
             {
@@ -408,8 +398,8 @@ namespace BrowserAutomationMaster
         ///<param name="pArgs">Program Arguments</param>
         private static void HandleBSOverwriteCommand()
         {
-            if (InstanceManager.PromptConfigOverride()) {
-                InstanceManager.WriteConfig(fileNotFound: false);
+            if (Instance.PromptConfigOverride()) {
+                Instance.WriteConfig(fileNotFound: false);
             }
         }
 
@@ -442,7 +432,6 @@ namespace BrowserAutomationMaster
             {
                 "userscripts" => userScriptsDirectory,
                 "compiled" => GetDesiredSaveDirectory(),
-                "config" => GetBAMConfigDirectory(),
                 _ => string.Empty
             };
 
@@ -454,95 +443,75 @@ namespace BrowserAutomationMaster
             }
 
             string input = Input.AskForInput($"Are you sure you want to delete the '{targetDir}' directory? [y/n]:\n");
-            if (input.Equals("y", OIC))
-            {
-                DeleteDirectory(dirPath);
-            }
+            
+            if (input.Equals("y", OIC)) { DeleteDirectory(dirPath); }
         }
 
-        private static async Task<bool> HandleDaemonDownload()
-        {
-            var msg = "Unable to download the GUI Daemon, any attempt to use the 'Restart GUI' button will throw an error.";
-            try
-            {
-                var content = await RequestManager.NetworkClient.Instance.GetStringAsync(GUI_DAEMON_LINK);
 
-                if (content == null)
-                {
-                    return WriteErrorAndReturnBool(msg, false);
-                }
-
-                var path = GetGUIDaemonPath();
-                File.WriteAllText(path, content);
-                return File.Exists(path);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return WriteErrorAndReturnBool(msg, false);
-            }
-        }
-
-        private static async Task<bool> HandleGUIDownload()
+        public static async Task<bool> HandleGUIDownload()
         {
             try
             {
-                bool daemonDownloaded = false; // Prevents the requirement for nesting
+                var daemonPath = GetGUIDaemonPath();
+                var guiDir = GetGUIDirectoryPath();
 
-                if (File.Exists(GetGUIDaemonPath())) // If the Daemon is already downloaded, continue
-                {
-                    daemonDownloaded = true;
+                bool daemonOnDisk = File.Exists(daemonPath);
+                bool guiDirOnDisk = Directory.Exists(guiDir);
+
+                // If the Daemon and GUI are already downloaded, continue
+                if (daemonOnDisk && guiDirOnDisk) {
+                    return true;
                 }
 
-                else // Downloads a local copy of the GUI from ConstantManager.GUI_DAEMON_LINK
-                {
-                    daemonDownloaded = await HandleDaemonDownload();
+                // Retrieves gui.zip and UIDaemon.py from the embedded project resources
+                // WriteEmbeddedResourceToDisk will exit if the operation fails
+                if (!daemonOnDisk) {
+                    await WriteEmbeddedResourceToDisk(
+                        resourceName: "UIDaemon.py",
+                        resourcePattern: UI_DAEMON_RESOURCE_PATH,
+                        outputPath: daemonPath
+                    );
                 }
 
-                if (!daemonDownloaded) // If the daemonDownload flag isnt true, execution ends.
+                if (!guiDirOnDisk) 
                 {
-                    return false;
+                    await WriteEmbeddedResourceToDisk(
+                        resourceName: "gui.zip",
+                        resourcePattern: GUI_ZIP_RESOURCE_PATH,
+                        outputPath: GetGUIZipPath()
+                    );
+
+                    await Task.Delay(300);
+
+                    WriteSuccessMessage(
+                        string.Join(NLC, [
+                            $"Successfully extracted the embedded gui.zip (GUI version {GetGuiVersion() ?? "unknown"}).",
+                            "Please wait while it's extracted..."
+                        ])
+                    );
+
+                    await Task.Delay(300);
+
+                    // Extracts the GUI or writes an error and exits.
+                    ExtractGUI();
                 }
 
-                if (!File.Exists(GetGUIDaemonPath())) // If the daemon wasn't downloaded, execution ends.
-                {
-                    return false;
-                }
-
-                WriteSuccessMessage("Successfully downloaded the GUI Daemon, downloading GUI now..");
-                await Task.Delay(300);
-
-                if (!await DownloadGUI())
-                {
-                    return false;
-                }
-
-                WriteSuccessMessage("Successfully downloaded gui.zip from project repository, please wait while it's extracted.");
-                await Task.Delay(300);
-
-                if (!ExtractGUI())
-                {
-                    return false;
-                }
-
-                WriteSuccessMessage("Successfully extracted GUI, please wait while the HTTP Server starts..");
             }
+
             catch (Exception ex)
             {
                 WriteAndExit
                 (
-                    message:
-                        string.Join(
-                            string.Empty, [
-                                "Unable to download the required GUI files, ",
-                                "if this issue persists, ",
-                                $"please make a bug report at {ISSUES_LINK}\n\n",
-                                $"Error Log:\n{ex.Message}"
-                            ]
-                        ),
+                    string.Join(NLC, [
+                        "Unable to download the required GUI files.",
+                        $"If this issue persists, please make a bug report at {ISSUES_LINK}",
+                        "Error Log:",
+                        ex.Message
+                    ]),
                     status: 1
                 );
             }
+
             return true;
         }
 
@@ -558,26 +527,19 @@ namespace BrowserAutomationMaster
 
             bool doHardwareCheck = !bypassCheck1 && !bypassCheck2;
 
-            if (GlobalConfig.ShowUpdateCheck) {
+            if (GlobalSettings.ShowUpdateCheck) {
                 await CheckForUpdate();
             }
 
-            if (doHardwareCheck) {
-                await RuntimeManager.DoRuntimeCheck();
+            await Runtime.SetMemoryInfo();
+
+            // Avoiding the hardware check at the user's request.
+            if (!doHardwareCheck) {
+                Warning.Write("Skipping runtime validation.. please note this may have unintended consequences.");
                 return;
             }
-
-            // Fixed bug where passing --nohwc will cause the CPU core count to be skipped all together.
-            // To ensure this is working as intended:
-            // dotnet run --nohwc --force-error
-            else 
-            {
-                CPUInfoManager cpuInfoManager = new();
-                RuntimeManager.SetCoreCount(cpuInfoManager.Cores);
-            }
-
-            await RuntimeManager.SetMemoryInfo();
             
+            await Runtime.DoRuntimeCheck();
         }
 
 
@@ -623,7 +585,7 @@ namespace BrowserAutomationMaster
 
             if (pArgs.Length == 2 && File.Exists(pArgs[1]))
             {
-                var runtimeManager = new RuntimeManager(pArgs[1]);
+                var runtimeManager = new Runtime(pArgs[1]);
                 await runtimeManager.RunScript();
             }
 
@@ -652,7 +614,8 @@ namespace BrowserAutomationMaster
                         break;
 
                     case MenuOption.GUI:
-                        await StartServer();
+                        // await StartServer();
+                        StartGUIThread();
                         break;
 
                     case MenuOption.Help:
@@ -726,7 +689,7 @@ namespace BrowserAutomationMaster
             fullFileName = $"{fileName}.bamc";
             var filePath = Path.Combine(userScriptsDirectory, fullFileName);
 
-            await EditorManager.OpenFileInEditor(filePath);
+            await EditorUtility.OpenFileInEditor(filePath);
         }
 
         public static async Task Open(string? fullFileName = null) 
@@ -757,15 +720,15 @@ namespace BrowserAutomationMaster
             // If the file does exist in the userScripts directory
             // 1. OpenFileInEditor() creates the file
             // 2. The user is prompted for their choice of editor to use when opening the selected file.
-            await EditorManager.OpenFileInEditor(filePath);
+            await EditorUtility.OpenFileInEditor(filePath);
             
         }
 
         public static async Task Run(KeyValuePair<MenuOption, string> MenuResult)
         {
-            RuntimeManager runtimeManager = new(MenuResult.Value);
-            // CheckBrowserStackStatus(); 
-            await runtimeManager.RunScript();
+            Runtime runtimeManager = new(MenuResult.Value);
+            // CheckBrowserStackStatus();
+            await runtimeManager.RunScript(GetBrowserStackStatus());
         }
     }
 }

@@ -1,4 +1,4 @@
-using BrowserAutomationMaster.Parsing;
+using BrowserAutomationMaster.Core.Parsing;
 using Xunit;
 
 namespace BrowserAutomationMaster.Tests.Commands

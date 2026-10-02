@@ -1,0 +1,64 @@
+﻿namespace BrowserAutomationMaster.Core.Common
+{
+    public class Constants
+    {
+        public static readonly string NLC = Environment.NewLine; // This isn't a constant but for simplicity it will be placed here.
+        public static readonly string eNLC = NLC.Replace("\r", "\\r").Replace("\n", "\\n");
+        public const string DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/147.0";
+        public const string BASE_REPO_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/";
+        public const string BASE_SOURCE_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/archive/refs/tags/";
+        public const string DOCUMENTATION_LINK = "https://static-codes.github.io/BAMM-Docs/";
+        public const string ISSUES_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/issues";
+        public const string LATEST_VERSION_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/latest";
+        public const string RELEASES_DOWNLOAD_LINK = "https://github.com/Static-Codes/BrowserAutomationMaster/releases/download";
+        public const string FREE_FOR_MACOS_REPO_LINK = "https://github.com/zfdang/free-for-macOS";
+        public const StringComparison CCIC = StringComparison.CurrentCultureIgnoreCase;
+        public const StringComparison OIC = StringComparison.OrdinalIgnoreCase;
+        public const char HORIZONTAL_TAB = '\t';
+        public const string CPU_INFO_PATH = "/proc/cpuinfo";
+
+        
+        // Paths for embedded project resources.
+        // Doesn't include:
+        // - Embedded python wheels in: BrowserAutomationMaster.Core.Python.Wheel.Download
+        // - Embedded userScripts in: BrowserAutomationMaster.Core.Utilities.UserScriptUtility.WriteScriptExamples
+        public const string UI_DAEMON_RESOURCE_PATH = "BrowserAutomationMaster.Resources.UIDaemon.py";
+        public const string GUI_ZIP_RESOURCE_PATH = "BrowserAutomationMaster.Resources.gui.zip";
+        public const string FREE_FOR_MACOS_RESOURCE_PATH = "BrowserAutomationMaster.Resources.macOS.free";
+
+        // The GUI's own version lives in the GUI repository, as GUI_VERSION inside this file:
+        // gui/scripts/version.js. It is read out of the embedded archive rather than duplicated
+        // here, so the reported version always matches the archive BAMM actually ships.
+        public const string GUI_VERSION_ZIP_ENTRY = "gui/scripts/version.js";
+        public const string GUI_VERSION_FILE = "version.js";
+
+        // Used in ExtensionManager
+        // Using ReadOnlySpan<byte> for constants to avoid heap allocations
+        public static readonly ReadOnlyMemory<byte> XPIMagicBytes = new byte[4] { 0x50, 0x4B, 0x05, 0x06 };
+        public static readonly ReadOnlyMemory<byte> recBytes = "mozilla-recommendation.json"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> coseManBytes = "META-INF/cose.manifest"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> coseSigBytes = "META-INF/cose.sig"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> manSfBytes = "META-INF/manifest.mf"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> mozRsaBytes = "META-INF/mozilla.rsa"u8.ToArray();
+        public static readonly Dictionary<string, ReadOnlyMemory<byte>> XPIContentChecks = new () {
+            { "'mozilla-recommendation.json'", recBytes },
+            { "'META-INF/cose.manifest'", coseManBytes }, 
+            { "'META-INF/cose.sig'", coseSigBytes },
+            { "'META-INF/manifest.mf'", manSfBytes },
+            { "'META-INF/mozilla.rsa'", mozRsaBytes }
+        };
+        //public const string CHROME_VERSION_HISTORY_URL = "https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/stable/versions";
+        public const string CHROME_VERSION_URL = "https://chromiumdash.appspot.com/fetch_releases?channel=Extended&platform=Windows&num=1&offset=0";
+        public static readonly ReadOnlyMemory<byte> manJsonBytes = "manifest.json"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> CRXMagicBytes = "Cr24"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> metadataBytes = "_metadata/"u8.ToArray();
+        public static readonly ReadOnlyMemory<byte> verifContentsBytes = "_metadata/verified_contents.json"u8.ToArray();
+        public static readonly Dictionary<string, ReadOnlyMemory<byte>> CRXContentChecks = new () {
+            { "'manifest.json'", manJsonBytes },
+            { "'Cr24'", CRXMagicBytes }, 
+            { "'_metadata/'", metadataBytes },
+            { "'_metadata/verified_contents.json'", verifContentsBytes },
+        };
+
+    }
+}

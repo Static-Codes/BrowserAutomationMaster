@@ -1,4 +1,4 @@
-using BrowserAutomationMaster.Parsing;
+using BrowserAutomationMaster.Core.Parsing;
 using System.IO;
 using Xunit;
 

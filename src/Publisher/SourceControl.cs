@@ -1,23 +1,8 @@
-// Copyright (C) 2026 Static Codes
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-using BrowserAutomationMaster.Messaging;
-using static BrowserAutomationMaster.Managers.ConstantManager;
-using static BrowserAutomationMaster.Managers.DirectoryManager;
-using static BrowserAutomationMaster.Managers.RequestManager.NetworkClient;
-using static BrowserAutomationMaster.Messaging.Errors;
+using BrowserAutomationMaster.Core.Messaging;
+using static BrowserAutomationMaster.Core.Common.RequestManager.NetworkClient;
+using static BrowserAutomationMaster.Core.Common.Constants;
+using static BrowserAutomationMaster.Core.Common.DirectoryManager;
+using static BrowserAutomationMaster.Core.Messaging.Errors;
 
 namespace Publisher 
 {
@@ -29,7 +14,7 @@ namespace Publisher
             ".zip"
         ];
 
-        public static string? LatestTag => DetermineLatestReleaseTag().Result;
+        public static string? LatestTag => DetermineLatestReleaseTag("Static-Codes", "BrowserAutomationMaster").Result;
         
         public readonly static Source LatestRelease = new(
             Downloads: [.. FileTypes.Select(fileType => new Download(fileType))]
@@ -38,12 +23,12 @@ namespace Publisher
         public static string SetArchiveFileType() => Input.WriteListFromOptions(FileTypes, "file type for the source");
 
 
-        public static async Task<string?> DetermineLatestReleaseTag() 
+        public static async Task<string?> DetermineLatestReleaseTag(string userName, string projectName) 
         {
-            var client = new Octokit.GitHubClient(new Octokit.ProductHeaderValue(
-                "BrowserAutomationMaster"
+            var client = new Octokit.GitHubClient(
+                new Octokit.ProductHeaderValue(projectName
             ));
-            var releases = await client.Repository.Release.GetAll("Static-Codes", "BrowserAutomationMaster");
+            var releases = await client.Repository.Release.GetAll(userName, projectName);
             var latest = releases.ElementAt(0);
 
             return latest?.TagName ?? null; 
@@ -88,7 +73,7 @@ namespace Publisher
 
                 if (sourceBytes == null) 
                 {
-                    Errors.WriteAndExit(
+                    WriteAndExit(
                         message: "The contents of the latest release could not be resolved, please try again.", 
                         status: 1
                     );

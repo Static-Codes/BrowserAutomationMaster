@@ -40,13 +40,22 @@
   <br></br>
   ```
   # Downloads and executes the installer script, which does the following:
-  # 1. Determines the Distribution of Linux you are using, either Debian-Based or Fedora-Based
+  # 1. Determines the Distribution of Linux you are using from /etc/os-release
   # 2. Determines your CPU Architecture
   # 3. Downloads the appropriate package for BAMM.
   # 4. Installs the downloaded package.
   
   curl -sL "https://bamm-install.vercel.app/linux" | /bin/bash
   ```
+
+  BAMM is published for `x86_64`, `armv7l` and `aarch64` as both a `.deb` and an `.rpm`, so any of
+  those architectures can be installed on a Debian-family or RPM-family distribution. See
+  [Known Distribution Gaps](known-distribution-gaps.md) for exactly which distributions are
+  installable, and what the installer reports for the rest.
+
+  The installer needs network access to fetch the release, and `sudo` to install the package. It
+  detects Debian and RPM families only; it does not install Arch, Gentoo, or BSD packages, and says
+  so rather than attempting an install that would fail.
 
 ## Opening BAMM 🚀
 - **Linux/Windows:** `bamm`

@@ -1,0 +1,185 @@
+# Known distribution gaps
+
+- BAMM works out its host distribution in two places, and this page covers what each one is missing.
+- Both gaps are on purpose, and a test enforces each one, so neither can grow without someone noticing.
+
+## Distribution identification
+
+1. [WhichDistroSharp](https://www.nuget.org/packages/WhichDistroSharp/) reads the host distribution.
+2. BAMM resolves that to a support entry in [`Distros.cs`](../src/BrowserAutomationMaster/Core/SystemInfo/OS/Unix/Linux/Distros.cs).
+3. WhichDistroSharp knows **110** distributions. The 15 support entries claim **17** of them.
+4. The other **93** are listed below. BAMM runs on them, it just cannot identify them, so `DistroManager` asks the user to pick a base distribution **on every run**.
+   - This is the same problem the [Linux installer](installation.md) had, before it started reading a generated package-format map.
+
+Most of these are missing because BAMM was never tested on them, not because they were rejected.
+Grouped by what they actually are upstream, so adding one is mechanical and not a judgement call:
+
+| Upstream | Unclaimed IDs | Add to |
+| --- | --- | --- |
+| `Debian` family | `cumulus-linux`, `deepin`, `devuan`, `endless`, `neon`, `nilrt`, `pika`, `puppy_fossapup64`, `puppy_s15pup32`, `puppy_s15pup64`, `pureos`, `tails`, `trisquel` | `Distros.Debian` |
+| `Rpm` | `almalinux`, `amzn`, `aurora`, `azurelinux`, `centos`, `ol`, `rhel`, `rocky`, `mageia`, `openEuler`, `openmandriva`, `photon`, `scientific`, and 16 more | `Distros.Fedora` |
+| `pkg.tar.xz` (Arch) | `artix`, `cachyos`, `endeavouros`, `garuda`, `manjaro`, `manjaro-arm`, `steamos`, `blackarch`, and 10 more | `Distros.ArchLinux` |
+| `SUSE` family | `sled`, `sles`, `sles_sap`, `suse-microos` | `Distros.OpenSUSE` |
+| `tbz2` | `gentoo`, `exherbo`, `funtoo` | new entry, or leave unclaimed |
+| `pkg` (BSD) | `freebsd`, `dragonfly`, `ghostbsd`, `omnios`, `solaris` | `Distros.FreeBSD` |
+| No package manager | `coreos`, `nixos`, `flatcar`, `void`, `alpine`, and 20 more | no installable package exists |
+
+- The first three rows are one-liners.
+- The BSD row is not. BAMM supports FreeBSD as a runtime and `PackageType.Pkg` is the right format, but the Publisher has no BSD build target, so nothing builds a `.pkg` and those resolve to no artifact.
+
+### Adding support
+
+1. Add the ID to the `SupportedDistros` array of the matching entry in `Distros.cs`.
+   - A derivative joins its base entry and inherits that entry's package manager and dependency lists.
+2. Remove the ID from the list below.
+3. Run the test suite. Both directions are checked, so a half-done change fails.
+
+- Do not regenerate the list to make a failing test pass. A distribution is either supported or deliberately listed, and regenerating throws that away.
+
+<!-- The test reads between these markers. Keep the contents as bare IDs, one per line, so the
+     comparison against DistroMap.Map stays a set operation. -->
+
+<!-- BEGIN UNCLAIMED DISTROS -->
+```
+almalinux
+alpine
+amzn
+arch32
+archcraft
+arkane
+artix
+aurora
+azurelinux
+bazzite
+blackarch
+blendos
+bluefin
+buildroot
+cachyos
+centos
+chimera
+chimeraos
+cirros
+clear-linux-os
+clearos
+coreos
+cos
+cumulus-linux
+Deepin
+devuan
+dragonfly
+endeavouros
+endless
+eurolinux
+exherbo
+fedoraremixforwsl
+flatcar
+funtoo
+garuda
+gentoo
+ghostbsd
+gnoppix
+guix
+hyperbola
+ios_xr
+kaos
+mageia
+manjaro
+manjaro-arm
+mariner
+miraclelinux
+neon
+nexus
+nilrt
+nixos
+nobara
+novariaos
+nuros
+ol
+omnios
+openEuler
+openmandriva
+openwrt
+photon
+pika
+pisilinux
+postmarketos
+puppy_fossapup64
+puppy_s15pup32
+puppy_s15pup64
+pureos
+rancheros
+rebornos
+redox-os
+rhel
+rocky
+scientific
+slackware
+sled
+sles
+sles_sap
+solaris
+solus
+steamos
+suse-microos
+sysrescue
+tails
+tencentos
+tinycore
+trisquel
+ubios
+ultramarine
+void
+wolfi
+wrlinux
+XCP-ng
+xenenterprise
+```
+<!-- END UNCLAIMED DISTROS -->
+
+## Package formats
+
+The Linux installer picks what to download from a generated map, [`package-formats.json`](../src/Installers/Linux/testdata/package-formats.json). It maps each distribution's ID to the extension BAMM publishes for it.
+
+Only four formats are published, because those are the only four build targets in the Publisher:
+
+| Format | Built by | Distributions |
+| --- | --- | --- |
+| `deb` | `Debian Package (.deb)` | Debian family |
+| `rpm` | `Fedora`, `Alt Linux` and `PCLinuxOS` packages | RPM family, plus PCLinuxOS, which uses `apt` but ships `.rpm` |
+| `pkg.tar.xz` | `Arch Package (.pkg.tar.xz)` | Arch family |
+| `tbz2` | `Gentoo Package (.tbz2)` | Gentoo family |
+
+- Every other format is recorded as `null` instead of being left out, since "BAMM publishes no package for this" and "unrecognised distribution" are two different problems.
+- Giving a format with no build target an extension anyway would point a download at an asset that does not exist, which is how Alpine ended up recorded as `apk`.
+- The map is generated by the same code that writes it for a release, so it cannot drift out of date:
+
+```bash
+dotnet msbuild src/Installers/Linux/PackageFormats.targets -t:RegeneratePackageFormatMap
+```
+
+### Published asset names
+
+The installer builds a filename from the release version, CPU architecture and format. These six exist in a real release, and `test-install.sh` checks against them so a change to the naming scheme cannot pass unnoticed.
+
+<!-- BEGIN PUBLISHED ASSETS -->
+```
+bamm.1.0.0-alpha7.linux-x64.deb
+bamm.1.0.0-alpha7.linux-arm.deb
+bamm.1.0.0-alpha7.linux-arm64.deb
+bamm.1.0.0-alpha7.linux-x64.rpm
+bamm.1.0.0-alpha7.linux-arm.rpm
+bamm.1.0.0-alpha7.linux-arm64.rpm
+```
+<!-- END PUBLISHED ASSETS -->
+
+## Unhandled platform differences
+
+Neither of these is a coverage gap. They are here because they are the other two places a host can be recognized but not served.
+
+- **`ID_LIKE` is not read.**
+  - The WhichDistroSharp archive has no `ID_LIKE` field, so there is nothing to generate from.
+  - Supporting derivatives that do not list themselves means adding the field to ~110 upstream samples plus a precedence rule, which is a WhichDistroSharp change and not one for this repo.
+- **BAMM runs on FreeBSD but publishes no package for it.**
+  - `Distros.FreeBSD` exists and `PackageType.Pkg` is the right format, but the Publisher has no BSD build target, so FreeBSD and the other four `pkg` distributions resolve to `null`.
+  - The installer reports that as "BAMM does not publish a package for this", which is correct.

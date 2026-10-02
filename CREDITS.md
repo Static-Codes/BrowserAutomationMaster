@@ -13,3 +13,7 @@
 ### Thanks to Katelyn for assistance testing the Apple Silicon releases
 
 #### - [Github](https://github.com/RUN-CMC49) | Discord: aiyukaiyukayiyuk_isonfire
+
+### Thanks to Milleniumbug for the cross platform bindings for Native File Dialogs
+
+#### - [Repo](https://github.com/milleniumbug/NativeFileDialogSharp/) | [Github](https://github.com/milleniumbug/)

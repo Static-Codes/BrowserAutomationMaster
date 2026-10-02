@@ -1,6 +1,6 @@
 using BrowserAutomationMaster;
-using BrowserAutomationMaster.Parsing;
-using BrowserAutomationMaster.Managers;
+using BrowserAutomationMaster.Core.Parsing;
+using BrowserAutomationMaster.Core.Common;
 using Xunit;
 
 namespace BrowserAutomationMaster.Tests.FormatValidation

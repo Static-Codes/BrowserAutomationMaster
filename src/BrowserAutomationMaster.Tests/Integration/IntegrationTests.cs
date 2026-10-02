@@ -1,6 +1,6 @@
 using System.IO;
 using Xunit;
-using BrowserAutomationMaster.Compilation;
+using BrowserAutomationMaster.Core.Compilation;
 
 namespace BrowserAutomationMaster.Tests.Integration
 {
