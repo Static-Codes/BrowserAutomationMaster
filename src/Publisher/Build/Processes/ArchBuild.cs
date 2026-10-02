@@ -9,7 +9,7 @@ namespace Publisher.Build.Processes
     public class ArchBuild
     {
         public required string binaryPath;
-        private readonly static byte[] pkgName = Encoding.UTF8.GetBytes($"pkgname='{AppName}'");
+        private readonly static byte[] pkgName = Encoding.UTF8.GetBytes($"pkgname='{BinaryName}'");
         private readonly static byte[] pkgRel = "pkgrel=1"u8.ToArray();
         private readonly static byte[] pkgDesc = Encoding.UTF8.GetBytes($"pkgdesc='{AppDescription}'");
         private readonly static byte[] arch = "arch=('x86_64' 'aarch64' 'armv6h')"u8.ToArray();
@@ -27,8 +27,8 @@ namespace Publisher.Build.Processes
             string.Join(NLC, [
                 "package() {",
                 $"{HORIZONTAL_TAB}mkdir -p \"${{pkgdir}}/usr/bin\"",
-                $"{HORIZONTAL_TAB}cp \"${{srcdir}}/{AppName}\" \"${{pkgdir}}/usr/bin/{AppName}\"",
-                $"{HORIZONTAL_TAB}install -Dm755 \"${{srcdir}}/{AppName}\" \"${{pkgdir}}/usr/bin/{AppName}\"",
+                $"{HORIZONTAL_TAB}cp \"${{srcdir}}/{BinaryName}\" \"${{pkgdir}}/usr/bin/{BinaryName}\"",
+                $"{HORIZONTAL_TAB}install -Dm755 \"${{srcdir}}/{BinaryName}\" \"${{pkgdir}}/usr/bin/{BinaryName}\"",
                 "}"
             ])
         );

@@ -20,9 +20,11 @@ name: .NET
 
 on:
   push:
-    branches: [ "main" ]
+    # After 'main' was renamed to 'stable', Github started resolving the missing ref to its last known point rather than failing.
+    # The default branch is 'stable' (origin/HEAD), and 'canary' is a branch off `stable` where unreleased changes are pushed.
+    branches: [ "canary", "stable" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "canary", "stable" ]
 
 jobs:
   build:
@@ -35,19 +37,15 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
-      
-    - name: Clone repo
-      run: cd $HOME && git clone https://github.com/Static-Codes/BrowserAutomationMaster.git
 
-    # - name: Navigate to src directory
-    #   run: cd $HOME/BrowserAutomationMaster/src
-      
     - name: Restore dependencies
-      run: cd $HOME/BrowserAutomationMaster/src && dotnet restore
-      
+      run: dotnet restore ./src/BrowserAutomationMaster.sln
+
     - name: Build
-      run: cd $HOME/BrowserAutomationMaster/src && dotnet build --no-restore
-      
+      run: dotnet build ./src/BrowserAutomationMaster.sln --no-restore
+
     - name: Test
-      run: cd $HOME/BrowserAutomationMaster/src && dotnet test --verbosity normal --no-build
- 
+      run: dotnet test ./src/BrowserAutomationMaster.sln --no-build
+
+    - name: Running test coverage for the Linux installer script
+      run: bash ./src/Installers/Linux/test-install.sh

@@ -100,7 +100,7 @@ namespace BrowserAutomationMaster.Core.Utilities
                     psi.Arguments = string.Join(' ', [
                         "-c",
                         "\"sudo", 
-                        $"{GlobalUserInfo.PlatformInfo.CurrentDistribution.PackageManager}",
+                        $"{GlobalUserInfo.PlatformInfo.CurrentDistribution.PackageManagerCommand}",
                         $"{GlobalUserInfo.PlatformInfo.CurrentDistribution.UninstallCommand}",
                         "bamm\""
                     ]);

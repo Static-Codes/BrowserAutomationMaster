@@ -65,7 +65,7 @@ namespace BrowserAutomationMaster.Core.Helpers
         )
         {
             // GetEmbeddedResource calls WriteAndExit when the resource is missing, which is the
-            // established behaviour for embedded resources and is deliberately not bypassed here.
+            // established behavior for embedded resources and is deliberately not bypassed here.
             using Stream resourceStream = GetEmbeddedResource(resourceName, resourcePattern);
             using ZipArchive archive = new(resourceStream, ZipArchiveMode.Read);
 

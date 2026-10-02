@@ -454,7 +454,7 @@ namespace BrowserAutomationMaster.Core.Compilation
             foreach (string originalLine in lines)
             {
                 // Comments are stripped for the same reason they are in HandleCompilation: a
-                // trailing comment adds tokens, so 'visit "url" // note' would not be recognised as
+                // trailing comment adds tokens, so 'visit "url" // note' would not be recognized as
                 // a visit command and the script would be reported as having none.
                 string line = Parser.DeleteCommentIfPresent(originalLine);
 
@@ -1086,10 +1086,16 @@ namespace BrowserAutomationMaster.Core.Compilation
         
         public static void HandlePythonVersionSelection(Installations installations)
         {
-            // Since there's 6 python versions supported the max number of found versions is 6.
-            var maxVersions = 6;
-            var versionArray = new string[maxVersions];
-
+            // Declaration order matters here!
+            // Failure to maintain chronological order will result in improper menu creation down the line.
+            //
+            // To add support for a new python release:
+            //  - Create a new enum member in AppNames (Python3_15, etc)
+            //  - Add a new entry to the mapping below, 
+            //      - Key: The newly created enum member.
+            //      - Value: A string representation of the newly supported Python version. 
+            //
+            // Adding an entry here is the only requirement for introducing support for a new Python version.
             var versionMapping = new Dictionary<AppNames, string>() {
                 { AppNames.Python3_X, "3." },
                 { AppNames.Python3_8, "3.8" },
@@ -1105,34 +1111,21 @@ namespace BrowserAutomationMaster.Core.Compilation
                 "Unable to find a valid installation of python.\n" +
                 $"If this error persists, please make a bug report at {ISSUES_LINK}";
 
-            int index = 0;
-            foreach (AppNames app in installations.AppNames)
-            {
-                if (index == maxVersions) {
-                    break;
-                }
+            var foundVersions = installations.AppNames
+                .Where(versionMapping.ContainsKey)
+                .Select(app => versionMapping[app])
+                .ToList();
 
-                if (!versionMapping.TryGetValue(app, out string? appVersion)) {
-                    continue;
-                }
-
-                versionArray[index] = appVersion;
-                index += 1;
-            }
-
-            var foundVersions = versionArray.Where(ver => ver != null && ver.Contains("3."));
-
-            // Checks for valid contents since the array is initialized at the beginning of the function.
-            if (!foundVersions.Any()) {
+            if (foundVersions.Count == 0) {
                 WriteAndExit(errorMessage, 1);
             }
 
-            if (foundVersions.Count() == 1) {
-                pythonVersion = versionArray[0];
+            if (foundVersions.Count == 1) {
+                pythonVersion = foundVersions[0];
                 return;
             }
 
-            var response = Input.WriteListFromOptions(versionArray, noun: "version of Python");
+            var response = Input.WriteListFromOptions([.. foundVersions], noun: "version of Python");
             var version = GetVersionNumber(response);
 
             if (version == "Not Found") {

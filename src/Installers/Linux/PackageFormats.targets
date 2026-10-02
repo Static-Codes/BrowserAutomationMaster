@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Regenerates src/Installers/Linux/testdata/package-formats.json from DistroPackageMap <br/> 
+  
+  This is the same code the Publisher uses to write the real file for a release. <br/>
+  Source: Core/Types/Linux/DistroPackageMap.cs
+
+  Since the test data is a committed snapshot, a test cannot rewrite it. 
+  The solution was to create a test that replaces the snapshot every time it fails.
+-->
+<Project DefaultTargets="RegeneratePackageFormatMap">
+
+  <!--
+    Run from the repository root:
+
+        dotnet msbuild src/Installers/Linux/PackageFormats.targets -t:RegeneratePackageFormatMap
+
+    Add -p:PackageFormatMapTag=v1.0.0A9 to change the "generatedFor" value. Nothing reads it.
+  -->
+
+  <PropertyGroup>
+    <!-- Resolved from this file so the target works from any working directory. -->
+    <PackageFormatMapRepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', '..'))</PackageFormatMapRepoRoot>
+    <PackageFormatMapSolution>$(PackageFormatMapRepoRoot)src/BrowserAutomationMaster.sln</PackageFormatMapSolution>
+    <PackageFormatMapTestData>$(PackageFormatMapRepoRoot)src/Installers/Linux/testdata/package-formats.json</PackageFormatMapTestData>
+
+    <!-- `dotnet msbuild some.targets` has no project to inherit this from, and the nested Build would then write to bin/. -->
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+
+    <!-- A label only. The installer resolves it's own tag from get_latest_release. -->
+    <PackageFormatMapTag Condition="'$(PackageFormatMapTag)' == ''">v1.0.0A8</PackageFormatMapTag>
+
+    <PackageFormatMapOutputRoot>$([MSBuild]::NormalizeDirectory('$(PackageFormatMapRepoRoot)', 'src', 'BrowserAutomationMaster', 'bin', '$(Configuration)'))</PackageFormatMapOutputRoot>
+  </PropertyGroup>
+
+  <UsingTask TaskName="WritePackageFormatMap"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <AppAssembly ParameterType="System.String" Required="true" />
+      <OutputPath ParameterType="System.String" Required="true" />
+      <ReleaseTag ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        // Calls DistroPackageMap.Serialize by reflection rather than reimplementing the mapping.
+        // A second implementation of "which distros exist and what does BAMM publish for each"
+        // would drift from the real one, which is what this snapshot exists to catch.
+        System.Reflection.Assembly assembly;
+        try
+        {
+            var appDirectory = System.IO.Path.GetDirectoryName(AppAssembly);
+
+            // LoadFrom does not resolve WhichDistroSharp from the loaded assembly's own directory,
+            // so probe for it. Without this the target passes where a build output already exists
+            // and fails on a clean checkout.
+            System.AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                var candidate = System.IO.Path.Combine(appDirectory, new System.Reflection.AssemblyName(args.Name).Name + ".dll");
+                return System.IO.File.Exists(candidate)
+                    ? System.Reflection.Assembly.LoadFrom(candidate)
+                    : null;
+            };
+
+            assembly = System.Reflection.Assembly.LoadFrom(AppAssembly);
+        }
+        catch (System.Exception ex)
+        {
+            System.Console.WriteLine(
+                "Unable to load '" + AppAssembly + "'. Build BrowserAutomationMaster first, so the " +
+                "current DistroPackageMap is on disk. " + ex.Message);
+            return false;
+        }
+
+        System.Reflection.MethodInfo serialize;
+        try
+        {
+            var type = assembly.GetType(
+                "BrowserAutomationMaster.Core.Types.Linux.DistroPackageMap", throwOnError: true);
+            serialize = type.GetMethod(
+                "Serialize",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+        }
+        catch (System.Exception ex)
+        {
+            System.Console.WriteLine("Could not find DistroPackageMap.Serialize: " + ex.Message);
+            return false;
+        }
+
+        string json;
+        try
+        {
+            json = (string)serialize.Invoke(null, new object[] { ReleaseTag });
+        }
+        catch (System.Exception ex)
+        {
+            // Unwrapped, since Invoke wraps whatever the callee threw and the outer message says nothing useful.
+            System.Console.WriteLine(
+                "DistroPackageMap.Serialize threw: " +
+                (ex.InnerException ?? ex).Message + " (" + (ex.InnerException ?? ex).GetType().Name + ")");
+            return false;
+        }
+
+        // Only matters when the directory was deleted, but DirectoryNotFoundException is a confusing way to find that out.
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(OutputPath));
+
+        System.IO.File.WriteAllText(OutputPath, json);
+        System.Console.WriteLine("Wrote " + OutputPath);
+        return true;
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="RegeneratePackageFormatMap">
+    <!-- The solution and not the app project alone, since the app project only compiles when a
+         RuntimeIdentifier is supplied and the solution configurations decide it. Building the
+         project directly fails on the Windows-only source files. Restore is separate because a
+         nested Build does not do it. -->
+    <MSBuild Projects="$(PackageFormatMapSolution)"
+             Targets="Restore"
+             Properties="Configuration=$(Configuration)" />
+
+    <MSBuild Projects="$(PackageFormatMapSolution)"
+             Targets="Build"
+             Properties="Configuration=$(Configuration)" />
+
+    <ItemGroup>
+      <!-- bamm.dll is read from the app project's output and not the test project's, since the
+           test project takes WhichDistroSharp through the project reference and does not copy it
+           beside its own binary. Two wildcards for the framework and runtime folders, which also
+           skips the reference assemblies under net10.0/ref. -->
+      <_PackageFormatMapAppAssembly Include="$(PackageFormatMapOutputRoot)net*.*/*/bamm.dll" />
+    </ItemGroup>
+
+    <Error Condition="'@(_PackageFormatMapAppAssembly)' == ''"
+           Text="No bamm.dll found under $(PackageFormatMapOutputRoot). The Build above should have produced it; check the build output." />
+
+    <!-- $() reads a property and not an item, so the matched path is lifted into one. -->
+    <PropertyGroup>
+      <_PackageFormatMapAssemblyPath>@(_PackageFormatMapAppAssembly)</_PackageFormatMapAssemblyPath>
+    </PropertyGroup>
+
+    <WritePackageFormatMap AppAssembly="$(_PackageFormatMapAssemblyPath)"
+                           OutputPath="$(PackageFormatMapTestData)"
+                           ReleaseTag="$(PackageFormatMapTag)" />
+
+    <Message Importance="high" Text="Regenerated $(PackageFormatMapTestData) for tag $(PackageFormatMapTag)." />
+    <Message Importance="high" Text="Review the diff before committing: this file is the record of what BAMM publishes, and an unexamined regeneration can silently change that." />
+  </Target>
+
+</Project>

@@ -1,5 +1,6 @@
 using BrowserAutomationMaster.Core.Helpers;
 using BrowserAutomationMaster.Core.Messaging;
+using BrowserAutomationMaster.Core.Types.Linux;
 using Publisher;
 using System.Runtime.InteropServices;
 using static BrowserAutomationMaster.Core.Common.DirectoryManager;
@@ -131,3 +132,45 @@ var packager = new Packager(platformOption);
 
 Console.WriteLine("Compilation Complete: {0}", result);
 Console.WriteLine("Path: {0}", binaryPath);
+
+// Emitted for every release, not only for the Linux package builds, because the map describes the
+// release rather than any single artifact in it. The Linux installer fetches this from the same
+// release tag as the package it installs, so a script can never pair itself with a stale table.
+if (result) {
+    EmitPackageFormatMap(appVersion, workingDir!);
+}
+
+/// <summary>
+/// Writes package-formats.json next to the built artifacts so it can be attached to the release.
+/// </summary>
+/// <remarks>
+/// Kept in the Publisher rather than in a build script because this is where the release tag is
+/// known: the file records the tag it was generated for, and the installer fetches it under that
+/// same tag.
+/// </remarks>
+static void EmitPackageFormatMap(string releaseTag, string workingDir)
+{
+    try {
+        var map = DistroPackageMap.Build();
+
+        var targetDirectory = File.Exists(workingDir)
+            ? Path.GetDirectoryName(workingDir)
+            : workingDir;
+
+        targetDirectory ??= Directory.GetCurrentDirectory();
+
+        var mapPath = Path.Combine(targetDirectory, DistroPackageMap.FileName);
+
+        File.WriteAllText(mapPath, DistroPackageMap.Serialize(releaseTag));
+
+        Console.WriteLine($"Wrote the package format map for {map.Count} distributions to: {mapPath}");
+        Console.WriteLine($"Attach '{DistroPackageMap.FileName}' to the release for {releaseTag} alongside the packages.");
+    }
+    catch (Exception ex) {
+        // Non fatal. A release without the map still works: the installer falls back to its
+        // built-in distribution list. Failing the build here would block a release that users can
+        // install today.
+        Warning.Write($"Unable to write the package format map: {ex.Message}");
+        Warning.Write("The Linux installer will fall back to its built-in distribution list.");
+    }
+}

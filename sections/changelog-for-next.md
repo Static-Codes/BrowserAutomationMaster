@@ -108,6 +108,33 @@ After many months of inactivity, BAMM v1.0.0A8 is ready for release!
 
   - Added `PackageTypeExtension` to manage the `PackageType` enum.
 
+- **Distribution detection now comes from [WhichDistroSharp](https://www.nuget.org/packages/WhichDistroSharp/) 1.0.1:**
+
+  - Replaced the hand-rolled `/etc/os-release` parsing with the library's, and replaced the hand-maintained package manager table with the data the library ships.
+  - `Distros.cs` now stores only what is unique to BAMM. A display name, dependency lists and installation type. Each entry names the upstream distros it covers.
+
+  - **Raspberry Pi OS, openSUSE Leap and openSUSE Tumbleweed no longer prompt for their base distro.**
+    - Their real ID values, `raspbian`, `opensuse-leap` and `opensuse-tumbleweed`, matched no entry before, so **those hosts were asked to pick a base on every run**.
+    - `install.sh` has always treated Raspbian as Debian family.
+
+  - **The prompt now names what was detected**, instead of dropping the user into an unexplained list. `Detected: <name> <version> (ID: <id>)` followed by the reason it is unsupported.
+
+  - **Removed the `lsb_release` and `neofetch` subprocess spawns.**
+    - `GetFullDistroName()` spawned `lsb_release -a`, and failing that ran `neofetch` into a temp file and stripped the ANSI back out, purely to print a distro name in a debug line.
+    - The same data is now read from the one detection path. The trade off is that a host with no `os-release` at all reports "Generic Linux" instead of trying `neofetch`.
+
+  - `PlatformInfo.CurrentPlatform` holds the detected os-release fields, so diagnostics read them instead of re-parsing the file.
+  - `--platform-info` gained a `Detected Distro` line, and `--show-distro` gained the detected name, ID and version.
+
+  - **The `1.0.0` release of WhichDistroSharp could not be used as published.**
+    - Two of it's archive samples, Bodhi and Vanilla OS, declare `ID=ubuntu` because they are derivatives, and the generated map deduplicated keys first wins over entries sorted by name.
+    - `ubuntu` therefore resolved to `Bodhi`, and **`IsUbuntu()` was false on Ubuntu**.
+    - BAMM consumes `1.0.1`, where a sample is only mapped when it's ID matches it's own directory name.
+
+- **Identity comparisons that compared display names:**
+  - `IsKali()` matched `Name == "Kali Linux"`, and the PCLinuxOS packaging guard matched `Name != "PCLinuxOS"`.
+  - Both now compare against the registered entry, which survives a rename.
+
 </details>
 
 ### Test Suite (Developer)
@@ -124,11 +151,48 @@ After many months of inactivity, BAMM v1.0.0A8 is ready for release!
 
 - **GUI version tests:** `GuiVersionTests` covers the `/gui_version` lookup, including that the archive is actually embedded and that the `GUI_VERSION` regex ignores commented-out assignments.
 
+- **The Linux installer is documented:**
+  - `sections/installation.md` now states the architectures and package families BAMM is published for, and links to the coverage record for what is not installable.
+  - It also says plainly that the installer does not handle Arch, Gentoo or BSD packages, rather than leaving a user to find that out from a failure.
+  - `install.sh` carries the reason it's ordered the way it is, since that ordering is load bearing and otherwise invisible.
+
 - **Terminal probe tests:** `TerminalProbeTests` asserts that `GetTerminalBackgroundColor()` is skipped when stdin is redirected, guarding against the `/dev/tty` corruption described under Bug Fixes.
 
-- **Compilation validation tests:** `CompilationValidationTests` covers the defects above that are reachable without spawning the CLI: that `Transpiler`'s accepted command set matches `Parser.HandleLineValidation()`, that every shipped example passes the parser, that multiple `feature` commands are accepted while a late one is still rejected, and that trailing comments no longer break a command line. It reads `Transpiler.validCommands` through a new `InternalsVisibleTo`, rather than widening that field to public for the sake of a test.
+- **Compilation validation tests:** `CompilationValidationTests` covers the defects above that are reachable without spawning the CLI.
+  - Checks that `Transpiler`'s accepted command set matches `Parser.HandleLineValidation()`, that every shipped example passes the parser, that multiple `feature` commands are accepted while a late one is still rejected, and that trailing comments no longer break a command line.
+  - Reads `Transpiler.validCommands` through a new `InternalsVisibleTo`, rather than widening that field to public for the sake of a test.
+
+- **Distro mapping tests:** `DistroMappingTests` covers the move of the package manager table into WhichDistroSharp.
+  - `ForwardedPlatformValuesAreUnchanged` pins all 15 entries to the literals that were in `Distros.cs` before the move, so a refactor that changes what BAMM executes fails the suite instead of **failing on a user's machine**.
+  - The rest covers the mapping itself, the invariants that keep it unambiguous, and that `PackageManagerInfo.Unknown` carries empty commands rather than the string `"unknown"`, which would be spawned as a process.
+
+- **Package artifact format tests:** `PackageArtifactFormatTests` covers `PackageArtifactFormats`, which is not a translation of `PackageType`. Not what a distro's package manager consumes, but what BAMM publishes.
+  - PCLinuxOS reports `PackageType.Rpm` with an `apt` manager, and Arch and Gentoo publish `pkg.tar.xz` and `tbz2`, so a mapping derived from either would be wrong.
+  - `EveryPackageTypeHasAnEntry` guards an omitted entry, which otherwise reports a supported distribution as unsupported.
+
+- **Distro package map tests:** `DistroPackageMapTests` covers the `package-formats.json` the Linux installer reads.
+  - `EveryLibraryDistroAppearsInTheMap` and `EveryEntryIsPresentEvenWhenBammShipsNoPackage` guard a key going missing, which makes the installer report a supported distribution as unsupported.
+  - A `null` has to be recorded rather than the key omitted, since absence is indistinguishable from an incomplete map.
+  - The rest cover the 110 keys, the pinned schema, and that `null` values survive serialisation.
+
+- **Upstream coverage tests:** `UpstreamCoverageTests` makes the distributions BAMM has no support entry for an explicit contract, rather than an accident of what `Distros.cs` declares.
+  - WhichDistroSharp knows 110 distributions and the 15 support entries claim 17 of them. The other 93 resolve to `null`, so `DistroManager` asks the user to pick a base **on every run**.
+  - The suite compares that gap against `sections/known-distribution-gaps.md` in both directions, so a new WhichDistroSharp release cannot add distributions that pass unnoticed, and adding support cannot leave the list stale.
+  - `DistroMappingTests` covers the reverse direction and the uniqueness of the mapping, but nothing noticed a distribution being left unclaimed.
+
+- **Linux installer tests:** `test-install.sh` covers `install.sh`, which is `curl | bash` and cannot be reached by the xunit suite.
+  - It extracts the lookup functions from the script and exercises them against a committed snapshot of the generated map, with no network and no `sudo`.
+  - "The map agrees with the built in list" is what makes it safe to drop the hardcoded lists in a later change, since it proves every distribution those lists name resolves identically from the map.
+  - It also asserts that every helper is defined before it's first used, which is what broke the guards described under Bug Fixes.
+  - The download command line is checked for the stale package failure above. Running the script needs a package manager and root, so that one is asserted against the source instead.
 
 - **Test output is now contained:** see the `xunit.runner.json` and `ConsoleCapture` entries under Bug Fixes.
+
+- **CI runs again:**
+  - `dotnet.yml` triggered on `branches: ["main"]` for both push and pull request. `main` is not a branch in this repository, it's was renamed to `stable`.
+  - GitHub resolves a missing ref to whatever it last pointed at instead of failing, so **the trigger stopped firing without ever reporting a problem**.
+  - The last successful run was 2026-01-16, so nothing committed since, including the suites above, was built or tested automatically.
+  - It now triggers on `canary` and `stable`.
 
 </details>
 
@@ -236,7 +300,7 @@ The vast majority of commits in this release (86/184) are purely related to rena
 
 > All types are in the root namespace `BrowserAutomationMaster` unless stated. Every entry below was verified against the source at both `405d277` and `43e8ab7`.
 
-- `ProcessManager.CheckForMultipleInstances` gained an optional `bool allowMultipleInstances = false` parameter. The default preserves existing behaviour, so no call site breaks.
+- `ProcessManager.CheckForMultipleInstances` gained an optional `bool allowMultipleInstances = false` parameter. The default preserves existing behavior, so no call site breaks.
 
 - `Transpiler.validCommands` was added as `internal` (visible to the test project only), as the list of commands the compilation pass accepts.
 
@@ -251,6 +315,24 @@ The vast majority of commits in this release (86/184) are purely related to rena
 - `CompilationHandler.OpenNewTab` gained an optional `bool disableSSL = false` parameter, forwarded to `IsResolvableLink`.
 
 - `RequestManager.NetworkClient.GetClientWithRedirectsAllowed` gained an optional `bool disableSSL = false` parameter, which installs a permissive certificate validation callback.
+
+In `Core.Types.Linux.Distro`: `ParseXDGSessionType` and `ParseDesktopSession` gained a required string parameter passed from `GetActiveDisplayServer()`. Previously, both parsing functions ignored the data inside their respective conditional, and would each make an unnecessary call to `Environment.GetEnvironmentVariable()`.
+
+#### The `Distro` type
+
+`Distro` no longer declares the platform's package manager. It composes the `IDistroPackageInfo` that WhichDistroSharp reports and forwards the properties, so the data has one owner.
+
+- **Added** `Distro.PackageInfo` (`IDistroPackageInfo`), `Distro.SupportedDistros` (`WhichDistro[]`, the upstream distributions this entry answers for), and `Distro.Is(Distro?)` for reference-identity comparison.
+
+- **Removed** the constructor parameters `ID`, `BaseDistro`, `PackageManager`, `InstallCommand`, `UninstallCommand`, `QueryCommand`, `QueryArguments`, `PackageType` and `InstallationKeyword`; the corresponding properties remain and now forward to `PackageInfo`.
+
+- **Removed** the `Distro.ID`, `Distro.ReleaseFilePath` and `Distro.ReleaseIdentifier` members. `ID` was read only by the old string lookup, and the other two were never read at all.
+
+- `Distro.BaseDistro` is now `WhichDistroSharp.DistroFamily` rather than the deleted `DistroBase` enum. The `DistroBase` enum is **deleted**; `DistroFamily` replaces it, with `Fedora` renamed to `RHEL` and `ArchLinux` to `Arch`.
+
+- `Distro.PackageType` is now `WhichDistroSharp.PackageType`. The local `Core/Types/Linux/PackageType` enum and the local `PackageTypeExtension` class are both **deleted**; `GetPackageFileType()` now comes from the library.
+
+- **Deleted** `DirectoryManager.GetTemporaryNeofetchPath()`, the four dead `RegexManager` patterns `PrecompiledLSBRRegex`, `PrecompiledNFRegex`, `PrecompiledOSRNameRegex` and `PrecompiledOSRPrettyNameRegex`, and the private `Functions` parsers `ParseOSRelease`, `ParseLSBRelease`, `ParseNeofetch` and `StripANSI`.
 
 #### Namespaces
 
@@ -290,6 +372,8 @@ The vast majority of commits in this release (86/184) are purely related to rena
 | `static class` | `Managers.Python.ScriptValidationManager` | `Core.Python.ScriptValidator` (+ `readonly struct ValidationResult`) |
 | `class` | `Managers.UninstallationManager` | `Core.Utilities.AppRemovalUtility` |
 | `class` | `Managers.UpdateManager` | `Core.Utilities.AppUpdateUtility` |
+| `static class` | — *(new)* | `Core.Types.Linux.PackageArtifactFormats` |
+| `static class` | — *(new)* | `Core.Types.Linux.DistroPackageMap` (+ `Core.Types.Linux.PackageFormatDocument`) |
 | `class` | `Managers.EditorManager` | `Core.Utilities.EditorUtility` (+ `Core.Types.Editor` and its subclasses) |
 | `class` | `Managers.ExtensionManager` (+ `ExtensionHelper`) | `Core.Utilities.ExtensionUtility` |
 | `class` | `Managers.UserScriptManager` | `Core.Utilities.UserScriptUtility` |
@@ -325,6 +409,16 @@ The vast majority of commits in this release (86/184) are purely related to rena
 | `static method` | — *(new)* | `Loader.NFDIsCallable`, `Loader.InitializeNativeFileDialog`, `LibraryUtility` load helpers |
 | `static method` | — *(new)* | `Core.GUI.Server.StopExecution`, `Core.GUI.BackendFunctions.Terminate` |
 | `readonly struct` | `ScriptValidationManager.PythonValidationResult` | `ScriptValidator.ValidationResult` |
+| `static field` | `BuildInfo.AppName` (`"bamm"`, the published binary) | `BuildInfo.BinaryName` |
+| `property` | `Distro.PackageManager` (`"apt-get"`, the command that drives the package manager) | `Distro.PackageManagerCommand` |
+
+- `BuildInfo.AppName` was renamed rather than merely qualified because it collided with the unrelated `DirectoryManager.AppName` (`"BrowserAutomationMaster"`, the settings folder). Files importing both through `using static` could not tell them apart, and using the wrong one produces a package named after the settings folder, or a settings folder named after the binary. The value is unchanged.
+
+- `Distro.PackageManager` was renamed to `Distro.PackageManagerCommand` for the same reason, and to match the library property it forwards. It holds the command a user types to drive the package manager, `"apt-get"`, while `IDistroPackageInfo.PackageManager` is the package manager as a concept, an enum member such as `Apt`. The two often share a value and diverge where the concept and its command have different names, so two members named `PackageManager` holding different types invited reading one as the other.
+
+- `PackageArtifactFormats` answers a different question from `PackageType`: not what format a distro's package manager consumes, but what BAMM actually publishes. PCLinuxOS reports `PackageType.Rpm` with an `apt` package manager, and Arch and Gentoo are published as `pkg.tar.xz` and `tbz2`, so neither the package type nor the package manager alone yields the right answer. The table is an allowlist of the four formats the Publisher can build, not a translation of every `PackageType`; `GetArtifactExtension` throws on a member with no entry at all, so a library upgrade that adds one fails loudly rather than reporting a supported distribution as unsupported.
+
+- `DistroPackageMap` emits every distribution the library knows, including the ones BAMM publishes no package for, which carry a null format. Omitting those keys would be indistinguishable from an incomplete map, and the installer reports the two cases differently. The Publisher writes the file next to the built artifacts on every release, and `install.sh` fetches it under the same release tag as the package it installs, so a script can never pair itself with a stale table.
 
 ### Cleanups
 
@@ -340,13 +434,62 @@ The vast majority of commits in this release (86/184) are purely related to rena
 
 - Corrected the GUI extraction message, which still described the archive as downloaded at runtime from the `gui` branch. It reports the version read out of the embedded archive.
 
-> **Note on provenance:** the `Devices.cs` reformat and the `Redirect` extraction were already in the working tree when this changeset was assembled, and were swept into it alongside the fixes above. Both are refactors with no behavioural change, and neither is a response to anything described here. They are recorded for completeness rather than because they belong to the same body of work; they are separable into a commit of their own if a reviewer would rather see the fixes on their own.
 
 ---
 
 ## 🐛 Bug Fixes
 
+- **Python 3.13 and 3.14 could not be selected:**
+  - `HandlePythonVersionSelection` filled a fixed `new string[6]`, while it's version mapping lists eight entries.
+  - Installing six or more interpreters dropped the last two, so 3.13 and 3.14 could never be chosen.
+  - The list is now built from the mapping, which keeps the count from drifting again.
+  - The routine also passed that raw array to the selection prompt, so a user with two versions installed saw **four blank options** alongside them. The prompt now receives only the versions that were found.
+
+- **A test that only failed on a developer's machine:**
+  - `TerminalProbeTests` asserted it's own precondition with `Assert.True(Console.IsInputRedirected, ...)`.
+  - This holds under CI and in a non-interactive shell, and is false for anyone running `dotnet test` from an interactive terminal, where the tty is inherited. The suite was **green in automation and red on a workstation**.
+  - It now uses `SkippableFact` with `Skip.IfNot`, which is how the rest of this suite already handles an unmet precondition.
+
+- **The apt-cache refresh never ran:**
+  - `RefreshDebianAptCache()` compared the `Distro` object against a `DistroBase` value, so it was always false and `apt-get update` never executed.
+  - This includes the Arch and PCLinuxOS packaging paths, which call it specifically because a dependency is missing from the local cache.
+  - `object.Equals` accepts anything and returns false when the runtime types differ, so this **compiled cleanly and read correctly**. Renaming the enum alone would not have fixed it.
+  - It now reads `BaseDistro`, like every other family comparison in the codebase.
+
 - **Unknown commands silently ignored:** fixed `bamm compile` accepting a command it does not recognise and emitting nothing for it, producing a script that quietly does less than it appears to. `Parser.HandleLineValidation()` has always rejected these, but the compilation pass re-implements parsing rather than calling the parser, so it never saw them. A command check now runs before the emit switch; `CompilationValidationTests` asserts the accepted set stays in step with the parser's. The switch itself could not do this: most of its cases are guarded by a `when` clause that matches only on failure, so a *successful* command falls straight through and is indistinguishable from an unrecognised one.
+
+- **The Linux installer could install a package left over from a failed run:**
+  - `wget` derives the file name from the URL, and saves to `<name>.1` when the target already exists rather than overwriting.
+  - The temporary directory is only removed on success, so an interrupted or failed run leaves a package behind and the next run installed **that one instead of the new release**.
+  - The download now uses `wget -O`, which forces the name and truncates.
+
+- **The Linux installer's error guards did nothing:**
+  - `show_error_and_exit` is called three times near the top of `install.sh` and defined near the bottom. Bash resolves a function when it is called and not when the file is read, so each call reported `command not found` and **the script carried on**.
+  - A macOS user was told nothing and the script went on to install Linux packages, a host with no `os-release` was never reported as unsupported, and neither was a host with an unparseable `ID`.
+  - The functions and constants are now defined before first use.
+  - This predates the WhichDistroSharp work, and is verified by running the script with a stubbed `uname`.
+
+- **`install.sh` did not recognise Oracle Linux:**
+  - The script matched the ID `oracle`, but Oracle Linux's real ID is `ol`, so it fell through to "not currently supported" despite this changelog claiming Oracle support.
+  - The ID extraction only worked by accident. `sed 's/ID=[ ]*//'` leaves the quotes in `ID="ubuntu"`, and it was unanchored, so `ID_LIKE` could match instead.
+  - Both are fixed, the read now falls back to `/usr/lib/os-release`, and the distro lists cover the entries BAMM supports.
+
+- **The Linux installer only supported twelve distributions:**
+  - `install.sh` chose the package format by matching ID against two hardcoded lists of six names each.
+  - Everything else was reported as unsupported, including Deepin, Devuan, Amazon Linux and the openSUSE releases, which BAMM ships a working `.deb` or `.rpm` for.
+  - It now reads a package format map generated from WhichDistroSharp and published with each release, covering the 110 distributions the library knows, 79 of which resolve to a package BAMM publishes.
+  - It falls back to the old lists if that download fails, so an offline or rate-limited fetch never blocks an install.
+
+- **Unsupported-distribution messages pointed at the wrong problem:**
+  - A user on a distribution BAMM ships no package for was told it was "not currently supported", which is not actionable.
+  - A distribution the library recognizes but has no package manager for is now reported separately from one that is not recognized, and a distribution BAMM has no installable build for is named as such.
+  - Arch now reports that BAMM does not yet publish an installable `pkg.tar.xz` package, rather than claiming Arch is unknown.
+
+- **CI tested a different repository than the one under review:**
+  - `dotnet.yml` checked out the triggering commit, then immediately ran a second `git clone` into `$HOME` and built that copy instead.
+  - The clone is of the default branch, so a pull request was validated against unreviewed code and **it's own changes were never tested**.
+  - The clone is removed and the steps now build the tree `actions/checkout` produced, addressed to the solution file.
+  - It's trigger also named `main`, which is not a branch in this repository. See the Improved section.
 
 - **`disable-ssl` ignored during compilation:** `feature "disable-ssl"` was applied to the generated script but not to the compile-time URL check, so a self-signed host failed to compile even though the script would have loaded it. The reachability probe now accepts any certificate when the feature is set, mirroring the script's own `CERT_NONE` verification mode. This also unblocked `examples/Firefox/no-ssl-example.bamc`, which had never compiled anywhere.
 
@@ -356,9 +499,9 @@ The vast majority of commits in this release (86/184) are purely related to rena
 
 - **Multiple `feature` commands were impossible:** the first `feature` line closed the feature block, so a second one was reported as misplaced. A script could declare at most one feature. The ordering rule is unchanged; a `feature` line no longer closes its own block.
 
-- **Trailing comments on `visit` lines:** `GetDesiredUrls()` split raw lines, so a `visit` command carrying a comment was not recognised and the script was reported as containing no `visit` commands at all. Comments are now stripped there too, matching `HandleCompilation()`. The command is also matched on its first argument instead of with `Contains("visit")`, which would have matched a feature named `use-visit-proxy`.
+- **Trailing comments on `visit` lines:** `GetDesiredUrls()` split raw lines, so a `visit` command carrying a comment was not recognized and the script was reported as containing no `visit` commands at all. Comments are now stripped there too, matching `HandleCompilation()`. The command is also matched on its first argument instead of with `Contains("visit")`, which would have matched a feature named `use-visit-proxy`.
 
-- **Bare trailing comments:** `DeleteCommentIfPresent()` only detected `" // "`, so a line ending in `//` with nothing after it was not treated as a comment. A comment is now also recognised when the slashes are preceded by whitespace, which keeps a URL's `https://` intact.
+- **Bare trailing comments:** `DeleteCommentIfPresent()` only detected `" // "`, so a line ending in `//` with nothing after it was not treated as a comment. A comment is now also recognized when the slashes are preceded by whitespace, which keeps a URL's `https://` intact.
 
 - **`examples/Firefox/no-ssl-example.bamc`:** corrected two errors in the example itself. It used `feature "no-ssl"`, which is not a real feature; and its `feature` lines sat after the `visit`, which the ordering rule forbids. It is now the only example that exercises the feature block at all, and it compiles.
 

@@ -34,7 +34,7 @@ namespace Publisher.Build.Processes
 
                 {GetDefinitions()}
 
-                Name:           {AppName}
+                Name:           {BinaryName}
                 Version:        {BaseVersion}
                 Release:        0.{VersionIdentifier}.1pclos{DateTime.Now.Year}
                 Summary:        {AppDescription}
@@ -104,8 +104,8 @@ namespace Publisher.Build.Processes
         {
             string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string rpmRootDir = Path.Combine(homeDir, "rpmbuild");
-            var specFileName = $"{AppName}.spec";
-            var archiveName = $"{AppName}-{BaseVersion}.tar.gz";
+            var specFileName = $"{BinaryName}.spec";
+            var archiveName = $"{BinaryName}-{BaseVersion}.tar.gz";
 
             string[] subDirs = ["BUILD", "RPMS", "SOURCES", "SPECS", "SRPMS"];
 

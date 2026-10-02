@@ -289,7 +289,7 @@ namespace BrowserAutomationMaster.Core.Common
 
                 var handler = new HttpClientHandler { AllowAutoRedirect = allowRedirects };
 
-                // Mirrors the `feature "disable-ssl"` behaviour of the generated script, which sets
+                // Mirrors the `feature "disable-ssl"` behavior of the generated script, which sets
                 // verify_mode to CERT_NONE. Without this the compile-time probe rejects a
                 // self-signed host that the script would have loaded without complaint.
                 if (disableSSL)

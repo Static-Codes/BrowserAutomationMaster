@@ -11,7 +11,14 @@ namespace BrowserAutomationMaster.Core.Common
 {
     public class DirectoryManager
     {
+        // AppName MUST be declared before AppDataDirectory. 
+        // Static initializers run in the order they were declared.
+        // Declaring AppName after GetAppDataDirectory() will result in AppName being null.
+        // Subsequently, Path.Combine would throw an ArgumentNullException in the AppDataDirectory .ctor()
+        public static string AppName { get; private set; } = "BrowserAutomationMaster";
+
         public static string AppDataDirectory { get; private set; } = GetAppDataDirectory();
+
         public static void ArchiveAppDataDirectory(string compression = "zip", string? outputPath = null)
         {
 
@@ -23,9 +30,7 @@ namespace BrowserAutomationMaster.Core.Common
 
                 var response = Input.AskForInput("Would you like to overwrite it? [y/n]: ");
 
-                if (Input.ConditionRejected(response)) {
-                    Environment.Exit(0);
-                }
+                if (Input.ConditionRejected(response)) { Environment.Exit(0); }
 
                 DeleteFile(backupPath);
             }
@@ -45,9 +50,7 @@ namespace BrowserAutomationMaster.Core.Common
                             var message = "Would you like to create a backup in the current directory? [y/n]: ";
                             var response = Input.AskForInput(message);
                             
-                            if (Input.ConditionRejected(response)) {
-                                Environment.Exit(0);
-                            }
+                            if (Input.ConditionRejected(response)) { Environment.Exit(0); }
 
                             backupPath = Environment.CurrentDirectory;
                         }
@@ -138,6 +141,7 @@ namespace BrowserAutomationMaster.Core.Common
         public static void DeleteFile(string path)
         {
             if (string.IsNullOrWhiteSpace(path)) { return; }
+
             if (!File.Exists(path))
             {
                 WriteAndExit(
@@ -222,21 +226,16 @@ namespace BrowserAutomationMaster.Core.Common
         public static string GetAppDataDirectory()
         {
 
-            string appName = "BrowserAutomationMaster";
-
-            if (GlobalUserInfo.PlatformInfo.IsWindows)
-            {
-                return GetAppDataWindows(appName);
+            if (GlobalUserInfo.PlatformInfo.IsWindows) {
+                return GetAppDataWindows();
             }
 
-            else if (GlobalUserInfo.PlatformInfo.IsMacOS)
-            {
-                return GetAppDataMacOS(appName);
+            else if (GlobalUserInfo.PlatformInfo.IsMacOS) {
+                return GetAppDataMacOS();
             }
 
-            else if (GlobalUserInfo.PlatformInfo.IsLinux || GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalUserInfo.PlatformInfo.IsPiDevice)
-            {
-                return GetAppDataLinux(appName);
+            else if (GlobalUserInfo.PlatformInfo.IsLinux || GlobalUserInfo.PlatformInfo.IsChromeOS || GlobalUserInfo.PlatformInfo.IsPiDevice) {
+                return GetAppDataLinux();
             }
 
             else {
@@ -305,31 +304,20 @@ namespace BrowserAutomationMaster.Core.Common
 
         public static string GetMainGUIPage(bool includeProtocol = false) 
         {
-            if (includeProtocol)
+            var guiDirectory = GetGUIDirectoryPath();
+
+            return includeProtocol switch
             {
-                // Opted for Join over Combine since a oot check is done to prevent protocol or file prefixes.
-                return Path.Join("file://", GetGUIDirectoryPath(), "index.html");
-            }
-            else
-            {
-                return Path.Combine(GetGUIDirectoryPath(), "index.html");
-            }
+                true => Path.Join("file://", guiDirectory, "index.html"),
+                false => Path.Combine(guiDirectory, "index.html")
+            };
         }
 
-        public static string GetGUIZipPath() 
-        { 
-            return Path.Combine(AppDataDirectory, "gui.zip"); 
-        }
+        public static string GetGUIZipPath() => Path.Combine(AppDataDirectory, "gui.zip"); 
         
-        public static string GetProjectRequirementsPath(string ParentDirectory)
-        {
-            return Path.Combine(ParentDirectory, "requirements.txt");
-        }
+        public static string GetProjectRequirementsPath(string ParentDirectory) => Path.Combine(ParentDirectory, "requirements.txt");
 
-        public static string GetProjectVEnvPath(string ParentDirectory) 
-        { 
-            return Path.Combine(ParentDirectory, "venv"); 
-        }
+        public static string GetProjectVEnvPath(string ParentDirectory) => Path.Combine(ParentDirectory, "venv"); 
 
         public static string GetProjectVEnvPythonPath(string ParentDirectory)
         {
@@ -347,12 +335,14 @@ namespace BrowserAutomationMaster.Core.Common
 
         public static string GetProjectVEnvPipPath(string ParentDirectory)
         {
+            var projectEnvPath = GetProjectVEnvPath(ParentDirectory);
+
             if (GlobalUserInfo.PlatformInfo.IsWindows) {
-                return Path.Combine(GetProjectVEnvPath(ParentDirectory), "Scripts", "pip.exe");
+                return Path.Combine(projectEnvPath, "Scripts", "pip.exe");
             }
 
             if (GlobalUserInfo.PlatformInfo.IsUnixLike) {
-                return Path.Combine(GetProjectVEnvPath(ParentDirectory), "bin", "pip");
+                return Path.Combine(projectEnvPath, "bin", "pip");
             }
 
             ThrowUnsupportedPlatformException();
@@ -361,10 +351,8 @@ namespace BrowserAutomationMaster.Core.Common
 
         public static string GetPythonWheelDirectory() { return Path.Combine(AppDataDirectory, "wheels"); }
         
-        public static string GetTemporaryNeofetchPath(){
-            return Path.Combine(AppDataDirectory, "neofetch.tmp");
-        }
-        
+        /// <summary> Resolves the directory the BAMM source code will be downloaded to. </summary>
+        /// <returns> A path that will be used for downloading the source code for the latest release of BAMM. </returns>
         public static string GetSourceDirectory() 
         {
             // This will be modified if it does not resolve from DirectoryManager.
@@ -375,8 +363,7 @@ namespace BrowserAutomationMaster.Core.Common
                 AppDataPath = Input.AskForInput("Please enter the directory to save the BAMM codebase.");
             }
 
-            if (!Directory.Exists(AppDataPath)) 
-            {
+            if (!Directory.Exists(AppDataPath)) {
                 WriteAndExit("DirectoryManager.AppDataPath could not be resolved, please try another directory.", 1);
             }
 
@@ -391,8 +378,9 @@ namespace BrowserAutomationMaster.Core.Common
             return sourceBuildsDir;
         }
         
-        // ~/.config/BrowserAutomationMaster
-        private static string GetAppDataLinux(string appName)
+        /// <summary> Returns the path used for BAMM's AppData on Linux. </summary>
+        /// <returns>/home/{username}/.config/BrowserAutomationMaster</returns>
+        private static string GetAppDataLinux()
         {
             string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             if (string.IsNullOrEmpty(homeDirectory)) {
@@ -415,13 +403,15 @@ namespace BrowserAutomationMaster.Core.Common
                 configHome = Path.Combine(homeDirectory, ".config");
             }
             
-            string appDataDirectory = Path.Combine(configHome, appName);
+            string appDataDirectory = Path.Combine(configHome, AppName);
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
 
-        // ~/Library/Application Support/BrowserAutomationMaster
-        private static string GetAppDataMacOS(string appName)
+        /// <summary> Returns the path used for BAMM's AppData on macOS. </summary>
+        /// <returns> ~/Library/Application Support/BrowserAutomationMaster </returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        private static string GetAppDataMacOS()
         {
             string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
@@ -437,15 +427,17 @@ namespace BrowserAutomationMaster.Core.Common
                 homeDirectory,
                 "Library",
                 "Application Support",
-                appName
+                AppName
             );
 
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
         }
 
-        // C:\Users\{username}\AppData\Roaming\BrowserAutomationMaster
-        private static string GetAppDataWindows(string appName)
+        /// <summary> Returns the path used for BAMM's AppData on Windows. </summary>
+        /// <returns> C:\Users\{username}\AppData\Roaming\BrowserAutomationMaster </returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        private static string GetAppDataWindows()
         {
             string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
@@ -456,7 +448,7 @@ namespace BrowserAutomationMaster.Core.Common
                 );
             }
 
-            string appDataDirectory = Path.Combine(appDataFolder, appName);
+            string appDataDirectory = Path.Combine(appDataFolder, AppName);
 
             EnsureDirectoryExists(appDataDirectory);
             return appDataDirectory;
@@ -464,14 +456,10 @@ namespace BrowserAutomationMaster.Core.Common
 
         private static void HandleRestoreConfirmation(string response, ref bool isConfirmed)
         {
-            if (Input.ConditionAccepted(response))
-            {
-                isConfirmed = true;
-            }
+            if (Input.ConditionAccepted(response)) { isConfirmed = true; }
 
-            if (!isConfirmed)
-            {
-                WriteAndExit("Unable to restore from backup due to a user cancellation.", 1);
+            if (!isConfirmed) { 
+                WriteAndExit(message: "Unable to restore from backup due to a user cancellation.", status: 1); 
             }
             
         }
@@ -485,13 +473,11 @@ namespace BrowserAutomationMaster.Core.Common
             // Compound assignment operator
             backupFile ??= GetDefaultBackupPath();
 
-            if (!File.Exists(backupFile))
-            {
+            if (!File.Exists(backupFile)) {
                 WriteAndExit("Unable to restore from backup, no backup file found.", 1);
             }
 
-            if (AppDataDirectory == null)
-            {
+            if (AppDataDirectory == null) {
                 WriteAndExit("Unable to restore from backup, AppDataDirectory returned null.", 1);
             }
 

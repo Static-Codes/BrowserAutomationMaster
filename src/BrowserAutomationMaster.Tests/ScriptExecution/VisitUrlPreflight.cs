@@ -207,7 +207,7 @@ namespace BrowserAutomationMaster.Tests.ScriptExecution
         {
             // Mirrors RequestManager.NetworkClient.Instance, which Transpiler.IsResolvableLink uses.
             // The User-Agent must match: it decides the response, and some hosts serve a non-success
-            // status to a recognised browser agent while serving 200 to a default one. If the two
+            // status to a recognized browser agent while serving 200 to a default one. If the two
             // clients disagree, a genuine compile failure is misreported as an environmental skip.
             HttpClientHandler handler = new() { AllowAutoRedirect = true };
 

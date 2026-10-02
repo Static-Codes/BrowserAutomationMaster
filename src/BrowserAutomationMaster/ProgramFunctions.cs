@@ -107,6 +107,9 @@ namespace BrowserAutomationMaster
 
             if (pArgs.Any(arg => arg.Equals("--platform-info")))
             {
+                // Defining the label for platform detection.
+                var labelText = GlobalUserInfo.PlatformInfo.IsLinux ? "Detected Distro:" : "OS Name:";
+
                 Warning.Write(string.Join(NLC, [
                     "---------------- PLATFORM CLASS DEBUG INFO ----------------",
                     $"IsARMel: {GlobalUserInfo.PlatformInfo.IsARMel}",
@@ -118,6 +121,7 @@ namespace BrowserAutomationMaster
                     $"Raspi Model: {GlobalUserInfo.PlatformInfo.GetRaspiModelName()}",
                     $"IsUnixLike: {GlobalUserInfo.PlatformInfo.IsUnixLike}",
                     $"IsWindows: {GlobalUserInfo.PlatformInfo.IsWindows}",
+                    $"{labelText}: {GlobalUserInfo.PlatformInfo.CurrentPlatform?.PrettyName ?? "Not Detected"}",
                     NLC, 
                     NLC,
                 ]));
@@ -336,19 +340,16 @@ namespace BrowserAutomationMaster
             // Handles 'validate' command variations
             if (pArgs[0].Equals("validate", CCIC))
             {
-                if (pArgs.Length != 2)
-                {
-                    WriteAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", 1);
+                if (pArgs.Length != 2) {
+                    WriteAndExit("Invalid 'validate' command.\n\nValid Syntax:\nbamm validate \"path/to/file.bamc\"", status: 1);
                 }
 
-                if (IsValidFile(pArgs[1]))
-                {
-                    WriteSuccessMessageAndExit("Selected file has valid syntax.", 0);
+                if (IsValidFile(pArgs[1])) {
+                    WriteSuccessMessageAndExit("Selected file has valid syntax.", exitCode: 0);
                 }
 
-                else
-                {
-                    WriteAndExit("Selected file has invalid syntax.", 1);
+                else {
+                    WriteAndExit("Selected file has invalid syntax.", status: 1);
                 }
                 return true;
             }
@@ -375,10 +376,7 @@ namespace BrowserAutomationMaster
                 return;
             }
 
-            if (pArgs.Length == 1)
-            {
-                ArchiveAppDataDirectory();
-            }
+            if (pArgs.Length == 1) { ArchiveAppDataDirectory(); }
 
             if (pArgs.Length == 2)
             {
@@ -445,10 +443,8 @@ namespace BrowserAutomationMaster
             }
 
             string input = Input.AskForInput($"Are you sure you want to delete the '{targetDir}' directory? [y/n]:\n");
-            if (input.Equals("y", OIC))
-            {
-                DeleteDirectory(dirPath);
-            }
+            
+            if (input.Equals("y", OIC)) { DeleteDirectory(dirPath); }
         }
 
 

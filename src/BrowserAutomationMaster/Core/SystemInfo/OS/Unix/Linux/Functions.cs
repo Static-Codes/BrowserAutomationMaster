@@ -6,10 +6,8 @@ using Spectre.Console;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using static BrowserAutomationMaster.Core.Common.ANSI;
 using static BrowserAutomationMaster.Core.Common.Constants;
-using static BrowserAutomationMaster.Core.Common.DirectoryManager;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Compilation.Transpiler;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
@@ -20,6 +18,7 @@ using static BrowserAutomationMaster.Core.Types.Installations;
 using static BrowserAutomationMaster.Core.Utilities.AppSettingsUtility;
 using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
 using static System.Runtime.InteropServices.Architecture;
+using static WhichDistroSharp.WhichDistroSharp;
 
 namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
 {
@@ -292,23 +291,17 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
         // Unlike DistroManager.DetermineDistro() this is only used for debugging purposes.
         public static string GetFullDistroName()
         {
-            var lsbrPresent = CommandExists("lsb_release");
-            var neofetchPresent = CommandExists("neofetch");
-            string? distroName;
+            var platform = GlobalUserInfo.PlatformInfo.CurrentPlatform ?? DetectPlatform();
 
-            if (lsbrPresent) { 
-                distroName = ParseLSBRelease(); 
+            if (!string.IsNullOrWhiteSpace(platform.PrettyName)) {
+                return platform.PrettyName;
             }
 
-            else if (neofetchPresent) {
-                distroName = ParseNeofetch();
+            if (!string.IsNullOrWhiteSpace(platform.Name)) {
+                return platform.Name;
             }
 
-            else {
-                distroName = ParseOSRelease();
-            }
-
-            return distroName ?? "Generic Linux";
+            return "Generic Linux";
         }
 
         public static string? GetTerminalBackgroundColor()
@@ -426,16 +419,16 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
 
 
                 // Adds the DEBIAN_FRONTEND=noninteractive prefix if the current distro in use is based off Debian.
-                var installPrefix = GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
+                var installPrefix = GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroFamily.Debian) switch 
                 {
                     true => string.Join(' ', [
                         "DEBIAN_FRONTEND=noninteractive", 
-                        GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManager,
+                        GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManagerCommand,
                         GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallCommand
                     ]),
 
                     _ => string.Join(' ', [
-                        GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManager,
+                        GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManagerCommand,
                         GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallCommand
                     ])
                 };
@@ -505,9 +498,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
         // Due to the unique nature of how ANSI is handled on Kali Linux
         private static bool IsKali() 
         {
-            return 
-                GlobalUserInfo.PlatformInfo.CurrentDistribution != null && 
-                GlobalUserInfo.PlatformInfo.CurrentDistribution.Name.Equals("Kali Linux");
+            return GlobalUserInfo.PlatformInfo.CurrentDistribution?.Is(Distros.KaliLinux) == true;
         }
         
         private static List<AppInfo> ParseDpkgList()
@@ -634,7 +625,10 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
         {
             try 
             {
-                if (GlobalUserInfo.PlatformInfo.CurrentDistribution!.Equals(DistroBase.Debian)) {
+                // Reads BaseDistro, not the Distro object. Comparing the object itself against the
+                // enum is always false, because object.Equals accepts anything and silently
+                // returns false when the runtime types differ, so apt-get update never ran.
+                if (GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroFamily.Debian)) {
                     Warning.Write("One or more dependencies are requiring a refresh of the apt-cache, please wait.");
                     RunCommand("apt-get", "update");
                 }
@@ -752,102 +746,6 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             }
 
             return (output, error);
-        }
-
-        // Executing: 'cat /etc/os-release'
-        private static string? ParseOSRelease()
-        {
-            var fileName = "/etc/os-release";
-            try
-            {
-                if (!File.Exists(fileName)) {
-                    return null;
-                }
-
-                var contentArray = File.ReadAllLines(fileName);
-
-                var contentString = string.Join(NLC, contentArray);
-
-                var osrMatch = PrecompiledOSRPrettyNameRegex().Match(contentString);
-
-                if (osrMatch.Success) {
-                    return osrMatch.Groups[1].Value;
-                }
-
-                osrMatch = PrecompiledOSRNameRegex().Match(contentString);
-
-                if (osrMatch.Success) {
-                    return osrMatch.Groups[1].Value;
-                }
-            }
-            catch {
-                Warning.Write("Unable to determine detailed OS info for debugging purposes.");
-                Warning.Write("You may see the generic \"Linux\" identifier.");
-            }
-            return null;
-        }
-        
-        // Executing: 'lsb_release -a' 
-        private static string? ParseLSBRelease()
-        {
-            try
-            {
-                (var lsbrResult, _) = RunCommand("/bin/bash", "-c \"lsb_release -a\"");
-
-                var lsbrMatch = PrecompiledLSBRRegex().Match(lsbrResult);
-
-                if (!lsbrMatch.Success) {
-                    return null;
-                }
-
-                return lsbrMatch.Groups[1].Value;
-            }
-            catch {
-                Warning.Write("Unable to determine detailed OS info for debugging purposes.");
-                Warning.Write("You may see the generic \"Linux\" identifier.");
-            }
-            return null;
-        }
-
-        // Executing: 'neofetch'
-        private static string? ParseNeofetch()
-        {
-            try
-            {
-                var nfTmpFilePath = GetTemporaryNeofetchPath();
-                RunCommand("/bin/bash", $"-c \"neofetch > {nfTmpFilePath}\"");
-
-                if (!File.Exists(nfTmpFilePath)) {
-                    return null;
-                }
-
-                var contentArray = File.ReadAllLines(nfTmpFilePath);
-
-                File.Delete(nfTmpFilePath); // Cleanup since this tmp file isnt needed
-                
-                var rawContentString = string.Join(NLC, contentArray);
-
-                var contentString = StripANSI(rawContentString);
-
-                var nfMatch = PrecompiledNFRegex().Match(contentString);
-                
-                if (nfMatch.Success) {
-                    return nfMatch.Groups[1].Value;
-                }
-
-                return null;
-            }
-            catch {
-                Warning.Write("Unable to determine detailed OS info for debugging purposes.");
-                Warning.Write("You may see the generic \"Linux\" identifier.");
-            }
-            // catch (Exception ex){}
-            return null;
-        }
-        
-        private static string StripANSI(string text) {
-            string ANSIPattern = @"\x1b\[[0-?]*[ -/]*[@-~]";
-            return Regex.Replace(text, ANSIPattern, string.Empty);
         }
     }
 }

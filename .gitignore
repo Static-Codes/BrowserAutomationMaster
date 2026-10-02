@@ -7,3 +7,4 @@ obj/
 *tasks.json
 /src/Published Builds
 src/BrowserAutomationMaster/Resources/gui.zip
+.kilo

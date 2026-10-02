@@ -200,6 +200,7 @@
 		<PackageReference Include="Silk.NET.Windowing" Version="2.23.0" />
 		<PackageReference Include="Spectre.Console" Version="0.50.0" />
 		<PackageReference Include="TextCopy" Version="6.2.1" />
+		<PackageReference Include="WhichDistroSharp" Version="1.0.1" />
 		<PackageReference Include="YamlDotNet" Version="16.3.0" />
 	</ItemGroup>
 

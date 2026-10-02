@@ -169,7 +169,7 @@ namespace BrowserAutomationMaster.Core.Utilities
             // Handling Linux installations that are bundled as packages for the CurrentDistribution
             if (GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallationType.Equals(InstallationType.Package))
             {
-                if (GlobalUserInfo.PlatformInfo.CurrentDistribution.PackageType.Equals(PackageType.DEB)) 
+                if (GlobalUserInfo.PlatformInfo.CurrentDistribution.PackageType.Equals(PackageType.Deb)) 
                 {
                     uri = RuntimeInformation.ProcessArchitecture switch
                     {
@@ -180,7 +180,7 @@ namespace BrowserAutomationMaster.Core.Utilities
                     };
                 }
 
-                else if (GlobalUserInfo.PlatformInfo.CurrentDistribution.PackageType.Equals(PackageType.RPM))
+                else if (GlobalUserInfo.PlatformInfo.CurrentDistribution.PackageType.Equals(PackageType.Rpm))
                 {
                     uri = RuntimeInformation.ProcessArchitecture switch
                     {

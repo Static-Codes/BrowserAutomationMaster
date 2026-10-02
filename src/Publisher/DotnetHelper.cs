@@ -278,7 +278,7 @@ namespace Publisher
 
 
                 // ------------------------------------------
-                // Start of validation and sdk extraction.
+                // Start of sdk extraction.
                 // ------------------------------------------
 
                 Console.WriteLine("Validating the calculated hash against the expected hash.");
@@ -316,7 +316,7 @@ namespace Publisher
                 Console.WriteLine("rm dotnet-install.sh");
 
                 // ------------------------------------------
-                // End of hash validation.
+                // End of sdk extraction.
                 // ------------------------------------------
 
             }

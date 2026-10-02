@@ -51,6 +51,9 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 ### Supported Operating Systems 💻
 
 - Linux
+
+  [Known Distribution Gaps](sections/known-distribution-gaps.md).
+
   <details>
 
     # x86_64

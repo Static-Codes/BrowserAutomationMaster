@@ -1,6 +1,7 @@
 using BrowserAutomationMaster.Core.Common;
 using BrowserAutomationMaster.Core.Helpers;
 using BrowserAutomationMaster.Core.Messaging;
+using BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux;
 using BrowserAutomationMaster.Core.Types.Linux;
 using Publisher.Build.Processes;
 using System.Diagnostics;
@@ -53,8 +54,8 @@ namespace Publisher
         private async Task<(bool, string?)> BuildArchPackage(string workingDir, string appVersion) 
         {
             bool[] invalidStates = [
-                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.ArchLinux),
-                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian)
+                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroFamily.Arch),
+                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroFamily.Debian)
             ];
 
             // If both cases are true, execution haults, and an exception is thrown.
@@ -164,14 +165,14 @@ namespace Publisher
             // Does infact NOT install the package manager "pacman", it installs a pacman game.
             // I was doing a test for Arch Packaging on Debian, the game popped up leaving me very confused.
             string[] packages = 
-                GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroBase.ArchLinux) ? 
+                GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroFamily.Arch) ? 
                 ["pacman", "makepkg"] : // Arch
                 ["pacman-package-manager", "makepkg", "libarchive-tools"]; // Debian
             
             var missingPackages = await FindMissingPackages(packages);
 
             bool needsAptCacheRefresh = 
-                GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroBase.Debian) &&
+                GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroFamily.Debian) &&
                 missingPackages.Contains("libarchive-tools");
             
             if (needsAptCacheRefresh) {
@@ -255,8 +256,8 @@ namespace Publisher
         private async Task<(bool, string?)> BuildPCLinuxOSPackage(string workingDir) 
         {
             bool[] invalidStates = [
-                GlobalUserInfo.PlatformInfo.CurrentDistribution!.Name != "PCLinuxOS",
-                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian)
+                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.Is(Distros.PCLinuxOS),
+                !GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroFamily.Debian)
             ];
 
             // If both cases are true, execution haults, and an exception is thrown.
@@ -299,13 +300,13 @@ namespace Publisher
 
 
             Console.WriteLine("Creating the top level directory of the package inside ~/rpmbuild/SOURCES");
-            var TLD = Path.Combine(sourcesDir, $"{AppName}-{BaseVersion}");
+            var TLD = Path.Combine(sourcesDir, $"{BinaryName}-{BaseVersion}");
             EnsureDirectoryExists(TLD);
             Success.WriteSuccessMessage("Operation successful.");
             
 
             Console.WriteLine("Copying the compiled binary from the dotnet publish directory to newly created top level directory.");
-            var sourceBinaryPath = Path.Combine(TLD, AppName);
+            var sourceBinaryPath = Path.Combine(TLD, BinaryName);
 
             try 
             {   
@@ -348,7 +349,7 @@ namespace Publisher
 
 
             string[] packages = 
-                GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroBase.ArchLinux) ? 
+                GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroFamily.Arch) ? 
                 [ "rpm-build", "rpm-tools", "pkgutils" ] :  // PCLinuxOS
                 [ "rpm" ]; // Debian
             
@@ -360,7 +361,7 @@ namespace Publisher
             {
                 Console.WriteLine($"Located {missingPackages.Count} missing package(s) required for the build process.");
                 bool needsAptCacheRefresh = 
-                    GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroBase.Debian) &&
+                    GlobalUserInfo.PlatformInfo.CurrentDistribution.BaseDistro.Equals(DistroFamily.Debian) &&
                     missingPackages.Contains("libarchive-tools");
 
                 if (needsAptCacheRefresh) {
@@ -404,7 +405,7 @@ namespace Publisher
             }
 
             var releaseTag = $"0.{VersionIdentifier}.1pclos{DateTime.Now.Year}";
-            var fileName = $"{AppName}-{BaseVersion}-{releaseTag}.x86_64.rpm";
+            var fileName = $"{BinaryName}-{BaseVersion}-{releaseTag}.x86_64.rpm";
             var filePath = Path.Combine(compilationDir, fileName);
 
             return (true, filePath);
@@ -537,16 +538,16 @@ namespace Publisher
                 var isMissingMakePKG = !CommandExists(packageName);
 
                 if (isMissingMakePKG) {
-                    var installPrefix = GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroBase.Debian) switch 
+                    var installPrefix = GlobalUserInfo.PlatformInfo.CurrentDistribution!.BaseDistro.Equals(DistroFamily.Debian) switch 
                     {
                         true => string.Join(' ', [
                             "DEBIAN_FRONTEND=noninteractive", 
-                            GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManager,
+                            GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManagerCommand,
                             GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallCommand
                         ]),
 
                         _ => string.Join(' ', [
-                            GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManager,
+                            GlobalUserInfo.PlatformInfo.CurrentDistribution!.PackageManagerCommand,
                             GlobalUserInfo.PlatformInfo.CurrentDistribution.InstallCommand
                         ])
                     };
@@ -649,7 +650,7 @@ namespace Publisher
 
                 // Handling case of standalone binary not including the binary name in the path.
                 var finalPath = name switch {
-                    "Standalone Binary" => Path.Combine(path, AppName),
+                    "Standalone Binary" => Path.Combine(path, BinaryName),
                     _ => path
                 };
 

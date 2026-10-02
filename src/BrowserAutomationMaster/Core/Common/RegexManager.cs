@@ -243,19 +243,6 @@ namespace BrowserAutomationMaster.Core.Common
         [GeneratedRegex("^((11\\.0)|(11\\.[1-9]\\d*)|([12]\\d*))(\\.\\d+)*$")]
         public static partial Regex PrecompiledMacOSVersionRegex();
 
-        // Used in AppManager.OS.LinuxFunctions
-        [GeneratedRegex(@"(?:Description:\s)([^\n]*)")]
-        public static partial Regex PrecompiledLSBRRegex();
-        
-        [GeneratedRegex(@"OS:\s(.*)")] 
-        public static partial Regex PrecompiledNFRegex();
-
-        [GeneratedRegex("NAME=\"(.*)\"")]
-        public static partial Regex PrecompiledOSRNameRegex();
-
-        [GeneratedRegex("PRETTY_NAME=\"(.*)\"")]
-        public static partial Regex PrecompiledOSRPrettyNameRegex();
-
         [GeneratedRegex(@"^(?:model name|Model)(?:	{1,2}):\s(?:Raspberry Pi\s)(?<model>.*)")]
         public static partial Regex PrecompiledRPIRegex();
 

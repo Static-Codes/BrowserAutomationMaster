@@ -7,13 +7,20 @@ using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
 using static BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux.Functions;
 using static BrowserAutomationMaster.Core.Utilities.UserInfoUtility;
+using static WhichDistroSharp.WhichDistroSharp;
 
 namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
 {
     public class DistroManager() 
     {
         public readonly static Distro[] distroObjects = [.. ReflectionHelper.GetStaticFieldsOfType<Distro>(typeof(Distros), true)];
-        private readonly static IEnumerable<string> altCmds = distroObjects.Select(d => $"{d.BackupReleaseCmd} {d.BackupReleaseCmdArgs}");
+        private readonly static IEnumerable<string> alternativeCommands = distroObjects.Select(d => $"{d.BackupReleaseCmd} {d.BackupReleaseCmdArgs}");
+
+        /// <summary>
+        /// The upstream distribution each supported entry claims. Built once, so the many to one
+        /// collapse (Debian answers for Raspbian, openSUSE for Leap and Tumbleweed) is one lookup.
+        /// </summary>
+        private readonly static Dictionary<WhichDistro, Distro> distroMapping = BuildDistroMapping();
 
         public readonly static string invalidDistroMessage = string.Join(NLC, [
             "Currently unable to determine the current Distribution in use.",
@@ -21,89 +28,72 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             $"Please make a bug report at: {ISSUES_LINK}"
         ]);
 
+        private static Dictionary<WhichDistro, Distro> BuildDistroMapping()
+        {
+            var lookup = new Dictionary<WhichDistro, Distro>();
+
+            foreach (var distro in distroObjects)
+            {
+                foreach (var supported in distro.SupportedDistros)
+                {
+                    if (!lookup.TryAdd(supported, distro))
+                    {
+                        // Execution fails here, as the host platform was unable to be detected.
+                        throw new InvalidOperationException(
+                            $"The distro '{supported}' is claimed by both '{lookup[supported].Name}' and " +
+                            $"'{distro.Name}'. Each supported distro may belong to only one entry."
+                        );
+                    }
+                }
+            }
+
+            return lookup;
+        }
+
         public static void CheckLinuxDistro() 
         {
             if (GlobalUserInfo.PlatformInfo.CurrentDistribution != null) {
                 return;
             }
             
-            var distroChoices = EnumHelper.GetStringReprs(typeof(Distros));
-            
-            var distroChoice = Input.WriteListFromOptions(distroChoices, noun: "distro");
-            
+            GlobalUserInfo.PlatformInfo.CurrentDistribution = GetUserDistroChoice(GlobalUserInfo.PlatformInfo.CurrentPlatform);
+        }
 
-            var memberObject = EnumHelper.GetEnumMemberFromStringRepr(typeof(Distros), distroChoice);
-
-            if (memberObject == null) 
-            {
-                WriteAndExit(
-                    string.Join(' ', [
-                        "Unable to determine the current Linux Distribution in use,",
-                        $"please make a bug report at: {ISSUES_LINK}", 
-                    ]),
-                    status: 1
-                );
-            }
-
-            GlobalUserInfo.PlatformInfo.CurrentDistribution = (Distro)memberObject;
+        /// <summary>
+        /// Resolves an upstream distro to a supported BAMM entry, without querying the active fs.
+        /// </summary>
+        /// <param name="detectedDetected">The distribution reported by WhichDistroSharp.</param>
+        /// <returns>
+        /// The associated entry, or null if BAMM does not declare support for it, in the form of an entry to .
+        /// </returns>
+        public static Distro? Resolve(WhichDistro detectedDetected)
+        {
+            return distroMapping.TryGetValue(detectedDetected, out var distro) ? distro : null;
         }
 
         public static Distro DetermineDistro() 
         {
-            var fileName = "/etc/os-release";
-            try
-            {
-                var releaseFileFound = File.Exists(fileName);
+            // Detect() and DetectPlatform() read the same file and agree on the result. 
+            // The first call "which distro", the second "which distro, and what else does it say".
+            var platform = DetectPlatform();
 
-                if (!releaseFileFound) 
-                {
-                    Warning.Write($"Warning: {fileName} was not found.");
-                    return TryAltCmds() ?? Distros.Unknown;
-                }
+            GlobalUserInfo.PlatformInfo.CurrentPlatform = platform;
 
-                // Optimization: Find the line starting with ID=, split by '=', and trim quotes in one pass
-                var idLine = File.ReadLines(fileName)
-                    .FirstOrDefault(line => line.StartsWith("ID=", OIC));
+            var detected = Detect();
 
-                if (string.IsNullOrEmpty(idLine)) 
-                {
-                    Warning.Write(
-                        string.Join(NLC, [
-                            "Unable to determine, the specific Linux distribution in use.",
-                            "You will be prompted to select the base of your distro (Arch/Debian/Fedora/Etc)",
-                            NLC,
-                            $"Warning: ID field not found in: {fileName}"
-                        ])
-                    );
-                    return Distros.Unknown;
-                }
-
-                // Sanitizing captured value (For example: ID="ubuntu" -> ubuntu)
-                var sanitizedID = idLine.Split('=')[1].Trim('"').Trim('\'');
-
-                var distroObj = distroObjects.FirstOrDefault(distro => distro.ID == sanitizedID);
-
-                if (distroObj != null) {
-                    return distroObj;
-                } 
-                    
-                return GetUserDistroChoice();
-
-            }
-
-            catch (Exception ex) 
-            {
+            if (!detected.WasFound()) {
                 Warning.Write(
                     string.Join(NLC, [
-                        "Unable to determine, the specific Linux distribution in use.",
-                        "You will be prompted to select the base of your distro.",
+                        "Unable to determine the specific Linux distribution in use.",
+                        "Falling back to the alternative detection methods.",
                         NLC,
-                        "Warning:",
-                        ex.Message
+                        "Warning: No matching ID field was found in /etc/os-release or /usr/lib/os-release"
                     ])
                 );
-                return Distros.Unknown;
+                return TryAlternativeCommands() ?? Distros.Unknown;
             }
+
+            return Resolve(detected) ?? GetUserDistroChoice(platform);
         }
 
         public static Distro GetDistroByName(string name) 
@@ -183,32 +173,31 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             return [..distroObjects.Select(a => a.Name)];
         }
 
-        public static Distro GetUserDistroChoice() 
+        public static Distro GetUserDistroChoice(IPlatform? platform = null) 
         {
             var distroNames = GetSupportedDistroNames();
-                    
-            // Instead of adding another Distro object to Distros
-            // creating a temporary instance of Distros.Unknown
-            // then replacing .Name with "Not Listed" is more efficient.
-            var unsupportedDistroObj = Distros.Unknown;
-            unsupportedDistroObj.Name = "Not Listed";
+
+            if (platform != null) {
+                var detected = string.Join(' ', [
+                    platform.PrettyName,
+                    string.IsNullOrWhiteSpace(platform.VersionId) ? "" : platform.VersionId,
+                    string.IsNullOrWhiteSpace(platform.Id) ? "" : $"(ID: {platform.Id})"
+                ]).Trim();
+
+                Warning.Write(
+                    string.Join(NLC, [
+                        $"Detected: {detected}",
+                        "BAMM has no support entry for this distribution. Select the closest base below:",
+                        NLC
+                    ])
+                );
+            }
 
             var userDistroChoice = Input.WriteListFromOptions(
                 distroNames, 
                 "distro", 
                 pageSize: distroNames.Length
             );
-
-            if (userDistroChoice.Equals("Not Listed")) {
-                WriteAndExit(
-                    message: string.Join(NLC, [
-                        "Currently, BAMM only supports the listed distros.",
-                        $"If your distro is not currently listed, please make a bug report at {ISSUES_LINK}",
-                        "Your OS will be considered in a future update."
-                    ]),
-                    status: 1
-                );   
-            }
 
             return GetDistroByName(userDistroChoice);
         }
@@ -227,9 +216,9 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             return missingPackages;
         } 
 
-        private static Distro? TryAltCmds() 
+        private static Distro? TryAlternativeCommands() 
         {
-            foreach (var altCmd in altCmds) 
+            foreach (var altCmd in alternativeCommands) 
             {
                 try 
                 {
@@ -250,6 +239,7 @@ namespace BrowserAutomationMaster.Core.SystemInfo.OS.Unix.Linux
             }
             return null;
         }
+    
     
         
     }
