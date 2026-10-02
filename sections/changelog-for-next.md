@@ -491,6 +491,8 @@ In `Core.Types.Linux.Distro`: `ParseXDGSessionType` and `ParseDesktopSession` ga
   - The clone is removed and the steps now build the tree `actions/checkout` produced, addressed to the solution file.
   - It's trigger also named `main`, which is not a branch in this repository. See the Improved section.
 
+- **Fixed duplicate artifact generation bug (CS0579):** NativeFileDialog is a nested project, so its generated artifacts collided with BAMM's generated AssemblyInfo (CS0579). The SDK is now instructed to include ONLY BAMM's `obj/` + `bin/` directories.
+
 - **`disable-ssl` ignored during compilation:** `feature "disable-ssl"` was applied to the generated script but not to the compile-time URL check, so a self-signed host failed to compile even though the script would have loaded it. The reachability probe now accepts any certificate when the feature is set, mirroring the script's own `CERT_NONE` verification mode. This also unblocked `examples/Firefox/no-ssl-example.bamc`, which had never compiled anywhere.
 
 - **`--gui --port==X` ignored:** the port was parsed out of the argument and then discarded, so the listener always bound the default `8008` regardless of what was requested. The parsed port is now forwarded to `StartGUIThread()`, and a value outside 1–65535 is rejected with a clear message instead of being passed to `HttpListener`.

@@ -24,6 +24,11 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<!-- NativeFileDialog is a nested project, so its generated artifacts collide with BAMM's generated AssemblyInfo (CS0579). -->
+		<DefaultItemExcludes>$(DefaultItemExcludes);**/obj/**;**/bin/**</DefaultItemExcludes>
+	</PropertyGroup>
+
+	<PropertyGroup>
 		<!-- NuGet Package Metadata -->
 		<PackAsTool>false</PackAsTool>
 		<PackageId>bamm</PackageId>
