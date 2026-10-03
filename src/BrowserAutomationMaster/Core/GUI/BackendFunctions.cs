@@ -93,8 +93,9 @@ namespace BrowserAutomationMaster.Core.GUI
 
                     if (string.IsNullOrEmpty(commandLine))
                     {
+                        file.Close();
                         await HandleInvalidResponse(response, $"Unable to parse null or empty command on line {i + 1}");
-                        continue;
+                        return;
                     }
 
                     if (commandLine == "start-javascript" || commandLine == "end-javascript")
@@ -130,11 +131,22 @@ namespace BrowserAutomationMaster.Core.GUI
                     }
                     catch (JsonException ex)
                     {
+                        // Return, not continue. HandleInvalidResponse has closed the response by the time
+                        // it returns, so carrying on writes to a closed response; the write throws
+                        // ObjectDisposedException, which the outer catch turns into a second
+                        // HandleInvalidResponse on an already-closed response, and that propagates out to
+                        // StartServer — which treats ObjectDisposedException as fatal and ends the
+                        // process. One malformed line was enough to take the GUI server down for the
+                        // rest of the session.
+                        file.Close();
                         await HandleInvalidResponse(response, $"JSON Parsing Error on line {i + 1}: {ex.Message}. Content: {commandLine}");
+                        return;
                     }
                     catch (Exception ex)
                     {
+                        file.Close();
                         await HandleInvalidResponse(response, $"Error processing command line {i + 1}: {ex.Message}");
+                        return;
                     }
                 }
                 file.Close();
@@ -326,6 +338,29 @@ namespace BrowserAutomationMaster.Core.GUI
             }
         }
 
+        /// <summary>
+        /// Answers a /validate request that could not be judged.
+        /// </summary>
+        /// <remarks>
+        /// Local to Validate on purpose. /validate's verdict path answers {"success": true} or
+        /// {"success": false, "error": …}, but its guard paths used to go through HandleInvalidResponse,
+        /// which writes a DictionaryJsonResponse — PascalCase, with a JsonResponse/Items pair. The GUI
+        /// reads data.success, found undefined there, and fell through to its "No details provided."
+        /// branch, so the reason for every rejection was thrown away. <br/>
+        /// Changing HandleInvalidResponse itself instead would have reshaped /load's answer too, and the
+        /// GUI's /load handler reads data["Items"]; one endpoint's inconsistency is not worth breaking
+        /// another's contract over.
+        /// </remarks>
+        private static async Task WriteValidationFailure(HttpListenerResponse response, string error)
+        {
+            // A real JSON boolean, matching the verdict path's hand-rolled {"success": false, ...}.
+            // Serialising rather than interpolating is what makes that true; a string "false" here
+            // would be truthy in JavaScript and the GUI would report the script as valid.
+            var body = JsonSerializer.Serialize(new { success = false, error });
+
+            await Server.WriteResponse(response, UTF8.GetBytes(body), statusCode: HttpStatusCode.BadRequest);
+        }
+
         public static async Task Validate(HttpListenerRequest request, HttpListenerResponse response)
         {
             bool responseHandled = false;
@@ -336,14 +371,14 @@ namespace BrowserAutomationMaster.Core.GUI
 
                 if (b64Contents == null)
                 {
-                    await HandleInvalidResponse(response, "Invalid request, missing param \"contents\"");
+                    await WriteValidationFailure(response, "Invalid request, missing param \"contents\"");
                     responseHandled = true;
                     return;
                 }
 
                 if (!IsB64(b64Contents))
                 {
-                    await HandleInvalidResponse(response, "Invalid request, this endpoint requires a base64 string for the parameter \"contents\"");
+                    await WriteValidationFailure(response, "Invalid request, this endpoint requires a base64 string for the parameter \"contents\"");
                     responseHandled = true;
                     return;
                 }
@@ -354,7 +389,7 @@ namespace BrowserAutomationMaster.Core.GUI
 
                 if (contentString == null)
                 {
-                    await HandleInvalidResponse(response, "Invalid request, unable to split content lines, contentString is null.");
+                    await WriteValidationFailure(response, "Invalid request, unable to split content lines, contentString is null.");
                     responseHandled = true;
                     return;
                 }
@@ -363,7 +398,7 @@ namespace BrowserAutomationMaster.Core.GUI
 
                 if (contents == null || contents.Length == 0)
                 {
-                    await HandleInvalidResponse(response, "Invalid request, unable to split content lines, contents contains no new line characters.");
+                    await WriteValidationFailure(response, "Invalid request, unable to split content lines, contents contains no new line characters.");
                     responseHandled = true;
                     return;
                 }
@@ -375,7 +410,7 @@ namespace BrowserAutomationMaster.Core.GUI
 
                     if (string.IsNullOrEmpty(commandLine))
                     {
-                        await HandleInvalidResponse(response, $"Unable to parse null or empty command on line {i + 1}");
+                        await WriteValidationFailure(response, $"Unable to parse null or empty command on line {i + 1}");
                         responseHandled = true;
                         continue;
                     }
@@ -411,12 +446,12 @@ namespace BrowserAutomationMaster.Core.GUI
                     }
                     catch (JsonException ex)
                     {
-                        await HandleInvalidResponse(response, $"JSON Parsing Error on line {i + 1}: {ex.Message}. Content: {commandLine}");
+                        await WriteValidationFailure(response, $"JSON Parsing Error on line {i + 1}: {ex.Message}. Content: {commandLine}");
                         responseHandled = true;
                     }
                     catch (Exception ex)
                     {
-                        await HandleInvalidResponse(response, $"Error processing command line {i + 1}: {ex.Message}");
+                        await WriteValidationFailure(response, $"Error processing command line {i + 1}: {ex.Message}");
                         responseHandled = true;
                     }
                 }
@@ -445,14 +480,18 @@ namespace BrowserAutomationMaster.Core.GUI
             }
         }
 
-        public static async Task Version(HttpListenerResponse response) 
+        public static async Task Version(HttpListenerResponse response)
         {
             byte[] responseBytes;
             try
             {
-                var responseJson = new Dictionary<string, string>() {
+                // Dictionary<string, object>, not Dictionary<string, string>, so is_latest serialises
+                // as a JSON boolean. As a string it went out as "true", and index.html reads it with
+                // `isLatest ? "Yes" : "No (UPDATE REQUIRED)"` — every non-empty string is truthy in
+                // JavaScript, so an out-of-date BAMM reported itself as up to date.
+                var responseJson = new Dictionary<string, object>() {
                     { "version", CurrentVersion },
-                    { "is_latest", $"{CurrentVersion == LatestVersion}".ToLower()}
+                    { "is_latest", CurrentVersion == LatestVersion }
                 };
 
                 responseBytes = JsonSerializer.SerializeToUtf8Bytes(responseJson);

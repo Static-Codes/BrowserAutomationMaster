@@ -618,6 +618,19 @@ namespace BrowserAutomationMaster.Core.Parsing
                         continue;
                     }
 
+
+                    // Ordinary feature names are tracked too.
+                    //
+                    // usedFeatures was only ever appended to from inside AddValidatedProxy, so it
+                    // held proxy lines and nothing else. The duplicate check above could therefore
+                    // only fire for a second proxy: repeating any other feature, `feature
+                    // "run-headless"` twice, passed validation and compiled, while the same script
+                    // was refused by the GUI's /validate. Excluded here because AddValidatedProxy
+                    // has already recorded the proxy line by the time this runs.
+                    if (firstArg.Equals("feature") && !proxyFeatureFound)
+                    {
+                        usedFeatures.Add(line);
+                    }
                     #endregion End of Proxy Feature Check
 
 
@@ -639,6 +652,29 @@ namespace BrowserAutomationMaster.Core.Parsing
                                 line => !availableCommands.Any(prefix => line.Trim().StartsWith(prefix)) &&
                                 !line.Trim().StartsWith("//") // Ignores comments
                         
+                            )
+                        ];
+
+                        // The same violation read from the other side.
+                        //
+                        // The check above only looks backwards from the 'visit', so it catches a command
+                        // sitting between the browser block and the visit but cannot see a 'browser' or
+                        // 'feature' placed after it — `visit` then `browser` was accepted even though
+                        // the message below states those commands come first. Both halves are needed for
+                        // the rule as written.
+                        //
+                        // A 'visit' with nothing after it stays valid, which is what keeps a script with
+                        // no 'browser' line at all working: a browser is optional, so its absence is not
+                        // a violation. What is a violation is a browser appearing where it cannot take
+                        // effect, because the visit has already been declared.
+                        List<string> followingLines = [.. lines.Skip(i + 1)];
+
+                        invalidLines =
+                        [
+                            .. invalidLines,
+                            .. followingLines.Where(
+                                line => !line.Trim().StartsWith("//") &&
+                                (line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() is "browser" or "feature")
                             )
                         ];
                     }
@@ -944,6 +980,18 @@ namespace BrowserAutomationMaster.Core.Parsing
                         continue;
                     }
 
+                    // Ordinary feature names are tracked here too.
+                    //
+                    // Same correction as IsValidFile: usedFeatures was only appended to from
+                    // inside AddValidatedProxy, so it held proxy lines and nothing else, and the
+                    // duplicate check above could only fire for a second proxy. This is the method
+                    // the GUI's /validate runs, so before this a repeated ordinary feature was
+                    // refused by the CLI and accepted by the GUI.
+                    if (firstArg.Equals("feature") && !proxyFeatureFound)
+                    {
+                        usedFeatures.Add(line);
+                    }
+
                     #endregion End of Proxy Feature Check
 
 
@@ -966,6 +1014,29 @@ namespace BrowserAutomationMaster.Core.Parsing
                                 line => !availableCommands.Any(prefix => line.Trim().StartsWith(prefix)) &&
                                 !line.Trim().StartsWith("//") // Ignores comments
                         
+                            )
+                        ];
+
+                        // The same violation read from the other side.
+                        //
+                        // The check above only looks backwards from the 'visit', so it catches a command
+                        // sitting between the browser block and the visit but cannot see a 'browser' or
+                        // 'feature' placed after it — `visit` then `browser` was accepted even though
+                        // the message below states those commands come first. Both halves are needed for
+                        // the rule as written.
+                        //
+                        // A 'visit' with nothing after it stays valid, which is what keeps a script with
+                        // no 'browser' line at all working: a browser is optional, so its absence is not
+                        // a violation. What is a violation is a browser appearing where it cannot take
+                        // effect, because the visit has already been declared.
+                        List<string> followingLines = [.. lines.Skip(i + 1)];
+
+                        invalidLines =
+                        [
+                            .. invalidLines,
+                            .. followingLines.Where(
+                                line => !line.Trim().StartsWith("//") &&
+                                (line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() is "browser" or "feature")
                             )
                         ];
                     }

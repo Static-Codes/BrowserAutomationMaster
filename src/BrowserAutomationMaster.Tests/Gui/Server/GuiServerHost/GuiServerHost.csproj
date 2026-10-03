@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Not a test project. This is the smallest thing that can hold the GUI's HttpListener open while the
+    test suite talks to it over a real socket.
+
+    A helper project rather than an in-proc server because Server.StartServer calls Errors.WriteAndExit
+    on a taken port, low memory, or a failed GUI extraction, and WriteAndExit ends the process. In-proc
+    that would take the test host down with it. The same reason is why the suite does not shell out to
+    the `gui` CLI argument: that path continues into StartGUIThread, builds a PhotinoWindow and blocks on
+    WaitForClose, which is a window on a machine with no display. StartServer alone is the listener, and
+    it is public.
+
+    Referenced by BrowserAutomationMaster.Tests so it builds and lands in the test output directory,
+    the same arrangement as the bamm.dll that ScriptExecution/BammProcess launches. GuiServerProcess
+    finds it through AppContext.BaseDirectory.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>BrowserAutomationMaster.Tests.Gui.ServerHost</RootNamespace>
+    <AssemblyName>GuiServerHost</AssemblyName>
+
+    <!--
+      A test fixture, so NAOT compliance is not required here either. See the note in
+      BrowserAutomationMaster.Tests.csproj.
+    -->
+    <IsPublishable>false</IsPublishable>
+
+    <!--
+      BAMM's csproj sets SelfContained=true, and the SDK refuses a non-self-contained Exe that
+      references one (NETSDK1151). The SDK exempts VSTest projects from that check, and this is not
+      one, so the exemption is restated here. The SDK's own reason applies verbatim: "Test projects use
+      an OutputType of Exe but will usually call APIs in a referenced Exe rather than try to run it."
+      Server.StartServer is called as an API, and this assembly is never run as a self-contained
+      binary — GuiServerProcess launches it with `dotnet exec` against the test project's
+      framework-dependent runtimeconfig and deps file, exactly as BammProcess launches bamm.dll.
+    -->
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Four levels up: GuiServerHost -> Server -> Gui -> BrowserAutomationMaster.Tests -> src -->
+    <ProjectReference Include="../../../../BrowserAutomationMaster/BrowserAutomationMaster.csproj" />
+  </ItemGroup>
+
+</Project>

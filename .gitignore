@@ -8,3 +8,12 @@ obj/
 /src/Published Builds
 src/BrowserAutomationMaster/Resources/gui.zip
 .kilo
+
+# Coverage output. The GUI compliance suite collects into TestResults/, and the child-process
+# reports land beside the test assembly under bin/ which is already ignored. Without these the
+# next run's artefacts get committed by accident.
+TestResults/
+TestResults2/
+*.coverage
+*.coverec
+coverage*.xml

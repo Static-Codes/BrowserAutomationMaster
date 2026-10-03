@@ -17,10 +17,30 @@ namespace BrowserAutomationMaster.Core.Python
     /// </summary>
     /// <param name="InterpreterPath">Path to the Python Interpreter Executable.</param>
     /// <param name="ScriptFilePath">Path to the Script being ran in the Virtual Environment.</param>
-    internal class VirtualEnvironment(string InterpreterPath, string ScriptFilePath)
+    internal class VirtualEnvironment(string InterpreterPath, string ScriptFilePath, string? VEnvParentDirectory = null)
     {
-        string VEnvPath { get; set; } = string.Empty;
-        private string? ParentDirectory = null;
+        // Where the environment is created. Defaults to the script's own directory — which is where it
+        // has always gone, alongside the .bamc — but is settable so a caller can confine every
+        // filesystem operation to a root of its choosing. That matters for two callers: a test harness,
+        // which must not write into the user's real userScripts directory, and anything that wants the
+        // environment somewhere other than next to the script.
+        private string? ParentDirectory = VEnvParentDirectory;
+
+        /// <summary>
+        /// The environment's directory, resolved without creating anything.
+        /// </summary>
+        /// <remarks>
+        /// Public so a caller can assert on where the environment will land before creating it. Reading
+        /// this has no side effects, unlike the lazy assignment the rest of the class performs on first
+        /// use.
+        /// </remarks>
+        public string VEnvPath => DirectoryManager.GetProjectVEnvPath(ResolvedParentDirectory());
+
+        private string ResolvedParentDirectory()
+            => ParentDirectory ?? Path.GetDirectoryName(ScriptFilePath)
+                ?? throw new InvalidOperationException(
+                    $"Unable to determine where the virtual environment for '{ScriptFilePath}' should go. " +
+                    "Pass a parent directory explicitly if the script path has none.");
 
         public string GetBrowserStackSDKPath() 
         {
@@ -62,13 +82,13 @@ namespace BrowserAutomationMaster.Core.Python
 
             try
             {
-                ParentDirectory = Path.GetDirectoryName(ScriptFilePath);
+                string? parent = Path.GetDirectoryName(ScriptFilePath);
 
-                if (ParentDirectory == null) {
+                if (parent == null && ParentDirectory == null) {
                     return false;
                 }
 
-                VEnvPath = Path.Combine(ParentDirectory, "venv");
+                ParentDirectory ??= parent;
 
                 return Directory.Exists(VEnvPath);
             }

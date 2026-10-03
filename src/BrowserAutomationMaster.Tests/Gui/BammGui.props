@@ -1,0 +1,236 @@
+<!--
+  Pins the BAMM-GUI tree that the compliance suite is written against, and materialises it
+  into the test output directory.
+
+  BAMM and the GUI ship on separate release schedules: BAMM's csproj downloads gui.zip from
+  the latest BAMM-GUI GitHub release and embeds it, while this file pins a specific commit
+  so the tests have a source tree to read the command registry, the changelog, and the
+  fetched endpoints out of. Pinning a commit rather than a branch is the point: a branch
+  would let the tree change under a passing run.
+
+  Resolution order, first hit wins:
+    1. $BAMM_GUI_PATH   - a checkout on disk (CI checks the repo out to .bamm-gui)
+    2. sibling clone    - $(MSBuildThisFileDirectory)../../../../BAMM-GUI, read via git archive
+    3. HTTPS tarball    - https://github.com/Static-Codes/BAMM-GUI/archive/<sha>.tar.gz
+
+  If none resolve the build fails, naming all three routes. There is deliberately no
+  fallback to "run the tests anyway": a suite that silently skips its subject is a green
+  build that proves nothing, which is the failure this whole thing exists to prevent.
+
+  Bumping the GUI means editing BammGuiPinnedCommit below, and changing `ref:` in
+  .github/workflows/dotnet.yml to the matching tag. The two halves otherwise test
+  different trees without anyone noticing.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <!-- Tag v1.1.0.0 of Static-Codes/BAMM-GUI. Bump both this and the workflow's `ref:`. -->
+    <BammGuiPinnedTag>v1.1.0.0</BammGuiPinnedTag>
+    <BammGuiPinnedCommit>9e63c3b91b33a539213c1b10ba4f63e0c1f11934</BammGuiPinnedCommit>
+
+    <BammGuiTarballUrl>https://github.com/Static-Codes/BAMM-GUI/archive/$(BammGuiPinnedCommit).tar.gz</BammGuiTarballUrl>
+
+    <!--
+      Four levels up, not three. $(MSBuildThisFileDirectory) is src/BrowserAutomationMaster.Tests/Gui/,
+      so .. = BrowserAutomationMaster.Tests, ../.. = src, ../../.. = the repo root, and
+      ../../../.. = the parent of the repo, which is where the sibling clone lives.
+    -->
+    <BammGuiSiblingPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../../../BAMM-GUI'))</BammGuiSiblingPath>
+
+    <!-- The single definition of what counts as a GUI tree. Every route is checked against it. -->
+    <BammGuiVersionProbe>scripts/version.js</BammGuiVersionProbe>
+  </PropertyGroup>
+
+  <!--
+    The output paths are computed in their own target rather than at the top of this file.
+    The props is imported from the project body, which is evaluated before the SDK has set
+    $(OutDir), so reading it at evaluation time yields an empty string and every path built
+    from it collapses to a bare relative name.
+
+    The routes are chained with DependsOnTargets rather than CallTarget: CallTarget builds a
+    second project instance from the same file, which re-evaluates it without the properties
+    this target set, so a route would see empty paths and a route's success would not be
+    visible to the next one. DependsOnTargets keeps everything in one instance.
+  -->
+  <Target Name="ComputeBammGuiPaths">
+    <PropertyGroup>
+      <BammGuiFixtureRoot>$([System.IO.Path]::GetFullPath('$(OutDir)Gui'))</BammGuiFixtureRoot>
+      <BammGuiSourceDir>$([System.IO.Path]::Combine('$(BammGuiFixtureRoot)', 'source'))</BammGuiSourceDir>
+      <BammGuiManifestPath>$([System.IO.Path]::Combine('$(BammGuiFixtureRoot)', 'fixture.json'))</BammGuiManifestPath>
+      <_BammGuiStamp>$([System.IO.Path]::Combine('$(BammGuiFixtureRoot)', 'resolved-$(BammGuiPinnedCommit).stamp'))</_BammGuiStamp>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="MaterialiseBammGuiFixture"
+          BeforeTargets="BeforeBuild"
+          DependsOnTargets="PrepareBammGuiFixture;ResolveBammGuiFromEnvPath;ResolveBammGuiFromSiblingClone;ResolveBammGuiFromTarball;WriteBammGuiManifest"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+
+    <Message Importance="low" Condition="'$(_BammGuiAlreadyResolved)' == 'true'"
+             Text="BAMM-GUI fixture already resolved to $(BammGuiPinnedCommit) from $(BammGuiSourceDir)." />
+
+    <Error Condition="'$(_BammGuiAlreadyResolved)' != 'true' AND '$(_BammGuiResolvedFrom)' == ''"
+           Text="Could not resolve the pinned BAMM-GUI tree $(BammGuiPinnedCommit) (tag $(BammGuiPinnedTag)). Tried, in order: 1) the BAMM_GUI_PATH environment variable, if set; 2) a sibling clone at $(BammGuiSiblingPath), read with 'git archive $(BammGuiPinnedCommit)'; 3) the tarball $(BammGuiTarballUrl). Set BAMM_GUI_PATH to a checkout of that commit, clone BAMM-GUI next to this repository, or make the network reachable. The GUI compliance tests cannot run against a tree they cannot see, so this fails the build rather than skipping." />
+  </Target>
+
+  <!--
+    Clears anything left by an earlier attempt, before any route writes into the tree. Without
+    this, a build killed partway through leaves a partial source/ directory whose surviving
+    scripts/version.js would satisfy the next run's resolution check.
+  -->
+  <Target Name="PrepareBammGuiFixture" DependsOnTargets="ComputeBammGuiPaths">
+    <!--
+      Incremental, keyed on the pinned SHA rather than on a manifest read: the stamp's filename
+      changes when the pin does, so a bump invalidates it with no string comparison involved.
+      A tree already stamped at this SHA is left alone.
+    -->
+    <PropertyGroup>
+      <_BammGuiAlreadyResolved Condition="Exists('$(_BammGuiStamp)') AND Exists('$(BammGuiSourceDir)/$(BammGuiVersionProbe)')">true</_BammGuiAlreadyResolved>
+    </PropertyGroup>
+
+    <!-- Stale stamps from an earlier pin would otherwise linger and confuse anyone reading the output dir. -->
+    <ItemGroup>
+      <_BammGuiOldStamp Include="$(BammGuiFixtureRoot)/resolved-*.stamp" />
+    </ItemGroup>
+    <Delete Files="@(_BammGuiOldStamp)"
+            Condition="'$(BammGuiFixtureRoot)/resolved-$(BammGuiPinnedCommit).stamp' != '%(_BammGuiOldStamp.FullPath)'" />
+
+    <MakeDir Directories="$(BammGuiFixtureRoot)" />
+    <RemoveDir Directories="$(BammGuiSourceDir)" Condition="'$(_BammGuiAlreadyResolved)' != 'true'" />
+  </Target>
+
+  <!-- Route 1: an explicit path. This is what CI uses, pointing at its own checkout. -->
+  <Target Name="ResolveBammGuiFromEnvPath"
+          DependsOnTargets="PrepareBammGuiFixture"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '$(BAMM_GUI_PATH)' != '' AND '$(_BammGuiAlreadyResolved)' != 'true' AND '$(_BammGuiResolvedFrom)' == ''">
+
+    <PropertyGroup>
+      <_BammGuiEnvPath>$([System.IO.Path]::GetFullPath('$(BAMM_GUI_PATH)'))</_BammGuiEnvPath>
+    </PropertyGroup>
+
+    <!-- An env var pointing at something that is not a GUI tree is reported, not silently ignored. -->
+    <Error Condition="!Exists('$(_BammGuiEnvPath)/$(BammGuiVersionProbe)')"
+           Text="BAMM_GUI_PATH is set to '$(_BammGuiEnvPath)', which has no $(BammGuiVersionProbe). That is not a BAMM-GUI checkout. Unset it to fall back to the sibling clone or the tarball." />
+
+    <MakeDir Directories="$(BammGuiSourceDir)" />
+
+    <!--
+      The glob is expanded into an item group first because Copy's SourceFiles takes an explicit
+      list, not a pattern. .git is excluded so a clone's object database does not end up copied
+      into the output directory; nothing in the tests reads it.
+    -->
+    <ItemGroup>
+      <_BammGuiEnvFile Include="$(_BammGuiEnvPath)/**/*"
+                       Exclude="$(_BammGuiEnvPath)/.git/**" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(_BammGuiEnvFile)"
+          DestinationFiles="$(BammGuiSourceDir)/%(RecursiveDir)%(Filename)%(Extension)"
+          SkipUnchangedFiles="true" />
+
+    <PropertyGroup>
+      <_BammGuiResolvedFrom>env:BAMM_GUI_PATH</_BammGuiResolvedFrom>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Route 2: a clone on disk, read at the pinned commit. `git archive` is used rather than a
+    working-tree copy so the SHA is what gets read; a dirty or moved-ahead clone cannot
+    quietly change what the tests see. The archive command is allowed to fail, because a clone
+    that does not have the commit is simply a route that did not resolve and the next one runs.
+  -->
+  <Target Name="ResolveBammGuiFromSiblingClone"
+          DependsOnTargets="PrepareBammGuiFixture"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '$(_BammGuiAlreadyResolved)' != 'true' AND '$(_BammGuiResolvedFrom)' == '' AND Exists('$(BammGuiSiblingPath)')">
+
+    <PropertyGroup>
+      <_BammGuiArchive>$([System.IO.Path]::Combine('$(BammGuiFixtureRoot)', 'source.tar'))</_BammGuiArchive>
+    </PropertyGroup>
+
+    <Exec Command="git -C &quot;$(BammGuiSiblingPath)&quot; archive --format=tar --output=&quot;$(_BammGuiArchive)&quot; &quot;$(BammGuiPinnedCommit)&quot;"
+          ContinueOnError="WarnAndContinue"
+          IgnoreExitCode="true" />
+
+    <MakeDir Directories="$(BammGuiSourceDir)" Condition="Exists('$(_BammGuiArchive)')" />
+
+    <Exec Command="tar -xf &quot;$(_BammGuiArchive)&quot; -C &quot;$(BammGuiSourceDir)&quot;"
+          ContinueOnError="WarnAndContinue"
+          IgnoreExitCode="true"
+          Condition="Exists('$(_BammGuiArchive)')" />
+
+    <Delete Files="$(_BammGuiArchive)" Condition="Exists('$(_BammGuiArchive)')" />
+
+    <PropertyGroup Condition="Exists('$(BammGuiSourceDir)/$(BammGuiVersionProbe)')">
+      <_BammGuiResolvedFrom>sibling-clone</_BammGuiResolvedFrom>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Route 3: the GitHub tarball, for a machine with neither a clone nor a checkout. -->
+  <Target Name="ResolveBammGuiFromTarball"
+          DependsOnTargets="PrepareBammGuiFixture"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '$(_BammGuiAlreadyResolved)' != 'true' AND '$(_BammGuiResolvedFrom)' == ''">
+
+    <PropertyGroup>
+      <_BammGuiTarball>$([System.IO.Path]::Combine('$(BammGuiFixtureRoot)', 'source.tar.gz'))</_BammGuiTarball>
+    </PropertyGroup>
+
+    <Exec Command="curl -fLs &quot;$(BammGuiTarballUrl)&quot; -o &quot;$(_BammGuiTarball)&quot;"
+          ContinueOnError="WarnAndContinue"
+          IgnoreExitCode="true" />
+
+    <MakeDir Directories="$(BammGuiSourceDir)" Condition="Exists('$(_BammGuiTarball)')" />
+
+    <!-- GitHub prefixes archive members with BAMM-GUI-<sha>/, so the first component is dropped. -->
+    <Exec Command="tar -xzf &quot;$(_BammGuiTarball)&quot; -C &quot;$(BammGuiSourceDir)&quot; --strip-components=1"
+          ContinueOnError="WarnAndContinue"
+          IgnoreExitCode="true"
+          Condition="Exists('$(_BammGuiTarball)')" />
+
+    <Delete Files="$(_BammGuiTarball)" Condition="Exists('$(_BammGuiTarball)')" />
+
+    <PropertyGroup Condition="Exists('$(BammGuiSourceDir)/$(BammGuiVersionProbe)')">
+      <_BammGuiResolvedFrom>tarball</_BammGuiResolvedFrom>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Stamps and writes the manifest, but only once a route has reported success. Left to do so
+    unconditionally it would record a route that never resolved, and the next build would treat
+    that as done.
+  -->
+  <Target Name="WriteBammGuiManifest"
+          DependsOnTargets="ComputeBammGuiPaths"
+          Condition="'$(_BammGuiResolvedFrom)' != ''">
+
+    <PropertyGroup>
+      <_BammGuiQuote>"</_BammGuiQuote>
+      <!--
+        The lookbehind exists only so the whole match is the version: MSBuild property
+        functions can read Match.Value but not Match.Groups[1].Value. The pattern is the
+        same shape as RegexManager.GuiVersionRegex, which anchors to the line start so the
+        commented-out assignment in version.js's header comment is not picked up. The C# side
+        re-derives the value with that regex and fails if the two disagree, so the two copies
+        cannot drift apart unnoticed.
+      -->
+      <_BammGuiVersionPattern>(?m)(?&lt;=^[ \t]*(?:const|let|var)[ \t]+GUI_VERSION[ \t]*=[ \t]*['$(_BammGuiQuote)])[^'$(_BammGuiQuote)]+</_BammGuiVersionPattern>
+      <_BammGuiVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$([System.IO.Path]::Combine('$(BammGuiSourceDir)', '$(BammGuiVersionProbe)'))')), $(_BammGuiVersionPattern)).Value)</_BammGuiVersion>
+
+      <_BammGuiManifestJson>{"sha":"$(BammGuiPinnedCommit)","tag":"$(BammGuiPinnedTag)","resolvedFrom":"$(_BammGuiResolvedFrom)","version":"$(_BammGuiVersion)"}</_BammGuiManifestJson>
+    </PropertyGroup>
+
+    <Error Condition="'$(_BammGuiVersion)' == ''"
+           Text="Read $(BammGuiSourceDir)/$(BammGuiVersionProbe) but found no GUI_VERSION assignment. The GUI is expected to declare a 'const GUI_VERSION' of the form x.y.z.w." />
+
+    <WriteLinesToFile File="$(BammGuiManifestPath)" Lines="$(_BammGuiManifestJson)" Overwrite="true" />
+
+    <!--
+      The stamp goes last, after the tree and the manifest are both known good. A build killed
+      midway therefore re-resolves rather than trusting a half-written fixture.
+    -->
+    <WriteLinesToFile File="$(_BammGuiStamp)" Lines="$(BammGuiPinnedCommit)" Overwrite="true" />
+
+    <Message Importance="normal"
+             Text="Resolved BAMM-GUI $(BammGuiPinnedCommit) ($(BammGuiPinnedTag), GUI_VERSION $(_BammGuiVersion)) from $(_BammGuiResolvedFrom)." />
+  </Target>
+
+</Project>

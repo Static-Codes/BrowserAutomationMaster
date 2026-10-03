@@ -113,7 +113,14 @@ namespace BrowserAutomationMaster.Tests
             Assert.Null(contents);
         }
 
-        [SkippableFact]
+        /// <remarks>
+        /// No longer conditional. This was guarded by an unconditional <c>Skip.If(true, …)</c> for as long
+        /// as the embedded archive predated <c>scripts/version.js</c>, and the guard was the only reason
+        /// the test appeared to pass without running. The published archive now carries the entry, so the
+        /// branch is dead code that would mislead the next reader into thinking the entry was optional.
+        /// <c>GetEmbeddedZipEntryText_ReturnsNullForAnAbsentEntry</c> covers the absent case.
+        /// </remarks>
+        [Fact]
         public void GetEmbeddedZipEntryText_ReadsTheVersionEntryWhenTheArchiveHasIt()
         {
             string? contents = EmbeddedResourceHelper.GetEmbeddedZipEntryText(
@@ -121,13 +128,6 @@ namespace BrowserAutomationMaster.Tests
                 resourcePattern: Constants.GUI_ZIP_RESOURCE_PATH,
                 entryName: Constants.GUI_VERSION_ZIP_ENTRY
             );
-
-            if (contents == null)
-            {
-                // The embedded archive predates scripts/version.js. Proved separately by
-                // GetEmbeddedZipEntryText_ReturnsNullForAnAbsentEntry, so this is a skip, not a pass.
-                Skip.If(true, "The embedded gui.zip does not contain scripts/version.js yet.");
-            }
 
             output.WriteLine(contents);
 

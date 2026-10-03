@@ -22,9 +22,9 @@ on:
   push:
     # After 'main' was renamed to 'stable', Github started resolving the missing ref to its last known point rather than failing.
     # The default branch is 'stable' (origin/HEAD), and 'canary' is a branch off `stable` where unreleased changes are pushed.
-    branches: [ "canary", "stable" ]
+    branches: [ "canary", "stable", "v1.1.0" ]
   pull_request:
-    branches: [ "canary", "stable" ]
+    branches: [ "canary", "stable", "v1.1.0" ]
 
 jobs:
   build:
@@ -33,6 +33,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    # The GUI compliance suite reads a pinned BAMM-GUI tree out of the source repository, not out of a
+    # release artifact: the tests assert against commands.js, index.html and changelog.md, none of which
+    # are in the shipped gui.zip. Checked out here rather than left to the build's own three resolution
+    # routes so the pin is visible in the workflow, and because a silently-fallback resolution would make
+    # the suite pass against a different tree than the one it claims to pin.
+    #
+    # `ref:` must be a tag that exists, and must match BammGuiPinnedCommit in
+    # src/BrowserAutomationMaster.Tests/Gui/BammGui.props. They move together; changing one without the
+    # other means CI tests a tree the suite does not expect.
+    - name: Checkout the pinned BAMM-GUI
+      uses: actions/checkout@v4
+      with:
+        repository: Static-Codes/BAMM-GUI
+        ref: v1.1.0.0
+        path: .bamm-gui
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -44,8 +61,60 @@ jobs:
     - name: Build
       run: dotnet build ./src/BrowserAutomationMaster.sln --no-restore
 
-    - name: Test
-      run: dotnet test ./src/BrowserAutomationMaster.sln --no-build
+    # Playwright's browsers are installed before the browser job rather than as part of it, because the
+    # download is slow and the server job does not need it. --with-deps pulls the shared libraries
+    # Chromium links against, which the runner image does not have by default and without which the
+    # browser starts and then dies on the first navigation.
+    # Installed before the tests, and required rather than optional, because Tier B drives the GUI's
+    # listener from a child process (Server.StartServer calls Errors.WriteAndExit on a taken port or low
+    # memory, which would take the test host down with it). coverlet.collector instruments only the test
+    # host, so without this every line of Core/GUI the listener executes reports as untested while the
+    # tests asserting it pass. GuiServerProcess wraps the child's launch in dotnet-coverage when the tool
+    # is present, which is what makes the coverage below mean anything.
+    - name: Install Playwright's browser
+      run: pwsh ./src/BrowserAutomationMaster.Tests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+
+    - name: Install the child-process coverage collector
+      run: dotnet tool install --global dotnet-coverage
+
+    # Two jobs, split on Category. The split is a convenience: a bare `dotnet test` still runs
+    # everything and is still the documented invocation. What matters is that both jobs are required,
+    # because a suite that skips its subject reads as a green build.
+    #
+    # Category!=Browser covers Tier A (untagged, no process) and Tier B (Category=Server, one
+    # GuiServerHost child). It needs no browser, so it fails loudly when the GUI fixture cannot be
+    # resolved rather than skipping.
+    - name: Test without a browser
+      run: >
+        dotnet test ./src/BrowserAutomationMaster.sln --no-build
+        --filter "Category!=Browser"
+        --collect:"XPlat Code Coverage" --results-directory ./TestResults
+      env:
+        BAMM_GUI_PATH: ${{ github.workspace }}/.bamm-gui
+
+    - name: Merge the child's coverage into the report
+      run: |
+        dotnet-coverage merge --output-format cobertura \
+          -o ./TestResults/merged.cobertura.xml \
+          ./src/BrowserAutomationMaster.Tests/bin/Debug/net10.0/coverage-child/*.cobertura.xml \
+          ./TestResults/*/coverage.cobertura.xml
+
+    - name: Report Core/GUI coverage
+      run: |
+        # The plan's acceptance criterion: the only uncovered members in Core/GUI should be the four
+        # named in UnreachableMembers.cs. Anything else is a gap this suite has not closed.
+        dotnet tool install --global dotnet-reportgenerator-globaltool
+        dotnet-reportgenerator-globaltool \
+          -reports:./TestResults/merged.cobertura.xml \
+          -targetdir:./TestResults/report \
+          -reporttypes:Cobertura\;Json\;TextSummary \
+          -title:"BAMM Core/GUI compliance coverage"
+
+    # Category=Browser is Tier C, the Playwright client tests.
+    - name: Test with a browser
+      run: dotnet test ./src/BrowserAutomationMaster.sln --no-build --filter "Category=Browser"
+      env:
+        BAMM_GUI_PATH: ${{ github.workspace }}/.bamm-gui
 
     - name: Running test coverage for the Linux installer script
       run: bash ./src/Installers/Linux/test-install.sh

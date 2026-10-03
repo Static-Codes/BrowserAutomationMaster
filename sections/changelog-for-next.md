@@ -84,7 +84,23 @@ After many months of inactivity, BAMM v1.0.0A8 is ready for release!
   - Added `gui.zip` to `.gitignore`
   
   - Added a target `RemoveGUIAfterEmbed` which handles removal of the embedded `gui.zip` artifact.
-  
+
+  - **Added coverage for extension archives.** `ExtensionArchiveBuilder` generates CRX and XPI files byte-for-byte, and the extraction tests assert the header layout, every byte sequence `ExtensionUtility` searches for, and that extraction returns the exact bytes. The reference document describes CRX **version 2**, which has no magic number at all, so a file built to that specification fails BAMM's own `Cr24` check; the builder writes CRX **version 3** — what the Chrome Web Store serves — and says so rather than producing something that satisfies the document and fails the code. The three download tests are opt-in behind `BAMM_RUN_NETWORK_TESTS` because every failure inside them ends in `WriteAndExit`, whose output a test host cannot capture; the byte-level contract is covered unconditionally.
+
+  - **Added coverage for the validation grammar, from both entry points.** `Parser` has two implementations of the same grammar — `IsValidFile`, which `bamm compile` runs, and `IsValidFileContents`, which the GUI's `/validate` runs — and they had drifted. `ParsingExitPathTests` drives the GUI half over a real socket, `CompileValidationTests` drives the CLI half through the real binary so the exit code a user or CI job sees is the thing asserted, and `DuplicateFeatureTests` asserts the two agree. `VirtualEnvironment` now takes an optional `VEnvParentDirectory`, so every filesystem operation it performs can be confined to a root of the caller's choosing instead of always landing next to the script in the real `userScripts` directory; `VEnvPath` became a public read-only property so a caller can assert where the environment will go before creating it. Previously it was a private field assigned lazily on first use, which made the location impossible to state and impossible to check.
+
+  - **Added a CLI/documentation sync test.** `Commands.cs` is what `bamm help` prints, so it cannot be checked against the docs — it *is* the reference. What can drift is the documentation, a separate repository edited by hand with no test of its own, and eleven commands had been added to the registry without being documented. The suite now parses the documentation, fails on registry-to-docs drift, and reports docs-to-registry drift without failing on it — a documented command BAMM lacks is a documentation bug, not a correctness one, and should not stop a contributor from testing. The sync also surfaced four defects in the registry itself: `add-header`, `add-headers` and `browser` were typed `CommandType.Argument` despite being script commands, which `bamm help` prints; `-n`, the alias for `new`, carried `-o`'s example and so invoked `open`; and `--exit-on-ext-fail` and `fill-text` had no description at all.
+
+  - **GUI compliance test suite** (`BrowserAutomationMaster.Tests/Gui/`), in three tiers, all run by a plain `dotnet test`:
+
+    - **Tier A**, static and process-free. Reads the pinned BAMM-GUI tree and checks that its `commandCollection` and `changelog.md` agree with `Parser` and `Transpiler`: four parity axes (commands, features, feature arguments, argument options), the changelog's claims against the files it names, the GUI's `fetch()` surface against the router's `case` labels in both directions, `guiPort` against `Server.DEFAULT_PORT`, and the embedded `gui.zip` against the pinned tree.
+    - **Tier B**, over a real socket. `GuiServerHost` is a small console project that holds the listener open while the tests talk to it — a separate process because `Errors.WriteAndExit` ends the process, which would take the test host with it.
+    - **Tier C**, Playwright, for the client. Skips with a reason naming the install command when no browser is present.
+
+    The tree is pinned to a commit (`BammGuiPinnedCommit`) rather than a branch, so it cannot change under a passing run. A missing tree **fails the build** naming all three resolution routes; only a missing browser is allowed to skip, because a suite that silently skips its subject is a green build that proves nothing.
+
+    `EmbeddedGuiZipParityTests` is the test that catches "BAMM shipped a GUI it does not support". BAMM's `gui.zip` comes from `releases/latest/download`, which advances only when a new non-prerelease GUI release exists — so without one, a build silently keeps embedding a stale GUI. The suite compares the embedded archive's `GUI_VERSION` against the pinned tree and reports both on failure.
+
   </details>
 
 ### Improved Linux Distribution Support (User)
@@ -300,6 +316,16 @@ The vast majority of commits in this release (86/184) are purely related to rena
 
 > All types are in the root namespace `BrowserAutomationMaster` unless stated. Every entry below was verified against the source at both `405d277` and `43e8ab7`.
 
+#### Breaking
+
+- **The GUI's HTTP API now answers `400` where it used to answer `200` with an error body.** Every guard path on `/export` and `/validate` — a missing or non-base64 `contents`, a missing `filename`, a name that is not `.bamc`, a duplicate name — used to leave the status unset, and `Server.WriteResponse` assigned `200` *after* writing the body, so a rejected request was indistinguishable from a successful one to anything reading `response.ok`.
+
+  `Server.WriteResponse` now takes an optional `HttpStatusCode statusCode = OK` and applies it *before* the write. It has to be before: `HttpListener` flushes headers on the first write, so the old assignment was a no-op — and a status a caller set beforehand did survive. That is what made the unknown-route `404` work, and it means callers must now pass their status in rather than assigning the response themselves. The `default:` route does exactly that.
+
+  This is visible in the GUI. `create_script.js` and `index.html` both check `response.ok` and throw on a non-2xx, so a rejected request now routes into their `.catch` branch instead of `.then`. The message the user sees changes from "No details provided." to the server's own reason — for `/validate`, which was additionally answering two different body shapes and therefore never had a reason to show. Note that the GUI still shows "No details provided." for a non-2xx from `/validate`, because it does not read the body on that branch; making it do so is a client-side change and is not part of this suite.
+
+- `/version` answers `is_latest` as a JSON boolean rather than the lower-cased **string** `"true"`/`"false"`. `index.html` reads it with `isLatest ? "Yes" : "No (UPDATE REQUIRED)"`, and every non-empty string is truthy in JavaScript, so an out-of-date BAMM reported itself as up to date. Any consumer comparing `is_latest === "true"` needs to change.
+
 - `ProcessManager.CheckForMultipleInstances` gained an optional `bool allowMultipleInstances = false` parameter. The default preserves existing behavior, so no call site breaks.
 
 - `Transpiler.validCommands` was added as `internal` (visible to the test project only), as the list of commands the compilation pass accepts.
@@ -438,6 +464,32 @@ In `Core.Types.Linux.Distro`: `ParseXDGSessionType` and `ParseDesktopSession` ga
 ---
 
 ## 🐛 Bug Fixes
+
+- **`bamm compile` and `bamm run` did not validate the script at all.** Both went straight to `Transpiler.New`, so a script with a duplicated `feature`, an unknown command, or a malformed proxy string compiled cleanly from the command line and then failed later — at run time, in a browser — while the same script was refused by `bamm`'s own interactive menu and reported invalid by the GUI's `/validate`. The validation existed and was reachable; it just was not on this path. Both verbs now run `Parser.IsValidFile` first and exit with a summary rather than compiling something that cannot run.
+
+- **The rule that a `visit` must follow the `browser` and `feature` commands was not enforced.** Both validation implementations only looked *backwards* from a `visit` line, catching a command sitting between the browser block and the visit — but unable to see a `browser` or `feature` placed *after* it. `visit` before `browser` was therefore accepted, even though the message that check prints says those commands come first, and shows the correct ordering as an example. Both now look forwards as well, so the rule the error describes is the rule the code applies.
+
+  A `visit` with nothing after it stays valid, which is deliberate: a `browser` line is optional because `Transpiler` picks a default, so the absence of one is not a violation. What is a violation is a browser appearing after the visit has already been declared, where it cannot take effect.
+
+- **A duplicated non-proxy `feature` was never detected.** Both validation implementations tracked used features in a list that was only ever appended to from inside `AddValidatedProxy`, so it held proxy lines and nothing else. The duplicate check could therefore only fire for a second proxy: `feature "run-headless"` twice passed validation. Every ordinary feature name is now recorded too, so the check can fire for it.
+
+  This was wrong twice over, because `Parser` has two implementations of the same grammar that had drifted. `IsValidFile` is what `bamm compile` runs, so the duplicate compiled to a Python file that could not run. `IsValidFileContents` is what the GUI's `/validate` runs, and the same script was accepted there. A user could therefore save a script the GUI called valid and have the command line refuse it, with neither side able to explain why. Both are corrected, and the two are now asserted together so a future change to one has to account for the other.
+
+  A repeated **proxy** feature is a separate matter and is left as it was: `AddValidatedProxy` has its own guard, and whether two identical proxy lines are meant to be refused is a question about the grammar rather than about this fix.
+
+- **A feature's argument was silently dropped from every exported script.** `buildFeatureCommandText` stores the feature name and its argument as two properties of one object — `{"feature": "\"use-http-proxy\"", "proxy-string": "\"USER:PASS@IP:PORT\""}` — and both consumers read only the first. `BackendFunctions.Export` takes `contentDict.First()`, and the GUI's `validateScriptContents` takes `keys[0]`. So a proxy feature is exported as `feature "use-http-proxy"` with no proxy string, which `Parser.IsValidProxyFormat` rejects. A user can add a proxy feature through every guard the creator applies — `isDuplicateFeature` and `isOtherProxyFeaturePresent` both accept it — and only find out at validation time that the script will not run. Whichever side folds the argument in is a design decision across two repositories, so this is reported rather than fixed in one.
+
+- **A refused export left an empty file behind.** `Export` calls `File.Create` before it parses any line, so a rejected export still leaves a zero-byte `.bamc` in `userScripts` — which `/load` then lists, since it enumerates by extension rather than by content. Selecting it yields a script with no commands.
+
+- **The rejection killed the server.** `HandleInvalidResponse` closes the response, and `Export` then carried on writing to it; the resulting `ObjectDisposedException` reached `StartServer`, which treats it as fatal. One malformed line in one export ended the process, so every later request — and the rest of the GUI's session — failed. The handler now stops at the first bad line instead.
+
+- **The GUI server died on the first bad request.** `HandleEndpointRequests` returned rather than continued when `request.Url` was null or the method was not GET, so a single malformed request left the listener unservable for the rest of the session, with the connection open and nothing sent. Both now close the response and continue.
+
+- **`feature "add-extension"` cannot be pointed at a local Chrome extension.** `ExtensionUtility.CheckChromeStatus` only returns true for a `chromewebstore.google.com` URL, so a local `.crx` is neither a Chrome nor a Firefox extension as far as the type checks are concerned — even though the extension's own header comment and the published documentation both advertise `feature "add-extension" "file://path/to/chrome/extension.crx"`. `GetExtensionContents` guards on that pair and calls `WriteAndExit`, so the documented invocation ends the process rather than reporting that the format was not recognised. Local `.xpi` files are unaffected: `CheckFirefoxStatus` matches on the extension alone. Whether to recognise a local `.crx` by its file extension, or correct the documentation, is a product decision rather than a bug fix, so this is reported rather than changed.
+
+- **`/validate` discarded its own reason.** Its verdict path answered `{"success": false, "error": …}` but every guard path went through `HandleInvalidResponse`, which writes a PascalCase `DictionaryJsonResponse`. The GUI reads `data.success`, found `undefined`, and fell through to its "No details provided." branch — so the reason for every rejection was thrown away. `Validate` now answers one shape on every path.
+
+- **An out-of-date BAMM reported itself as up to date.** `/version` sent `is_latest` as the string `"true"`, and `index.html` reads it with `isLatest ? "Yes" : "No (UPDATE REQUIRED)"`. Every non-empty string is truthy in JavaScript, so the "no update available" branch was unreachable. It is now a JSON boolean.
 
 - **Python 3.13 and 3.14 could not be selected:**
   - `HandlePythonVersionSelection` filled a fixed `new string[6]`, while it's version mapping lists eight entries.

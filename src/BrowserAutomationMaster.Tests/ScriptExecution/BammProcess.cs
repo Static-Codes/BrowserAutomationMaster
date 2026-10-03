@@ -144,6 +144,15 @@ namespace BrowserAutomationMaster.Tests.ScriptExecution
             startInfo.ArgumentList.Add("--allow-multiple-instances");
             startInfo.ArgumentList.Add("--nohwc");
 
+            // Same reasoning as GuiServerProcess: this child runs the compiler, so without
+            // dotnet-coverage wrapping the launch every line of Core/Compilation reports as untested
+            // while Script_Compiles passes on its exit code. Core/Compilation is the largest area in
+            // the project, so this is the single biggest blind spot in the coverage report.
+            if (Gui.Server.ChildCoverage.IsAvailable)
+            {
+                Gui.Server.ChildCoverage.Instrument(startInfo, Gui.Server.ChildCoverage.OutputDirectory, $"compile-{Path.GetFileNameWithoutExtension(scriptPath)}");
+            }
+
             if (OperatingSystem.IsWindows())
             {
                 startInfo.Environment["APPDATA"] = tempRoot;

@@ -28,10 +28,37 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+    <!--
+      The bare package, not Microsoft.Playwright.XUnit. The .XUnit package brings its own test host
+      and assembly-level collection behaviour, which fights this repo's xunit.runner.json
+      (parallelizeTestCollections: false) and its ConsoleCapture global-console pattern.
+      The browser is driven from a hand-written IAsyncLifetime collection fixture instead.
+    -->
+    <PackageReference Include="Microsoft.Playwright" Version="1.63.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <!--
+      GuiServerHost lives inside this project's folder, so the SDK's default globs pick up its
+      generated obj/ sources alongside this project's own and every AssemblyInfo attribute is declared
+      twice (CS0579). It is a separate project, not part of this one's compilation.
+    -->
+    <Compile Remove="Gui/Server/GuiServerHost/**/*.cs" />
+    <EmbeddedResource Remove="Gui/Server/GuiServerHost/**" />
+    <None Remove="Gui/Server/GuiServerHost/**" />
+  </ItemGroup>
+
+  <Import Project="Gui/BammGui.props" />
+
+  <ItemGroup>
     <ProjectReference Include="../BrowserAutomationMaster\BrowserAutomationMaster.csproj" />
+    <!--
+      GuiServerHost is a helper, not a test project: it is the small console app that holds the GUI's
+      HttpListener open while Tier B talks to it. Referenced here so it builds and lands in this
+      project's output directory, the same way bamm.dll does, and GuiServerProcess finds it through
+      AppContext.BaseDirectory.
+    -->
+    <ProjectReference Include="Gui/Server/GuiServerHost/GuiServerHost.csproj" />
   </ItemGroup>
 
   <ItemGroup>

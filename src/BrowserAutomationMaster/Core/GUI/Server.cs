@@ -23,7 +23,11 @@ namespace BrowserAutomationMaster.Core.GUI
 {
     public class Server
     {
-        const string DEFAULT_PORT = "8008";
+        // Public because it is part of the contract with the GUI rather than an internal detail: index.html
+        // hardcodes the same port, and the compliance suite asserts the two agree. An internal constant
+        // would leave the test asserting against a copy of the number, which is the thing most likely
+        // to drift.
+        public const string DEFAULT_PORT = "8008";
         private readonly static int MINIMUM_GUI_MEMORY_MB = 2048;
         private readonly static string GUI_ZIP_PATH = GetGUIZipPath();
         private static bool isRunning = true;
@@ -132,13 +136,17 @@ namespace BrowserAutomationMaster.Core.GUI
                 if (request.Url == null)
                 {
                     Warning.Write("Unable to parse request, please try again.");
-                    return;
+                    await HandleInvalidResponse(response, "Unable to parse the request URL.");
+                    // continue, not return: returning here took the whole listener down, so one
+                    // unparseable request left the GUI unable to talk to its own server for the rest
+                    // of the session. HandleInvalidResponse has already closed this response.
+                    continue;
                 }
 
                 if (invalidMethods.Any(method => method.Equals(request.HttpMethod)))
                 {
                     await HandleInvalidResponse(response, $"Invalid HTTP Method, {request.HttpMethod} requests are not supported by this very basic GUI.");
-                    return;
+                    continue;
                 }
 
                 if (request.HttpMethod.Equals("OPTIONS"))
@@ -192,12 +200,18 @@ namespace BrowserAutomationMaster.Core.GUI
                         // fetch() saw a network error instead of a diagnosable 404.
                         Warning.Write($"Invalid route provided: {request.Url.AbsolutePath}");
 
-                        response.StatusCode = (int)HttpStatusCode.NotFound;
-
+                        // The status is passed to HandleInvalidResponse rather than assigned here.
+                        // WriteResponse applies its status before the write — it has to, because
+                        // HttpListener flushes headers on the first write — so an assignment made here
+                        // would be overwritten by the handler's own default. Before that fix the 404
+                        // survived only because WriteResponse's status was a no-op; making WriteResponse
+                        // honest turned the default route's assignment into a dead store, and the route
+                        // answered 400. Passing it through is what keeps the 404 a 404.
                         await HandleInvalidResponse
                         (
                             response,
-                            $"Invalid route provided: {request.Url.AbsolutePath}"
+                            $"Invalid route provided: {request.Url.AbsolutePath}",
+                            HttpStatusCode.NotFound
                         );
 
                         break;
@@ -448,16 +462,27 @@ namespace BrowserAutomationMaster.Core.GUI
             }
         }
 
-        public static async Task WriteResponse(HttpListenerResponse response, byte[] data, string contentType = "application/json")
+        /// <summary>
+        /// Writes a body and closes the response.
+        /// </summary>
+        /// <param name="response">The response to write to. Already closed by the time this returns.</param>
+        /// <param name="data">The body.</param>
+        /// <param name="contentType">The Content-Type to declare.</param>
+        /// <param name="statusCode">
+        /// The status to answer with. It has to be set before the write: HttpListener flushes the
+        /// headers on the first write, so an assignment after it — which is what this used to do with a
+        /// hardcoded 200 — never reached the client.
+        /// </param>
+        public static async Task WriteResponse(HttpListenerResponse response, byte[] data, string contentType = "application/json", HttpStatusCode statusCode = HttpStatusCode.OK)
         {
             try
             {
                 response.ContentType = contentType;
                 response.ContentEncoding = UTF8;
                 response.ContentLength64 = data.LongLength;
+                response.StatusCode = (int)statusCode;
 
                 await response.OutputStream.WriteAsync(data);
-                response.StatusCode = (int)HttpStatusCode.OK;
             }
 
             catch

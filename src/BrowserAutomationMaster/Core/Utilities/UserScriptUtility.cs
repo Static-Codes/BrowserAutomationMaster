@@ -172,6 +172,42 @@ namespace BrowserAutomationMaster.Core.Utilities
             }
         }
         
+        /// <summary>
+        /// Refuses to run a script that fails the same validation the GUI and the interactive menu apply.
+        /// </summary>
+        /// <remarks>
+        /// <c>compile</c> and <c>run</c> used to go straight to <c>Transpiler</c>, so the command line
+        /// compiled scripts that <c>bamm</c>'s own menu would refuse and that the GUI's /validate
+        /// reports as invalid: a duplicated feature, a misplaced <c>visit</c>, an unknown command. The
+        /// validation existed and was reachable — it is called from <c>Menu</c> and from
+        /// <c>BackendFunctions.Validate</c> — it just was not on this path. So a script could be
+        /// compiled from a terminal and fail only later, at run time, in a browser.
+        /// <para>
+        /// <c>Parser.IsValidFile</c> is the same entry point <c>ValidateBAMCFiles</c> uses, and it prints
+        /// its own diagnostics as it goes, so this only has to add the summary and the exit.
+        /// </para>
+        /// </remarks>
+        /// <param name="verb">The command the user ran, for the message: "compile" or "run".</param>
+        /// <param name="scriptPath">The script to validate.</param>
+        /// <param name="asGiven">The path the user typed, for the message.</param>
+        private static void ValidateBeforeRunning(string verb, string scriptPath, string asGiven)
+        {
+            if (Parser.IsValidFile(scriptPath))
+            {
+                return;
+            }
+
+            WriteAndExit(
+                message:
+                    $"BAM Manager (BAMM) refused to {verb}: {asGiven}\n\n" +
+                    "The script did not pass validation. The details are above; the script was not " +
+                    $"{verb}d.\n" +
+                    $"If you believe this is wrong, please make a bug report at {ISSUES_LINK}",
+                status: 1,
+                writePlatformDebugInfo: false
+            );
+        }
+
         private async Task HandleCLIArgs(string method, string filePath, string fileName)
         {
             switch (method.ToLower().Trim())
@@ -188,10 +224,15 @@ namespace BrowserAutomationMaster.Core.Utilities
                             $"Please ensure you've added this script to the userScript directory and try again.",
                             status: 1);
                     }
+
+                    ValidateBeforeRunning("compile", scriptPath, filePath);
+
                     await Transpiler.New(filePath: scriptPath, args: ["compile"]);
                     break;
 
                 case "run":
+                    ValidateBeforeRunning("run", scriptPath, filePath);
+
                     Runtime runtimeManager = new(scriptFilePath: scriptPath);
                     await runtimeManager.RunScript(Transpiler.GetBrowserStackStatus());
                     break;

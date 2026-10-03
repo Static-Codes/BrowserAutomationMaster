@@ -45,7 +45,7 @@ namespace BrowserAutomationMaster.Core.Common
             {
                 new Command(
                     name: "--exit-on-ext-fail",
-                    description: "",
+                    description: "Instructs BAMM to exit with a non-zero exit code when an extension fails to install, instead of falling back to a warning. Useful for automated invocation, where a failed extension should fail the run.",
                     examples: [ "bamm --exit-on-ext-fail"],
                     type: CommandType.Argument
                 )
@@ -92,7 +92,7 @@ namespace BrowserAutomationMaster.Core.Common
                         "Prompts the user to select a custom text editor to open the specified file.",
                         "If a custom text editor is not found, the OS default is used."
                     ]),
-                    examples: [ "bamm open \"filename.bamc\"", ],
+                    examples: [ "bamm new \"filename.bamc\"", ],
                     type: CommandType.Alias
                 )
             },
@@ -225,7 +225,7 @@ namespace BrowserAutomationMaster.Core.Common
                         "add-header \"DNT\" \"1\"",
                         "add-header \"Referer\" \"https://google.com/search\"",
                     ],
-                    type: CommandType.Argument
+                    type: CommandType.Action
                 )
             },
 
@@ -237,7 +237,7 @@ namespace BrowserAutomationMaster.Core.Common
                         Markup.Escape("add-headers {{\"header-name1\": \"header-value1\", \"header-name2\": \"header-value2\"}}"),
                         Markup.Escape("add-headers {{\"DNT\": \"1\", \"Referer\": \"https://google.com/search\"}}"),
                     ],
-                    type: CommandType.Argument
+                    type: CommandType.Action
                 )
             },
 
@@ -249,7 +249,7 @@ namespace BrowserAutomationMaster.Core.Common
                         "browser \"chrome\"",
                         "browser \"firefox\""
                     ],
-                    type: CommandType.Argument
+                    type: CommandType.Action
                 )
             },
 
@@ -378,7 +378,7 @@ namespace BrowserAutomationMaster.Core.Common
             {
                 new Command(
                     name : "fill-text",
-                    description: "",
+                    description: "Types text into the element matching the given selector, clearing whatever it already contains.",
                     examples: [
                         "fill-text \"selector\" \"Value you want to include\"",
                         "fill-text \"#id-selector\" \"Text\""
