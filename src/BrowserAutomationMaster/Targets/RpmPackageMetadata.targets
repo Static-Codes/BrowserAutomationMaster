@@ -1,0 +1,19 @@
+<Project>
+    <!-- Fedora Package Metadata-->
+	<PropertyGroup Condition="'$(BuildRpmPackage)' == 'true'">
+		<RpmPackageName>$(CommonPackageName)</RpmPackageName>
+		<RpmVersion>$(CommonPackageVersion)</RpmVersion>
+		<RpmRelease>1</RpmRelease>
+		<RpmSummary>$(CommonPackageSummary)</RpmSummary>
+		<RpmLicense>$(CommonPackageLicense)</RpmLicense>
+		<RpmUrl>$(RepositoryUrl)</RpmUrl>
+		<RpmVendor>$(Authors)</RpmVendor>
+		<RpmPackager>$(Authors)</RpmPackager>
+		<RpmGroup>Applications/Utilities</RpmGroup>
+		<RpmRequires>$(RpmRequires) libicu-dev, python3, python3-venv, python3-dev, build-essential, xclip</RpmRequires>
+		<RpmDesktopFile>$(CommonPackageName).desktop</RpmDesktopFile>
+		<RpmDesktopCategories>Utility;Console;Development;</RpmDesktopCategories>
+		<RpmDesktopTerminal>true</RpmDesktopTerminal>
+		<RpmDesktopName>$(CommonDesktopName)</RpmDesktopName>
+	</PropertyGroup>
+</Project>

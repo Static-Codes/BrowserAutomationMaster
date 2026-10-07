@@ -1,0 +1,7 @@
+src/*/bin
+src/*/obj
+.kilo
+src/*/Resources/NativeFileDialog/bin
+src/*/Resources/NativeFileDialog/obj
+
+src/*/Resources/NativeFileDialog/runtimes

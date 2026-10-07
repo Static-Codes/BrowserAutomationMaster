@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BrowserAutomationMaster/BrowserAutomationMaster.csproj" />
+    <Project Path="src/BrowserAutomationMaster.Tests/BrowserAutomationMaster.Tests.csproj" />
+  </Folder>
+</Solution>

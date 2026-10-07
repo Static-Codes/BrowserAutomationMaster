@@ -1,0 +1,12 @@
+CloseClipboard
+EmptyClipboard
+GlobalLock
+GlobalUnlock
+HGLOBAL
+MEMORYSTATUSEX
+HANDLE
+SetClipboardData
+OpenClipboard
+GlobalMemoryStatusEx
+FreeConsole
+AttachConsole

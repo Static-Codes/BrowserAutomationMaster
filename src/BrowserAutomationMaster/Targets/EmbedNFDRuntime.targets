@@ -1,0 +1,21 @@
+<Project>
+    <ItemGroup>
+        <!-- Port of NativeFileDialogSharp by Milleniumbug with M-Series Mac support. -->
+        <!-- https://github.com/Static-Codes/NativeFileDialogSharp -->
+        <!-- Embedding the NFD library for the appropriate target -->
+        <EmbeddedResource Include="Resources/NativeFileDialog/runtimes/win-x64/nfd.dll" 
+                            Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+
+        <EmbeddedResource Include="Resources/NativeFileDialog/runtimes/osx-x64/libnfd.dylib" 
+                            Condition="'$(RuntimeIdentifier)' == 'osx-x64'" />
+
+        <EmbeddedResource Include="Resources/NativeFileDialog/runtimes/osx-arm64/libnfd.dylib"
+                            Condition="'$(RuntimeIdentifier)' == 'osx-arm64'" />
+
+        <EmbeddedResource Include="Resources/NativeFileDialog/runtimes/linux-x64/libnfd.so" 
+                            Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+
+        <EmbeddedResource Include="Resources/NativeFileDialog/runtimes/linux-arm64/libnfd.so"
+                            Condition="'$(RuntimeIdentifier)' == 'linux-arm64'" /> 
+    </ItemGroup>
+</Project>

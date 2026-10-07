@@ -1,0 +1,4 @@
+[submodule "src/BrowserAutomationMaster/Dependencies/CrxFetch"]
+	path = src/BrowserAutomationMaster/Dependencies/CrxFetch
+	url = https://github.com/Static-Codes/CrxFetch.git
+	branch = prod

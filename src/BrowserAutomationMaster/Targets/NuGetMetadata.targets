@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- NuGet Package Metadata -->
+    <PackAsTool>false</PackAsTool>
+    <PackageId>bamm</PackageId>
+    <PackageVersion>1.0.0-alpha8</PackageVersion>
+    <!-- Windows & OSX License -->
+    <PackageLicenseExpression>GNUv3</PackageLicenseExpression>
+
+    <!-- Importing from the root directory despite this targets file being nested in Targets/ -->
+    <ApplicationIcon>Resources/bamm.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+</Project>

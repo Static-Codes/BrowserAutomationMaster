@@ -1,0 +1,72 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>BrowserAutomationMaster</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SelfContained>true</SelfContained>
+	<!-- Default Runtime Identifier: Windows x64 (64 Bit) -->
+	<RuntimeIdentifiers>win-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+	<Authors>Static-Codes</Authors>
+	<Copyright>Copyright 2026 © Static</Copyright>
+	<PackageTags>console;utility;windows;linux;osx</PackageTags>
+	<Description>Custom scripting language and transpiler converting an english like language into valid Python code on Python &gt;= 3.9 </Description>
+	<DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+
+    
+  <PropertyGroup>
+  	<!-- NativeFileDialog is a nested project, so its generated artifacts collide with BAMM's generated AssemblyInfo (CS0579). -->
+  	<DefaultItemExcludes>$(DefaultItemExcludes);**/obj/**;**/bin/**</DefaultItemExcludes>
+  </PropertyGroup>
+  
+  <Import Project="Targets/NuGetMetadata.targets" />
+  <Import Project="Targets/DebPackageMetadata.targets" />
+  <Import Project="Targets/RpmPackageMetadata.targets" />
+  <Import Project="Targets/MacPublishing.targets" />
+  <Import Project="Targets/GuiDownload.targets" />  
+
+	
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'osx-x64'">
+  	<EmbeddedResource Include="Resources/macOS/free" />
+  </ItemGroup>
+  <!-- End of macOS Specific Logic -->
+
+  <Import Project="Targets/EmbedNFDRuntime.targets" />
+
+  <ItemGroup>
+
+	<!-- App Icon -->
+	<EmbeddedResource Include="Resources/bamm.ico" />
+
+	<!-- UI Daemon -->
+	<EmbeddedResource Include="Resources/UIDaemon.py" />
+
+	<!-- Example User Scripts -->
+	<EmbeddedResource Include="Resources/userScripts/*.bamc" />
+
+	<!-- GUI Archive downloaded from GUI -->
+	<EmbeddedResource Include="$(_FullGUIResourcePath)" Watch="false" />
+</ItemGroup>
+
+  <ItemGroup>
+
+	<PackageReference Include="Esprima" Version="3.0.5" />
+	<PackageReference Include="Hardware.Info" Version="101.1.1.1" />
+	
+	<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
+		<PrivateAssets>all</PrivateAssets>
+	</PackageReference>
+
+	<PackageReference Include="Photino.NET" Version="4.0.16" />
+	<PackageReference Include="Silk.NET.Windowing" Version="2.23.0" />
+	<PackageReference Include="Spectre.Console" Version="0.50.0" />
+	<PackageReference Include="WhichDistroSharp" Version="1.0.1" />
+
+	<PackageReference Include="UserAgents.Net" Version="1.0.0.47" />
+
+  </ItemGroup>
+</Project>

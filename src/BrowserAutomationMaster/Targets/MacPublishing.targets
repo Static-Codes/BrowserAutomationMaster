@@ -1,0 +1,9 @@
+<Project>
+    <!-- macOS Specific Logic -->
+	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64' Or '$(RuntimeIdentifier)' == 'osx-x64'">
+		<TargetFramework>net10.0</TargetFramework>
+		<PublishSingleFile>true</PublishSingleFile>
+		<StripSymbols>false</StripSymbols>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+	</PropertyGroup>
+</Project>

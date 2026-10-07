@@ -1,0 +1,24 @@
+<Project>
+  <!-- Debian Packaging Properties -->
+  <PropertyGroup>
+  	<CommonPackageName>$(PackageId)</CommonPackageName>
+  	<CommonPackageVersion>$(PackageVersion)</CommonPackageVersion>
+  	<CommonPackageSummary>Custom scripting language for Web Automation that compiles for Python</CommonPackageSummary>
+  	<CommonPackageLicense>GNUv3</CommonPackageLicense>
+  	<CommonDesktopName>BAM Manager (BAMM!)</CommonDesktopName>
+  	<RepositoryUrl>https://github.com/Static-Codes/BrowserAutomationMaster/</RepositoryUrl>
+  </PropertyGroup>
+
+	<!-- Debian Package Metadata-->
+	<PropertyGroup Condition="'$(BuildDebPackage)' == 'true'">
+		<DebianPackageMaintainer>$(Authors)</DebianPackageMaintainer>
+		<DebianPackageDescription>$(Description)</DebianPackageDescription>
+		<DebianPackageSection>utils</DebianPackageSection>
+		<DebianPackagePriority>optional</DebianPackagePriority>
+		<DebianPackageRequires>libicu-dev, python3, python3-venv, python3-dev, build-essential, xclip</DebianPackageRequires>
+		<DebianDesktopFile>$(CommonPackageName).desktop</DebianDesktopFile>
+		<DebianDesktopCategories>Utility;Console;</DebianDesktopCategories>
+		<DebianDesktopTerminal>true</DebianDesktopTerminal>
+		<DebianDesktopName>$(CommonDesktopName)</DebianDesktopName>
+	</PropertyGroup>
+</Project>
