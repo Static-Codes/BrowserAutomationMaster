@@ -278,12 +278,16 @@ namespace BrowserAutomationMaster.Core.GUI
         }
 
         [STAThread] // Required as this will be a separate thread
-        public static void StartGUIThread(string port = DEFAULT_PORT) 
+        public static bool StartGUIThread(string port = DEFAULT_PORT) 
         {
             // Starts the backend listener which handles the requests.
             Task.Run(() => StartServer(port));
 
             (string monitorName, int? xSize, int? ySize) = ScreenHelper.GetScreenSize();
+
+            #if DEBUG
+                Console.WriteLine($"GUI Active on: {monitorName}");
+            #endif
 
             var usingDefaultSize = xSize == null || ySize == null;
 
@@ -305,8 +309,9 @@ namespace BrowserAutomationMaster.Core.GUI
                     .Load(MAIN_GUI_PAGE),
             };
 
-            window.WaitForClose();    
+            window.WaitForClose();
             Environment.Exit(0);
+            return true;    
         }
 
         public static async Task StartServer(string port = DEFAULT_PORT)
@@ -453,7 +458,6 @@ namespace BrowserAutomationMaster.Core.GUI
                 response.Close();
             }
         }
-
     }
 
     public record BasicJsonResponse(bool Success, string? Error = null);
