@@ -126,7 +126,7 @@ namespace BrowserAutomationMaster.Core.Python
         
         public static string HandleUserScriptChoice()
         {
-            string saveDirectory = DirectoryManager.GetDesiredSaveDirectory();
+            string saveDirectory = DirectoryManager.GetCompiledScriptsDirectory();
 
             try
             {

@@ -401,7 +401,7 @@ public class ProgramFunctions
         string dirPath = targetDir switch
         {
             "userscripts" => userScriptsDirectory,
-            "compiled" => GetDesiredSaveDirectory(),
+            "compiled" => GetCompiledScriptsDirectory(),
             _ => string.Empty
         };
 

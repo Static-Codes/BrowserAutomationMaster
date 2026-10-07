@@ -368,7 +368,7 @@ namespace BrowserAutomationMaster.Core.GUI
                 await HandleGUIExtract();
 
                 // Fixes a bug where the 'compiled' directory may not be written to disk at this point.
-                EnsureDirectoryExists(GetDesiredSaveDirectory());
+                EnsureDirectoryExists(GetCompiledScriptsDirectory());
 
                 listener.Prefixes.Add(url);
                 listener.Start();

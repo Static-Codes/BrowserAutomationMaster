@@ -27,7 +27,7 @@ public partial class Transpiler()
     // This will be used in GenerateBackupName(); in the case of failure.
     private readonly static string defaultScriptFileName = "untitled-script";
 
-    private readonly static string desiredSaveDirectory = GetDesiredSaveDirectory();
+    private readonly static string desiredSaveDirectory = GetCompiledScriptsDirectory();
     private static string projectName = "";
     private readonly static string requirementsFileName = "requirements.txt";
     private static string projectDirectory = "";

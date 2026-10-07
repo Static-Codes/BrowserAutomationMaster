@@ -242,8 +242,88 @@ public class DirectoryManager
         }
     }
 
-    public static string GetBinariesDirectory() { return Path.Combine(AppDataDirectory, "binaries"); }
-    public static string GetDesiredSaveDirectory() { return Path.Combine(AppDataDirectory, "compiled"); }
+
+    /// <summary> Returns the path used for BAMM's AppData on Linux. </summary>
+    /// <returns>/home/{username}/.config/BrowserAutomationMaster</returns>
+    private static string GetAppDataLinux()
+    {
+        string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (string.IsNullOrEmpty(homeDirectory)) {
+            homeDirectory = Environment.GetEnvironmentVariable("HOME");
+        }
+
+        // Fallback for second check
+        if (string.IsNullOrEmpty(homeDirectory)) {
+            WriteAndExit(
+                message:
+                    "BAM Manager (BAMM) could not determine home directory on Linux.\n" +
+                    "Press any key to exit...",
+                status: 1
+            );
+        }
+
+        // Ensures compliance with XDG specs using $XDG_CONFIG_HOME or $HOME/.config
+        string? configHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+        if (string.IsNullOrEmpty(configHome)) {
+            configHome = Path.Combine(homeDirectory, ".config");
+        }
+        
+        string appDataDirectory = Path.Combine(configHome, AppName);
+        EnsureDirectoryExists(appDataDirectory);
+        return appDataDirectory;
+    }
+
+    /// <summary> Returns the path used for BAMM's AppData on macOS. </summary>
+    /// <returns> ~/Library/Application Support/BrowserAutomationMaster </returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    private static string GetAppDataMacOS()
+    {
+        string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        if (string.IsNullOrEmpty(homeDirectory))
+        {
+            throw new InvalidOperationException(
+                "Could not determine the user's home directory (Environment.SpecialFolder.UserProfile was empty). " +
+                "Cannot construct application data path for macOS."
+            );
+        }
+
+        string appDataDirectory = Path.Combine(
+            homeDirectory,
+            "Library",
+            "Application Support",
+            AppName
+        );
+
+        EnsureDirectoryExists(appDataDirectory);
+        return appDataDirectory;
+    }
+
+    /// <summary> Returns the path used for BAMM's AppData on Windows. </summary>
+    /// <returns> C:\Users\{username}\AppData\Roaming\BrowserAutomationMaster </returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    private static string GetAppDataWindows()
+    {
+        string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+        if (string.IsNullOrEmpty(appDataFolder))
+        {
+            throw new InvalidOperationException(
+                "Could not determine the Windows Application Data folder (Environment.SpecialFolder.ApplicationData was empty)."
+            );
+        }
+
+        string appDataDirectory = Path.Combine(appDataFolder, AppName);
+
+        EnsureDirectoryExists(appDataDirectory);
+        return appDataDirectory;
+    }
+
+
+
+    public static string GetBinariesDirectory() => Path.Combine(AppDataDirectory, "binaries");
+    
+    public static string GetCompiledScriptsDirectory() => Path.Combine(AppDataDirectory, "compiled");
 
     private static string GetDefaultBackupPath(string compression = "zip")
     {
@@ -270,26 +350,15 @@ public class DirectoryManager
         }
     }
 
-    public static string GetExtensionsDirectory() { return Path.Combine(AppDataDirectory, "extensions"); }    
-    public static string GetGUIDaemonPath() 
-    { 
-        return Path.Combine(AppDataDirectory, "guiDaemon.py"); 
-    }
+    public static string GetExtensionsDirectory() => Path.Combine(AppDataDirectory, "extensions");
+
+    public static string GetGUIDaemonPath() => Path.Combine(AppDataDirectory, "guiDaemon.py");
     
-    public static string GetGUIDirectoryPath() 
-    { 
-        return Path.Combine(AppDataDirectory, "gui"); 
-    }
+    public static string GetGUIDirectoryPath() => Path.Combine(AppDataDirectory, "gui");
 
-    public static string GetGUIScriptsPath()
-    {
-        return Path.Join(GetGUIDirectoryPath(), "scripts", "/");
-    }
+    public static string GetGUIScriptsPath() => Path.Join(GetGUIDirectoryPath(), "scripts", "/");
 
-    public static string GetGUIStylesPath()
-    {
-        return Path.Join(GetGUIDirectoryPath(), "styles", "/");
-    }
+    public static string GetGUIStylesPath() => Path.Join(GetGUIDirectoryPath(), "styles", "/");
 
     public static string GetGUISidebarCSSPath()
     {
@@ -371,82 +440,8 @@ public class DirectoryManager
         return sourceBuildsDir;
     }
     
-    /// <summary> Returns the path used for BAMM's AppData on Linux. </summary>
-    /// <returns>/home/{username}/.config/BrowserAutomationMaster</returns>
-    private static string GetAppDataLinux()
-    {
-        string? homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        if (string.IsNullOrEmpty(homeDirectory)) {
-            homeDirectory = Environment.GetEnvironmentVariable("HOME");
-        }
-
-        // Fallback for second check
-        if (string.IsNullOrEmpty(homeDirectory)) {
-            WriteAndExit(
-                message:
-                    "BAM Manager (BAMM) could not determine home directory on Linux.\n" +
-                    "Press any key to exit...",
-                status: 1
-            );
-        }
-
-        // Ensures compliance with XDG specs using $XDG_CONFIG_HOME or $HOME/.config
-        string? configHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-        if (string.IsNullOrEmpty(configHome)) {
-            configHome = Path.Combine(homeDirectory, ".config");
-        }
-        
-        string appDataDirectory = Path.Combine(configHome, AppName);
-        EnsureDirectoryExists(appDataDirectory);
-        return appDataDirectory;
-    }
-
-    /// <summary> Returns the path used for BAMM's AppData on macOS. </summary>
-    /// <returns> ~/Library/Application Support/BrowserAutomationMaster </returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    private static string GetAppDataMacOS()
-    {
-        string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-        if (string.IsNullOrEmpty(homeDirectory))
-        {
-            throw new InvalidOperationException(
-                "Could not determine the user's home directory (Environment.SpecialFolder.UserProfile was empty). " +
-                "Cannot construct application data path for macOS."
-            );
-        }
-
-        string appDataDirectory = Path.Combine(
-            homeDirectory,
-            "Library",
-            "Application Support",
-            AppName
-        );
-
-        EnsureDirectoryExists(appDataDirectory);
-        return appDataDirectory;
-    }
-
-    /// <summary> Returns the path used for BAMM's AppData on Windows. </summary>
-    /// <returns> C:\Users\{username}\AppData\Roaming\BrowserAutomationMaster </returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    private static string GetAppDataWindows()
-    {
-        string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
-        if (string.IsNullOrEmpty(appDataFolder))
-        {
-            throw new InvalidOperationException(
-                "Could not determine the Windows Application Data folder (Environment.SpecialFolder.ApplicationData was empty)."
-            );
-        }
-
-        string appDataDirectory = Path.Combine(appDataFolder, AppName);
-
-        EnsureDirectoryExists(appDataDirectory);
-        return appDataDirectory;
-    }
-
+    public static string GetUserScriptsDirectory() => Path.Combine(AppDataDirectory, "userScripts");
+    
     private static void HandleRestoreConfirmation(string response, ref bool isConfirmed)
     {
         if (Input.ConditionAccepted(response)) { isConfirmed = true; }

@@ -5,3 +5,4 @@ src/*/Resources/NativeFileDialog/bin
 src/*/Resources/NativeFileDialog/obj
 
 src/*/Resources/NativeFileDialog/runtimes
+src/BrowserAutomationMaster/Resources/gui.zip

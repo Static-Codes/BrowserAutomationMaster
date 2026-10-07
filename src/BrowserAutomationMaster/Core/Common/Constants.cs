@@ -50,6 +50,7 @@ namespace BrowserAutomationMaster.Core.Common
         // public const string CHROME_VERSION_HISTORY_URL = "https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/stable/versions";
         public const string CHROME_VERSION_URL = "https://chromiumdash.appspot.com/fetch_releases?channel=Extended&platform=Windows&num=1&offset=0";
         
+        // Do not change the order of the first item in this mapping, PyPi.SupportedPythonVersions relies on this ordering.
         public static readonly Dictionary<AppNames, string> pythonVersionMapping = new() {
             { AppNames.Python3_X, "3." },
             { AppNames.Python3_9, "3.9" },

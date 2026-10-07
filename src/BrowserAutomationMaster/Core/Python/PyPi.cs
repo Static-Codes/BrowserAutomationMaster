@@ -1,5 +1,6 @@
 using BrowserAutomationMaster.Core.Common;
 using System.Net;
+using static BrowserAutomationMaster.Core.Common.Constants;
 using static BrowserAutomationMaster.Core.Common.RequestManager;
 using static BrowserAutomationMaster.Core.Common.RegexManager;
 using static BrowserAutomationMaster.Core.Messaging.Errors;
@@ -24,7 +25,10 @@ public static class PyPiPackageExtensions
 public partial class PyPi
 {
     private readonly static string baseURL = "https://pypi.org/project";
-    private readonly static string[] SupportedPythonVersions = [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15" ];
+    private readonly static string[] SupportedPythonVersions = [..
+        pythonVersionMapping.Values.TakeLast(pythonVersionMapping.Values.Count - 1)
+    ];
+
     private static readonly PyPiPackage[] packageData = 
     [
         new PyPiPackage(
