@@ -158,9 +158,9 @@ public partial class Transpiler()
         }
 
         // This function will exit if a null value is reached so no worries about a null check here
-        string sVersion = PyPi.GetVersion("selenium");
-        string swVersion = PyPi.GetVersion("selenium-wire");
-        string wmVersion = PyPi.GetVersion("webdriver_manager");
+        string sVersion = PyPi.GetSupportedPackageVersion("selenium");
+        string swVersion = PyPi.GetSupportedPackageVersion("selenium-wire");
+        string wmVersion = PyPi.GetSupportedPackageVersion("webdriver_manager");
 
         string[] packages = [
             "setuptools==80.9.0",
