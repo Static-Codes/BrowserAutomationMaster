@@ -50,7 +50,7 @@
 
 	<!-- GUI Archive downloaded from GUI -->
 	<EmbeddedResource Include="$(_FullGUIResourcePath)" Watch="false" />
-</ItemGroup>
+  </ItemGroup>
 
   <ItemGroup>
 
@@ -68,5 +68,11 @@
 
 	<PackageReference Include="UserAgents.Net" Version="1.0.0.47" />
 
+  </ItemGroup>
+
+  <!-- CompilationValidationTests reads Transpiler.validCommands to prove it stays in step with
+	   Parser.HandleLineValidation(). Widening that field to public would only serve the test. -->
+  <ItemGroup>
+  	<InternalsVisibleTo Include="BrowserAutomationMaster.Tests" />
   </ItemGroup>
 </Project>

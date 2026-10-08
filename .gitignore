@@ -1,8 +1,12 @@
 src/*/bin
 src/*/obj
 .kilo
+.vscode
+
 src/*/Resources/NativeFileDialog/bin
 src/*/Resources/NativeFileDialog/obj
 
 src/*/Resources/NativeFileDialog/runtimes
 src/BrowserAutomationMaster/Resources/gui.zip
+src/BrowserAutomationMaster.Tests/Gui/Server/GuiServerHost/obj/
+src/BrowserAutomationMaster.Tests/Gui/Server/GuiServerHost/bin/

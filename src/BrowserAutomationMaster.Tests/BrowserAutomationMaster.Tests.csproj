@@ -1,6 +1,60 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net10.0</TargetFramework>
-    </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    
+    <!-- Preventing duplicate assembly attribute generation. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>    
+    
+    <RootNamespace>BrowserAutomationMaster.Tests</RootNamespace>
+    <AssemblyName>BrowserAutomationMaster.Tests</AssemblyName>
+
+    <!--
+      NAOT (Native AOT) compliance is intentionally NOT required for this project.
+      See: https://github.com/Static-Codes/BrowserAutomationMaster/issues/10
+      "Since NAOT isn't used in BAMM, the XUnit tests aren't required to be NAOT compliant."
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../BrowserAutomationMaster\BrowserAutomationMaster.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      BAMM's validation routines write to the process-global Console, so test collections running
+      in parallel interleave their output character by character and render the results unreadable.
+      Collections are therefore run sequentially. The suite is fast enough that this costs little.
+    -->
+    <None Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Fallback script discovery for the ScriptExecution suite. The filenames under
+      examples/Chrome and examples/Firefox are unique, so flattening them into a
+      single userScripts directory is safe.
+    -->
+    <None Include="../../examples/**/*.bamc" Link="userScripts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
