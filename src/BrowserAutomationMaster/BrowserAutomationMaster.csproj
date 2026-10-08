@@ -70,6 +70,12 @@
 
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="Dependencies/CrxFetch/CrxFetch/CrxFetch.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
   <!-- CompilationValidationTests reads Transpiler.validCommands to prove it stays in step with
 	   Parser.HandleLineValidation(). Widening that field to public would only serve the test. -->
   <ItemGroup>

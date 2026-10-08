@@ -2,5 +2,6 @@
   <Folder Name="/src/">
     <Project Path="src/BrowserAutomationMaster/BrowserAutomationMaster.csproj" />
     <Project Path="src/BrowserAutomationMaster.Tests/BrowserAutomationMaster.Tests.csproj" />
+    <Project Path="src/BrowserAutomationMaster/Dependencies/CrxFetch/CrxFetch/CrxFetch.csproj" />
   </Folder>
 </Solution>
