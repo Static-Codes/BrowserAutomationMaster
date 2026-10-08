@@ -335,7 +335,7 @@ public partial class Transpiler()
         catch
         {
             WriteAndExit(
-                "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
+                "BAM Manager (BAMM) was unable to create the desired project directory, please try again.",
                 status: 1
             );
         }
@@ -351,7 +351,7 @@ public partial class Transpiler()
         { 
             WriteAndExit(
                 message: string.Join(Environment.NewLine, [
-                    "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
+                    "BAM Manager (BAMM) was unable to create the desired project directory, please try again.",
                     "Error Log:",
                     ex.Message
                 ]),
@@ -369,7 +369,7 @@ public partial class Transpiler()
         {
             WriteAndExit(
                 message: string.Join(Environment.NewLine, [
-                    "BAMM Manager (BAMM) was unable to create the desired project directory, please try again.",
+                    "BAM Manager (BAMM) was unable to create the desired project directory, please try again.",
                     "Error Log:",
                     ex.Message
                 ]),

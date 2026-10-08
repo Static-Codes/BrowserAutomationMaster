@@ -95,7 +95,7 @@ namespace BrowserAutomationMaster.Core.Messaging
             if (!File.Exists(path)) {
                 WriteAndExit(
                     message:
-                        "BAMM Manager (BAMM) was unable to find the provided file, " +
+                        "BAM Manager (BAMM) was unable to find the provided file, " +
                         $"please ensure the file below exists:\n{path}",
                     status: 1
                 );
