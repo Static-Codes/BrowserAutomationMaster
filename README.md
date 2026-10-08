@@ -62,6 +62,7 @@ https://github.com/user-attachments/assets/d49b53d6-8203-4d6b-948b-7133b335b653
 - **3.12.x**
 - **3.13.x**
 - **3.14.x**
+- **3.15.x**
 
 ### Supported Operating Systems 💻
 
