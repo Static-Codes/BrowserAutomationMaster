@@ -256,10 +256,13 @@ public partial class Parser
     {
         WriteAndExit(
             message:
-                "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                $"File: \"{fileName}\"\n" +
-                $"Duplicate command on line {i + 1}:\n{line}\n" +
-                "All 'feature' commands may only be defined once.\n",
+                $"BAM Manager (BAMM) ran into a BAMC validation error:{Environment.NewLine}" +
+                $"{Environment.NewLine}" +
+                $"File: \"{fileName}\"{Environment.NewLine}" +
+                $"Duplicate command on line {i + 1}:{Environment.NewLine}{line}" +
+                $"{Environment.NewLine}" +
+                $"Line: {line}{Environment.NewLine}" + 
+                $"All 'feature' commands may only be defined once.{Environment.NewLine}",
             status: 1
         );
     }
@@ -648,10 +651,13 @@ public partial class Parser
         {
             return WriteErrorAndReturnBool(
                 message:
-                    $"BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
-                    $"File: \"{fileName}\"\n" +
-                    $"Invalid 'feature' command location on line {lineIndex + 1}.\n" +
-                    $"All 'feature' commands must be placed before any other command, except 'browser'.\n",
+                    $"BAM Manager (BAMM) ran into a BAMC validation error:{Environment.NewLine}" +
+                    $"{Environment.NewLine}" +
+                    $"File: \"{fileName}\"{Environment.NewLine}" +
+                    $"Invalid 'feature' command location on line {lineIndex + 1}.{Environment.NewLine}" +
+                    $"Line: {line}{Environment.NewLine}" + 
+                    $"All 'feature' commands must be placed before any other command, except 'browser'." +
+                    Environment.NewLine,
                 returnBool: false
             );
         }
@@ -668,6 +674,7 @@ public partial class Parser
                     "BAM Manager (BAMM) ran into a BAMC validation error:\n\n" +
                     $"File: \"{fileName}\"\n" +
                     $"Unknown feature command on line {lineIndex + 1}:\n{line}\n\n" +
+                    $"Line: {line}{Environment.NewLine}" + 
                     $"For more information please see, {DOCUMENTATION_LINK}",
                 returnBool: false
             );
@@ -799,6 +806,10 @@ public partial class Parser
         }
 
         state.VisitBlockFinished = true;
+        
+        // After the 'visit' command has been declared, 'feature' commands are no longer syntactically valid.
+        state.FeatureBlockFinished = true;
+
         return true;
     }
 
@@ -839,6 +850,17 @@ public partial class Parser
         {
             var line = lines[i];
 
+            Console.WriteLine(line);
+            Console.WriteLine("------------------------------------------------");
+            Console.WriteLine("Browser Finished: " + state.BrowserBlockFinished);
+            Console.WriteLine("Feature Finished: " + state.FeatureBlockFinished);
+            Console.WriteLine("JSBlock Content: " + state.CurrentJSBlockContent);
+            Console.WriteLine("JSBlock Finished: " + state.JSBlockFinished);
+            Console.WriteLine("JSBlock Starts At: Line " + state.LineCurrentJSBlockStarts);
+            Console.WriteLine("JSBlock Starts At: Line " + state.UsedFeatures);
+            Console.WriteLine("Visit Block Finished: " + state.VisitBlockFinished);
+            Console.WriteLine();
+
             if (!state.JSBlockFinished)
             {
                 BuildJSBlock(
@@ -870,6 +892,8 @@ public partial class Parser
             if (!HandleLineValidation(fileName, line, i + 1)) { return false; }
 
             if (!line.StartsWith("//") && !firstArg.Equals("feature")) { state.FeatureBlockFinished = true; }
+
+            else { return false; }
         }
 
         if (writeSuccessOnEnd) {
