@@ -1,0 +1,51 @@
+# Copyright (C) 2026 Static Codes
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  push:
+    # After 'main' was renamed to 'stable', Github started resolving the missing ref to its last known point rather than failing.
+    # The default branch is 'stable' (origin/HEAD), and 'canary' is a branch off `stable` where unreleased changes are pushed.
+    branches: [ "canary", "stable" ]
+  pull_request:
+    branches: [ "canary", "stable" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore ./src/BrowserAutomationMaster.sln
+
+    - name: Build
+      run: dotnet build ./src/BrowserAutomationMaster.sln --no-restore
+
+    - name: Test
+      run: dotnet test ./src/BrowserAutomationMaster.sln --no-build
+
+    - name: Running test coverage for the Linux installer script
+      run: bash ./src/Installers/Linux/test-install.sh

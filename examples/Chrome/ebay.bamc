@@ -1,0 +1,8 @@
+browser "chrome"
+visit "https://www.ebay.com/"
+wait-for-seconds 1.5
+fill-text "#gh-ac" "Awesome deals"
+wait-for-seconds 1
+click "#gh-search-btn"
+wait-for-seconds 10
+save-as-html "ebay-search.html"

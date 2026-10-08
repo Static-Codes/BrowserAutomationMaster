@@ -1,0 +1,6 @@
+visit "https://www.google.com/maps/"
+wait-for-seconds 1.5
+fill-text "#searchboxinput" "Topeka, KS"
+click "#searchbox-searchbutton"
+wait-for-seconds 5
+take-screenshot "google-maps.png"

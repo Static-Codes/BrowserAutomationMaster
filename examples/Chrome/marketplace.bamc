@@ -1,0 +1,39 @@
+browser "chrome" // this also works in firefox
+visit "https://www.facebook.com/marketplace/"
+wait-for-seconds 1.5
+start-javascript
+var button = document.querySelector("div[aria-label='Close']");
+if (button){
+    button.click();
+}
+else{
+    alert('Not Found');
+}
+end-javascript
+
+wait-for-seconds 2
+
+fill-text "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[1]/div/div[2]/div/div/div/span/div/div/div/div/label/input" "free stuff"
+
+wait-for-seconds 2
+
+start-javascript
+const enterEvent = new KeyboardEvent('keydown', {
+  key: 'Enter',
+  code: 'Enter',
+  which: 13,
+  keyCode: 13,
+  bubbles: true,
+  cancelable: true
+});
+var textbox = document.querySelector("input[placeholder='Search Marketplace']");
+if (textbox){
+    textbox.dispatchEvent(enterEvent);
+}
+else {
+    alert('Unable to submit click event');
+}
+end-javascript
+
+wait-for-seconds 15
+take-screenshot "marketplace-search.png"
