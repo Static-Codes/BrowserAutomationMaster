@@ -39,13 +39,13 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore dependencies
-      run: dotnet restore ./src/BrowserAutomationMaster.sln
+      run: dotnet restore ./src/BrowserAutomationMaster.slnx
 
     - name: Build
-      run: dotnet build ./src/BrowserAutomationMaster.sln --no-restore
+      run: dotnet build ./src/BrowserAutomationMaster.slnx --no-restore
 
     - name: Test
-      run: dotnet test ./src/BrowserAutomationMaster.sln --no-build
+      run: dotnet test ./src/BrowserAutomationMaster.slnx --no-build
 
     - name: Running test coverage for the Linux installer script
       run: bash ./src/Installers/Linux/test-install.sh
