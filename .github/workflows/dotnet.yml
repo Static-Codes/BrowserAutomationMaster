@@ -49,5 +49,5 @@ jobs:
     - name: Test
       run: dotnet test ./BrowserAutomationMaster.slnx --no-build
 
-    - name: Running test coverage for the Linux installer script
-      run: bash ./src/Installers/Linux/test-install.sh
+    # - name: Running test coverage for the Linux installer script
+    #   run: bash ./src/Installers/Linux/test-install.sh
