@@ -3,7 +3,7 @@
 
 A custom scripting language that compiles into Python 3.9+ code.
 
-BAM Manager (BAMM) simplifies Selenium by allowing you to write automation scripts in a more concise, readable, and English-like language.  
+BAM Manager (BAMM) simplifies web-based automation testing by allowing you to write scripts with a concise, readable, and English-like language.
 
 This language is known as **BAMC** **(BAM Config)**. 
 
