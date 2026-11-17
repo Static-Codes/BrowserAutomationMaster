@@ -1,0 +1,7 @@
+browser "firefox"
+feature "use-https-proxy" "user:pass@123.123.123.123:10"
+feature "disable-pycache"
+feature "bypass-cloudflare"
+add-headers {"string1": 10, "string2": 11}
+visit "https://httpbin.io/ip"
+save-as-html "test.html"
