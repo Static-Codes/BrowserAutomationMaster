@@ -1,7 +1,5 @@
 ## Changelog
 
-`405d277` → `43e8ab7` (branch `canary`) · 200 commits · 172 files changed, 11,433 insertions(+), 31,152 deletions(-)
-
 <details>
   <summary> Click here to view a summary of changes </summary>
 
@@ -20,7 +18,7 @@ After many months of inactivity, BAMM v1.0.0A8 is ready for release!
 <details>
   <summary> Click here for a detailed summary (For developers) </summary>
 
-- Ported [NativeFileDialogSharp](https://github.com/milleniumbug/NativeFileDialogSharp) from NET6.0 to NET10.0, then embedded the native runtimes on all supported platforms — excluding ARM32 / ARMv7 (ARMel / ARMhf)
+- Ported [NativeFileDialogSharp](https://github.com/milleniumbug/NativeFileDialogSharp) from NET6.0 to NET10.0, then embedded the native runtimes on all supported platforms [excluding ARM32 / ARMv7 (ARMel / ARMhf)]
 
   - Windows
     - `x64` -> `nfd.dll`
@@ -46,7 +44,7 @@ After many months of inactivity, BAMM v1.0.0A8 is ready for release!
 
 ### Commands
 
-- Renamed `**platform-debug**` to **`--platform-info`** (new debug/diagnostics command, originally `--platform-debug`; renamed for clarity): prints platform, distribution, architecture, and Native File Dialog status.
+- Renamed **`platform-debug`** to **`--platform-info`** (new debug/diagnostics command, originally **`--platform-debug`**; renamed for clarity): prints platform, distribution, architecture, and Native File Dialog status.
 
 - Added **`--allow-multiple-instances`**: bypasses the single instance guard, allowing BAMM to run alongside another instance. Intended for automated/headless invocation and unit test execution.
 
